@@ -1,7 +1,11 @@
+#import calc: floor, ceil, min, max
+
 #let v-add((x1, y1), (x2, y2)) = (x1 + x2, y1 + y2)
 #let v-mul(s, (x, y)) = (s*x, s*y)
 #let v-sub(a, b) = v-add(a, v-mul(-1, b))
 #let v-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
+#let v-len((x, y)) = calc.sqrt(x*x + y*y)
+#let v-angle((x, y)) = calc.atan2(x.pt(), y.pt())
 
 #let min-max(array) = (calc.min(..array), calc.max(..array))
 
@@ -16,8 +20,8 @@
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 #let lerp-at(array, t) = lerp(
-	array.at(calc.floor(t)),
-	array.at(calc.ceil(t)),
+	array.at(floor(t)),
+	array.at(ceil(t)),
 	calc.fract(t),
 )
 
@@ -27,63 +31,66 @@
 	a.zip(..others)
 }
 
-#let expand-fractional-nodes(nodes) = {
-	let i = 0
-	while i < nodes.len() {
-		let (x, y) = nodes.at(i).pos
-		let (width, height) = nodes.at(i).size
 
-		if calc.fract(x) != 0 {
-			let _ = nodes.remove(i)
-			nodes.push((
-				pos: (calc.ceil(x), y),
-				size: (width*calc.fract(x), height),
-			))
-			nodes.push((
-				pos: (calc.floor(x), y),
-				size: (width*(1 - calc.fract(x)), height),
-			))
-		} else if calc.fract(y) != 0 {
-			let _ = nodes.remove(i)
-			nodes.push((
-				pos: (x, calc.ceil(y)),
-				size: (width, height*calc.fract(y)),
-			))
-			nodes.push((
-				pos: (x, calc.floor(y)),
-				size: (width, height*(1 - calc.fract(y))),
-			))
-		} else {
-			i += 1
+/// Convert an array of rects with fractional positions into rects with integral
+/// positions.
+/// 
+/// A rect is a dictionary `(pos: (x, y), size: (width, height))`.
+/// 
+/// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
+/// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
+/// total width of the original rect is split across the two new rects according
+/// two which one is closer. (E.g., if the original rect is at `x = 0.25`, the
+/// new rect at `x = 0` has 75% the original width and the rect at `x = 1` has
+/// 25%.) The same splitting procedure is done for `y` positions and heights.
+#let expand-fractional-rects(rects) = {
+	let new-rects
+	for axis in (0, 1) {
+		new-rects = ()
+		for rect in rects {
+			let coord = rect.pos.at(axis)
+			let size = rect.size.at(axis)
+
+			if calc.fract(coord) == 0 {
+				rect.pos.at(axis) = calc.trunc(coord)
+				new-rects.push(rect)
+			} else {
+				rect.pos.at(axis) = floor(coord)
+				rect.size.at(axis) = size*(ceil(coord) - coord)
+				new-rects.push(rect)
+
+				rect.pos.at(axis) = ceil(coord)
+				rect.size.at(axis) = size*(coord - floor(coord))
+				new-rects.push(rect)
+			}
 		}
+		rects = new-rects
 	}
-	nodes
+	new-rects
 }
 
-#let ensure-zero-based-positions(nodes) = {
-	let origin = zip(..nodes.map(n => n.pos))
-		.map(locs => calc.min(..locs.map(calc.floor)))
-
-	nodes.map(node => {
-		node.pos = v-sub(node.pos, origin)
-		node
-	})
-}
-
-#let compute-grid(nodes, pad) = {
-
+/// Determine the number, sizes and positions of rows and columns.
+#let compute-grid(rects, pad) = {
 	// (x: (x-min, x-max), y: ...)
-	let rect = zip(..nodes.map(n => n.pos)).map(min-max)
+	let bounding-rect = zip(..rects.map(n => n.pos)).map(min-max)
 
 	// (x: n-cols, y: n-rows)
-	let dims = rect.map(((min, max)) => max - min + 1)
+	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
+
+	let coord-origin = bounding-rect.map(((min, max)) => min)
+	rects = rects.map(rect => {
+		rect.pos = v-sub(rect.pos, coord-origin)
+		let (x, y) = rect.pos
+		if x < 0 or y < 0 { panic(rect) }
+		rect
+	})
 
 	// (x: (0pt, 0pt, ...), y: ...)
-	let cell-sizes = dims.map(n => range(n).map(_ => 0pt))
+	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
 
-	for node in nodes {
-		let (col, row) = node.pos
-		let (width, height) = node.size
+	for rect in rects {
+		let (col, row) = rect.pos
+		let (width, height) = rect.size
 		cell-sizes.at(0).at(col) = calc.max(cell-sizes.at(0).at(col), width)
 		cell-sizes.at(1).at(row) = calc.max(cell-sizes.at(1).at(row), height)
 	}
@@ -97,22 +104,38 @@
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
-	(cell-centers, total-size)
+	(
+		centers: cell-centers,
+		sizes: cell-sizes,
+		origin: coord-origin,
+		bounding-size: total-size
+	)
 }	
 
+// #let compute-cell-radii(nodes) = {
+// 	let lookup = ()
+// 	for node in nodes {
+
+// 	}
+// }
 
 
 #let node(pos, label) = (
-	kind: "node",
-	pos: pos,
-	label: label,
+	(
+		kind: "node",
+		pos: pos,
+		label: label,
+	),
 )
 
-#let arrow(from, to, label: none) = (
-	kind: "arrow",
-	from: from,
-	to: to,
-)
+#let arrow(from, to, label: none, paint: auto) = (
+	(
+		kind: "arrow",
+		from: from,
+		to: to,
+		paint: paint,
+	),
+) + node(from, none) + node(to, none)
 
 #let arrow-diagram(
 	pad: 0pt,
@@ -120,55 +143,108 @@
 	..entities,
 ) = {
 
+	debug = int(debug)
+
 	if type(pad) != array { pad = (pad, pad) }
-	// entities
-	let nodes = entities.pos().filter(e => e.kind == "node")
-	let arrows = entities.pos().filter(e => e.kind == "arrow")
-	
+
+	entities = entities.pos().join()
+	// panic(entities)
+
+	let nodes = entities.filter(e => e.kind == "node")
+	let arrows = entities.filter(e => e.kind == "arrow")
+
 	style(styles => {
 
-		let nodes = ensure-zero-based-positions(nodes)
-
-		let rects = nodes.map(node => {
+		let nodes = nodes.map(node => {
 			let (width, height) = measure(node.label, styles)
-			(pos: node.pos, size: (width, height))
+			node.size = (width, height)
+			node.radius = calc.sqrt(
+				(width/2pt)*(width/2pt) + (height/2pt)*(height/2pt)
+			)*1pt
+			node
 		})
 
-		rects = expand-fractional-nodes(rects)
-		let (cell-centers, total-size) = compute-grid(rects, pad)
+		let rects = (
+			nodes.map(node => (pos: node.pos, size: node.size)),
+			arrows.map(arrow => (pos: arrow.from, size: (0pt, 0pt))),
+			arrows.map(arrow => (pos: arrow.to, size: (0pt, 0pt))),
+		).join()
 
-		let diagram = for node in nodes {
+		rects = expand-fractional-rects(rects)
+		let grid = compute-grid(rects, pad)
 
-			let place-item(item) = place(
-				center + horizon,
-				item,
-				dx: lerp-at(cell-centers.at(0), node.pos.at(0)),
-				dy: lerp-at(cell-centers.at(1), node.pos.at(1)),
-			)
+		// let radii = compute-cell-radii(nodes)
 
-			place-item(node.label)
+		// [radii: #radii]
 
-			if debug {
-				place-item(circle(radius: 1pt, fill: red, stroke: white + 0.5pt))
+		// wrap remaining content in a block of precomputed size
+		show: diagram => block(
+			stroke: if debug >= 1 { red + .25pt },
+			width: grid.bounding-size.at(0),
+			height: grid.bounding-size.at(1),
+			diagram,
+		)
+
+		// draw axes
+		if debug >= 2 {
+			set text(size: .5em, red)
+			set line(stroke: red)
+			let gridline = (thickness: 0.25pt, dash: "densely-dotted")
+			for (i, x) in grid.centers.at(0).enumerate() {
+				place(dx: x, dy: -.5em, place(center + bottom, [#(grid.origin.at(0) + i)]))
+				place(dx: x, place(center, line(stroke: 1pt, length: grid.sizes.at(0).at(i))))
+				place(top, dx: x, line(angle: 90deg, length: grid.bounding-size.at(1), stroke: gridline))
 			}
-
+			for (i, y) in grid.centers.at(1).enumerate() {
+				place(dy: y, dx: -.5em, place(horizon + right, [#(grid.origin.at(1) + i)]))
+				place(dy: y, place(horizon, line(stroke: 1pt, angle: 90deg, length: grid.sizes.at(1).at(i))))
+				place(dy: y, line(angle: 0deg, length: grid.bounding-size.at(0), stroke: gridline))
+			}
 		}
 
-		diagram += for arrow in arrows {
+		let to-real-coords(coords) = {
+			grid.centers.zip(coords, grid.origin).map(((centers, coord, origin)) => {
+				lerp-at(centers, coord - origin)
+			})
+		}
+
+		let place-at-node(node, item) = {
+			let (x, y) = to-real-coords(node.pos)
+			place(dx: x, dy: y, place(center + horizon, item))
+		}
+
+		for node in nodes {
+			place-at-node(node, node.label)
+
+			if debug >= 1 {
+				place-at-node(node, rect(stroke: rgb("f00") + 0.25pt, width: node.size.at(0), height: node.size.at(1)))
+				place-at-node(node, circle(radius: 1pt, fill: red, stroke: white + 0.5pt))
+			}
+			if debug >= 2 {
+				place-at-node(node, circle(radius: node.radius, stroke: rgb("f004") + 0.25pt))
+			}
+		}
+
+		for arrow in arrows {
+			let r-from = max(0pt, ..nodes.filter(node => node.pos == arrow.from).map(node => node.radius))
+			let r-to = max(0pt, ..nodes.filter(node => node.pos == arrow.to).map(node => node.radius))
+
+			let θ = v-angle(v-sub(to-real-coords(arrow.to), to-real-coords(arrow.from)))
+			// panic(θ)
+			let (θ-from, θ-to) = (θ, θ)
+
+			let paint = if arrow.paint == auto { black } else { arrow.paint }
 			place(
 				line(
-					start: cell-centers.zip(arrow.from).map(((centers, coord)) => lerp-at(centers, coord)),
-					end: cell-centers.zip(arrow.to).map(((centers, coord)) => lerp-at(centers, coord)),
+					start: v-add(to-real-coords(arrow.from), v-polar(r-from, θ-from)),
+					end: v-sub(to-real-coords(arrow.to), v-polar(r-to, θ-to)),
+					stroke: (paint: paint, thickness: 0.5pt, cap: "round"),
 				),
 			)
 		}
 
-		block(
-			stroke: if debug { red + .25pt },
-			width: total-size.at(0),
-			height: total-size.at(1),
-			block(diagram)
-		)
-
 	})
+
 }
+
+
