@@ -6,13 +6,17 @@
 #show raw.where(block: true): set text(size: 0.75em)
 
 
-= `arrow-diagrams` package documentation
+#align(center, text(2em)[
+	*The `arrow-diagrams` package*
+])
 
 
-== How the grid layout works
+#outline()
+
+= How the grid layout works
 
 Each diagram is built on a grid of points, each at the center of a cell in a table layout with possibly varying row heights and column widths.
-When a node is placed in a diagtam, the rows and columns grow to accomodate the node's size.
+When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
 
 This can be seen more clearly in diagrams with no cell padding:
 
@@ -22,7 +26,7 @@ This can be seen more clearly in diagrams with no cell padding:
 	align(center, arrow-diagram(
 		debug: 1,
 		pad: 0pt,
-		node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
+		node((0,-1), box(fill: blue.lighten(50%),   width: 5mm,  height: 10mm)),
 		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
 		node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
 		node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
@@ -32,7 +36,7 @@ This can be seen more clearly in diagrams with no cell padding:
 #arrow-diagram(
 	debug: 1,
 	pad: 0pt,
-	node((0,-1), box(fill: blue.lighten(50%),   width: 20mm, height: 10mm)),
+	node((0,-1), box(fill: blue.lighten(50%),   width: 5mm,  height: 10mm)),
 	node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
 	node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
 	node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
@@ -41,7 +45,7 @@ This can be seen more clearly in diagrams with no cell padding:
 ]
 
 While grid points are always at integer coordinates, nodes can also have *fractional coordinates*.
-A node between grid points still causes the neighboring rows and columns to grow to accomodate its size, but only partially, depending on proximity.
+A node between grid points still causes the neighbouring rows and columns to grow to accommodate its size, but only partially, depending on proximity.
 
 #stack(
 	dir: ltr,
@@ -61,34 +65,80 @@ A node between grid points still causes the neighboring rows and columns to grow
 
 Specifically, fractional coordinates are handled by linearly interpolating the layout.
 For example, if a node is at $(0.25, 0)$, then the width of column $0$ must be at least $75%$ of the node's width, an column $1$ is at least $25%$ its width.
+This is implemented in the function `expand-fractional-rects`.
 
-This means your diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.
+As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.
 
 
-== How connecting lines work
+= How connecting lines work
 
 Lines between nodes connect to the node's bounding circle or bounding rectangle, depending on the node's aspect ratio.
 
 $
 #arrow-diagram(
-	pad: (14mm, 8mm),
-	node-outset: 5pt,
+	pad: (10mm, 6mm),
+	// node-outset: 4pt,
 	debug: 2,
-	{
-		let C = (0,-1)
-		let O = (0,1)
-
-		node((-1,0), $A$)
-		node(O, $A times B$)
-		node((+1,0), $B$)
-
-		node(C, $X$)
-
-		arrow((-1,0), O)
-		arrow((+1,0), O)
-		arrow((-1,0), C)
-		arrow((+1,0), C)
-		arrow(O, C)
-	}
+	// defocus: 0,
+	node((0,+1), $A times B times C$),
+	node((-1,0), $A$),
+	node(( 0,-1), $B$),
+	node((+1,0), $C$),
+	arrow((-1,0), (0,-1)),
+	arrow((+1,0), (0,-1)),
+	arrow((-1,0), (0,1)),
+	arrow((+1,0), (0,1)),
+	arrow((0,-1), (0,1)),
 )
 $
+
+== The `defocus` correction
+
+For aesthetic reasons, a line connecting to a node should not necessarily be focused to the node's exact center, especially if the node is short and wide or tall and narrow.
+Notice how in the figure above the lines connecting to the node $A times B times C$
+would intersect slightly above its center, making the diagram look more comfortable.
+The effect of this is shown below:
+
+#align(center, stack(
+	dir: ltr,
+	spacing: 20%,
+	..(("With", 0.6), ("Without", 0)).map(((with, d)) => {
+		figure(
+			caption: [#with correction],
+			arrow-diagram(
+				pad: (10mm, 6mm),
+				defocus: d,
+				node((0,1), $A times B times C$),
+				arrow((-1,0), (0,1)),
+				arrow((+1,0), (0,1)),
+				arrow((0,1), (0,-1)),
+			)
+		)
+	})
+))
+
+This correction is controlled by the `defocus` attribute of the node.
+It is best explained by example:
+
+#stack(
+	dir: ltr,
+	spacing: 1fr,
+	..(+.3, 0, -.3).map(d => {
+		arrow-diagram(
+			pad: 10mm,
+			debug: 2,
+			// node-outset: 0pt,
+			defocus: d,
+			node((0,0), raw("defocus: "+repr(d))),
+			for p in (
+				(-1,+1), ( 0,+1), (+1,+1),
+				(-1, 0),          (+1, 0),
+				(-1,-1), ( 0,-1), (+1,-1),
+			) {
+				arrow((0,0), p)
+			},
+		)
+	})
+)
+
+For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.

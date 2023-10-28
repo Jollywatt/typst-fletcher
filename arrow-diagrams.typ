@@ -4,6 +4,14 @@
 
 #let min-max(array) = (calc.min(..array), calc.max(..array))
 
+#let vector-len((x, y)) = 1pt*calc.sqrt((x/1pt)*(x/1pt) + (y/1pt)*(y/1pt))
+#let vector-set-len(len, v) = {
+	vector.scale(v, len/vector-len(v))
+}
+#let vector-unitless(v) = v.map(x => if type(x) == length { x/1pt } else { x })
+
+#let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
+
 #let cumsum(array) = {
 	let sum = array.at(0)
 	for i in range(1, array.len()) {
@@ -14,9 +22,9 @@
 }
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
-#let lerp-at(array, t) = lerp(
-	array.at(floor(t)),
-	array.at(ceil(t)),
+#let lerp-at(a, t) = lerp(
+	a.at(floor(t)),
+	a.at(ceil(t)),
 	calc.fract(t),
 )
 
@@ -28,6 +36,68 @@
 
 
 
+#let rect-edges((x0, y0), (x1, y1)) = (
+  ((x0, y0), (x1, y0)),
+  ((x1, y0), (x1, y1)),
+  ((x1, y1), (x0, y1)),
+  ((x0, y1), (x0, y0)),
+)
+#let intersect-rect-with-crossing-line(rect, line) = {
+	rect = rect.map(vector-unitless)
+	line = line.map(vector-unitless)
+	for (p1, p2) in rect-edges(..rect) {
+		let meet = cetz.draw.intersection.line-line(p1, p2, ..line)
+		if meet != none {
+			return vector.scale(meet, 1pt)
+		}
+	}
+	panic("didn't intersect", rect, line)
+}
+
+
+#let get-node-connector(cell, incident-angle, options) = {
+
+	if cell.radius < 1e-5pt { return cell.real-pos }
+
+	if cell.is-roundish {
+		// use bounding circle
+		vector.add(
+			cell.real-pos,
+			vector-polar(cell.radius, incident-angle),
+		)
+	} else {
+		// use bounding rect
+
+		let origin = cell.real-pos
+		let μ = calc.pow(cell.aspect, options.defocus)
+		let origin-δ = if cell.aspect < 1 {
+			(0pt, cell.size.at(1)/2*(1 - μ)*calc.sin(incident-angle))
+		} else {
+			(cell.size.at(0)/2*(1 - 1/μ)*calc.cos(incident-angle), 0pt)
+		}
+		let crossing-line = (
+			vector.add(origin, origin-δ),
+			vector.add(origin, vector-polar(2*cell.radius, incident-angle)),
+		)
+
+		intersect-rect-with-crossing-line(cell.rect, crossing-line)
+
+
+	}
+}
+
+#let get-node-connectors(cells, options) = {
+	let center-center-line = cells.map(cell => cell.real-pos)
+
+	let v = vector.sub(..center-center-line)
+	let θ = calc.atan2(..vector-unitless(v))
+
+	zip(cells, (180deg, 0deg)).map(((cell, δ)) => {
+		get-node-connector(cell, θ + δ, options)
+	})
+}
+
+
 #let node(pos, label) = {
 	assert(type(pos) == array and pos.len() == 2)
 	((
@@ -37,17 +107,24 @@
 	),)
 }
 
-#let arrow(from, to, label: none, paint: auto) = {
+#let arrow(
+	from,
+	to,
+	label: none,
+	paint: none,
+	stroke: 0.6pt,
+) = {
+	node(from, none)
+	node(to, none)
 	((
 		kind: "arrow",
 		points: (from, to),
 		paint: paint,
+		stroke: stroke,
 	),)
-	node(from, none)
-	node(to, none)
 }
 
-#let debug-color = red
+#let debug-color = rgb("f00a").lighten(50%)
 
 
 
@@ -93,31 +170,22 @@
 #let compute-grid(rects, pad) = {
 	// (x: (x-min, x-max), y: ...)
 	let bounding-rect = zip(..rects.map(n => n.pos)).map(min-max)
-
-	// (x: n-cols, y: n-rows)
 	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
-
-	let coord-origin = bounding-rect.map(((min, max)) => min)
-	rects = rects.map(rect => {
-		rect.pos = vector.sub(rect.pos, coord-origin)
-		let (x, y) = rect.pos
-		if x < 0 or y < 0 { panic(rect) }
-		rect
-	})
+	let origin = bounding-rect.map(((min, max)) => min)
 
 	// (x: (0pt, 0pt, ...), y: ...)
 	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
 
 	for rect in rects {
-		let (col, row) = rect.pos
+		let (col, row) = vector.sub(rect.pos, origin)
 		let (width, height) = rect.size
 		cell-sizes.at(0).at(col) = calc.max(cell-sizes.at(0).at(col), width)
 		cell-sizes.at(1).at(row) = calc.max(cell-sizes.at(1).at(row), height)
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
-	let cell-centers = cell-sizes.zip(pad).map(((sizes, gap)) => {
-		cumsum(sizes).zip(sizes, range(sizes.len())).map(((end, size, i)) => end - size/2 + gap*i)
+	let cell-centers = zip(cell-sizes, pad).map(((sizes, p)) => {
+		zip(cumsum(sizes), sizes, range(sizes.len())).map(((end, size, i)) => end - size/2 + p*i)
 	})
 
 	let total-size = cell-centers.zip(cell-sizes).map(((centers, sizes)) => {
@@ -127,7 +195,7 @@
 	(
 		centers: cell-centers,
 		sizes: cell-sizes,
-		origin: coord-origin,
+		origin: origin,
 		bounding-size: total-size
 	)
 }	
@@ -159,14 +227,24 @@
 
 		cell.size = cell.size.zip(node.size).map(x => max(..x))
 		let (w, h) = cell.size
-		cell.aspect = max(w/h, h/w)
+
+		cell.aspect = w/h
+		cell.is-roundish = max(cell.aspect, 1/cell.aspect) < 1.5
+		cell.bounding-mode = if cell.is-roundish { "circle" } else { "rect" }
+
+		let pad = options.node-outset// * if cell.is-roundish { 0.7 } else { 1.0 }
+		cell.size = cell.size.map(x => x + pad)
+
 		cell.radius = calc.sqrt((w/2pt)*(w/2pt) + (h/2pt)*(h/2pt))*1pt
 
 		cell.rect = (+1, -1).map(dir => {
-			vector.add(cell.real-pos,
+			vector.add(
+				cell.real-pos,
 				vector.scale(vector.div(cell.size, 2), dir)
 			)
 		})
+
+
 		cells.insert(repr(node.pos), cell)
 
 		nodes.at(i) = node
@@ -194,6 +272,8 @@
 
 		for (i, node) in nodes.enumerate() {
 
+			if node.label == none { continue }
+
 			let cell = cells.at(repr(node.pos))
 
 			cetz.draw.content(cell.real-pos, node.label, anchor: "center")
@@ -201,22 +281,25 @@
 			if debug >= 1 {
 				cetz.draw.circle(
 					cell.real-pos,
-					radius: .5pt,
+					radius: 1pt,
 					fill: debug-color,
 					stroke: none,
 				)
 			}
-			if debug >= 3 {
-				cetz.draw.rect(
-					vector.sub(cell.real-pos, vector.div(node.size, 2)),
-					vector.add(cell.real-pos, vector.div(node.size, 2)),
-					stroke: debug-color + 0.25pt,
-				)
-				cetz.draw.circle(
-					cell.real-pos,
-					radius: cell.radius,
-					stroke: debug-color + 0.25pt,
-				)
+			if debug >= 2 {
+				if cell.bounding-mode == "rect" {
+					cetz.draw.rect(
+						vector.sub(cell.real-pos, vector.div(cell.size, 2)),
+						vector.add(cell.real-pos, vector.div(cell.size, 2)),
+						stroke: debug-color + 0.25pt,
+					)
+				} else if cell.bounding-mode == "circle" {
+					cetz.draw.circle(
+						cell.real-pos,
+						radius: cell.radius,
+						stroke: debug-color + 0.25pt,
+					)
+				} else { panic(cell) }
 			}
 		}
 
@@ -231,56 +314,10 @@
 				(paint: debug-color, thickness: 0.25pt)
 			}
 
-			cetz.draw.intersections(name: "point-pair", {
+			let (p1, p2) = get-node-connectors(cells, options)
 
-				cetz.draw.line(
-					..cells.map(cell => cell.real-pos),
-					stroke: none,
-				)
+			cetz.draw.line(p1, p2, stroke: arrow.stroke + arrow.paint)
 
-				
-				for cell in cells {
-
-					let gap = options.node-outset
-
-					if cell.aspect <= 2 {
-						cetz.draw.circle(
-							vector.scale(cell.real-pos, 1 + 1e-5), // bug with intersections, this adds noise which seems to fix it
-							radius: cell.radius + gap,
-							stroke: intersection-stroke,
-						)
-					} else {
-						cetz.draw.rect(
-							..cell.rect.zip((+1, -1)).map(((corner, dir)) => {
-								let extra = (gap, gap)
-								vector.add(corner, vector.scale(extra, dir))
-							}),
-							radius: gap,
-							stroke: intersection-stroke,
-						)
-					}
-				}
-			})
-
-			// cetz.draw.for-each-anchor("point-pair", name => {
-			// 	cetz.draw.circle(
-			// 		"point-pair."+name,
-			// 		radius: 1pt,
-			// 		stroke: intersection-stroke,
-			// 	)
-			// 	cetz.draw.content(
-			// 		"point-pair."+name,
-			// 		text(size: 0.5em, name)
-			// 	)
-			// })
-
-			cetz.draw.line(
-				"point-pair.0",
-				"point-pair.1",
-				mark: (start: ">"),
-				stroke: .6pt,
-				// (0,0)
-			)
 		}
 
 
@@ -294,7 +331,6 @@
 				stroke: debug-color + 0.25pt
 			)
 
-			let gridline = (paint: debug-color, thickness: 0.25pt, dash: "densely-dotted")
 			for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
 
 				for (i, x) in grid.centers.at(axis).enumerate() {
@@ -308,7 +344,7 @@
 
 					// size bracket
 					cetz.draw.line(
-						..(+1, -1).map(dir => coord(x + dir*size/2, 0)),
+						..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
 						stroke: debug-color + .75pt,
 						mark: (start: "|", end: "|")
 					)
@@ -317,7 +353,11 @@
 					cetz.draw.line(
 						coord(x, 0),
 						coord(x, grid.bounding-size.at(1 - axis)),
-						stroke: gridline,
+						stroke: (
+							paint: debug-color,
+							thickness: .5pt,
+							dash: "densely-dotted",
+						),
 					)
 				}
 			}
@@ -329,9 +369,10 @@
 
 #let arrow-diagram(
 	..args,
-	pad: 0pt,
+	pad: 20pt,
 	debug: false,
-	node-outset: 4pt,
+	node-outset: 2pt,
+	defocus: 0.6,
 ) = {
 
 	if type(pad) != array { pad = (pad, pad) }
@@ -340,6 +381,7 @@
 		pad: pad,
 		debug: int(debug),
 		node-outset: node-outset,
+		defocus: defocus,
 	)
 
 	let positional-args = args.pos().join()
@@ -347,7 +389,7 @@
 	let nodes = positional-args.filter(e => e.kind == "node")
 	let arrows = positional-args.filter(e => e.kind == "arrow")
 
-	style(styles => {
+	box(style(styles => {
 
 		let nodes-sized = nodes.map(node => {
 			let (width, height) = measure(node.label, styles)
@@ -359,6 +401,6 @@
 
 		draw-diagram(grid, cells, nodes-sized, arrows, options)
 
-	})
+	}))
 }
 
