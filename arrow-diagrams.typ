@@ -1,59 +1,6 @@
-#import "@local/cetz:0.1.2" as cetz: vector
-
 #import calc: floor, ceil, min, max
-
-#let min-max(array) = (calc.min(..array), calc.max(..array))
-
-#let vector-len((x, y)) = 1pt*calc.sqrt((x/1pt)*(x/1pt) + (y/1pt)*(y/1pt))
-#let vector-set-len(len, v) = {
-	vector.scale(v, len/vector-len(v))
-}
-#let vector-unitless(v) = v.map(x => if type(x) == length { x/1pt } else { x })
-
-#let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
-
-#let cumsum(array) = {
-	let sum = array.at(0)
-	for i in range(1, array.len()) {
-		sum += array.at(i)
-		array.at(i) = sum
-	}
-	array
-}
-
-#let lerp(a, b, t) = a*(1 - t) + b*t
-#let lerp-at(a, t) = lerp(
-	a.at(floor(t)),
-	a.at(ceil(t)),
-	calc.fract(t),
-)
-
-#let zip(a, ..others) = if others.pos().len() == 0 {
-	a.map(i => (i,))
-} else {
-	a.zip(..others)
-}
-
-
-
-#let rect-edges((x0, y0), (x1, y1)) = (
-  ((x0, y0), (x1, y0)),
-  ((x1, y0), (x1, y1)),
-  ((x1, y1), (x0, y1)),
-  ((x0, y1), (x0, y0)),
-)
-#let intersect-rect-with-crossing-line(rect, line) = {
-	rect = rect.map(vector-unitless)
-	line = line.map(vector-unitless)
-	for (p1, p2) in rect-edges(..rect) {
-		let meet = cetz.draw.intersection.line-line(p1, p2, ..line)
-		if meet != none {
-			return vector.scale(meet, 1pt)
-		}
-	}
-	panic("didn't intersect", rect, line)
-}
-
+#import "@local/cetz:0.1.2" as cetz: vector
+#import "utils.typ": *
 
 #let get-node-connector(cell, incident-angle, options) = {
 
@@ -86,14 +33,17 @@
 	}
 }
 
-#let get-node-connectors(cells, options) = {
+#let get-node-connectors(arrow, cells, options) = {
 	let center-center-line = cells.map(cell => cell.real-pos)
 
 	let v = vector.sub(..center-center-line)
-	let θ = calc.atan2(..vector-unitless(v))
+	let θ = vector-angle(v)
 
-	zip(cells, (180deg, 0deg)).map(((cell, δ)) => {
-		get-node-connector(cell, θ + δ, options)
+	let δ = if arrow.mode == "arc" { arrow.angle } else { 0deg }
+	let incident-angles = (θ + 180deg + δ, θ - δ)
+
+	zip(cells, incident-angles).map(((cell, θ)) => {
+		get-node-connector(cell, θ, options)
 	})
 }
 
@@ -113,14 +63,18 @@
 	label: none,
 	paint: none,
 	stroke: 0.6pt,
+	angle: none
 ) = {
 	node(from, none)
 	node(to, none)
+	let mode = if angle == none { "line" } else { "arc" }
 	((
 		kind: "arrow",
 		points: (from, to),
 		paint: paint,
 		stroke: stroke,
+		mode: mode,
+		angle: angle,
 	),)
 }
 
@@ -167,7 +121,10 @@
 }
 
 /// Determine the number, sizes and positions of rows and columns.
-#let compute-grid(rects, pad) = {
+#let compute-grid(nodes, options) = {
+	let rects = nodes.map(node => (pos: node.pos, size: node.size))
+	rects = expand-fractional-rects(rects)
+
 	// (x: (x-min, x-max), y: ...)
 	let bounding-rect = zip(..rects.map(n => n.pos)).map(min-max)
 	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
@@ -184,7 +141,7 @@
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
-	let cell-centers = zip(cell-sizes, pad).map(((sizes, p)) => {
+	let cell-centers = zip(cell-sizes, options.pad).map(((sizes, p)) => {
 		zip(cumsum(sizes), sizes, range(sizes.len())).map(((end, size, i)) => end - size/2 + p*i)
 	})
 
@@ -200,42 +157,52 @@
 	)
 }	
 
-#let compute-layout(nodes, options) = {
-
-	let rects = nodes.map(node => (pos: node.pos, size: node.size))
-	rects = expand-fractional-rects(rects)
-	let grid = compute-grid(rects, options.pad)
+#let compute-cells(nodes, grid, options) = {
 
 	let cells = (:)
 
-	for (i, node) in nodes.enumerate() {
+	for node in nodes {
 
 		let cell = cells.at(
 			repr(node.pos),
-			default: (size: (1pt, 1pt)),
+			default: (size: (0pt, 0pt)),
 		)
 
+
 		if "real-pos" not in cell {
-			let real-pos = node.pos
+			// first time computing cell attrs
+			cell.real-pos = node.pos
 				.zip(grid.origin, grid.centers)
 				.map(((coord, origin, centers)) => {
 					lerp-at(centers, coord - origin)
 				})
 
-			cell.insert("real-pos", real-pos)
 		}
 
 		cell.size = cell.size.zip(node.size).map(x => max(..x))
+
+
+		cells.insert(repr(node.pos), cell)
+
+	}
+
+	for (key, cell) in cells {
+
 		let (w, h) = cell.size
-
-		cell.aspect = w/h
+		cell.aspect = if w == 0pt and h == 0pt { 1 } else { w/h }
 		cell.is-roundish = max(cell.aspect, 1/cell.aspect) < 1.5
-		cell.bounding-mode = if cell.is-roundish { "circle" } else { "rect" }
-
-		let pad = options.node-outset// * if cell.is-roundish { 0.7 } else { 1.0 }
-		cell.size = cell.size.map(x => x + pad)
-
 		cell.radius = calc.sqrt((w/2pt)*(w/2pt) + (h/2pt)*(h/2pt))*1pt
+		cell.bounding-mode = if cell.is-roundish { "circle" } else { "rect" }
+		
+		// add cell inset
+		if cell.radius != 0pt {
+			if cell.is-roundish { 
+				cell.radius += options.node-outset*0.5
+			} else {
+				cell.size = cell.size.map(x => x + options.node-outset)
+			}
+		}
+
 
 		cell.rect = (+1, -1).map(dir => {
 			vector.add(
@@ -244,13 +211,10 @@
 			)
 		})
 
-
-		cells.insert(repr(node.pos), cell)
-
-		nodes.at(i) = node
+		cells.at(key) = cell
 	}
 
-	return (grid, cells)
+	return cells
 
 }
 
@@ -265,10 +229,7 @@
 
 	let (pad, debug) = options
 
-
 	cetz.canvas({
-
-
 
 		for (i, node) in nodes.enumerate() {
 
@@ -314,9 +275,14 @@
 				(paint: debug-color, thickness: 0.25pt)
 			}
 
-			let (p1, p2) = get-node-connectors(cells, options)
+			let (p1, p2) = get-node-connectors(arrow, cells, options)
 
-			cetz.draw.line(p1, p2, stroke: arrow.stroke + arrow.paint)
+			if arrow.angle == none or arrow.angle == 0deg {
+				cetz.draw.line(p1, p2, stroke: arrow.stroke + arrow.paint)
+			} else {
+				let (center, radius, start, stop) = get-arc-connecting-points(p1, p2, arrow.angle)
+				cetz.draw.arc(center, radius: radius, start: start, stop: stop, anchor: "center")
+			}
 
 		}
 
@@ -371,8 +337,8 @@
 	..args,
 	pad: 20pt,
 	debug: false,
-	node-outset: 2pt,
-	defocus: 0.6,
+	node-outset: 10pt,
+	defocus: 0.5,
 ) = {
 
 	if type(pad) != array { pad = (pad, pad) }
@@ -397,7 +363,9 @@
 			node
 		})
 
-		let (grid, cells) = compute-layout(nodes-sized, options)
+		// compute diagram layout
+		let grid = compute-grid(nodes-sized, options)
+		let cells = compute-cells(nodes-sized, grid, options)
 
 		draw-diagram(grid, cells, nodes-sized, arrows, options)
 

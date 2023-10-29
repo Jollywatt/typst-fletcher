@@ -102,9 +102,9 @@ The effect of this is shown below:
 #align(center, stack(
 	dir: ltr,
 	spacing: 20%,
-	..(("With", 0.6), ("Without", 0)).map(((with, d)) => {
+	..(("With", 0.4), ("Without", 0)).map(((with, d)) => {
 		figure(
-			caption: [#with correction],
+			caption: [#with defocus correction],
 			arrow-diagram(
 				pad: (10mm, 6mm),
 				defocus: d,
@@ -123,11 +123,11 @@ It is best explained by example:
 #stack(
 	dir: ltr,
 	spacing: 1fr,
-	..(+.3, 0, -.3).map(d => {
+	..(+.8, 0, -.2).map(d => {
 		arrow-diagram(
 			pad: 10mm,
 			debug: 2,
-			// node-outset: 0pt,
+			node-outset: 15pt,
 			defocus: d,
 			node((0,0), raw("defocus: "+repr(d))),
 			for p in (
@@ -142,3 +142,15 @@ It is best explained by example:
 )
 
 For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.
+
+$
+#arrow-diagram(
+	pad: 30pt,
+	debug: 0,
+{
+	node((0,0), [hi])
+	node((1,0), [there])
+	arrow((0,0), (1,0), angle: 60deg)
+
+})
+$
