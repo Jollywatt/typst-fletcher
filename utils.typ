@@ -1,6 +1,10 @@
 #import calc: floor, ceil, min, max
 #import "@local/cetz:0.1.2": draw, vector
 
+#let to-abs-length(len, em-size) = {
+	len.abs + len.em*em-size
+}
+
 #let min-max(array) = (calc.min(..array), calc.max(..array))
 #let cumsum(array) = {
 	let sum = array.at(0)
@@ -13,7 +17,7 @@
 
 #let vector-len((x, y)) = 1pt*calc.sqrt((x/1pt)*(x/1pt) + (y/1pt)*(y/1pt))
 #let vector-set-len(len, v) = vector.scale(v, len/vector-len(v))
-#let vector-unitless(v) = v.map(x => if type(x) == length { x/1pt } else { x })
+#let vector-unitless(v) = v.map(x => if type(x) == length { x.pt() } else { x })
 #let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
 #let vector-angle(v) = calc.atan2(..vector-unitless(v))
 #let vector-2d((x, y, ..z)) = (x, y)

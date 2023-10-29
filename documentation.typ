@@ -13,6 +13,20 @@
 
 #outline()
 
+= Examples
+
+#arrow-diagram(
+	pad: 5em,
+	node((0,0), $S a$),
+	node((0,1), $T b$),
+	node((1,0), $S a'$),
+	node((1,1), $T b'$),
+	arrow((0,0), (0,1), $f$),
+	arrow((1,0), (1,1), $f'$),
+	arrow((0,0), (1,0), $α$),
+	arrow((0,1), (1,1), $β$),
+)
+
 = How the grid layout works
 
 Each diagram is built on a grid of points, each at the center of a cell in a table layout with possibly varying row heights and column widths.
@@ -111,7 +125,7 @@ The effect of this is shown below:
 				node((0,1), $A times B times C$),
 				arrow((-1,0), (0,1)),
 				arrow((+1,0), (0,1)),
-				arrow((0,1), (0,-1)),
+				arrow((0,-1), (0,1)),
 			)
 		)
 	})
@@ -143,14 +157,3 @@ It is best explained by example:
 
 For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.
 
-$
-#arrow-diagram(
-	pad: 30pt,
-	debug: 0,
-{
-	node((0,0), [hi])
-	node((1,0), [there])
-	arrow((0,0), (1,0), angle: 60deg)
-
-})
-$

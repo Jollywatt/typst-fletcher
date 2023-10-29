@@ -48,8 +48,10 @@
 }
 
 
-#let node(pos, label) = {
+#let node(pos, label, ) = {
 	assert(type(pos) == array and pos.len() == 2)
+
+	if type(label) == content and label.func() == circle { panic(label)}
 	((
 		kind: "node",
 		pos: pos,
@@ -60,7 +62,7 @@
 #let arrow(
 	from,
 	to,
-	label: none,
+	..args,
 	paint: none,
 	stroke: 0.6pt,
 	angle: none
@@ -157,6 +159,7 @@
 	)
 }	
 
+/// Compute a lookup table of the attributes of each grid cell
 #let compute-cells(nodes, grid, options) = {
 
 	let cells = (:)
@@ -203,7 +206,6 @@
 			}
 		}
 
-
 		cell.rect = (+1, -1).map(dir => {
 			vector.add(
 				cell.real-pos,
@@ -248,19 +250,20 @@
 				)
 			}
 			if debug >= 2 {
-				if cell.bounding-mode == "rect" {
+				if debug >= 3 or cell.bounding-mode == "rect" {
 					cetz.draw.rect(
 						vector.sub(cell.real-pos, vector.div(cell.size, 2)),
 						vector.add(cell.real-pos, vector.div(cell.size, 2)),
 						stroke: debug-color + 0.25pt,
 					)
-				} else if cell.bounding-mode == "circle" {
+				}
+				if debug >= 3 or cell.bounding-mode == "circle" {
 					cetz.draw.circle(
 						cell.real-pos,
 						radius: cell.radius,
 						stroke: debug-color + 0.25pt,
 					)
-				} else { panic(cell) }
+				}
 			}
 		}
 
@@ -275,13 +278,26 @@
 				(paint: debug-color, thickness: 0.25pt)
 			}
 
+
 			let (p1, p2) = get-node-connectors(arrow, cells, options)
 
 			if arrow.angle == none or arrow.angle == 0deg {
-				cetz.draw.line(p1, p2, stroke: arrow.stroke + arrow.paint)
+				cetz.draw.line(
+					p1,
+					p2,
+					stroke: arrow.stroke + arrow.paint,
+					mark: (start: ">"),
+				)
 			} else {
 				let (center, radius, start, stop) = get-arc-connecting-points(p1, p2, arrow.angle)
-				cetz.draw.arc(center, radius: radius, start: start, stop: stop, anchor: "center")
+				cetz.draw.arc(
+					center,
+					radius: radius,
+					start: start,
+					stop: stop,
+					anchor: "center",
+					stroke: arrow.stroke + arrow.paint,
+				)
 			}
 
 		}
@@ -335,7 +351,7 @@
 
 #let arrow-diagram(
 	..args,
-	pad: 20pt,
+	pad: 3em,
 	debug: false,
 	node-outset: 10pt,
 	defocus: 0.5,
@@ -356,6 +372,13 @@
 	let arrows = positional-args.filter(e => e.kind == "arrow")
 
 	box(style(styles => {
+
+		let options = options
+
+		let em-size = measure(box(width: 1em), styles).width
+
+		options.pad = options.pad.map(x => to-abs-length(x, em-size))
+		options.node-outset = to-abs-length(options.node-outset, em-size)
 
 		let nodes-sized = nodes.map(node => {
 			let (width, height) = measure(node.label, styles)
