@@ -55,8 +55,6 @@
 }
 
 #let get-arc-connecting-points(from, to, angle) = {
-
-	// panic(from, to)
 	let mid = vector.scale(vector.add(from, to), 0.5)
 	let (dx, dy) = vector.sub(to, from)
 	let perp = (dy, -dx)
@@ -65,8 +63,11 @@
 
 	let radius = vector-len(vector.sub(to, center))
 
-	let start = vector-angle(vector.sub(to, center))
-	let stop = vector-angle(vector.sub(from, center))
+	let start = vector-angle(vector.sub(from, center))
+	let stop = vector-angle(vector.sub(to, center))
+
+	if start < stop and angle > 0deg { start += 360deg }
+	if start > stop and angle < 0deg { start -= 360deg }
 
 	(center: center, radius: radius, start: start, stop: stop)
 }

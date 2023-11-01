@@ -1,6 +1,7 @@
 #import calc: floor, ceil, min, max
 #import "@local/cetz:0.1.2" as cetz: vector
 #import "utils.typ": *
+#import "line-caps.typ": *
 
 #let get-node-connector(cell, incident-angle, options) = {
 
@@ -8,23 +9,22 @@
 
 	if cell.is-roundish {
 		// use bounding circle
-		vector.add(
+		vector.sub(
 			cell.real-pos,
 			vector-polar(cell.radius, incident-angle),
 		)
 	} else {
 		// use bounding rect
-
 		let origin = cell.real-pos
 		let μ = calc.pow(cell.aspect, options.defocus)
 		let origin-δ = if cell.aspect < 1 {
 			(0pt, cell.size.at(1)/2*(1 - μ)*calc.sin(incident-angle))
 		} else {
-			(cell.size.at(0)/2*(1 - 1/μ)*calc.cos(incident-angle), 0pt)
+			(-cell.size.at(0)/2*(1 - 1/μ)*calc.cos(incident-angle), 0pt)
 		}
 		let crossing-line = (
 			vector.add(origin, origin-δ),
-			vector.add(origin, vector-polar(2*cell.radius, incident-angle)),
+			vector.sub(origin, vector-polar(2*cell.radius, incident-angle)),
 		)
 
 		intersect-rect-with-crossing-line(cell.rect, crossing-line)
@@ -37,21 +37,57 @@
 	let center-center-line = cells.map(cell => cell.real-pos)
 
 	let v = vector.sub(..center-center-line)
-	let θ = vector-angle(v)
+	let θ = vector-angle(v) // approximate angle of connector
 
-	let δ = if arrow.mode == "arc" { arrow.angle } else { 0deg }
-	let incident-angles = (θ + 180deg + δ, θ - δ)
+	let δ = if arrow.mode == "arc" { arrow.bend } else { 0deg }
+	let incident-angles = (θ + δ, θ - δ + 180deg)
 
-	zip(cells, incident-angles).map(((cell, θ)) => {
+	let points = zip(cells, incident-angles).map(((cell, θ)) => {
 		get-node-connector(cell, θ, options)
 	})
+
+	points
+}
+
+#let draw-connector(arrow, cells, options) = {
+	let points = get-node-connectors(arrow, cells, options)
+	let (mark-from, mark-to) = arrow.marks
+	let θ-from
+	let θ-to
+
+	if arrow.mode == "line" {
+		cetz.draw.line(
+			..points,
+			stroke: arrow.stroke,
+		)
+		let θ = vector-angle(vector.sub(..points))
+		(θ-from, θ-to) = (θ, θ + 180deg)
+
+	} else if arrow.mode == "arc" {
+		let (center, radius, start, stop) = get-arc-connecting-points(..points, arrow.bend)
+		cetz.draw.arc(
+			center,
+			radius: radius,
+			start: start,
+			stop: stop,
+			anchor: "center",
+			stroke: arrow.stroke,
+		)
+		let δ = if arrow.bend < 0deg { 90deg } else { -90deg }
+		(θ-from, θ-to) = (start - δ, stop + δ)
+
+	} else { panic(arrow) }
+
+	if mark-from != none { draw-arrow-cap(points.at(0), θ-from, arrow.stroke, mark-from) }
+	if mark-to != none { draw-arrow-cap(points.at(1), θ-to, arrow.stroke, mark-to) }
+
 }
 
 
-#let node(pos, label, ) = {
+#let node(pos, label) = {
 	assert(type(pos) == array and pos.len() == 2)
 
-	if type(label) == content and label.func() == circle { panic(label)}
+	if type(label) == content and label.func() == circle { panic(label) }
 	((
 		kind: "node",
 		pos: pos,
@@ -63,24 +99,26 @@
 	from,
 	to,
 	..args,
-	paint: none,
-	stroke: 0.6pt,
-	angle: none
+	paint: black,
+	thickness: 0.6pt,
+	dash: none,
+	bend: none,
+	marks: (none, none),
 ) = {
 	node(from, none)
 	node(to, none)
-	let mode = if angle == none { "line" } else { "arc" }
+	let mode = if bend in (none, 0deg) { "line" } else { "arc" }
 	((
 		kind: "arrow",
 		points: (from, to),
 		paint: paint,
-		stroke: stroke,
 		mode: mode,
-		angle: angle,
+		bend: bend,
+		stroke: (paint: paint, cap: "round", thickness: thickness, dash: dash),
+		marks: marks,
 	),)
 }
 
-#let debug-color = rgb("f00a").lighten(50%)
 
 
 
@@ -135,11 +173,13 @@
 	// (x: (0pt, 0pt, ...), y: ...)
 	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
 
+	let (min-size-width, min-size-height) = options.at("min-size", default: (0pt, 0pt))
+
 	for rect in rects {
 		let (col, row) = vector.sub(rect.pos, origin)
 		let (width, height) = rect.size
-		cell-sizes.at(0).at(col) = calc.max(cell-sizes.at(0).at(col), width)
-		cell-sizes.at(1).at(row) = calc.max(cell-sizes.at(1).at(row), height)
+		cell-sizes.at(0).at(col) = calc.max(cell-sizes.at(0).at(col), width, min-size-width)
+		cell-sizes.at(1).at(row) = calc.max(cell-sizes.at(1).at(row), height, min-size-height)
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
@@ -221,6 +261,8 @@
 }
 
 
+#let debug-color = rgb("f008")
+
 #let draw-diagram(
 	grid,
 	cells,
@@ -267,42 +309,16 @@
 			}
 		}
 
-
-
 		for arrow in arrows {
-
 			let cells = arrow.points.map(pos => cells.at(repr(pos)))
-
 
 			let intersection-stroke = if debug >= 2 {
 				(paint: debug-color, thickness: 0.25pt)
 			}
 
-
-			let (p1, p2) = get-node-connectors(arrow, cells, options)
-
-			if arrow.angle == none or arrow.angle == 0deg {
-				cetz.draw.line(
-					p1,
-					p2,
-					stroke: arrow.stroke + arrow.paint,
-					mark: (start: ">"),
-				)
-			} else {
-				let (center, radius, start, stop) = get-arc-connecting-points(p1, p2, arrow.angle)
-				cetz.draw.arc(
-					center,
-					radius: radius,
-					start: start,
-					stop: stop,
-					anchor: "center",
-					stroke: arrow.stroke + arrow.paint,
-				)
-			}
+			draw-connector(arrow, cells, options)
 
 		}
-
-
 
 		// draw axes
 		if debug >= 1 {
@@ -353,8 +369,8 @@
 	..args,
 	pad: 3em,
 	debug: false,
-	node-outset: 10pt,
-	defocus: 0.5,
+	node-outset: 15pt,
+	defocus: 0.2,
 ) = {
 
 	if type(pad) != array { pad = (pad, pad) }
@@ -364,6 +380,7 @@
 		debug: int(debug),
 		node-outset: node-outset,
 		defocus: defocus,
+		..args.named(),
 	)
 
 	let positional-args = args.pos().join()

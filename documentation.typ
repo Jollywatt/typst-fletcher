@@ -15,21 +15,40 @@
 
 = Examples
 
-#arrow-diagram(
-	pad: 5em,
-	node((0,0), $S a$),
-	node((0,1), $T b$),
-	node((1,0), $S a'$),
-	node((1,1), $T b'$),
-	arrow((0,0), (0,1), $f$),
-	arrow((1,0), (1,1), $f'$),
-	arrow((0,0), (1,0), $α$),
-	arrow((0,1), (1,1), $β$),
+#grid(
+	gutter: 2em,
+	columns: (1fr, 1fr),
+	..(
+		arrow-diagram(
+			debug: 0,
+			min-size: (10mm, 10mm),
+			node((0,1), $X$),
+			node((1,1), $Y$),
+			node((0,0), $X slash ker(f)$),
+			arrow((0,1), (1,1), marks: (none, "arrow")),
+			arrow((0,0), (1,1), marks: ("hook", "arrow"), dash: "dashed"),
+			arrow((0,1), (0,0), marks: (none, "arrow")),
+		),
+		arrow-diagram(
+			debug: 0,
+			pad: 5em,
+			node((0,0), $S a$),
+			node((0,1), $T b$),
+			node((1,0), $S a'$),
+			node((1,1), $T b'$),
+			arrow((0,0), (0,1), $f$),
+			arrow((1,0), (1,1), $f'$),
+			arrow((0,0), (1,0), $α$),
+			arrow((0,1), (1,1), $β$, bend: 20deg),
+			arrow((0,1), (1,1), $β$, bend: -20deg),
+		)
+	).map(x => align(center, x))
 )
+
 
 = How the grid layout works
 
-Each diagram is built on a grid of points, each at the center of a cell in a table layout with possibly varying row heights and column widths.
+Each diagram is built on a grid of points, each at the center of a cell in a table layout.
 When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
 
 This can be seen more clearly in diagrams with no cell padding:
@@ -78,7 +97,7 @@ A node between grid points still causes the neighbouring rows and columns to gro
 )
 
 Specifically, fractional coordinates are handled by linearly interpolating the layout.
-For example, if a node is at $(0.25, 0)$, then the width of column $0$ must be at least $75%$ of the node's width, an column $1$ is at least $25%$ its width.
+For example, if a node is at $(0.25, 0)$, then the width of column $0$ must be at least $75%$ of the node's width, and column $1$ at least $25%$ its width.
 This is implemented in the function `expand-fractional-rects`.
 
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.
