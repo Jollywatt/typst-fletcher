@@ -57,16 +57,28 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Test defocus
 
+#let around = (
+	(-1,+1), ( 0,+1), (+1,+1),
+	(-1, 0),          (+1, 0),
+	(-1,-1), ( 0,-1), (+1,-1),
+)
+
 #arrow-diagram(
 	defocus: 0,
 	node-outset: 0pt,
 {
 	node((0,0), rect(fill: purple)[defocus #0])
-	for p in (
-		(-1,+1), ( 0,+1), (+1,+1),
-		(-1, 0),          (+1, 0),
-		(-1,-1), ( 0,-1), (+1,-1),
-	) {
+	for p in around {
 		arrow(p, (0,0))
+	}
+})
+
+= Test label latitude placement
+
+#arrow-diagram(
+	min-size: (2.2cm, 2cm),
+{
+	for p in around {
+		arrow(p, (0,0), $f$)
 	}
 })

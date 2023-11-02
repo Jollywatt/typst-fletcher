@@ -44,6 +44,7 @@
 		),
 	).map(x => align(center, x))
 )
+
 $
 #arrow-diagram(
 	min-size: 1cm,
@@ -65,6 +66,26 @@ $
 	node((2,0), $pi_1(X union Y)$)
 )
 $
+
+#let coords = range(8).map(i => (1, 2, 4).map(d => calc.rem(calc.quo(i, d), 2)))
+#let proj((x, y, z)) = (x + z*(0.4 - 0.15*x), y + z*(0.4 - 0.15*y))
+#arrow-diagram(
+	min-size: 4cm,
+	defocus: 0,
+	node-outset: 10pt,
+{
+	for a in coords {
+		node(proj(a), [#a])
+		for b in coords {
+			if a.zip(b).map(((i, j) ) => int(i == j)).sum() == 2 {
+				arrow(proj(a), proj(b), marks: (none, "arrow"))
+			}
+		}
+	}
+	arrow(proj((1,1,1)), (2, 0.8), dash: "dotted")
+	arrow(proj((1,0,1)), (2, 0.8), dash: "dotted")
+	node((2, 0.8), "fractional coords")
+})
 
 = How the layouting works
 
@@ -117,7 +138,7 @@ A node between grid points still causes the neighbouring rows and columns to gro
 )
 
 Specifically, fractional coordinates are handled by linearly interpolating the layout.
-For example, if a node is at $(0.25, 0)$, then the width of column $0$ must be at least $75%$ of the node's width, and column $1$ at least $25%$ its width.
+For example, if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ must be at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
 This is implemented in the function `expand-fractional-rects`.
 
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.

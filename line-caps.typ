@@ -1,8 +1,40 @@
 #import "@local/cetz:0.1.2"
 #import "utils.typ": *
 
-#let arrow-caps = (
-)
+// #let arrow-caps = "
+// 	---
+// 	-->
+// 	<--
+// 	<->
+// 	===
+// 	==>
+// 	<==
+// 	<=>
+// 	|->
+// 	->>
+// 	>->
+// 	>>->>
+// 	|-->
+// 	|<-->|
+// 	c->
+// 	<-c
+// "
+
+// #let line-types = "
+// 	-
+// 	=
+// 	--
+// 	..
+// "
+
+// #let arrow-heads = "
+// 	< >
+// 	<< >>
+// 	| |
+// 	c c
+// 	c' c'
+// 	harp
+// "
 
 #let draw-arrow-cap(p, θ, stroke, kind) = {
 	if kind == "arrow" {
