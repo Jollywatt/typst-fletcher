@@ -54,6 +54,7 @@
 	let (mark-from, mark-to) = arrow.marks
 	let θ-from
 	let θ-to
+	let label-pos
 
 	if arrow.mode == "line" {
 		cetz.draw.line(
@@ -62,6 +63,10 @@
 		)
 		let θ = vector-angle(vector.sub(..points))
 		(θ-from, θ-to) = (θ, θ + 180deg)
+		label-pos = vector.add(
+			vector.lerp(..points, arrow.label-pos),
+			vector-polar(arrow.label-trans, θ + 90deg),
+		)
 
 	} else if arrow.mode == "arc" {
 		let (center, radius, start, stop) = get-arc-connecting-points(..points, arrow.bend)
@@ -75,11 +80,20 @@
 		)
 		let δ = if arrow.bend < 0deg { 90deg } else { -90deg }
 		(θ-from, θ-to) = (start - δ, stop + δ)
+		label-pos = vector.add(
+			center,
+			vector-polar(radius + arrow.label-trans, lerp(start, stop, arrow.label-pos))
+		)
 
 	} else { panic(arrow) }
 
 	if mark-from != none { draw-arrow-cap(points.at(0), θ-from, arrow.stroke, mark-from) }
 	if mark-to != none { draw-arrow-cap(points.at(1), θ-to, arrow.stroke, mark-to) }
+
+	if arrow.label != none {
+		cetz.draw.content(label-pos, box(fill: white, inset: 3pt, radius: .5em, stroke: none, $ #arrow.label $))
+	}
+
 
 }
 
@@ -99,6 +113,8 @@
 	from,
 	to,
 	..args,
+	label-pos: 0.5,
+	label-trans: 1em,
 	paint: black,
 	thickness: 0.6pt,
 	dash: none,
@@ -108,9 +124,13 @@
 	node(from, none)
 	node(to, none)
 	let mode = if bend in (none, 0deg) { "line" } else { "arc" }
+	let label = if args.pos().len() > 0 { args.pos().at(0) } else { none }
 	((
 		kind: "arrow",
 		points: (from, to),
+		label: label,
+		label-pos: label-pos,
+		label-trans: label-trans,
 		paint: paint,
 		mode: mode,
 		bend: bend,
@@ -178,8 +198,14 @@
 	for rect in rects {
 		let (col, row) = vector.sub(rect.pos, origin)
 		let (width, height) = rect.size
-		cell-sizes.at(0).at(col) = calc.max(cell-sizes.at(0).at(col), width, min-size-width)
-		cell-sizes.at(1).at(row) = calc.max(cell-sizes.at(1).at(row), height, min-size-height)
+		cell-sizes.at(0).at(col) = calc.max(
+			cell-sizes.at(0).at(col),
+			width,
+			options.min-size.at(0))
+		cell-sizes.at(1).at(row) = calc.max(
+			cell-sizes.at(1).at(row),
+			height,
+			options.min-size.at(1))
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
@@ -371,31 +397,42 @@
 	debug: false,
 	node-outset: 15pt,
 	defocus: 0.2,
+	min-size: 0pt,
 ) = {
 
 	if type(pad) != array { pad = (pad, pad) }
+	if type(min-size) != array { min-size = (min-size, min-size) }
 
 	let options = (
 		pad: pad,
 		debug: int(debug),
 		node-outset: node-outset,
 		defocus: defocus,
+		min-size: min-size,
 		..args.named(),
 	)
 
 	let positional-args = args.pos().join()
 
-	let nodes = positional-args.filter(e => e.kind == "node")
-	let arrows = positional-args.filter(e => e.kind == "arrow")
-
 	box(style(styles => {
+
+		let nodes = positional-args.filter(e => e.kind == "node")
+		let arrows = positional-args.filter(e => e.kind == "arrow")
 
 		let options = options
 
 		let em-size = measure(box(width: 1em), styles).width
 
-		options.pad = options.pad.map(x => to-abs-length(x, em-size))
-		options.node-outset = to-abs-length(options.node-outset, em-size)
+		let to-pt(len) = {
+			len.abs + len.em*em-size
+		}
+
+		options.pad = options.pad.map(to-pt)
+		options.node-outset = to-pt(options.node-outset)
+		arrows = arrows.map(arrow => {
+			arrow.label-trans = to-pt(arrow.label-trans)
+			arrow
+		})
 
 		let nodes-sized = nodes.map(node => {
 			let (width, height) = measure(node.label, styles)

@@ -41,12 +41,32 @@
 			arrow((0,0), (1,0), $α$),
 			arrow((0,1), (1,1), $β$, bend: 20deg),
 			arrow((0,1), (1,1), $β$, bend: -20deg),
-		)
+		),
 	).map(x => align(center, x))
 )
+$
+#arrow-diagram(
+	min-size: 1cm,
+	node-outset: 1.5em,
+	pad: 20mm,
+	debug: 0,
+	defocus: 0.1,
+	node((0,2), $pi_1(X sect Y)$),
+	node((0,1), $pi_1(X)$),
+	node((1,2), $pi_1(Y)$),
+	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
+	arrow((0,2), (0,1), $i_2$, marks: (none, "arrow")),
+	arrow((0,2), (1,2), text("i"), marks: ("hook", "arrow")),
+	arrow((1,2), (2,0), $j_2$, marks: ("arrow", "arrow"), bend: 20deg),
+	arrow((0,1), (2,0), $j_1$, marks: (none, "double"), bend: -15deg, dash: "dotted"),
+	arrow((0,1), (1,1), marks: ("hook", "double"), dash: "dashed"),
+	arrow((1,2), (1,1), marks: ("bar", "arrow")),
+	arrow((1,1), (2,0), $k$, marks: ("arrow", "arrow"), dash: "densely-dashed", label-trans: 0pt, paint: blue, stroke: 3pt),
+	node((2,0), $pi_1(X union Y)$)
+)
+$
 
-
-= How the grid layout works
+= How the layouting works
 
 Each diagram is built on a grid of points, each at the center of a cell in a table layout.
 When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.

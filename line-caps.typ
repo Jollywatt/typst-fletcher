@@ -30,9 +30,10 @@
 			stroke: (thickness: stroke.thickness, paint: stroke.paint, cap: "round"),
 		)
 	} else if kind == "bar" {
+		let v = vector-polar(4.5*stroke.thickness, θ + 90deg)
 		cetz.draw.line(
-			(to: p, rel: (0pt, -4.5*stroke.thickness)),
-			(to: p, rel: (0pt, +4.5*stroke.thickness)),
+			(to: p, rel: v),
+			(to: p, rel: vector.scale(v, -1)),
 			stroke: (paint: stroke.paint, thickness: stroke.thickness, cap: "round"),
 		)
 	} else {
