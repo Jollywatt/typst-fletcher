@@ -59,7 +59,7 @@
 	let (dx, dy) = vector.sub(to, from)
 	let perp = (dy, -dx)
 
-	let center = vector.add(mid, vector.scale(perp, 1/calc.tan(angle)))
+	let center = vector.add(mid, vector.scale(perp, 0.5/calc.tan(angle)))
 
 	let radius = vector-len(vector.sub(to, center))
 

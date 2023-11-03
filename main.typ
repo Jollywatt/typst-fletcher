@@ -3,6 +3,9 @@
 #import "utils.typ": *
 #import "line-caps.typ": *
 
+#let debug-color = rgb("f008")
+
+
 #let get-node-connector(cell, incident-angle, options) = {
 
 	if cell.radius < 1e-5pt { return cell.real-pos }
@@ -50,19 +53,52 @@
 }
 
 #let draw-connector(arrow, cells, options) = {
-	let points = get-node-connectors(arrow, cells, options)
+
+	let cap-points = get-node-connectors(arrow, cells, options)
 	let (mark-from, mark-to) = arrow.marks
 	let θ-from
 	let θ-to
 	let label-pos
 
+	let cap-offsets = zip(arrow.marks, (+1, -1)).map(((mark, dir)) => {
+		if mark == none { 0pt }
+		else {
+			let o = CAP_OFFSETS.at(mark, default: 0)
+			dir*o*arrow.stroke.thickness
+		}
+	})
+
 	if arrow.mode == "line" {
-		cetz.draw.line(
-			// ..points,
-			..points.rev(),
-			stroke: arrow.stroke,
-		)
-		let θ = vector-angle(vector.sub(..points))
+
+		let θ = vector-angle(vector.sub(..cap-points))
+
+		// account for arrow cap offsets
+		let line-points = zip(cap-points, cap-offsets).map(((point, offset)) => {
+			vector.add(
+				point,
+				vector-polar(offset, θ)
+			)
+		})
+
+		if arrow.double {
+			for dir in (-1, +1) {
+				let shifted-line-points = line-points.map(p => {
+					vector.add(p, vector-polar(arrow.stroke.thickness*2, θ + dir*90deg))
+				})
+
+				cetz.draw.line(
+					..shifted-line-points,
+					stroke: arrow.stroke,
+				)
+			}
+
+		} else {
+			cetz.draw.line(
+				..line-points,
+				stroke: arrow.stroke,
+			)
+		}
+
 		(θ-from, θ-to) = (θ, θ + 180deg)
 
 		if arrow.label-trans == auto {
@@ -72,12 +108,23 @@
 		arrow.label-trans = to-abs-length(arrow.label-trans, options.em-size)
 
 		label-pos = vector.add(
-			vector.lerp(..points, arrow.label-pos),
+			vector.lerp(..line-points, arrow.label-pos),
 			vector-polar(arrow.label-trans, θ + 90deg),
 		)
 
 	} else if arrow.mode == "arc" {
-		let (center, radius, start, stop) = get-arc-connecting-points(..points, arrow.bend)
+		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, arrow.bend)
+		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, arrow.bend)
+
+		let bend-dir = if arrow.bend < 0deg { +1 } else { -1 }
+
+		start -= bend-dir*cap-offsets.at(0)/radius*1rad
+		stop -= bend-dir*cap-offsets.at(1)/radius*1rad
+		// line-points = zip(cap-points, (start, stop)).map(((point, θ)) => vector.add(
+		// 	center,
+		// 	vector-polar(radius, θ)
+		// ))
+
 		cetz.draw.arc(
 			center,
 			radius: radius,
@@ -86,7 +133,7 @@
 			anchor: "center",
 			stroke: arrow.stroke,
 		)
-		let δ = if arrow.bend < 0deg { 90deg } else { -90deg }
+		let δ = bend-dir*90deg
 		(θ-from, θ-to) = (start - δ, stop + δ)
 
 		if arrow.label-trans == auto {
@@ -103,11 +150,21 @@
 
 	} else { panic(arrow) }
 
-	if mark-from != none { draw-arrow-cap(points.at(0), θ-from, arrow.stroke, mark-from) }
-	if mark-to != none { draw-arrow-cap(points.at(1), θ-to, arrow.stroke, mark-to) }
+	if mark-from != none { draw-arrow-cap(cap-points.at(0), θ-from, arrow.stroke, mark-from) }
+	if mark-to != none { draw-arrow-cap(cap-points.at(1), θ-to, arrow.stroke, mark-to) }
 
 	if arrow.label != none {
 		cetz.draw.content(label-pos, box(fill: white, inset: 3pt, radius: .5em, stroke: none, $ #arrow.label $))
+	}
+
+	if options.debug >= 3 {
+		for (cell, point) in zip(cells, cap-points) {
+			cetz.draw.line(
+				cell.real-pos,
+				point,
+				stroke: debug-color + 0.1pt,
+			)
+		}
 	}
 
 
@@ -136,6 +193,7 @@
 	dash: none,
 	bend: none,
 	marks: (none, none),
+	double: false,
 ) = {
 	node(from, none)
 	node(to, none)
@@ -152,6 +210,7 @@
 		bend: bend,
 		stroke: (paint: paint, cap: "round", thickness: thickness, dash: dash),
 		marks: marks,
+		double: double,
 	),)
 }
 
@@ -302,7 +361,6 @@
 }
 
 
-#let debug-color = rgb("f008")
 
 #let draw-diagram(
 	grid,

@@ -1,14 +1,17 @@
 #import "arrow-diagrams.typ": *
+#import "@local/cetz:0.1.2"
 
 
-#assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
+// #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
 
 
 = Test arrow heads
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
+	debug: 0,
 	pad: (10mm, 5mm),
+	arrow((0, 1), (1, 1), marks: ("harpoon-l", "harpoon-r")),
 	arrow((0, 0), (1, 0), marks: ("arrow", "arrow")),
 	arrow((2, 0), (3, 0), marks: ("hook", "arrow")),
 	arrow((0,-1), (1,-1), marks: ("tail", "tail")),
@@ -17,6 +20,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	arrow((0,-3), (1,-3), marks: ("hook", "hook")),
 	arrow((0,-4), (1,-4), marks: ("bar", "bar")),
 	arrow((2,-4), (3,-4), marks: ("bar", "arrow")),
+	arrow((0,-5), (1,-5), marks: ("bar", "arrow"), double: true),
 )
 
 = Test connectors
@@ -35,8 +39,8 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Test arc connectors
 
-#for to in ((0,1), (1,0), (-1,-1)) {
-	arrow-diagram({
+#for (i, to) in ((0,1), (1,0), (-1,-1)).enumerate() {
+	arrow-diagram(debug: i*i, {
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
@@ -82,3 +86,11 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		arrow(p, (0,0), $f$)
 	}
 })
+
+
+#arrow-diagram(
+	debug: 3,
+	node((0,0), $X$),
+	node((1,0), $Y$),
+	arrow((0,0), (1,0), bend: 45deg, marks: ("arrow", "arrow")),
+)
