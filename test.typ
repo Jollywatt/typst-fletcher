@@ -9,19 +9,27 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
-	debug: 0,
+	debug: 1,
 	pad: (10mm, 5mm),
-	arrow((0, 1), (1, 1), marks: ("harpoon-l", "harpoon-r")),
-	arrow((0, 0), (1, 0), marks: ("arrow", "arrow")),
-	arrow((2, 0), (3, 0), marks: ("hook", "arrow")),
-	arrow((0,-1), (1,-1), marks: ("tail", "tail")),
-	arrow((0,-2), (1,-2), marks: ("double", "double")),
-	arrow((2,-2), (3,-2), marks: ("hook", "double")),
-	arrow((0,-3), (1,-3), marks: ("hook", "hook")),
-	arrow((0,-4), (1,-4), marks: ("bar", "bar")),
-	arrow((2,-4), (3,-4), marks: ("bar", "arrow")),
-	arrow((0,-5), (1,-5), marks: ("bar", "arrow"), double: true),
-)
+{
+	for i in (0, 1) {
+		let x = 2*i
+		let bend = 60deg*i
+		arrow((x, 1), (x+1, 1), marks: ("harpoon-l", "harpoon-r"), bend: bend)
+		arrow((x, 0), (x+1, 0), marks: ("arrow", "arrow"), bend: bend)
+		arrow((x,-1), (x+1,-1), marks: ("tail", "tail"), bend: bend)
+		arrow((x,-2), (x+1,-2), marks: ("double", "double"), bend: bend)
+		arrow((x,-3), (x+1,-3), marks: ("hook", "hook"), bend: bend)
+		arrow((x,-4), (x+1,-4), marks: ("bar", "bar"), bend: bend)
+		arrow((x,-5), (x+1,-5), marks: ("tail", "arrow"), parallels: (1.5,-1.5), bend: bend)
+		arrow((x,-6), (x+1,-6), marks: ("bar", "arrow"), parallels: (2,0,-2), bend: bend)
+
+		// arrow((2, 0), (3, 0), marks: ("hook", "arrow"), bend: bend)
+		// arrow((2,-2), (3,-2), marks: ("hook", "double"), bend: bend)
+		// arrow((2,-4), (3,-4), marks: ("bar", "arrow"))
+	}
+
+})
 
 = Test connectors
 
@@ -39,8 +47,8 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Test arc connectors
 
-#for (i, to) in ((0,1), (1,0), (-1,-1)).enumerate() {
-	arrow-diagram(debug: i*i, {
+#for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
+	arrow-diagram(debug: 0, {
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6

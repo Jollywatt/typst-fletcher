@@ -60,41 +60,41 @@
 	let θ-to
 	let label-pos
 
-	let cap-offsets = zip(arrow.marks, (+1, -1)).map(((mark, dir)) => {
+	let cap-offsets(y) = zip(arrow.marks, (+1, -1)).map(((mark, dir)) => {
 		if mark == none { 0pt }
 		else {
-			let o = CAP_OFFSETS.at(mark, default: 0)
+			// let o = CAP_OFFSETS.at(mark, default: 0)
+			let o = if mark in CAP_OFFSETS {
+				CAP_OFFSETS.at(mark)(y)
+			} else { 0 }
 			dir*o*arrow.stroke.thickness
 		}
 	})
+
 
 	if arrow.mode == "line" {
 
 		let θ = vector-angle(vector.sub(..cap-points))
 
-		// account for arrow cap offsets
-		let line-points = zip(cap-points, cap-offsets).map(((point, offset)) => {
-			vector.add(
-				point,
-				vector-polar(offset, θ)
-			)
-		})
+		let line-points(y) = zip(cap-points, cap-offsets(y))
+			.map(((point, offset)) => {
+				vector.add(
+					point,
+					vector-polar(offset, θ)
+				)
+			})
 
-		if arrow.double {
-			for dir in (-1, +1) {
-				let shifted-line-points = line-points.map(p => {
-					vector.add(p, vector-polar(arrow.stroke.thickness*2, θ + dir*90deg))
+		// account for arrow cap offsets
+
+		for shift in arrow.parallels {
+			let shifted-line-points = line-points(shift)
+				.map(p => {
+					let r = arrow.stroke.thickness*shift
+					vector.add(p, vector-polar(r, θ + 90deg))
 				})
 
-				cetz.draw.line(
-					..shifted-line-points,
-					stroke: arrow.stroke,
-				)
-			}
-
-		} else {
 			cetz.draw.line(
-				..line-points,
+				..shifted-line-points,
 				stroke: arrow.stroke,
 			)
 		}
@@ -108,7 +108,7 @@
 		arrow.label-trans = to-abs-length(arrow.label-trans, options.em-size)
 
 		label-pos = vector.add(
-			vector.lerp(..line-points, arrow.label-pos),
+			vector.lerp(..line-points(0), arrow.label-pos),
 			vector-polar(arrow.label-trans, θ + 90deg),
 		)
 
@@ -118,21 +118,19 @@
 
 		let bend-dir = if arrow.bend < 0deg { +1 } else { -1 }
 
-		start -= bend-dir*cap-offsets.at(0)/radius*1rad
-		stop -= bend-dir*cap-offsets.at(1)/radius*1rad
-		// line-points = zip(cap-points, (start, stop)).map(((point, θ)) => vector.add(
-		// 	center,
-		// 	vector-polar(radius, θ)
-		// ))
-
-		cetz.draw.arc(
-			center,
-			radius: radius,
-			start: start,
-			stop: stop,
-			anchor: "center",
-			stroke: arrow.stroke,
-		)
+		for shift in arrow.parallels {
+			let Δr = shift*arrow.stroke.thickness
+			let start = start - bend-dir*cap-offsets(shift).at(0)/radius*1rad
+			let stop = stop - bend-dir*cap-offsets(shift).at(1)/radius*1rad
+			cetz.draw.arc(
+				center,
+				radius: radius + Δr,
+				start: start,
+				stop: stop,
+				anchor: "center",
+				stroke: arrow.stroke,
+			)
+		}
 		let δ = bend-dir*90deg
 		(θ-from, θ-to) = (start - δ, stop + δ)
 
@@ -193,7 +191,7 @@
 	dash: none,
 	bend: none,
 	marks: (none, none),
-	double: false,
+	parallels: (0,),
 ) = {
 	node(from, none)
 	node(to, none)
@@ -210,7 +208,7 @@
 		bend: bend,
 		stroke: (paint: paint, cap: "round", thickness: thickness, dash: dash),
 		marks: marks,
-		double: double,
+		parallels: parallels,
 	),)
 }
 
@@ -435,8 +433,9 @@
 
 					// coordinate label
 					cetz.draw.content(
-						coord(x, -.5em),
-						text(fill: debug-color, size: .75em)[#(grid.origin.at(axis) + i)]
+						coord(x, -.4em),
+						text(fill: debug-color, size: .75em)[#(grid.origin.at(axis) + i)],
+						anchor: if axis == 0 { "top" } else { "right" }
 					)
 
 					// size bracket
