@@ -1,1 +1,2 @@
-#import "main.typ": arrow-diagram, node, arrow, coord
+#import "main.typ": arrow-diagram, node, conn
+#import "main.typ": resolve-coords

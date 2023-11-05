@@ -19,18 +19,19 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		let bend = 40deg*i
 		(
 			(marks: ("harpoon-l", "harpoon-r")),
-			(marks: ("arrow", "arrow")),
+			(marks: ("head", "head")),
 			(marks: ("tail", "tail")),
-			(marks: ("double", "double")),
-			(marks: ("hook", "arrow")),
+			(marks: ("twotail", "twohead")),
+			(marks: ("hook", "head")),
 			(marks: ("hook-l", "hook-r")),
 			(marks: ("bar", "bar")),
-			(marks: ("arrow", "arrow"), parallels: (1.5,-1.5)),
-			(marks: ("tail", "tail"), parallels: (1.5,-1.5)),
-			(marks: ("bar", "arrow"), parallels: (2,0,-2)),
-			(marks: (none, none), parallels: (2.5,0,-2.5)),
+			(marks: (none, none), extrude: (2.5,0,-2.5)),
+			(marks: ("head", "head"), extrude: (1.5,-1.5)),
+			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
+			(marks: ("bar", "head"), extrude: (2,0,-2)),
+			(marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
 		).enumerate().map(((i, args)) => {
-			arrow((x, -i), (x + 1, -i), ..args, bend: bend)
+			conn((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()
 
 	}
@@ -46,10 +47,10 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	node((0,1), $X$),
 	node((1,1), $Y$),
 	node((0,0), $Z$),
-	arrow((0,1), (1,1), marks: (none, "arrow")),
-	arrow((0,0), (1,1), $f$, marks: ("hook", "arrow"), dash: "dashed"),
-	arrow((0,1), (0,0), marks: (none, "double")),
-	arrow((0,1), (0,1), marks: (none, "arrow"), bend: -120deg),
+	conn((0,1), (1,1), marks: (none, "head")),
+	conn((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
+	conn((0,1), (0,0), marks: (none, "twohead")),
+	conn((0,1), (0,1), marks: (none, "head"), bend: -120deg),
 )
 
 = Test arc connectors
@@ -60,7 +61,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	node((0,0), "from")
 	node((1,0), "to")
 	for θ in (0deg, 20deg, -50deg) {
-		arrow((0,0), (1,0), $#θ$, label-trans: 0pt, bend: θ, marks: (none, "arrow"))
+		conn((0,0), (1,0), $#θ$, label-trans: 0pt, bend: θ, marks: (none, "head"))
 	}
 })
 
@@ -68,7 +69,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
-	arrow((0,0), (1,0), bend: 45deg, marks: ("arrow", "arrow")),
+	conn((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
 )
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
@@ -76,7 +77,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
-		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => arrow((0,0), to, bend: θ, marks: ("tail", "arrow"))).join()
+		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => conn((0,0), to, bend: θ, marks: ("tail", "head"))).join()
 	})
 }
 
@@ -98,7 +99,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			{
 				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))
 				for p in around {
-					arrow(p, (0,0))
+					conn(p, (0,0))
 				}
 			}))
 		})
@@ -111,26 +112,24 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	min-size: (2.2cm, 2cm),
 {
 	for p in around {
-		arrow(p, (0,0), $f$)
+		conn(p, (0,0), $f$)
 	}
 })
 
 
 = Test crossing connectors
 
-#arrow-diagram(
-	
-{
-	arrow((0,1), (1,0))
-	arrow((0,0), (1,1), crossing: true)
+#arrow-diagram({
+	conn((0,1), (1,0))
+	conn((0,0), (1,1), crossing: true)
 })
 
 = Test coord callback
 
 #arrow-diagram({
 	node((1,1), "hi")
-	arrow((1,1), (1,2))
-	coord((1, 2), (1,1), callback: (p1, p2) => {
+	conn((1,1), (1,2))
+	resolve-coords((1, 2), (1,1), callback: (p1, p2) => {
 		cetz.draw.circle(p1, radius: 5pt, stroke: red)
 	})
 })

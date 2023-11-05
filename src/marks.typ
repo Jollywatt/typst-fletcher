@@ -5,7 +5,7 @@
 
 /// Calculate cap offset of round-style arrow cap
 ///
-/// - r (length): Radius of curvature of arrow cap
+/// - r (length): Radius of curvature of arrow cap.
 /// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
 ///  line to the arrow's edge.
 /// - y (length): Lateral offset from the central stroke line.
@@ -14,12 +14,13 @@
 }
 
 #let CAP_OFFSETS = (
-	"arrow": y => round-arrow-cap-offset(8, 30deg, y),
-	"hook": y => -2,
-	"hook-l": y => -2,
-	"hook-r": y => -2,
-	"tail": y => -3 - round-arrow-cap-offset(8, 30deg, y),
-	"double": y => round-arrow-cap-offset(8, 30deg, y) - 2,
+	"head":    y => round-arrow-cap-offset(8, 30deg, y),
+	"hook":    y => -2,
+	"hook-l":  y => -2,
+	"hook-r":  y => -2,
+	"tail":    y => -3 - round-arrow-cap-offset(8, 30deg, y),
+	"twohead": y => round-arrow-cap-offset(8, 30deg, y) - 2,
+	"twotail": y => -3 - round-arrow-cap-offset(8, 30deg, y) - 2,
 )
 
 
@@ -38,19 +39,20 @@
 			stroke: (thickness: stroke.thickness, paint: stroke.paint, cap: "round"),
 		)
 
-	} else if kind == "arrow" {
+	} else if kind == "head" {
 		draw-arrow-cap(p, θ, stroke, "harpoon-l")
 		draw-arrow-cap(p, θ, stroke, "harpoon-r")
 
 	} else if kind == "tail" {
 		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at(kind)(0), θ))
-		draw-arrow-cap(p, θ + 180deg, stroke, "arrow")
+		draw-arrow-cap(p, θ + 180deg, stroke, "head")
 
-	} else if kind == "double" {
+	} else if kind in ("twohead", "twotail") {
+		let subkind = if kind == "twohead" { "head" } else { "tail" }
 		p = cetz.vector.sub(p, vector-polar(stroke.thickness*-1, θ))
-		draw-arrow-cap(p, θ, stroke, "arrow")
+		draw-arrow-cap(p, θ, stroke, subkind)
 		p = cetz.vector.sub(p, vector-polar(stroke.thickness*3, θ))
-		draw-arrow-cap(p, θ, stroke, "arrow")
+		draw-arrow-cap(p, θ, stroke, subkind)
 
 	} else if kind in ("hook", "hook-l", "hook-r") {
 		let dir = if kind == "hook-l" { +1 } else { -1 }

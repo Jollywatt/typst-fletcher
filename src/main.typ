@@ -17,7 +17,7 @@
 }
 
 
-#let arrow(
+#let conn(
 	from,
 	to,
 	..args,
@@ -28,7 +28,7 @@
 	dash: none,
 	bend: none,
 	marks: (none, none),
-	parallels: (0,),
+	extrude: (0,),
 	crossing: false,
 	crossing-thickness: 5
 ) = {
@@ -49,7 +49,7 @@
 	)
 
 	let obj = ( 
-		kind: "arrow",
+		kind: "conn",
 		points: (from, to),
 		label: label,
 		label-pos: label-pos,
@@ -59,7 +59,7 @@
 		bend: bend,
 		stroke: stroke,
 		marks: marks,
-		parallels: parallels,
+		extrude: extrude,
 	)
 
 	if crossing {
@@ -73,14 +73,19 @@
 			..obj,
 			stroke: understroke,
 			marks: (none, none),
-			parallels: parallels.map(i => i/crossing-thickness)
+			extrude: extrude.map(i => i/crossing-thickness)
 		),)
 	}
 
 	(obj,)
 }
 
-#let coord(..args, callback: (..args) => none) = {
+/// Resolve coordinates and pass them to a callback function
+///
+/// - ..args (point2f): One or more dimensionless 2D points of the form `(x, y)`.
+/// - callback (function): Function to be called with the resolved coordinates
+/// as arguments.
+#let resolve-coords(..args, callback: (..args) => none) = {
 	((
 		kind: "coord",
 		coords: args.pos(),
@@ -116,7 +121,7 @@
 			))
 
 
-		for shift in arrow.parallels {
+		for shift in arrow.extrude {
 			let shifted-line-points = line-points(shift)
 				.map(p => {
 					let r = arrow.stroke.thickness*shift
@@ -146,7 +151,7 @@
 
 		let bend-dir = if arrow.bend < 0deg { +1 } else { -1 }
 
-		for shift in arrow.parallels {
+		for shift in arrow.extrude {
 			let (start, stop) = (start, stop)
 				.zip(cap-offsets(shift))
 				.map(((θ, arclen)) => θ - bend-dir*arclen/radius*1rad)
@@ -302,7 +307,6 @@
 				)
 			}
 		}
-
 	}
 }
 
@@ -324,6 +328,15 @@
 }
 
 
+/// Draw an arrow diagram
+///
+/// - ..args (array): An array of dictionaries specifying the diagram's
+///   nodes and connections.
+/// - pad (length, pair of lengths): Minimum gap between the bounding boxes of nodes.
+/// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
+/// - node-outset (length, pair of lengths): Inset between a node's content and its bounding box.
+/// - defocus (number): Strength of the defocus correction. `0` to disable.
+/// - min-size (length, pair of lengths): Minimum size of all rows and columns.
 #let arrow-diagram(
 	..args,
 	pad: 3em,
@@ -347,7 +360,7 @@
 
 	let positional-args = args.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
-	let arrows = positional-args.filter(e => e.kind == "arrow")
+	let arrows = positional-args.filter(e => e.kind == "conn")
 	let callbacks = positional-args.filter(e => e.kind == "coord")
 
 	box(style(styles => {

@@ -4,7 +4,7 @@
 /// Convert an array of rects with fractional positions into rects with integral
 /// positions.
 /// 
-/// A rect is a dictionary `(pos: (x, y), size: (width, height))`.
+/// A rect is a dictionary .
 /// 
 /// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
 /// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
@@ -12,6 +12,11 @@
 /// two which one is closer. (E.g., if the original rect is at `x = 0.25`, the
 /// new rect at `x = 0` has 75% the original width and the rect at `x = 1` has
 /// 25%.) The same splitting procedure is done for `y` positions and heights.
+///
+/// - rects (array of rects): An array of rectangles of the form
+///   `(pos: (x, y), size: (width, height))`. The coordinates `x` and `y` may be
+///   floats.
+/// -> array of rects
 #let expand-fractional-rects(rects) = {
 	let new-rects
 	for axis in (0, 1) {

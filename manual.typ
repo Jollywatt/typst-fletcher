@@ -5,8 +5,14 @@
 
 #let show-module(path) = {
 	tidy.show-module(
-		tidy.parse-module(read(path)),
-		// style: tidy.styles.minimal,
+		tidy.parse-module(
+			read(path),
+			scope: (
+				arrow-diagram: arrow-diagram,
+				node: node,
+				conn: conn,
+			),
+		),
 		show-outline: false,
 	)
 }
@@ -40,9 +46,9 @@
 			node((0,1), $X$),
 			node((1,1), $Y$),
 			node((0,0), $X slash ker(f)$),
-			arrow((0,1), (1,1), marks: (none, "arrow")),
-			arrow((0,0), (1,1), marks: ("hook", "arrow"), dash: "dashed"),
-			arrow((0,1), (0,0), marks: (none, "arrow")),
+			conn((0,1), (1,1), marks: (none, "head")),
+			conn((0,0), (1,1), marks: ("hook", "head"), dash: "dashed"),
+			conn((0,1), (0,0), marks: (none, "head")),
 		),
 		arrow-diagram(
 			debug: 0,
@@ -51,11 +57,11 @@
 			node((0,1), $T b$),
 			node((1,0), $S a'$),
 			node((1,1), $T b'$),
-			arrow((0,0), (0,1), $f$, marks: ("double", "hook")),
-			arrow((1,0), (1,1), $f'$, label-trans: 1em),
-			arrow((0,0), (1,0), $α$, parallels: (-4,0,4), label-trans: 0pt),
-			arrow((0,1), (1,1), $γ$, bend: 20deg, marks: (none, "arrow")),
-			arrow((0,1), (1,1), $β$, bend: -20deg, marks: (none, "arrow")),
+			conn((0,0), (0,1), $f$, marks: ("twohead", "hook")),
+			conn((1,0), (1,1), $f'$, label-trans: 1em),
+			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-trans: 0pt),
+			conn((0,1), (1,1), $γ$, bend: 20deg, marks: (none, "head")),
+			conn((0,1), (1,1), $β$, bend: -20deg, marks: (none, "head")),
 		),
 		arrow-diagram(
 			// debug: 1,
@@ -63,9 +69,9 @@
 			pad: 2cm,
 			node((0,0), $cal(A)$),
 			node((1,0), $cal(B)$),
-			arrow((0,0), (1,0), $F$, marks: (none, "arrow"), bend: +35deg),
-			arrow((0,0), (1,0), $G$, marks: (none, "arrow"), bend: -35deg),
-			arrow((0.5,+.21), (0.5,-.21), $alpha$, label-trans: -0.8em, marks: (none, "arrow"), parallels: (-1.5,+1.5)),
+			conn((0,0), (1,0), $F$, marks: (none, "head"), bend: +35deg),
+			conn((0,0), (1,0), $G$, marks: (none, "head"), bend: -35deg),
+			conn((0.5,+.21), (0.5,-.21), $alpha$, label-trans: -0.8em, marks: (none, "head"), extrude: (-1.5,+1.5)),
 		)
 	).map(x => align(center, x))
 )
@@ -81,37 +87,37 @@ $
 	node((0,1), $pi_1(X)$),
 	node((1,2), $pi_1(Y)$),
 	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-	arrow((0,2), (0,1), $i_2$, marks: (none, "arrow"), parallels: (-1.5,1.5)),
-	arrow((0,2), (1,2), $i_1$, marks: ("hook", "arrow")),
-	arrow((1,2), (2,0), $j_2$, marks: ("arrow", "arrow"), bend: 20deg, parallels: (-1.5,1.5)),
-	arrow((0,1), (2,0), $j_1$, marks: (none, "double"), bend: -15deg, dash: "dotted"),
-	arrow((0,1), (1,1), marks: ("hook", "double"), dash: "dashed"),
-	arrow((1,2), (1,1), marks: ("bar", "arrow")),
-	arrow((1,1), (2,0), $k$, marks: ("arrow", "arrow"), dash: "densely-dashed", label-trans: 0pt, paint: green, thickness: 1pt),
+	conn((0,2), (0,1), $i_2$, marks: (none, "head"), extrude: (-1.5,1.5)),
+	conn((0,2), (1,2), $i_1$, marks: ("hook", "head")),
+	conn((1,2), (2,0), $j_2$, marks: ("head", "head"), bend: 20deg, extrude: (-1.5,1.5)),
+	conn((0,1), (2,0), $j_1$, marks: (none, "twohead"), bend: -15deg, dash: "dotted"),
+	conn((0,1), (1,1), marks: ("hook", "twohead"), dash: "dashed"),
+	conn((1,2), (1,1), marks: ("bar", "head")),
+	conn((1,1), (2,0), $k$, marks: ("head", "head"), dash: "densely-dashed", label-trans: 0pt, paint: green, thickness: 1pt),
 	node((2,0), $pi_1(X union Y)$)
 )
 $
 
-#let coords = range(8).map(i => (1, 2, 4).map(d => calc.rem(calc.quo(i, d), 2)))
-#let proj((x, y, z)) = (x + z*(0.4 - 0.15*x), y + z*(0.4 - 0.15*y))
 #arrow-diagram(
-	min-size: 4cm,
+	min-size: 3cm,
 	defocus: 0,
 	node-outset: 10pt,
 {
-	for i in range(8).rev() {
-		let from = coords.at(i)
+	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
+	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
+	for i in range(8) {
+		let from = cube-vertices.at(i)
 		node(proj(from), [#from])
 		for j in range(i) {
-			let to = coords.at(j)
+			let to = cube-vertices.at(j)
 			// test for adjancency
 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-				arrow(proj(from), proj(to), marks: ("arrow", none), crossing: to.at(2) == 0)
+				conn(proj(from), proj(to), marks: ("head", none), crossing: to.at(2) == 0)
 			}
 		}
 	}
-	arrow(proj((1,1,1)), (2, 0.8), dash: "dotted")
-	arrow(proj((1,0,1)), (2, 0.8), dash: "dotted")
+	conn(proj((1,1,1)), (2, 0.8), dash: "dotted")
+	conn(proj((1,0,1)), (2, 0.8), dash: "dotted")
 	node((2, 0.8), "fractional coords")
 })
 
@@ -193,11 +199,11 @@ $
 	node((-1,0), $A$),
 	node(( 0,-1), $B$),
 	node((+1,0), $C$),
-	arrow((-1,0), (0,-1)),
-	arrow((+1,0), (0,-1)),
-	arrow((-1,0), (0,1)),
-	arrow((+1,0), (0,1)),
-	arrow((0,-1), (0,1)),
+	conn((-1,0), (0,-1)),
+	conn((+1,0), (0,-1)),
+	conn((-1,0), (0,1)),
+	conn((+1,0), (0,1)),
+	conn((0,-1), (0,1)),
 )
 $
 
@@ -218,9 +224,9 @@ The effect of this is shown below:
 				pad: (10mm, 6mm),
 				defocus: d,
 				node((0,1), $A times B times C$),
-				arrow((-1,0), (0,1)),
-				arrow((+1,0), (0,1)),
-				arrow((0,-1), (0,1)),
+				conn((-1,0), (0,1)),
+				conn((+1,0), (0,1)),
+				conn((0,-1), (0,1)),
 			)
 		)
 	})
@@ -244,7 +250,7 @@ It is best explained by example:
 				(-1, 0),          (+1, 0),
 				(-1,-1), ( 0,-1), (+1,-1),
 			) {
-				arrow((0,0), p)
+				conn((0,0), p)
 			},
 		)
 	})
@@ -254,6 +260,7 @@ For `defocus: 0`, the connecting lines are directed exactly at the grid point at
 
 
 = Function reference
+#show-module("src/main.typ")
 #show-module("src/layout.typ")
 #show-module("src/marks.typ")
 #show-module("src/utils.typ")

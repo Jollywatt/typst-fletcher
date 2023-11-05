@@ -69,7 +69,15 @@
 ///
 /// - from (point): 2D vector of initial point.
 /// - to (point): 2D vector of final point.
-/// - angle (angle): Bend angle.
+/// - angle (angle): The bend angle between chord of the arc (line connecting the
+/// points) and the tangent to the arc and the first point.
+///
+/// #arrow-diagram(pad: 2cm, {
+///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {
+///         conn((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
+///         conn((2*i, 0), (2*i + 1, 0), [#θ], label-trans: 0pt, dash: "dotted")
+///     }
+/// })
 #let get-arc-connecting-points(from, to, angle) = {
 	let mid = vector.scale(vector.add(from, to), 0.5)
 	let (dx, dy) = vector.sub(to, from)
