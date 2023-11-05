@@ -14,7 +14,7 @@
 #align(center)[
 	#text(2em, strong(`arrow-diagrams`))
 
-	A Typst package for drawing commutative diagrams.
+	A Typst package for drawing diagrams with arrows.
 ]
 
 #v(1fr)

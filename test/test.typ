@@ -4,7 +4,7 @@
 
 // #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
 
-#set page(width: 15cm, height: auto)
+#set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 = Test arrow heads
@@ -23,7 +23,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("tail", "tail")),
 			(marks: ("double", "double")),
 			(marks: ("hook", "arrow")),
-			(marks: ("hook", "hook")),
+			(marks: ("hook-l", "hook-r")),
 			(marks: ("bar", "bar")),
 			(marks: ("arrow", "arrow"), parallels: (1.5,-1.5)),
 			(marks: ("tail", "tail"), parallels: (1.5,-1.5)),

@@ -73,6 +73,7 @@
 			..obj,
 			stroke: understroke,
 			marks: (none, none),
+			parallels: parallels.map(i => i/crossing-thickness)
 		),)
 	}
 

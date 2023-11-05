@@ -16,6 +16,8 @@
 #let CAP_OFFSETS = (
 	"arrow": y => round-arrow-cap-offset(8, 30deg, y),
 	"hook": y => -2,
+	"hook-l": y => -2,
+	"hook-r": y => -2,
 	"tail": y => -3 - round-arrow-cap-offset(8, 30deg, y),
 	"double": y => round-arrow-cap-offset(8, 30deg, y) - 2,
 )
@@ -24,15 +26,15 @@
 
 #let draw-arrow-cap(p, θ, stroke, kind) = {
 
-	if kind in ("harpoon-l", "harpoon-r") {
-		let i = if kind == "harpoon-l" { +1 } else { -1 }
+	if kind in ("harpoon", "harpoon-l", "harpoon-r") {
+		let dir = if kind == "harpoon-l" { +1 } else { -1 }
 
 		let sharpness = 30deg
 		cetz.draw.arc(
 			p,
 			radius: 8*stroke.thickness,
-			start: θ + i*(90deg + sharpness),
-			delta: i*40deg,
+			start: θ + dir*(90deg + sharpness),
+			delta: dir*40deg,
 			stroke: (thickness: stroke.thickness, paint: stroke.paint, cap: "round"),
 		)
 
@@ -50,13 +52,14 @@
 		p = cetz.vector.sub(p, vector-polar(stroke.thickness*3, θ))
 		draw-arrow-cap(p, θ, stroke, "arrow")
 
-	} else if kind == "hook" {
-		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at(kind)(0), θ))
+	} else if kind in ("hook", "hook-l", "hook-r") {
+		let dir = if kind == "hook-l" { +1 } else { -1 }
+		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at("hook")(0), θ))
 		cetz.draw.arc(
 			p,
 			radius: 2.8*stroke.thickness,
-			start: θ + 90deg,
-			delta: -180deg,
+			start: θ + dir*90deg,
+			delta: -dir*180deg,
 			stroke: (
 				thickness: stroke.thickness,
 				paint: stroke.paint,
