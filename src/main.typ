@@ -69,18 +69,22 @@
 			paint: white,
 			thickness: crossing-thickness*obj.stroke.thickness,
 		)
-		((..obj, stroke: understroke, marks: (none, none)),)
+		((
+			..obj,
+			stroke: understroke,
+			marks: (none, none),
+		),)
 	}
 
 	(obj,)
 }
 
-#let coord(coords, callback) = {
+#let coord(..args, callback: (..args) => none) = {
 	((
 		kind: "coord",
-		coords: coords,
+		coords: args.pos(),
 		callback: callback,
-	))
+	),)
 }
 
 #let draw-connector(arrow, cells, options) = {
@@ -211,96 +215,111 @@
 
 	let (pad, debug) = options
 
-	cetz.canvas({
 
-		for (i, node) in nodes.enumerate() {
+	for (i, node) in nodes.enumerate() {
 
-			if node.label == none { continue }
+		if node.label == none { continue }
 
-			let cell = cells.at(repr(node.pos))
+		let cell = cells.at(repr(node.pos))
 
-			cetz.draw.content(cell.real-pos, node.label, anchor: "center")
+		cetz.draw.content(cell.real-pos, node.label, anchor: "center")
 
-			if debug >= 1 {
-				cetz.draw.circle(
-					cell.real-pos,
-					radius: 1pt,
-					fill: DEBUG_COLOR,
-					stroke: none,
+		if debug >= 1 {
+			cetz.draw.circle(
+				cell.real-pos,
+				radius: 1pt,
+				fill: DEBUG_COLOR,
+				stroke: none,
+			)
+		}
+		if debug >= 2 {
+			if debug >= 3 or cell.bounding-mode == "rect" {
+				cetz.draw.rect(
+					vector.sub(cell.real-pos, vector.div(cell.size, 2)),
+					vector.add(cell.real-pos, vector.div(cell.size, 2)),
+					stroke: DEBUG_COLOR + 0.25pt,
 				)
 			}
-			if debug >= 2 {
-				if debug >= 3 or cell.bounding-mode == "rect" {
-					cetz.draw.rect(
-						vector.sub(cell.real-pos, vector.div(cell.size, 2)),
-						vector.add(cell.real-pos, vector.div(cell.size, 2)),
-						stroke: DEBUG_COLOR + 0.25pt,
-					)
-				}
-				if debug >= 3 or cell.bounding-mode == "circle" {
-					cetz.draw.circle(
-						cell.real-pos,
-						radius: cell.radius,
-						stroke: DEBUG_COLOR + 0.25pt,
-					)
-				}
+			if debug >= 3 or cell.bounding-mode == "circle" {
+				cetz.draw.circle(
+					cell.real-pos,
+					radius: cell.radius,
+					stroke: DEBUG_COLOR + 0.25pt,
+				)
+			}
+		}
+	}
+
+	for arrow in arrows {
+		let cells = arrow.points.map(pos => cells.at(repr(pos)))
+
+		let intersection-stroke = if debug >= 2 {
+			(paint: DEBUG_COLOR, thickness: 0.25pt)
+		}
+
+		draw-connector(arrow, cells, options)
+
+	}
+
+	// draw axes
+	if debug >= 1 {
+
+		cetz.draw.rect(
+			(0,0),
+			grid.bounding-size,
+			stroke: DEBUG_COLOR + 0.25pt
+		)
+
+		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
+
+			for (i, x) in grid.centers.at(axis).enumerate() {
+				let size = grid.sizes.at(axis).at(i)
+
+				// coordinate label
+				cetz.draw.content(
+					coord(x, -.4em),
+					text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
+					anchor: if axis == 0 { "top" } else { "right" }
+				)
+
+				// size bracket
+				cetz.draw.line(
+					..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
+					stroke: DEBUG_COLOR + .75pt,
+					mark: (start: "|", end: "|")
+				)
+
+				// gridline
+				cetz.draw.line(
+					coord(x, 0),
+					coord(x, grid.bounding-size.at(1 - axis)),
+					stroke: (
+						paint: DEBUG_COLOR,
+						thickness: .5pt,
+						dash: "densely-dotted",
+					),
+				)
 			}
 		}
 
-		for arrow in arrows {
-			let cells = arrow.points.map(pos => cells.at(repr(pos)))
+	}
+}
 
-			let intersection-stroke = if debug >= 2 {
-				(paint: DEBUG_COLOR, thickness: 0.25pt)
-			}
+#let resolve-coord(grid, coord) = {
+	zip(grid.centers, coord, grid.origin)
+		.map(((c, x, o)) => lerp-at(c, x - o))
+}
 
-			draw-connector(arrow, cells, options)
-
+#let execute-callbacks(grid, cells, nodes-sized, callbacks, options) = {
+	for callback in callbacks {
+		let resolved-coords = callback.coords
+			.map(resolve-coord.with(grid))
+		let result = (callback.callback)(..resolved-coords)
+		if type(result) != array {
+			panic("Callback should return an array of CeTZ element dictionaries; got " + type(result), result)
 		}
-
-		// draw axes
-		if debug >= 1 {
-
-			cetz.draw.rect(
-				(0,0),
-				grid.bounding-size,
-				stroke: DEBUG_COLOR + 0.25pt
-			)
-
-			for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
-
-				for (i, x) in grid.centers.at(axis).enumerate() {
-					let size = grid.sizes.at(axis).at(i)
-
-					// coordinate label
-					cetz.draw.content(
-						coord(x, -.4em),
-						text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-						anchor: if axis == 0 { "top" } else { "right" }
-					)
-
-					// size bracket
-					cetz.draw.line(
-						..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-						stroke: DEBUG_COLOR + .75pt,
-						mark: (start: "|", end: "|")
-					)
-
-					// gridline
-					cetz.draw.line(
-						coord(x, 0),
-						coord(x, grid.bounding-size.at(1 - axis)),
-						stroke: (
-							paint: DEBUG_COLOR,
-							thickness: .5pt,
-							dash: "densely-dotted",
-						),
-					)
-				}
-			}
-
-		}
-	})	
+		result
+	}
 }
 
 
@@ -328,13 +347,12 @@
 	let positional-args = args.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
 	let arrows = positional-args.filter(e => e.kind == "arrow")
+	let callbacks = positional-args.filter(e => e.kind == "coord")
 
 	box(style(styles => {
 
 		let em-size = measure(box(width: 1em), styles).width
-		let to-pt(len) = {
-			len.abs + len.em*em-size
-		}
+		let to-pt(len) = len.abs + len.em*em-size
 
 		let options = options
 		options.em-size = em-size
@@ -351,8 +369,10 @@
 		let grid = compute-grid(nodes-sized, options)
 		let cells = compute-cells(nodes-sized, grid, options)
 
-		draw-diagram(grid, cells, nodes-sized, arrows, options)
-
+		cetz.canvas({
+			draw-diagram(grid, cells, nodes-sized, arrows, options)
+			execute-callbacks(grid, cells, nodes-sized, callbacks, options)	
+		})
 	}))
 }
 

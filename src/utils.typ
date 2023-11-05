@@ -25,11 +25,14 @@
 #let vector-2d((x, y, ..z)) = (x, y)
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
-#let lerp-at(a, t) = lerp(
-	a.at(floor(t)),
-	a.at(ceil(t)),
-	calc.fract(t),
-)
+#let lerp-at(a, t) = {
+	let max-index = a.len() - 1
+	lerp(
+		a.at(calc.clamp(floor(t), 0, max-index)),
+		a.at(calc.clamp(ceil(t), 0, max-index)),
+		calc.fract(t),
+	)
+}
 
 #let zip(a, ..others) = if others.pos().len() == 0 {
 	a.map(i => (i,))

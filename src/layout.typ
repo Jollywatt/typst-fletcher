@@ -44,7 +44,7 @@
 	rects = expand-fractional-rects(rects)
 
 	// (x: (x-min, x-max), y: ...)
-	let bounding-rect = zip(..rects.map(n => n.pos)).map(min-max)
+	let bounding-rect = zip((0, 0), ..rects.map(n => n.pos)).map(min-max)
 	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
 	let origin = bounding-rect.map(((min, max)) => min)
 
@@ -83,6 +83,22 @@
 }	
 
 /// Compute a lookup table of the attributes of each grid cell
+///
+/// - nodes (array): Array of nodes to consider when calculating the sizes of
+///  cells, where each node of the form:
+/// ```
+/// (
+/// 	pos: (i, j),
+/// 	size: (width, height),
+/// )
+/// ```
+/// - grid (dictionary): Grid specification of the form
+/// ```
+/// (
+/// 	origin: (i, j),
+/// 	centers: ((x1, x2, ...), (y1, y2, ...)),
+/// )
+/// ```
 #let compute-cells(nodes, grid, options) = {
 
 	let cells = (:)

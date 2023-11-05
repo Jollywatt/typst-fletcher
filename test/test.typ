@@ -1,9 +1,11 @@
-#import "arrow-diagrams.typ": *
-#import "@local/cetz:0.1.2"
+#import "@preview/cetz:0.1.2"
+#import "../src/lib.typ": *
 
 
 // #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
 
+#set page(width: 15cm, height: auto)
+#show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 = Test arrow heads
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
@@ -87,10 +89,10 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 )
 
 #grid(
-	columns: (1fr, 1fr, 1fr),
-	..((6em, 2em), (2em, 6em)).map(((w, h)) => {
-		(-10, 0, +10).map(defocus => {
-			align(center, arrow-diagram(
+	columns: 2,
+	..(-10, -1, -.25, 0, +.25, +1, +10).map(defocus => {
+		((7em, 3em), (3em, 7em)).map(((w, h)) => {
+			align(center + horizon, arrow-diagram(
 				defocus: defocus,
 				node-outset: 0pt,
 			{
@@ -121,4 +123,14 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 {
 	arrow((0,1), (1,0))
 	arrow((0,0), (1,1), crossing: true)
+})
+
+= Test coord callback
+
+#arrow-diagram({
+	node((1,1), "hi")
+	arrow((1,1), (1,2))
+	coord((1, 2), (1,1), callback: (p1, p2) => {
+		cetz.draw.circle(p1, radius: 5pt, stroke: red)
+	})
 })

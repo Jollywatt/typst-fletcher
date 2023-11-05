@@ -1,1 +1,1 @@
-#import "main.typ": arrow-diagram, node, arrow
+#import "main.typ": arrow-diagram, node, arrow, coord

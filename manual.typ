@@ -7,17 +7,23 @@
 	tidy.show-module(
 		tidy.parse-module(read(path)),
 		// style: tidy.styles.minimal,
-		// show-outline: false,
+		show-outline: false,
 	)
 }
 
-#align(center, text(2em)[
-	*The `arrow-diagrams` package*
-])
+#align(center)[
+	#text(2em, strong(`arrow-diagrams`))
+
+	A Typst package for drawing commutative diagrams.
+]
 
 #v(1fr)
-
-#outline(indent: 1em)
+#outline(indent: 1em, target:
+	heading.where(level: 1)
+	.or(heading.where(level: 2))
+	.or(heading.where(level: 3)),
+)
+#v(1fr)
 
 
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
@@ -121,7 +127,7 @@ $
 Each diagram is built on a grid of points, each at the center of a cell in a table layout.
 When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
 
-This can be seen more clearly in diagrams with no cell padding:
+This can be seen more clearly in diagrams with `debug: 1` and no cell padding:
 
 #stack(
 	dir: ltr,
@@ -150,6 +156,7 @@ This can be seen more clearly in diagrams with no cell padding:
 
 While grid points are always at integer coordinates, nodes can also have *fractional coordinates*.
 A node between grid points still causes the neighbouring rows and columns to grow to accommodate its size, but only partially, depending on proximity.
+For example, notice how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
 
 #stack(
 	dir: ltr,
@@ -167,11 +174,9 @@ A node between grid points still causes the neighbouring rows and columns to gro
 	}),
 )
 
-Specifically, fractional coordinates are handled by linearly interpolating the layout.
-For example, if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ must be at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
-This is implemented in the function `expand-fractional-rects`.
+Specifically, fractional coordinates are dealt with by _linearly interpolating_ the layout, in the sense that if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ is at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
 
-As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.
+As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise coordinates.
 
 
 == How connecting lines work
@@ -227,10 +232,10 @@ It is best explained by example:
 #stack(
 	dir: ltr,
 	spacing: 1fr,
-	..(+.8, 0, -.2).map(d => {
+	..(+.8, 0, -.8).map(d => {
 		arrow-diagram(
 			pad: 10mm,
-			debug: 2,
+			debug: 0,
 			node-outset: 15pt,
 			defocus: d,
 			node((0,0), raw("defocus: "+repr(d))),
@@ -248,11 +253,7 @@ It is best explained by example:
 For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.
 
 
-== Layout-related functions
+= Function reference
 #show-module("src/layout.typ")
-
-= Marks
 #show-module("src/marks.typ")
-
-= Utils
 #show-module("src/utils.typ")
