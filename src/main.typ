@@ -2,7 +2,7 @@
 #import "@local/cetz:0.1.2" as cetz: vector
 #import "utils.typ": *
 #import "layout.typ": *
-#import "line-caps.typ": *
+#import "marks.typ": *
 
 
 #let node(pos, label) = {
@@ -75,6 +75,13 @@
 	(obj,)
 }
 
+#let coord(coords, callback) = {
+	((
+		kind: "coord",
+		coords: coords,
+		callback: callback,
+	))
+}
 
 #let draw-connector(arrow, cells, options) = {
 

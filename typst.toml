@@ -1,0 +1,7 @@
+[package]
+name = "arrow-diagrams"
+version = "0.1.0"
+entrypoint = "/src/lib.typ"
+authors = ["jollywatt (Joseph Wilson)"]
+license = "MIT"
+description = "Commutative diagram package built on top of CeTZ."

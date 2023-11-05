@@ -1,17 +1,26 @@
-#import "arrow-diagrams.typ": *
+#import "@preview/tidy:0.1.0"
+#import "src/lib.typ": *
 
-// #set page(fill: blue.darken(50%))
-// #set text(fill: white)
+#set page(numbering: "1")
 
-#show raw.where(block: true): set text(size: 0.75em)
-
+#let show-module(path) = {
+	tidy.show-module(
+		tidy.parse-module(read(path)),
+		// style: tidy.styles.minimal,
+		// show-outline: false,
+	)
+}
 
 #align(center, text(2em)[
 	*The `arrow-diagrams` package*
 ])
 
+#v(1fr)
 
-#outline()
+#outline(indent: 1em)
+
+
+#show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 = Examples
 
@@ -100,7 +109,14 @@ $
 	node((2, 0.8), "fractional coords")
 })
 
-= How the layouting works
+
+= Tutorial
+
+
+= Layout
+
+
+== How the layouting works
 
 Each diagram is built on a grid of points, each at the center of a cell in a table layout.
 When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
@@ -119,6 +135,7 @@ This can be seen more clearly in diagrams with no cell padding:
 		node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
 	)),
 )[
+#set text(size: 0.75em)
 ```typ
 #arrow-diagram(
 	debug: 1,
@@ -157,7 +174,7 @@ This is implemented in the function `expand-fractional-rects`.
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise locations when you need to.
 
 
-= How connecting lines work
+== How connecting lines work
 
 Lines between nodes connect to the node's bounding circle or bounding rectangle, depending on the node's aspect ratio.
 
@@ -179,7 +196,7 @@ $
 )
 $
 
-== The `defocus` correction
+=== The `defocus` correction
 
 For aesthetic reasons, a line connecting to a node should not necessarily be focused to the node's exact center, especially if the node is short and wide or tall and narrow.
 Notice how in the figure above the lines connecting to the node $A times B times C$
@@ -230,3 +247,12 @@ It is best explained by example:
 
 For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.
 
+
+== Layout-related functions
+#show-module("src/layout.typ")
+
+= Marks
+#show-module("src/marks.typ")
+
+= Utils
+#show-module("src/utils.typ")
