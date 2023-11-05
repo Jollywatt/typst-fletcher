@@ -9,24 +9,28 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
-	debug: 1,
+	debug: 0,
 	pad: (10mm, 5mm),
 {
-	for i in (0, 1) {
+	for i in (0, 1, 2) {
 		let x = 2*i
-		let bend = 60deg*i
-		arrow((x, 1), (x+1, 1), marks: ("harpoon-l", "harpoon-r"), bend: bend)
-		arrow((x, 0), (x+1, 0), marks: ("arrow", "arrow"), bend: bend)
-		arrow((x,-1), (x+1,-1), marks: ("tail", "tail"), bend: bend)
-		arrow((x,-2), (x+1,-2), marks: ("double", "double"), bend: bend)
-		arrow((x,-3), (x+1,-3), marks: ("hook", "hook"), bend: bend)
-		arrow((x,-4), (x+1,-4), marks: ("bar", "bar"), bend: bend)
-		arrow((x,-5), (x+1,-5), marks: ("tail", "arrow"), parallels: (1.5,-1.5), bend: bend)
-		arrow((x,-6), (x+1,-6), marks: ("bar", "arrow"), parallels: (2,0,-2), bend: bend)
+		let bend = 40deg*i
+		(
+			(marks: ("harpoon-l", "harpoon-r")),
+			(marks: ("arrow", "arrow")),
+			(marks: ("tail", "tail")),
+			(marks: ("double", "double")),
+			(marks: ("hook", "arrow")),
+			(marks: ("hook", "hook")),
+			(marks: ("bar", "bar")),
+			(marks: ("arrow", "arrow"), parallels: (1.5,-1.5)),
+			(marks: ("tail", "tail"), parallels: (1.5,-1.5)),
+			(marks: ("bar", "arrow"), parallels: (2,0,-2)),
+			(marks: (none, none), parallels: (2.5,0,-2.5)),
+		).enumerate().map(((i, args)) => {
+			arrow((x, -i), (x + 1, -i), ..args, bend: bend)
+		}).join()
 
-		// arrow((2, 0), (3, 0), marks: ("hook", "arrow"), bend: bend)
-		// arrow((2,-2), (3,-2), marks: ("hook", "double"), bend: bend)
-		// arrow((2,-4), (3,-4), marks: ("bar", "arrow"))
 	}
 
 })
@@ -39,13 +43,31 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	min-size: (10mm, 10mm),
 	node((0,1), $X$),
 	node((1,1), $Y$),
-	node((0,0), "bro"),
+	node((0,0), $Z$),
 	arrow((0,1), (1,1), marks: (none, "arrow")),
-	arrow((0,0), (1,1), marks: ("hook", "arrow"), dash: "dashed"),
+	arrow((0,0), (1,1), $f$, marks: ("hook", "arrow"), dash: "dashed"),
 	arrow((0,1), (0,0), marks: (none, "double")),
+	arrow((0,1), (0,1), marks: (none, "arrow"), bend: -120deg),
 )
 
 = Test arc connectors
+
+#arrow-diagram(
+	min-size: 3cm,
+{
+	node((0,0), "from")
+	node((1,0), "to")
+	for θ in (0deg, 20deg, -50deg) {
+		arrow((0,0), (1,0), $#θ$, label-trans: 0pt, bend: θ, marks: (none, "arrow"))
+	}
+})
+
+#arrow-diagram(
+	debug: 3,
+	node((0,0), $X$),
+	node((1,0), $Y$),
+	arrow((0,0), (1,0), bend: 45deg, marks: ("arrow", "arrow")),
+)
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
 	arrow-diagram(debug: 0, {
@@ -56,17 +78,6 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	})
 }
 
-#let s = 200%
-#cetz.canvas({
-	cetz.draw.line((0,0), (1,0), stroke: s*0.526pt)
-	for i in (+1, -1) {
-		cetz.draw.arc((1,0), radius: 8pt, start: i*106deg, delta: i*50deg, stroke: (cap: "round"))
-	}
-	cetz.draw.line((0,-1), (1,-1), stroke: s*0.526pt)
-	cetz.draw.arc((0,-3), start: 0deg, delta: 135deg, anchor: "center")
-})
-
-
 = Test defocus
 
 #let around = (
@@ -75,15 +86,22 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	(-1,-1), ( 0,-1), (+1,-1),
 )
 
-#arrow-diagram(
-	defocus: 0,
-	node-outset: 0pt,
-{
-	node((0,0), rect(fill: purple)[defocus #0])
-	for p in around {
-		arrow(p, (0,0))
-	}
-})
+#grid(
+	columns: (1fr, 1fr, 1fr),
+	..((6em, 2em), (2em, 6em)).map(((w, h)) => {
+		(-10, 0, +10).map(defocus => {
+			align(center, arrow-diagram(
+				defocus: defocus,
+				node-outset: 0pt,
+			{
+				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))
+				for p in around {
+					arrow(p, (0,0))
+				}
+			}))
+		})
+	}).join()
+)
 
 = Test label latitude placement
 
@@ -96,9 +114,11 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 })
 
 
+= Test crossing connectors
+
 #arrow-diagram(
-	debug: 3,
-	node((0,0), $X$),
-	node((1,0), $Y$),
-	arrow((0,0), (1,0), bend: 45deg, marks: ("arrow", "arrow")),
-)
+	
+{
+	arrow((0,1), (1,0))
+	arrow((0,0), (1,1), crossing: true)
+})

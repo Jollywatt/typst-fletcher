@@ -1,6 +1,8 @@
 #import calc: floor, ceil, min, max
 #import "@local/cetz:0.1.2": draw, vector
 
+#let DEBUG_COLOR = rgb("f008")
+
 #let to-abs-length(len, em-size) = {
 	len.abs + len.em*em-size
 }
@@ -42,6 +44,8 @@
   ((x1, y1), (x0, y1)),
   ((x0, y1), (x0, y0)),
 )
+
+
 #let intersect-rect-with-crossing-line(rect, line) = {
 	rect = rect.map(vector-unitless)
 	line = line.map(vector-unitless)
@@ -54,6 +58,15 @@
 	panic("didn't intersect", rect, line)
 }
 
+
+/// Determine arc between two points with a given bend angle
+///
+/// The bend angle is the angle between chord of the arc (line connecting the
+/// points) and the tangent to the arc and the first point.
+///
+/// - from (point): 2D vector of initial point.
+/// - to (point): 2D vector of final point.
+/// - angle (angle): Bend angle.
 #let get-arc-connecting-points(from, to, angle) = {
 	let mid = vector.scale(vector.add(from, to), 0.5)
 	let (dx, dy) = vector.sub(to, from)

@@ -36,12 +36,22 @@
 			node((0,1), $T b$),
 			node((1,0), $S a'$),
 			node((1,1), $T b'$),
-			arrow((0,0), (0,1), $f$),
-			arrow((1,0), (1,1), $f'$),
-			arrow((0,0), (1,0), $α$),
-			arrow((0,1), (1,1), $β$, bend: 20deg),
-			arrow((0,1), (1,1), $β$, bend: -20deg),
+			arrow((0,0), (0,1), $f$, marks: ("double", "hook")),
+			arrow((1,0), (1,1), $f'$, label-trans: 1em),
+			arrow((0,0), (1,0), $α$, parallels: (-4,0,4), label-trans: 0pt),
+			arrow((0,1), (1,1), $γ$, bend: 20deg, marks: (none, "arrow")),
+			arrow((0,1), (1,1), $β$, bend: -20deg, marks: (none, "arrow")),
 		),
+		arrow-diagram(
+			// debug: 1,
+			// min-size: (1.5cm, 0pt),
+			pad: 2cm,
+			node((0,0), $cal(A)$),
+			node((1,0), $cal(B)$),
+			arrow((0,0), (1,0), $F$, marks: (none, "arrow"), bend: +35deg),
+			arrow((0,0), (1,0), $G$, marks: (none, "arrow"), bend: -35deg),
+			arrow((0.5,+.21), (0.5,-.21), $alpha$, label-trans: -0.8em, marks: (none, "arrow"), parallels: (-1.5,+1.5)),
+		)
 	).map(x => align(center, x))
 )
 
@@ -56,13 +66,13 @@ $
 	node((0,1), $pi_1(X)$),
 	node((1,2), $pi_1(Y)$),
 	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-	arrow((0,2), (0,1), $i_2$, marks: (none, "arrow")),
-	arrow((0,2), (1,2), text("i"), marks: ("hook", "arrow")),
-	arrow((1,2), (2,0), $j_2$, marks: ("arrow", "arrow"), bend: 20deg),
+	arrow((0,2), (0,1), $i_2$, marks: (none, "arrow"), parallels: (-1.5,1.5)),
+	arrow((0,2), (1,2), $i_1$, marks: ("hook", "arrow")),
+	arrow((1,2), (2,0), $j_2$, marks: ("arrow", "arrow"), bend: 20deg, parallels: (-1.5,1.5)),
 	arrow((0,1), (2,0), $j_1$, marks: (none, "double"), bend: -15deg, dash: "dotted"),
 	arrow((0,1), (1,1), marks: ("hook", "double"), dash: "dashed"),
 	arrow((1,2), (1,1), marks: ("bar", "arrow")),
-	arrow((1,1), (2,0), $k$, marks: ("arrow", "arrow"), dash: "densely-dashed", label-trans: 0pt, paint: blue, stroke: 3pt),
+	arrow((1,1), (2,0), $k$, marks: ("arrow", "arrow"), dash: "densely-dashed", label-trans: 0pt, paint: green, thickness: 1pt),
 	node((2,0), $pi_1(X union Y)$)
 )
 $
@@ -74,11 +84,14 @@ $
 	defocus: 0,
 	node-outset: 10pt,
 {
-	for a in coords {
-		node(proj(a), [#a])
-		for b in coords {
-			if a.zip(b).map(((i, j) ) => int(i == j)).sum() == 2 {
-				arrow(proj(a), proj(b), marks: (none, "arrow"))
+	for i in range(8).rev() {
+		let from = coords.at(i)
+		node(proj(from), [#from])
+		for j in range(i) {
+			let to = coords.at(j)
+			// test for adjancency
+			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
+				arrow(proj(from), proj(to), marks: ("arrow", none), crossing: to.at(2) == 0)
 			}
 		}
 	}
