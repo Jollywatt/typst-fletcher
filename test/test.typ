@@ -1,5 +1,6 @@
 #import "@preview/cetz:0.1.2"
 #import "../src/lib.typ": *
+#import "../src/marks.typ": *
 
 
 // #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
@@ -18,12 +19,12 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		let x = 2*i
 		let bend = 40deg*i
 		(
-			(marks: ("harpoon-l", "harpoon-r")),
+			(marks: ("harpoon", "harpoon'")),
 			(marks: ("head", "head")),
 			(marks: ("tail", "tail")),
 			(marks: ("twotail", "twohead")),
 			(marks: ("hook", "head")),
-			(marks: ("hook-l", "hook-r")),
+			(marks: ("hook", "hook'")),
 			(marks: ("bar", "bar")),
 			(marks: (none, none), extrude: (2.5,0,-2.5)),
 			(marks: ("head", "head"), extrude: (1.5,-1.5)),
@@ -37,6 +38,32 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 	}
 
 })
+
+= Test arrow head shorthands
+
+$
+#for i in (
+	"->",
+	"<-",
+	"<->",
+	"<=>",
+	"|->",
+	"|=>",
+	">->",
+	"->>",
+	"hook->",
+	"<<-hook",
+	"|=|",
+	">>-<<",
+	"harpoon-harpoon'",
+	"harpoon-<<",
+	"<--hook'",
+	"|..|",
+) {
+	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
+	&= #arrow-diagram(conn((0,0), (1,0), ..parse-arrow-type-shorthand(i))) \ $
+}
+$
 
 = Test connectors
 

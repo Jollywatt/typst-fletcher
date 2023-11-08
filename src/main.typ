@@ -30,7 +30,7 @@
 	marks: (none, none),
 	extrude: (0,),
 	crossing: false,
-	crossing-thickness: 5
+	crossing-thickness: 5,
 ) = {
 	node(from, none)
 	node(to, none)
