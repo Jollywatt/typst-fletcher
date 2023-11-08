@@ -20,7 +20,7 @@
 #align(center)[
 	#text(2em, strong(`arrow-diagrams`))
 
-	A Typst package for drawing diagrams with arrows.
+	A Typst package for drawing diagrams with arrows,\ built on top of link("CeTZ.
 ]
 
 #v(1fr)
@@ -36,6 +36,50 @@
 
 = Examples
 
+#let code-example(src) = {
+	let scope = (arrow-diagram: arrow-diagram, node: node, conn: conn)
+	(eval(src.text, mode: "markup", scope: scope), src)
+}
+
+#table(
+	columns: (1fr, 2fr),
+	align: (horizon, left),
+	inset: 10pt,
+
+	..code-example(```typ
+	Inline $f: A -> B$ equation, \
+	Inline #arrow-diagram(
+		node-outset: 4pt,
+		node((0,0), $A$),
+		conn((0,0), (1,0), text(.7em, $f$), "->", label-sep: 2pt),
+		node((1,0), $B$),
+	) diagram.
+	```),
+
+	..code-example(```typ
+	#arrow-diagram(
+		min-size: 10mm,
+		node((0,1), $X$),
+		node((1,1), $Y$),
+		node((0,0), $X slash ker(f)$),
+		conn((0,1), (1,1), $f$, "->"),
+		conn((0,0), (1,1), "hook-->"),
+		conn((0,1), (0,0), "->"),
+	)
+	```),
+
+	..code-example(```typ
+	#arrow-diagram(
+		pad: 2cm,
+		node((0,0), $cal(A)$),
+		node((1,0), $cal(B)$),
+		conn((0,0), (1,0), $F$, "->", bend: +35deg),
+		conn((0,0), (1,0), $G$, "->", bend: -35deg),
+		conn((.5,+.21), (.5,-.21), $alpha$, "=>"),
+	)
+	```),
+)
+
 #grid(
 	gutter: 2em,
 	columns: (1fr, 1fr),
@@ -46,33 +90,25 @@
 			node((0,1), $X$),
 			node((1,1), $Y$),
 			node((0,0), $X slash ker(f)$),
-			conn((0,1), (1,1), marks: (none, "head")),
-			conn((0,0), (1,1), marks: ("hook", "head"), dash: "dashed"),
-			conn((0,1), (0,0), marks: (none, "head")),
+
+			conn((0,1), (1,1), $f$, "->"),
+			conn((0,0), (1,1), "hook-->"),
+			conn((0,1), (0,0), "->"),
 		),
 		arrow-diagram(
-			debug: 0,
+			debug: 3,
 			pad: 5em,
 			node((0,0), $S a$),
 			node((0,1), $T b$),
 			node((1,0), $S a'$),
 			node((1,1), $T b'$),
-			conn((0,0), (0,1), $f$, marks: ("twohead", "hook")),
-			conn((1,0), (1,1), $f'$, label-trans: 1em),
-			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-trans: 0pt),
-			conn((0,1), (1,1), $γ$, bend: 20deg, marks: (none, "head")),
-			conn((0,1), (1,1), $β$, bend: -20deg, marks: (none, "head")),
+			conn((0,0), (0,1), $f$, "hook->>"),
+			conn((1,0), (1,1), $f'$, label-sep: 1em),
+			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-sep: 0pt),
+			conn((0,1), (1,1), $γ$, bend: 20deg, "->"),
+			conn((0,1), (1,1), $β$, bend: -20deg, "->"),
 		),
-		arrow-diagram(
-			// debug: 1,
-			// min-size: (1.5cm, 0pt),
-			pad: 2cm,
-			node((0,0), $cal(A)$),
-			node((1,0), $cal(B)$),
-			conn((0,0), (1,0), $F$, marks: (none, "head"), bend: +35deg),
-			conn((0,0), (1,0), $G$, marks: (none, "head"), bend: -35deg),
-			conn((0.5,+.21), (0.5,-.21), $alpha$, label-trans: -0.8em, marks: (none, "head"), extrude: (-1.5,+1.5)),
-		)
+
 	).map(x => align(center, x))
 )
 
@@ -87,13 +123,13 @@ $
 	node((0,1), $pi_1(X)$),
 	node((1,2), $pi_1(Y)$),
 	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-	conn((0,2), (0,1), $i_2$, marks: (none, "head"), extrude: (-1.5,1.5)),
-	conn((0,2), (1,2), $i_1$, marks: ("hook", "head")),
-	conn((1,2), (2,0), $j_2$, marks: ("head", "head"), bend: 20deg, extrude: (-1.5,1.5)),
-	conn((0,1), (2,0), $j_1$, marks: (none, "twohead"), bend: -15deg, dash: "dotted"),
-	conn((0,1), (1,1), marks: ("hook", "twohead"), dash: "dashed"),
-	conn((1,2), (1,1), marks: ("bar", "head")),
-	conn((1,1), (2,0), $k$, marks: ("head", "head"), dash: "densely-dashed", label-trans: 0pt, paint: green, thickness: 1pt),
+	conn((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
+	conn((0,2), (1,2), $i_1$, "hook->"),
+	conn((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
+	conn((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
+	conn((0,1), (1,1), "hook->>", dash: "dashed"),
+	conn((1,2), (1,1), "|->"),
+	conn((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
 	node((2,0), $pi_1(X union Y)$)
 )
 $
@@ -106,13 +142,13 @@ $
 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
 	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
 	for i in range(8) {
-		let from = cube-vertices.at(i)
-		node(proj(from), [#from])
+		let to = cube-vertices.at(i)
+		node(proj(to), [#to])
 		for j in range(i) {
-			let to = cube-vertices.at(j)
+			let from = cube-vertices.at(j)
 			// test for adjancency
 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-				conn(proj(from), proj(to), marks: ("head", none), crossing: to.at(2) == 0)
+				conn(proj(from), proj(to), ">>->", crossing: to.at(2) == 0)
 			}
 		}
 	}
@@ -221,7 +257,7 @@ The effect of this is shown below:
 		figure(
 			caption: [#with defocus correction],
 			arrow-diagram(
-				pad: (10mm, 6mm),
+				pad: (10mm, 9mm),
 				defocus: d,
 				node((0,1), $A times B times C$),
 				conn((-1,0), (0,1)),

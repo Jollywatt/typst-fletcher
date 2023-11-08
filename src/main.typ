@@ -63,7 +63,8 @@
 	..args,
 	label: none,
 	label-pos: 0.5,
-	label-trans: auto,
+	label-sep: .4em,
+	label-anchor: auto,
 	paint: black,
 	thickness: 0.6pt,
 	dash: none,
@@ -80,7 +81,8 @@
 	let options = (
 		label: label,
 		label-pos: label-pos,
-		label-trans: label-trans,
+		label-sep: label-sep,
+		label-anchor: label-anchor,
 		paint: paint,
 		thickness: thickness,
 		dash: dash,
@@ -117,7 +119,8 @@
 		points: (from, to),
 		label: options.label,
 		label-pos: options.label-pos,
-		label-trans: options.label-trans,
+		label-sep: options.label-sep,
+		label-anchor: options.label-anchor,
 		paint: options.paint,
 		mode: mode,
 		bend: options.bend,
@@ -162,8 +165,7 @@
 #let draw-connector(arrow, cells, options) = {
 
 	let cap-points = get-node-connectors(arrow, cells, options)
-	let mark-angles
-	let label-pos
+	let θ = vector-angle(vector.sub(..cap-points))
 
 	let cap-offsets(y) = zip(arrow.marks, (+1, -1))
 		.map(((mark, dir)) => {
@@ -175,9 +177,12 @@
 		})
 
 
+
+	let mark-angles
+	let label-pos
+
 	if arrow.mode == "line" {
 
-		let θ = vector-angle(vector.sub(..cap-points))
 		mark-angles = (θ, θ + 180deg)
 
 		let line-points(y) = zip(cap-points, cap-offsets(y))
@@ -201,15 +206,18 @@
 		}
 
 
-		if arrow.label-trans == auto {
-			arrow.label-trans = if calc.abs(θ) < 90deg { 1em } else { -1em }
+		// Choose label anchor based on connector direction
+		if arrow.label-anchor == auto {
+			arrow.label-anchor = angle-to-anchor(θ + 90deg)
 		}
+		
+		arrow.label-sep *= if calc.abs(θ) < 90deg { +1 } else { -1 }
 
-		arrow.label-trans = to-abs-length(arrow.label-trans, options.em-size)
+		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
 
 		label-pos = vector.add(
 			vector.lerp(..line-points(0), arrow.label-pos),
-			vector-polar(arrow.label-trans, θ + 90deg),
+			vector-polar(arrow.label-sep, θ + 90deg),
 		)
 
 	} else if arrow.mode == "arc" {
@@ -235,18 +243,27 @@
 		let δ = bend-dir*90deg
 		mark-angles = (start - δ, stop + δ)
 
-		if arrow.label-trans == auto {
-			arrow.label-trans = 1em
-		}
+		// if arrow.label-sep == auto {
+		// 	arrow.label-sep = .2em
+		// }
 
-		arrow.label-trans = to-abs-length(arrow.label-trans, options.em-size)
+		// Choose label anchor based on connector direction
+		if arrow.label-anchor == auto {
+			let dir = if arrow.bend > 0deg { +1 } else { -1 }
+			arrow.label-anchor = angle-to-anchor(θ + dir*90deg)
+		}
+		
+
+
+		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
 
 		label-pos = vector.add(
 			center,
-			vector-polar(radius + arrow.label-trans, lerp(start, stop, arrow.label-pos))
+			vector-polar(radius + arrow.label-sep, lerp(start, stop, arrow.label-pos))
 		)
 
 	} else { panic(arrow) }
+
 
 	for (mark, pt, θ) in zip(arrow.marks, cap-points, mark-angles) {
 		if mark == none { continue }
@@ -254,13 +271,27 @@
 	}
 
 	if arrow.label != none {
-		cetz.draw.content(label-pos, box(
-			fill: white,
-			inset: 3pt,
-			radius: .5em,
-			stroke: none,
-			$ #arrow.label $,
-		))
+
+		cetz.draw.content(
+			label-pos,
+			box(
+				// fill: white,
+				// inset: .15em,
+				// radius: .3em,
+				stroke: if options.debug >= 3 { DEBUG_COLOR + 0.25pt },
+				$ #arrow.label $,
+			),
+			anchor: arrow.label-anchor,
+		)
+
+		if options.debug >= 3 {
+			cetz.draw.circle(
+				label-pos,
+				radius: arrow.stroke.thickness,
+				stroke: none,
+				fill: DEBUG_COLOR,
+			)
+		}
 	}
 
 	if options.debug >= 3 {
@@ -398,7 +429,8 @@
 ///
 /// - ..args (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
-/// - pad (length, pair of lengths): Minimum gap between the bounding boxes of nodes.
+/// - pad (length, pair of lengths): Minimum padding between node content and
+///  their bounding boxes or bounding circles.
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
 /// - node-outset (length, pair of lengths): Inset between a node's content and its bounding box.
 /// - defocus (number): Strength of the defocus correction. `0` to disable.

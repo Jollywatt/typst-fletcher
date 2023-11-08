@@ -89,7 +89,7 @@ $
 	node((0,0), "from")
 	node((1,0), "to")
 	for θ in (0deg, 20deg, -50deg) {
-		conn((0,0), (1,0), $#θ$, label-trans: 0pt, bend: θ, marks: (none, "head"))
+		conn((0,0), (1,0), $#θ$, label-sep: 0pt, bend: θ, marks: (none, "head"))
 	}
 })
 
@@ -170,6 +170,6 @@ Prefer placing label 'above' the line.
 #arrow-diagram(
 	conn((0,0), (1,0), "->>", "dashed"),
 	conn((0,0), (1,1), "->", "double", bend: 45deg),
-	conn((1,1), (2,1), $f$, "|->", label-trans: 0em),
+	conn((1,1), (2,1), $f$, "|->", label-sep: 0em),
 	conn((1,0), (0,1), "crossing"),
 )

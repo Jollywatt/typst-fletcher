@@ -40,6 +40,20 @@
 	a.zip(..others)
 }
 
+#let angle-to-anchor(θ) = {
+	let i = calc.rem(8*θ/1rad/calc.tau, 8)
+	(
+		"right",
+		"top-right",
+		"top",
+		"top-left",
+		"left",
+		"bottom-left",
+		"bottom",
+		"bottom-right",
+	).at(int(calc.round(i)))
+}
+
 
 #let rect-edges((x0, y0), (x1, y1)) = (
   ((x0, y0), (x1, y0)),
@@ -75,7 +89,7 @@
 /// #arrow-diagram(pad: 2cm, {
 ///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {
 ///         conn((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
-///         conn((2*i, 0), (2*i + 1, 0), [#θ], label-trans: 0pt, dash: "dotted")
+///         conn((2*i, 0), (2*i + 1, 0), [#θ], label-sep: 0pt, dash: "dotted")
 ///     }
 /// })
 #let get-arc-connecting-points(from, to, angle) = {
