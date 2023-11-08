@@ -8,7 +8,7 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
-= Test arrow heads
+= Arrow heads
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
@@ -39,7 +39,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 })
 
-= Test arrow head shorthands
+= Arrow head shorthands
 
 $
 #for i in (
@@ -52,20 +52,21 @@ $
 	">->",
 	"->>",
 	"hook->",
-	"<<-hook",
+	"hook'--hook",
 	"|=|",
 	">>-<<",
 	"harpoon-harpoon'",
-	"harpoon-<<",
+	"harpoon'-<<",
 	"<--hook'",
 	"|..|",
+	"hooks--hooks",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #arrow-diagram(conn((0,0), (1,0), ..parse-arrow-type-shorthand(i))) \ $
+	&= #arrow-diagram(conn((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
 }
 $
 
-= Test connectors
+= Connectors
 
 
 #arrow-diagram(
@@ -80,7 +81,7 @@ $
 	conn((0,1), (0,1), marks: (none, "head"), bend: -120deg),
 )
 
-= Test arc connectors
+= Arc connectors
 
 #arrow-diagram(
 	min-size: 3cm,
@@ -108,7 +109,7 @@ $
 	})
 }
 
-= Test defocus
+= Defocus
 
 #let around = (
 	(-1,+1), ( 0,+1), (+1,+1),
@@ -133,7 +134,8 @@ $
 	}).join()
 )
 
-= Test label latitude placement
+= Default label placement
+Prefer placing label 'above' the line.
 
 #arrow-diagram(
 	min-size: (2.2cm, 2cm),
@@ -144,14 +146,16 @@ $
 })
 
 
-= Test crossing connectors
+= Crossing connectors
 
 #arrow-diagram({
 	conn((0,1), (1,0))
 	conn((0,0), (1,1), crossing: true)
+	conn((2,1), (3,0), "|-|", bend: -20deg)
+	conn((2,0), (3,1), "<=>", crossing: true, bend: 20deg)
 })
 
-= Test coord callback
+= Coord callback
 
 #arrow-diagram({
 	node((1,1), "hi")
@@ -160,3 +164,12 @@ $
 		cetz.draw.circle(p1, radius: 5pt, stroke: red)
 	})
 })
+
+= `conn()` argument shorthands
+
+#arrow-diagram(
+	conn((0,0), (1,0), "->>", "dashed"),
+	conn((0,0), (1,1), "->", "double", bend: 45deg),
+	conn((1,1), (2,1), $f$, "|->", label-trans: 0em),
+	conn((1,0), (0,1), "crossing"),
+)

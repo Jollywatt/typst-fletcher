@@ -17,10 +17,51 @@
 }
 
 
+#let CONN_ARGUMENT_SHORTHANDS = (
+	"dashed": (dash: "dashed"),
+	"double": (double: true),
+	"crossing": (crossing: true),
+)
+
+#let interpret-conn-args(args) = {
+	let named-args = (:)
+
+	if args.named().len() > 0 {
+		panic("Unexpected named argument:", pos.named().leys())
+	}
+
+	let pos = args.pos()
+
+	if pos.len() >= 1 and type(pos.at(0)) != str {
+		named-args.label = pos.remove(0)
+	}
+
+	if (pos.len() >= 1 and type(pos.at(0)) == str and
+		pos.at(0) not in CONN_ARGUMENT_SHORTHANDS) {
+		named-args.marks = pos.remove(0)
+	}
+
+	for arg in pos {
+		if type(arg) == str and arg in CONN_ARGUMENT_SHORTHANDS {
+			named-args += CONN_ARGUMENT_SHORTHANDS.at(arg)
+		} else {
+			panic(
+				"Unrecognised argument " + repr(arg) + ". Must be one of:",
+				CONN_ARGUMENT_SHORTHANDS.keys(),
+			)
+		}
+	}
+
+	named-args
+
+}
+
+
 #let conn(
 	from,
 	to,
 	..args,
+	label: none,
 	label-pos: 0.5,
 	label-trans: auto,
 	paint: black,
@@ -28,52 +69,77 @@
 	dash: none,
 	bend: none,
 	marks: (none, none),
-	extrude: (0,),
+	double: false,
+	extrude: auto,
 	crossing: false,
 	crossing-thickness: 5,
 ) = {
 	node(from, none)
 	node(to, none)
 
+	let options = (
+		label: label,
+		label-pos: label-pos,
+		label-trans: label-trans,
+		paint: paint,
+		thickness: thickness,
+		dash: dash,
+		bend: bend,
+		marks: marks,
+		double: double,
+		extrude: extrude,
+		crossing: crossing,
+		crossing-thickness: crossing-thickness,
+	)
+	options += interpret-conn-args(args)
+
 	let mode = if bend in (none, 0deg) { "line" } else { "arc" }
-	let label = if args.pos().len() > 0 { args.pos().at(0) } else { none }
-	if args.pos().len() > 1 or args.named().len() > 0 {
-		panic("Unexpected arguments:", args)
+	// let label = if args.pos().len() > 0 { args.pos().at(0) } else { none }
+
+	if type(options.marks) == str {
+		options += parse-arrow-shorthand(options.marks)
+	}
+
+
+	if options.extrude == auto {
+		options.extrude = if options.double { (-1.5, +1.5) } else { (0,) }
 	}
 
 	let stroke = (
-		paint: paint,
+		paint: options.paint,
 		cap: "round",
-		thickness: thickness,
-		dash: dash,
+		thickness: options.thickness,
+		dash: options.dash,
 	)
 
 	let obj = ( 
 		kind: "conn",
 		points: (from, to),
-		label: label,
-		label-pos: label-pos,
-		label-trans: label-trans,
-		paint: paint,
+		label: options.label,
+		label-pos: options.label-pos,
+		label-trans: options.label-trans,
+		paint: options.paint,
 		mode: mode,
-		bend: bend,
+		bend: options.bend,
 		stroke: stroke,
-		marks: marks,
-		extrude: extrude,
+		marks: options.marks,
+		extrude: options.extrude,
 	)
 
-	if crossing {
+
+	if options.crossing {
 		// duplicate connector with white stroke and place underneath
 		let understroke = (
 			..obj.stroke,
 			paint: white,
 			thickness: crossing-thickness*obj.stroke.thickness,
 		)
+
 		((
 			..obj,
 			stroke: understroke,
 			marks: (none, none),
-			extrude: extrude.map(i => i/crossing-thickness)
+			extrude: obj.extrude.map(i => i/crossing-thickness)
 		),)
 	}
 

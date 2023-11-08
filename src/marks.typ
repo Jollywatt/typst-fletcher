@@ -16,14 +16,15 @@
 #let CAP_OFFSETS = (
 	"head":    y => round-arrow-cap-offset(8, 30deg, y),
 	"hook":    y => -2,
-	"hook'":    y => -2,
+	"hook'":   y => -2,
+	"hooks":   y => -2,
 	"tail":    y => -3 - round-arrow-cap-offset(8, 30deg, y),
 	"twohead": y => round-arrow-cap-offset(8, 30deg, y) - 2,
 	"twotail": y => -3 - round-arrow-cap-offset(8, 30deg, y) - 2,
 )
 
 
-#let parse-arrow-type-shorthand(str) = {
+#let parse-arrow-shorthand(str) = {
 	let caps = (
 		"": (none, none),
 		">": ("tail", "head"),
@@ -34,12 +35,12 @@
 	)
 	let lines = (
 		"-": (:),
-		"=": (extrude: (-1.5, 1.5)),
+		"=": (double: true),
 		"--": (dash: "dashed"),
 		"..": (dash: "dotted"),
 	)
 
-	let cap-selector = "(|<|>|<<|>>|hook'?|harpoon'?|\|)?"
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|)?"
 	let line-selector = "(-|=|--|==|::|\.\.)"
 	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
 	if match == none {
@@ -94,7 +95,7 @@
 		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at("hook")(0), θ))
 		cetz.draw.arc(
 			p,
-			radius: 2.8*stroke.thickness,
+			radius: 2.5*stroke.thickness,
 			start: θ + flip*90deg,
 			delta: -flip*180deg,
 			stroke: (
@@ -103,6 +104,10 @@
 				cap: "round",
 			),
 		)
+
+	} else if kind == "hooks" {
+		draw-arrow-cap(p, θ, stroke, "hook")
+		draw-arrow-cap(p, θ, stroke, "hook'")
 
 	} else if kind == "bar" {
 		let v = vector-polar(4.5*stroke.thickness, θ + 90deg)
