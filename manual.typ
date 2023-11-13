@@ -1,17 +1,24 @@
 #import "@preview/tidy:0.1.0"
 #import "src/lib.typ": *
+#import "src/marks.typ": parse-arrow-shorthand
 
+
+#set raw(lang: "typc")
 #set page(numbering: "1")
+#show link: set text(blue)
 
+#let scope = (
+	arrow-diagram: arrow-diagram,
+	node: node,
+	conn: conn,
+	resolve-coords: resolve-coords,
+	parse-arrow-shorthand: parse-arrow-shorthand,
+)
 #let show-module(path) = {
 	tidy.show-module(
 		tidy.parse-module(
 			read(path),
-			scope: (
-				arrow-diagram: arrow-diagram,
-				node: node,
-				conn: conn,
-			),
+			scope: scope,
 		),
 		show-outline: false,
 	)
@@ -20,7 +27,8 @@
 #align(center)[
 	#text(2em, strong(`arrow-diagrams`))
 
-	A Typst package for drawing diagrams with arrows,\ built on top of link("CeTZ.
+	A Typst package for drawing diagrams with arrows,\
+	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
 ]
 
 #v(1fr)
@@ -36,25 +44,22 @@
 
 = Examples
 
-#let code-example(src) = {
-	let scope = (arrow-diagram: arrow-diagram, node: node, conn: conn)
-	(eval(src.text, mode: "markup", scope: scope), src)
-}
+#let code-example(src) = (
+	eval(
+		src.text,
+		mode: "markup",
+		scope: scope
+	),
+	{
+		set text(.85em)
+		src
+	},
+)
 
 #table(
 	columns: (1fr, 2fr),
 	align: (horizon, left),
 	inset: 10pt,
-
-	..code-example(```typ
-	Inline $f: A -> B$ equation, \
-	Inline #arrow-diagram(
-		node-outset: 4pt,
-		node((0,0), $A$),
-		conn((0,0), (1,0), text(.7em, $f$), "->", label-sep: 2pt),
-		node((1,0), $B$),
-	) diagram.
-	```),
 
 	..code-example(```typ
 	#arrow-diagram(
@@ -66,6 +71,18 @@
 		conn((0,0), (1,1), "hook-->"),
 		conn((0,1), (0,0), "->"),
 	)
+	```),
+
+	..code-example(```typ
+	Inline $f: A -> B$ equation, \
+	Inline #arrow-diagram(
+		node-outset: 4pt,
+		{
+			node((0,0), $A$)
+			conn((0,0), (1,0), $f$, "->", label-sep: 2pt)
+			node((1,0), $B$)
+		}
+	) diagram.
 	```),
 
 	..code-example(```typ
@@ -96,15 +113,15 @@
 			conn((0,1), (0,0), "->"),
 		),
 		arrow-diagram(
-			debug: 3,
+			// debug: 3,
 			pad: 5em,
 			node((0,0), $S a$),
 			node((0,1), $T b$),
 			node((1,0), $S a'$),
 			node((1,1), $T b'$),
-			conn((0,0), (0,1), $f$, "hook->>"),
-			conn((1,0), (1,1), $f'$, label-sep: 1em),
-			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-sep: 0pt),
+			conn((0,0), (0,1), $f$, "hook->>", label-side: left),
+			conn((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
+			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
 			conn((0,1), (1,1), $γ$, bend: 20deg, "->"),
 			conn((0,1), (1,1), $β$, bend: -20deg, "->"),
 		),
@@ -164,41 +181,33 @@ $
 = Layout
 
 
-== How the layouting works
+== Elastic coordinates
 
-Each diagram is built on a grid of points, each at the center of a cell in a table layout.
+Diagrams are laid out on a flexible coordinate grid, which stretches to fit content like a table.
 When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
 
-This can be seen more clearly in diagrams with `debug: 1` and no cell padding:
+This can be seen more clearly by drawing the coordinate grid with `debug: 1` and setting cell padding to zero:
+
 
 #stack(
 	dir: ltr,
 	spacing: 1fr, 
-	align(center, arrow-diagram(
+	..code-example(```typ
+	#arrow-diagram(
 		debug: 1,
 		pad: 0pt,
-		node((0,-1), box(fill: blue.lighten(50%),   width: 5mm,  height: 10mm)),
+		node((0,-1), box(fill: blue.lighten(50%),   width:  5mm, height: 10mm)),
 		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
 		node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
 		node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
-	)),
-)[
-#set text(size: 0.75em)
-```typ
-#arrow-diagram(
-	debug: 1,
-	pad: 0pt,
-	node((0,-1), box(fill: blue.lighten(50%),   width: 5mm,  height: 10mm)),
-	node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
-	node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
-	node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
+	)
+	```)
 )
-```
-]
 
-While grid points are always at integer coordinates, nodes can also have *fractional coordinates*.
-A node between grid points still causes the neighbouring rows and columns to grow to accommodate its size, but only partially, depending on proximity.
-For example, notice how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
+
+While grid points are always at integer coordinates, nodes may have *fractional coordinates*.
+A node placed between grid points still causes the neighbouring rows and columns to grow to accommodate its size, but only partially, depending on proximity.
+For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
 
 #stack(
 	dir: ltr,
@@ -220,10 +229,40 @@ Specifically, fractional coordinates are dealt with by _linearly interpolating_ 
 
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise coordinates.
 
+== Physical coordinates
 
-== How connecting lines work
+Elastic coordinates are determined by the sizes and positions of the nodes in the diagram, and are resolved into physical coordinates which are then passed to CeTZ for drawing.
 
-Lines between nodes connect to the node's bounding circle or bounding rectangle, depending on the node's aspect ratio.
+You can convert elastic coordinates to physical coordinates with a callback:
+
+#stack(
+	dir: ltr,
+	spacing: 1fr, 
+	..code-example(```typ
+	#import "@preview/cetz:0.1.2"
+	#arrow-diagram({
+		let (A, B, C) = ((0,0), (1,1), (1,-1))
+		node(A, $A$)
+		node(B, $B$)
+		node(C, $C$)
+		conn(A, B, "hook->")
+		conn(A, C, "->>")
+		resolve-coords(A, B, callback: (p1, p2) => {
+			cetz.draw.rect(
+				(to: p1, rel: (-15pt, -15pt)),
+				(to: p2, rel: (15pt, 15pt)),
+				fill: rgb("00f1"),
+				stroke: (paint: blue, dash: "dashed"),
+
+			)
+		})
+	})
+	```),
+)
+
+== Connectors
+
+Lines between nodes connect to the node's bounding circle or bounding rectangle. The bounding shape is chosen automatically depending on the node's aspect ratio.
 
 $
 #arrow-diagram(
@@ -243,7 +282,7 @@ $
 )
 $
 
-=== The `defocus` correction
+=== The `defocus` adjustment
 
 For aesthetic reasons, a line connecting to a node should not necessarily be focused to the node's exact center, especially if the node is short and wide or tall and narrow.
 Notice how in the figure above the lines connecting to the node $A times B times C$
@@ -255,7 +294,7 @@ The effect of this is shown below:
 	spacing: 20%,
 	..(("With", 0.4), ("Without", 0)).map(((with, d)) => {
 		figure(
-			caption: [#with defocus correction],
+			caption: [#with defocus],
 			arrow-diagram(
 				pad: (10mm, 9mm),
 				defocus: d,
@@ -268,7 +307,7 @@ The effect of this is shown below:
 	})
 ))
 
-This correction is controlled by the `defocus` attribute of the node.
+The amount is controlled by the `defocus` attribute of the diagram.
 It is best explained by example:
 
 #stack(

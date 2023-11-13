@@ -1,9 +1,8 @@
 #import calc: floor, ceil, min, max
-#import "@local/cetz:0.1.2" as cetz: vector
+#import "@preview/cetz:0.1.2" as cetz: vector
 #import "utils.typ": *
 #import "layout.typ": *
 #import "marks.typ": *
-
 
 #let node(pos, label) = {
 	assert(type(pos) == array and pos.len() == 2)
@@ -27,7 +26,7 @@
 	let named-args = (:)
 
 	if args.named().len() > 0 {
-		panic("Unexpected named argument:", pos.named().leys())
+		panic("Unexpected named argument(s):", ..args.named().keys())
 	}
 
 	let pos = args.pos()
@@ -56,14 +55,167 @@
 
 }
 
-
+/// Draw a connector
+///
+/// - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
+///  a node at that point, the connector is adjusted to begin at the node's
+///  bounding rectangle/circle.
+/// - to (elastic coord): End coordinate `(x, y)` of connector. If there is a 
+///  node at that point, the connector is adjusted to end at the node's bounding
+///  rectangle/circle.
+///
+/// - ..args (any): The connector's `label` and `marks` named arguments can also
+///  be specified as positional arguments. For example, the following are equivalent:
+///  ```typc
+///  conn((0,0), (1,0), $f$, "->")
+///  conn((0,0), (1,0), $f$, marks: "->")
+///  conn((0,0), (1,0), "->", label: $f$)
+///  conn((0,0), (1,0), label: $f$, marks: "->")
+///  ```
+/// 
+/// - label-pos (number): Position of the label along the connector, from the
+///  start to end (from `0` to `1`).
+/// 
+///  #stack(
+///  	dir: ltr,
+///  	spacing: 1fr,
+///  	..(0, 0.25, 0.5, 0.75, 1).map(p => arrow-diagram(
+///  		min-size: 1cm,
+///  		conn((0,0), (1,0), p, "->", label-pos: p))
+///  	),
+///  )
+/// - label-sep (number): Separation between the connector and the label anchor.
+///  
+///  With the default anchor (`"bottom"`):
+///  #arrow-diagram(
+///  	debug: 2,
+///  	min-size: 8mm,
+///  	{
+///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
+///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
+///  		}
+///  })
+///  
+///  With `label-anchor: "center"`:
+///  #arrow-diagram(
+///  	debug: 2,
+///  	min-size: 8mm,
+///  	{
+///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
+///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
+///  		}
+///  })
+/// 
+/// - label (content): Content for connector label. See `label-side` to control
+///  the position (and `label-sep`, `label-pos` and `label-anchor` for finer
+///  control).
+///
+/// - label-side (left, right, center): Which side of the connector to place the
+///  label on, viewed as you walk along it. If `center`, then the label is place
+///  over the connector. When `auto`, a value of `left` or `right` is chosen to
+///  automatically so that the label is
+///    - roughly above the connector, in the case of straight lines; or
+///    - on the outside of the curve, in the case of arcs.
+///
+/// - label-anchor (anchor): The anchor point to place the label at, such as
+///  `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
+///  automatically chosen based on `label-side` and the angle of the connector.
+///
+/// - paint (paint): Paint (color or gradient) of the connector stroke.
+/// - thickness (length): Thickness the connector stroke. Marks (arrow heads)
+///  scale with this thickness.
+/// - dash (dash type): Dash style for the connector stroke.
+/// - bend (angle): Curvature of the connector. If `0deg`, the connector is a
+///  straight line; positive angles bend clockwise.
+/// 
+///  #arrow-diagram(debug: 0, {
+///  	node((0,0), $A$)
+///  	node((1,1), $B$)
+///  	let N = 4
+///  	range(N + 1)
+///  		.map(x => (x/N - 0.5)*2*100deg)
+///  		.map(θ => conn((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
+///  		.join()
+///  })
+///
+/// - marks (pair of strings):
+/// The start and end marks or arrow heads of the connector. A shorthand such as
+/// `"->"` can used instead. For example,
+/// `conn(p1, p2, "->")` is short for `conn(p1, p2, marks: (none, "head"))`.
+///
+/// #table(
+/// 	columns: 3,
+/// 	align: horizon,
+///  	[Arrow], [Shorthand], [Arguments],
+/// 	..(
+///  		"-",
+///  		"--",
+///  		"..",
+///  		"->",
+///  		"<=>",
+///  		">>-->",
+///  		"|..|",
+///  		"hook->>",
+///  		"hook'->>",
+///  		">-harpoon",
+///  		">-harpoon'",
+/// 	).map(str => (
+///  		arrow-diagram(conn((0,0), (1,0), str)),
+///  		raw(str, lang: none),
+///  		raw(repr(parse-arrow-shorthand(str))),
+///  	)).join()
+/// )
+///
+/// - double (bool): Shortcut for `extrude: (-1.5, 1.5)`, showing a double stroke.
+/// - extrude (array of numbers): Draw copies of the stroke extruded by the
+///  given multiple of the stroke thickness. Used to obtain doubling effect.
+///  Best explained by example:
+///
+///  #arrow-diagram({
+///  	(
+///  		(0,),
+///  		(-1.5,+1.5),
+///  		(-2,0,+2),
+///  		(-4.5,),
+///  		(4.5,),
+///  	).enumerate().map(((i, e)) => {
+///  		conn(
+///  			(2*i, 0), (2*i + 1, 0), [#e], "|->",
+///  			extrude: e, thickness: 1pt, label-sep: 1em)
+///  	}).join()
+///  })
+///  
+///  Notice how the ends of the line need to shift a little depending on the
+///  mark. For basic arrow heads, this offset is computed with
+///  `round-arrow-cap-offset()`.
+///
+/// - crossing (bool): If `true`, draws a white backdrop to give the illusion of
+///  lines crossing each other.
+///  #arrow-diagram({
+///  	conn((0,1), (1,0), thickness: 1pt)
+///  	conn((0,0), (1,1), thickness: 1pt)
+///  	conn((2,1), (3,0), thickness: 1pt)
+///  	conn((2,0), (3,1), thickness: 1pt, crossing: true)
+///  })
+/// - crossing-thickness (number): Thickness of the white "crossing" background
+///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
+/// 
+///  #arrow-diagram({
+///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
+///  		conn((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
+///  		conn((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
+///  		1em, crossing: true, crossing-thickness: x)
+///  	}).join()
+///  })
+///
 #let conn(
 	from,
 	to,
 	..args,
 	label: none,
+	label-side: auto,
 	label-pos: 0.5,
-	label-sep: .4em,
+	label-sep: 0.4em,
 	label-anchor: auto,
 	paint: black,
 	thickness: 0.6pt,
@@ -83,6 +235,7 @@
 		label-pos: label-pos,
 		label-sep: label-sep,
 		label-anchor: label-anchor,
+		label-side: label-side,
 		paint: paint,
 		thickness: thickness,
 		dash: dash,
@@ -114,6 +267,11 @@
 		dash: options.dash,
 	)
 
+	if options.label-side == center {
+		options.label-anchor = "center"
+		options.label-sep = 0pt
+	}
+
 	let obj = ( 
 		kind: "conn",
 		points: (from, to),
@@ -121,6 +279,7 @@
 		label-pos: options.label-pos,
 		label-sep: options.label-sep,
 		label-anchor: options.label-anchor,
+		label-side: options.label-side,
 		paint: options.paint,
 		mode: mode,
 		bend: options.bend,
@@ -164,9 +323,11 @@
 
 #let draw-connector(arrow, cells, options) = {
 
+	// Stroke end points, before adjusting for the arrow heads
 	let cap-points = get-node-connectors(arrow, cells, options)
 	let θ = vector-angle(vector.sub(..cap-points))
 
+	// Get the arrow head adjustment for a given extrusion distance
 	let cap-offsets(y) = zip(arrow.marks, (+1, -1))
 		.map(((mark, dir)) => {
 			if mark == none or mark not in CAP_OFFSETS { 0pt }
@@ -176,28 +337,26 @@
 			}
 		})
 
-
-
-	let mark-angles
+	let cap-angles
 	let label-pos
 
 	if arrow.mode == "line" {
 
-		mark-angles = (θ, θ + 180deg)
-
-		let line-points(y) = zip(cap-points, cap-offsets(y))
-			.map(((point, offset)) => vector.add(
-				point,
-				vector-polar(offset, θ)
-			))
-
+		cap-angles = (θ, θ + 180deg)
 
 		for shift in arrow.extrude {
-			let shifted-line-points = line-points(shift)
-				.map(p => {
-					let r = arrow.stroke.thickness*shift
-					vector.add(p, vector-polar(r, θ + 90deg))
-				})
+			let d = shift*arrow.stroke.thickness
+			let shifted-line-points = cap-points
+				.zip(cap-offsets(shift))
+				.map(((point, offset)) => vector.add(
+					point,
+					vector.add(
+						// Shift end points lengthways depending on markers
+						vector-polar(offset, θ),
+						// Shift line sideways (for double line effects, etc) 
+						vector-polar(d, θ + 90deg),
+					)
+				))
 
 			cetz.draw.line(
 				..shifted-line-points,
@@ -207,28 +366,34 @@
 
 
 		// Choose label anchor based on connector direction
+		if arrow.label-side == auto {
+			arrow.label-side = if calc.abs(θ) < 90deg { left } else { right }
+		}
+		let label-dir = if arrow.label-side == left { +1 } else { -1 }
+
 		if arrow.label-anchor == auto {
-			arrow.label-anchor = angle-to-anchor(θ + 90deg)
+			arrow.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 		
-		arrow.label-sep *= if calc.abs(θ) < 90deg { +1 } else { -1 }
-
 		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
-
 		label-pos = vector.add(
-			vector.lerp(..line-points(0), arrow.label-pos),
-			vector-polar(arrow.label-sep, θ + 90deg),
+			vector.lerp(..cap-points, arrow.label-pos),
+			vector-polar(arrow.label-sep, θ + label-dir*90deg),
 		)
 
 	} else if arrow.mode == "arc" {
+
 		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, arrow.bend)
 
-		let bend-dir = if arrow.bend < 0deg { +1 } else { -1 }
+		let bend-dir = if arrow.bend > 0deg { +1 } else { -1 }
+		let δ = bend-dir*90deg
+		cap-angles = (start + δ, stop - δ)
+
 
 		for shift in arrow.extrude {
 			let (start, stop) = (start, stop)
 				.zip(cap-offsets(shift))
-				.map(((θ, arclen)) => θ - bend-dir*arclen/radius*1rad)
+				.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
 
 			cetz.draw.arc(
 				center,
@@ -240,32 +405,31 @@
 			)
 		}
 
-		let δ = bend-dir*90deg
-		mark-angles = (start - δ, stop + δ)
 
-		// if arrow.label-sep == auto {
-		// 	arrow.label-sep = .2em
-		// }
 
-		// Choose label anchor based on connector direction
+		if arrow.label-side == auto {
+			arrow.label-side =  if arrow.bend > 0deg { left } else { right }
+		}
+		let label-dir = if arrow.label-side == left { +1 } else { -1 }
+
 		if arrow.label-anchor == auto {
-			let dir = if arrow.bend > 0deg { +1 } else { -1 }
-			arrow.label-anchor = angle-to-anchor(θ + dir*90deg)
+			// Choose label anchor based on connector direction
+			arrow.label-anchor = angle-to-anchor(θ + label-dir*90deg)
 		}
 		
-
-
 		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
-
 		label-pos = vector.add(
 			center,
-			vector-polar(radius + arrow.label-sep, lerp(start, stop, arrow.label-pos))
+			vector-polar(
+				radius + label-dir*bend-dir*arrow.label-sep,
+				lerp(start, stop, arrow.label-pos),
+			)
 		)
 
 	} else { panic(arrow) }
 
 
-	for (mark, pt, θ) in zip(arrow.marks, cap-points, mark-angles) {
+	for (mark, pt, θ) in zip(arrow.marks, cap-points, cap-angles) {
 		if mark == none { continue }
 		draw-arrow-cap(pt, θ, arrow.stroke, mark)
 	}
@@ -275,16 +439,16 @@
 		cetz.draw.content(
 			label-pos,
 			box(
-				// fill: white,
-				// inset: .15em,
-				// radius: .3em,
-				stroke: if options.debug >= 3 { DEBUG_COLOR + 0.25pt },
+				fill: white,
+				inset: .2em,
+				radius: .2em,
+				stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
 				$ #arrow.label $,
 			),
 			anchor: arrow.label-anchor,
 		)
 
-		if options.debug >= 3 {
+		if options.debug >= 2 {
 			cetz.draw.circle(
 				label-pos,
 				radius: arrow.stroke.thickness,
@@ -398,7 +562,7 @@
 					coord(x, grid.bounding-size.at(1 - axis)),
 					stroke: (
 						paint: DEBUG_COLOR,
-						thickness: .5pt,
+						thickness: .3pt,
 						dash: "densely-dotted",
 					),
 				)
@@ -425,14 +589,21 @@
 }
 
 
-/// Draw an arrow diagram
+/// Draw an arrow diagram.
 ///
 /// - ..args (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
-/// - pad (length, pair of lengths): Minimum padding between node content and
-///  their bounding boxes or bounding circles.
+/// - pad (length, pair of lengths): Gaps between rows and columns. Ensures that
+///  nodes at adjacent grid points are at least this far apart (measured as the
+///  space between their bounding boxes).
+///
+/// Separate horizontal/vertical gutters can be specified with `(x, y)`. A
+/// single length `d` is short for `(d, d)`.
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
-/// - node-outset (length, pair of lengths): Inset between a node's content and its bounding box.
+///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
+///  anchors, etc.
+/// - node-outset (length, pair of lengths): Padding between a node's content
+///  and its bounding box.
 /// - defocus (number): Strength of the defocus correction. `0` to disable.
 /// - min-size (length, pair of lengths): Minimum size of all rows and columns.
 #let arrow-diagram(

@@ -89,7 +89,7 @@ $
 	node((0,0), "from")
 	node((1,0), "to")
 	for θ in (0deg, 20deg, -50deg) {
-		conn((0,0), (1,0), $#θ$, label-sep: 0pt, bend: θ, marks: (none, "head"))
+		conn((0,0), (1,0), $#θ$, bend: θ, marks: (none, "head"))
 	}
 })
 
@@ -138,7 +138,9 @@ $
 Prefer placing label 'above' the line.
 
 #arrow-diagram(
-	min-size: (2.2cm, 2cm),
+	// min-size: (2.2cm, 2cm),
+	pad: 2cm,
+	debug: 3,
 {
 	for p in around {
 		conn(p, (0,0), $f$)
@@ -168,8 +170,8 @@ Prefer placing label 'above' the line.
 = `conn()` argument shorthands
 
 #arrow-diagram(
-	conn((0,0), (1,0), "->>", "dashed"),
 	conn((0,0), (1,1), "->", "double", bend: 45deg),
-	conn((1,1), (2,1), $f$, "|->", label-sep: 0em),
-	conn((1,0), (0,1), "crossing"),
+	conn((1,0), (0,1), "->>", "crossing"),
+	conn((1,1), (2,1), $f$, "|->"),
+	conn((0,0), (1,0), "-", "dashed"),
 )

@@ -4,8 +4,6 @@
 /// Convert an array of rects with fractional positions into rects with integral
 /// positions.
 /// 
-/// A rect is a dictionary .
-/// 
 /// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
 /// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
 /// total width of the original rect is split across the two new rects according
@@ -87,7 +85,7 @@
 	)
 }	
 
-/// Compute a lookup table of the attributes of each grid cell
+/// Compute a lookup table of the attributes of each grid cell.
 ///
 /// - nodes (array): Array of nodes to consider when calculating the sizes of
 ///  cells, where each node of the form:
