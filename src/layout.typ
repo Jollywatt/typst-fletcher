@@ -116,10 +116,10 @@
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
-	let cell-centers = zip(cell-sizes, options.gutter)
-		.map(((sizes, gutter)) => {
+	let cell-centers = zip(cell-sizes, options.spacing)
+		.map(((sizes, spacing)) => {
 			zip(cumsum(sizes), sizes, range(sizes.len()))
-				.map(((end, size, i)) => end - size/2 + gutter*i)
+				.map(((end, size, i)) => end - size/2 + spacing*i)
 		})
 
 	let total-size = cell-centers.zip(cell-sizes).map(((centers, sizes)) => {

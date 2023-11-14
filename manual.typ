@@ -30,7 +30,7 @@
 
 #align(center)[
 #arrow-diagram(
-		gutter: 2cm,
+		spacing: 2cm,
 		node((0,1), $A$),
 		node((1,1), $B$),
 		conn((0,1), (1,1), $f$, "->", bend: 40deg),
@@ -103,7 +103,7 @@
 
 	..code-example(```typ
 	#arrow-diagram(
-		gutter: 2cm,
+		spacing: 2cm,
 		node((0,0), $cal(A)$),
 		node((1,0), $cal(B)$),
 		conn((0,0), (1,0), $F$, "->", bend: +35deg),
@@ -114,12 +114,12 @@
 )
 
 // #grid(
-// 	gutter: 2em,
+// 	spacing: 2em,
 // 	columns: (1fr, 1fr),
 // 	..(
 // 		arrow-diagram(
 // 			// debug: 3,
-// 			gutter: 5em,
+// 			spacing: 5em,
 // 			node((0,0), $S a$),
 // 			node((0,1), $T b$),
 // 			node((1,0), $S a'$),
@@ -138,7 +138,7 @@ $
 #arrow-diagram(
 	cell-size: 1cm,
 	node-pad: 1.5em,
-	gutter: 20mm,
+	spacing: 20mm,
 	debug: 0,
 	defocus: 0.1,
 	node((0,2), $pi_1(X sect Y)$),
@@ -181,7 +181,7 @@ $
 #arrow-diagram(
 	node-stroke: black + 0.5pt,
 	node-fill: blue.lighten(90%),
-	gutter: (15mm, 8mm),
+	spacing: (15mm, 8mm),
 	node((0,0), [1]),
 	node((1,0), [2], shape: "circle"),
 	node((2,1), [3], shape: "circle"),
@@ -211,7 +211,7 @@ This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding
 	..code-example(```typ
 	#arrow-diagram(
 		debug: 1,
-		gutter: 0pt,
+		spacing: 0pt,
 		node-pad: 0pt,
 		node((0,-1), box(fill: blue.lighten(50%),   width:  5mm, height: 10mm)),
 		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
@@ -232,7 +232,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	..(0, .25, .5, .75, 1).map(t => {
 		arrow-diagram(
 			debug: 1,
-			gutter: 0mm,
+			spacing: 0mm,
 			node-pad: 0pt,
 			node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
 			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
@@ -283,7 +283,7 @@ Lines between nodes connect to the node's bounding circle or bounding rectangle.
 
 $
 #arrow-diagram(
-	gutter: (10mm, 6mm),
+	spacing: (10mm, 6mm),
 	// node-pad: 4pt,
 	debug: 2,
 	// defocus: 0,
@@ -303,7 +303,7 @@ $
 
 // #align(center, arrow-diagram(
 // 	debug: 0,
-// 	gutter: (10mm, 5mm),
+// 	spacing: (10mm, 5mm),
 // {
 // 	for (i, str) in (
 // 		"->",
@@ -334,7 +334,7 @@ The effect of this is shown below:
 		figure(
 			caption: [#with defocus],
 			arrow-diagram(
-				gutter: (10mm, 9mm),
+				spacing: (10mm, 9mm),
 				defocus: d,
 				node((0,1), $A times B times C$),
 				conn((-1,0), (0,1)),
@@ -353,7 +353,7 @@ It is best explained by example:
 	spacing: 1fr,
 	..(+.8, 0, -.8).map(d => {
 		arrow-diagram(
-			gutter: 10mm,
+			spacing: 10mm,
 			debug: 0,
 			node-pad: 15pt,
 			defocus: d,

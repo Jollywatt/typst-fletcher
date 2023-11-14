@@ -86,7 +86,7 @@
 /// - angle (angle): The bend angle between chord of the arc (line connecting the
 /// points) and the tangent to the arc and the first point.
 ///
-/// #arrow-diagram(gutter: 2cm, {
+/// #arrow-diagram(spacing: 2cm, {
 ///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {
 ///         conn((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
 ///         conn((2*i, 0), (2*i + 1, 0), [#θ], label-side: center, dash:

@@ -13,7 +13,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 #arrow-diagram(
 	debug: 0,
-	gutter: (10mm, 5mm),
+	spacing: (10mm, 5mm),
 {
 	for i in (0, 1, 2) {
 		let x = 2*i
@@ -139,7 +139,7 @@ Default placement above the line.
 
 #arrow-diagram(
 	// cell-size: (2.2cm, 2cm),
-	gutter: 2cm,
+	spacing: 2cm,
 	debug: 3,
 {
 	for p in around {
@@ -147,7 +147,7 @@ Default placement above the line.
 	}
 })
 
-#arrow-diagram(gutter: 1.5cm, {
+#arrow-diagram(spacing: 1.5cm, {
 	for (i, a) in (left, center, right).enumerate() {
 		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
 			conn((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)

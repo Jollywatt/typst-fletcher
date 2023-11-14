@@ -373,7 +373,7 @@
 ///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
 ///  anchors, etc.
 ///
-/// - gutter (length, pair of lengths): Gaps between rows and columns. Ensures
+/// - spacing (length, pair of lengths): Gaps between rows and columns. Ensures
 ///  that nodes at adjacent grid points are at least this far apart (measured as
 ///  the space between their bounding boxes).
 ///
@@ -393,7 +393,7 @@
 #let arrow-diagram(
 	..objects,
 	debug: false,
-	gutter: 3em,
+	spacing: 3em,
 	cell-size: 0pt,
 	node-pad: 15pt,
 	node-stroke: none,
@@ -401,7 +401,7 @@
 	defocus: 0.2,
 ) = {
 
-	if type(gutter) != array { gutter = (gutter, gutter) }
+	if type(spacing) != array { spacing = (spacing, spacing) }
 	if type(cell-size) != array { cell-size = (cell-size, cell-size) }
 
 	if objects.named().len() > 0 { 
@@ -410,7 +410,7 @@
 	}
 
 	let options = (
-		gutter: gutter,
+		spacing: spacing,
 		debug: int(debug),
 		node-pad: node-pad,
 		node-stroke: node-stroke,
@@ -432,7 +432,7 @@
 
 		let options = options
 		options.em-size = em-size
-		options.gutter = options.gutter.map(to-pt)
+		options.spacing = options.spacing.map(to-pt)
 		options.node-pad = to-pt(options.node-pad)
 
 		let nodes = compute-nodes(nodes, styles, options)
