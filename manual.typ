@@ -113,37 +113,26 @@
 	```),
 )
 
-#grid(
-	gutter: 2em,
-	columns: (1fr, 1fr),
-	..(
-		arrow-diagram(
-			debug: 0,
-			cell-size: (10mm, 10mm),
-			node((0,1), $X$),
-			node((1,1), $Y$),
-			node((0,0), $X slash ker(f)$),
+// #grid(
+// 	gutter: 2em,
+// 	columns: (1fr, 1fr),
+// 	..(
+// 		arrow-diagram(
+// 			// debug: 3,
+// 			gutter: 5em,
+// 			node((0,0), $S a$),
+// 			node((0,1), $T b$),
+// 			node((1,0), $S a'$),
+// 			node((1,1), $T b'$),
+// 			conn((0,0), (0,1), $f$, "hook->>", label-side: left),
+// 			conn((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
+// 			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
+// 			conn((0,1), (1,1), $γ$, bend: 20deg, "->"),
+// 			conn((0,1), (1,1), $β$, bend: -20deg, "->"),
+// 		),
 
-			conn((0,1), (1,1), $f$, "->"),
-			conn((0,0), (1,1), "hook-->"),
-			conn((0,1), (0,0), "->"),
-		),
-		arrow-diagram(
-			// debug: 3,
-			gutter: 5em,
-			node((0,0), $S a$),
-			node((0,1), $T b$),
-			node((1,0), $S a'$),
-			node((1,1), $T b'$),
-			conn((0,0), (0,1), $f$, "hook->>", label-side: left),
-			conn((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
-			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
-			conn((0,1), (1,1), $γ$, bend: 20deg, "->"),
-			conn((0,1), (1,1), $β$, bend: -20deg, "->"),
-		),
-
-	).map(x => align(center, x))
-)
+// 	).map(x => align(center, x))
+// )
 
 $
 #arrow-diagram(
@@ -181,7 +170,7 @@ $
 			let from = cube-vertices.at(j)
 			// test for adjancency
 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-				conn(proj(from), proj(to), ">>->", crossing: to.at(2) == 0)
+				conn(proj(from), proj(to), "->", crossing: to.at(2) == 0)
 			}
 		}
 	}
@@ -189,7 +178,20 @@ $
 	conn(proj((1,0,1)), (2, 0.8), dash: "dotted")
 	node((2, 0.8), "fractional coords")
 })
+#arrow-diagram(
+	node-stroke: black + 0.5pt,
+	node-fill: blue.lighten(90%),
+	gutter: (15mm, 8mm),
+	node((0,0), [1]),
+	node((1,0), [2], shape: "circle"),
+	node((2,1), [3], shape: "circle"),
+	node((2,-1), [3'], shape: "circle"),
+	conn((0,0), (1,0), "->"),
+	conn((1,0), (2,+1), "->", bend: -15deg),
+	conn((1,0), (2,-1), "->", bend: +15deg),
+	conn((2,-1), (2,-1), "->", bend: +130deg),
 
+)
 
 
 = Details
