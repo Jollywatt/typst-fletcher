@@ -179,15 +179,15 @@ Prefer placing label 'above' the line.
 = Layout
 
 #arrow-diagram(
-	debug: 0,
+	debug: 2,
 	gutter: 0mm,
 	cell-size: 20mm,
 	node-pad: 1em,
 	// defocus: 0,
 	node((0,0), $A$),
-	node((1,1), $sin B + log$),
-	node((2,0), $C$),
+	node((1,1), $sin B + log$, pad: 10pt),
+	node((2,0.2), $C$),
 	node((3,0), $D$),
-	conn((0,0), (1,1), "->>"),
-	conn((2,0), (1,1), "<-"),
+	conn((0,0), (1,1), "->>", bend: -45deg),
+	conn((2,0.2), (1,1), "<-"),
 )

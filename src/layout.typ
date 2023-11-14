@@ -1,6 +1,50 @@
 #import "utils.typ": *
 
 
+#let compute-nodes(nodes, styles, options) = nodes.map(node => {
+
+	// Determine physical size of node content
+	let (width, height) = measure(node.label, styles)
+	node.size = (width, height)
+	node.radius = vector-len((width/2, height/2))
+	node.aspect = if height == 0pt { 1 } else { width/height }
+
+	if node.shape == auto {
+		let is-roundish = max(node.aspect, 1/node.aspect) < 1.5
+		node.shape = if is-roundish { "circle" } else { "rect" }
+	}
+
+	if node.pad == none { node.pad = options.node-pad }
+	
+	// add node inset
+	if node.radius != 0pt {
+		if node.shape == "circle" { 
+			node.radius += node.pad*0.5
+		} else {
+			node.size = node.size.map(x => x + node.pad)
+		}
+	}
+
+
+	node
+})
+
+#let resolve-elastic-coordinates(nodes, grid, options) = nodes.map(node => {
+	
+	node.real-pos = zip(node.pos, grid.origin, grid.centers)
+		.map(((coord, origin, centers)) => {
+			lerp-at(centers, coord - origin)
+		})
+
+	node.rect = (-1, +1).map(dir => {
+		vector.add(node.real-pos, vector.scale(node.size, dir/2))
+	})
+
+	node
+
+})
+
+
 /// Convert an array of rects with fractional positions into rects with integral
 /// positions.
 /// 
@@ -51,18 +95,17 @@
 	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
 	let origin = bounding-rect.map(((min, max)) => min)
 
-	// (x: (0pt, 0pt, ...), y: ...)
-	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
+	// Initialise row and column sizes to minimum size
+	let cell-sizes = zip(options.cell-size, bounding-dims)
+		.map(((min-size, n)) => range(n).map(_ => min-size))
 
-	let (cell-size-width, cell-size-height) = options.at("cell-size", default: (0pt, 0pt))
-
+	// Expand cells to fit rects
 	for rect in rects {
-		let coords = vector.sub(rect.pos, origin)
+		let indices = vector.sub(rect.pos, origin)
 		for axis in (0, 1) {
-			cell-sizes.at(axis).at(coords.at(axis)) = max(
-				cell-sizes.at(axis).at(coords.at(axis)),
+			cell-sizes.at(axis).at(indices.at(axis)) = max(
+				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
-				options.cell-size.at(axis),
 			)
 
 		}
@@ -87,116 +130,38 @@
 	)
 }	
 
-/// Compute a lookup table of the attributes of each grid cell.
-///
-/// - nodes (array): Array of nodes to consider when calculating the sizes of
-///  cells, where each node of the form:
-/// ```
-/// (
-/// 	pos: (i, j),
-/// 	size: (width, height),
-/// )
-/// ```
-/// - grid (dictionary): Grid specification of the form
-/// ```
-/// (
-/// 	origin: (i, j),
-/// 	centers: ((x1, x2, ...), (y1, y2, ...)),
-/// )
-/// ```
-#let compute-cells(nodes, grid, options) = {
-
-	let cells = (:)
-
-	for node in nodes {
-
-		let cell = cells.at(
-			repr(node.pos),
-			default: (size: (0pt, 0pt)),
-		)
 
 
-		if "real-pos" not in cell {
-			// first time computing cell attrs
-			cell.real-pos = node.pos
-				.zip(grid.origin, grid.centers)
-				.map(((coord, origin, centers)) => {
-					lerp-at(centers, coord - origin)
-				})
+#let get-node-connector(node, incident-angle, options) = {
 
-		}
+	if node.radius < 1e-3pt { return node.real-pos }
 
-		cell.size = cell.size.zip(node.size).map(x => max(..x))
-
-
-		cells.insert(repr(node.pos), cell)
-
-	}
-
-	for (key, cell) in cells {
-
-		let (w, h) = cell.size
-		cell.aspect = if w == 0pt and h == 0pt { 1 } else { w/h }
-		cell.is-roundish = max(cell.aspect, 1/cell.aspect) < 1.5
-		cell.radius = calc.sqrt((w/2pt)*(w/2pt) + (h/2pt)*(h/2pt))*1pt
-		cell.bounding-mode = if cell.is-roundish { "circle" } else { "rect" }
-		
-		// add cell inset
-		if cell.radius != 0pt {
-			if cell.is-roundish { 
-				cell.radius += options.node-pad*0.5
-			} else {
-				cell.size = cell.size.map(x => x + options.node-pad)
-			}
-		}
-
-		cell.rect = (+1, -1).map(dir => {
-			vector.add(
-				cell.real-pos,
-				vector.scale(vector.div(cell.size, 2), dir)
-			)
-		})
-
-		cells.at(key) = cell
-	}
-
-	return cells
-
-}
-
-
-
-
-#let get-node-connector(cell, incident-angle, options) = {
-
-	if cell.radius < 1e-3pt { return cell.real-pos }
-
-	if cell.is-roundish {
+	if node.shape == "circle" {
 		// use bounding circle
 		vector.sub(
-			cell.real-pos,
-			vector-polar(cell.radius, incident-angle),
+			node.real-pos,
+			vector-polar(node.radius, incident-angle),
 		)
 
 	} else {
 		// use bounding rect
-		let origin = cell.real-pos
-		let μ = calc.pow(cell.aspect, options.defocus)
+		let origin = node.real-pos
+		let μ = calc.pow(node.aspect, options.defocus)
 		let origin-δ = (
-			-calc.max(0pt, cell.size.at(0)/2*(1 - 1/μ))*calc.cos(incident-angle),
-			-calc.max(0pt, cell.size.at(1)/2*(1 - μ/1))*calc.sin(incident-angle),
+			-calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(incident-angle),
+			-calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(incident-angle),
 		)
 		let crossing-line = (
 			vector.add(origin, origin-δ),
-			vector.sub(origin, vector-polar(2*cell.radius, incident-angle)),
+			vector.sub(origin, vector-polar(2*node.radius, incident-angle)),
 		)
 
-		intersect-rect-with-crossing-line(cell.rect, crossing-line)
+		intersect-rect-with-crossing-line(node.rect, crossing-line)
 	}
 }
 
-#let get-node-connectors(arrow, cells, options) = {
-	let center-center-line = cells.map(cell => cell.real-pos)
+#let get-node-connectors(arrow, nodes, options) = {
+	let center-center-line = nodes.map(node => node.real-pos)
 
 	let v = vector.sub(..center-center-line)
 	let θ = vector-angle(v) // approximate angle of connector
@@ -204,8 +169,8 @@
 	let δ = if arrow.mode == "arc" { arrow.bend } else { 0deg }
 	let incident-angles = (θ + δ, θ - δ + 180deg)
 
-	let points = zip(cells, incident-angles).map(((cell, θ)) => {
-		get-node-connector(cell, θ, options)
+	let points = zip(nodes, incident-angles).map(((node, θ)) => {
+		get-node-connector(node, θ, options)
 	})
 
 	points

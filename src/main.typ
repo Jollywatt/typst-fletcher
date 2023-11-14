@@ -4,7 +4,12 @@
 #import "layout.typ": *
 #import "marks.typ": *
 
-#let node(pos, label) = {
+#let node(
+	pos,
+	label,
+	pad: none,
+	shape: auto,
+) = {
 	assert(type(pos) == array and pos.len() == 2)
 
 	if type(label) == content and label.func() == circle { panic(label) }
@@ -12,6 +17,8 @@
 		kind: "node",
 		pos: pos,
 		label: label,
+		pad: pad,
+		shape: shape,
 	),)
 }
 
@@ -321,10 +328,10 @@
 	),)
 }
 
-#let draw-connector(arrow, cells, options) = {
+#let draw-connector(arrow, nodes, options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-node-connectors(arrow, cells, options)
+	let cap-points = get-node-connectors(arrow, nodes, options)
 	let θ = vector-angle(vector.sub(..cap-points))
 
 	// Get the arrow head adjustment for a given extrusion distance
@@ -459,7 +466,7 @@
 	}
 
 	if options.debug >= 3 {
-		for (cell, point) in zip(cells, cap-points) {
+		for (cell, point) in zip(nodes, cap-points) {
 			cetz.draw.line(
 				cell.real-pos,
 				point,
@@ -474,7 +481,6 @@
 
 #let draw-diagram(
 	grid,
-	cells,
 	nodes,
 	arrows,
 	options,
@@ -484,44 +490,48 @@
 
 		if node.label == none { continue }
 
-		let cell = cells.at(repr(node.pos))
-
-		cetz.draw.content(cell.real-pos, node.label, anchor: "center")
+		cetz.draw.content(node.real-pos, node.label, anchor: "center")
 
 		if options.debug >= 1 {
 			cetz.draw.circle(
-				cell.real-pos,
+				node.real-pos,
 				radius: 1pt,
 				fill: DEBUG_COLOR,
 				stroke: none,
 			)
 		}
+
 		if options.debug >= 2 {
-			if options.debug >= 3 or cell.bounding-mode == "rect" {
+			if options.debug >= 3 or node.shape == "rect" {
 				cetz.draw.rect(
-					vector.sub(cell.real-pos, vector.div(cell.size, 2)),
-					vector.add(cell.real-pos, vector.div(cell.size, 2)),
+					vector.sub(node.real-pos, vector.div(node.size, 2)),
+					vector.add(node.real-pos, vector.div(node.size, 2)),
 					stroke: DEBUG_COLOR + 0.25pt,
 				)
 			}
-			if options.debug >= 3 or cell.bounding-mode == "circle" {
+			if options.debug >= 3 or node.shape == "circle" {
 				cetz.draw.circle(
-					cell.real-pos,
-					radius: cell.radius,
+					node.real-pos,
+					radius: node.radius,
 					stroke: DEBUG_COLOR + 0.25pt,
 				)
 			}
 		}
 	}
 
+	let find-node-at-pos(pos) = {
+		nodes.filter(node => node.pos == pos).first()
+	}
+
 	for arrow in arrows {
-		let cells = arrow.points.map(pos => cells.at(repr(pos)))
+		// let nodes = arrow.points.map(pos => cells.at(repr(pos)))
+		let nodes = arrow.points.map(find-node-at-pos)
 
 		let intersection-stroke = if options.debug >= 2 {
 			(paint: DEBUG_COLOR, thickness: 0.25pt)
 		}
 
-		draw-connector(arrow, cells, options)
+		draw-connector(arrow, nodes, options)
 
 	}
 
@@ -639,19 +649,16 @@
 		options.gutter = options.gutter.map(to-pt)
 		options.node-pad = to-pt(options.node-pad)
 
-		let nodes-sized = nodes.map(node => {
-			let (width, height) = measure(node.label, styles)
-			node.size = (width, height)
-			node
-		})
+		let nodes-sized = compute-nodes(nodes, styles, options)
 
 		// compute diagram layout
 		let grid = compute-grid(nodes-sized, options)
-		let cells = compute-cells(nodes-sized, grid, options)
+		// let cells = compute-cells(nodes-sized, grid, options)
+		let nodes = resolve-elastic-coordinates(nodes-sized, grid, options)
 
 		cetz.canvas({
-			draw-diagram(grid, cells, nodes-sized, arrows, options)
-			execute-callbacks(grid, cells, nodes-sized, callbacks, options)	
+			draw-diagram(grid, nodes, arrows, options)
+			// execute-callbacks(grid, cells, nodes-sized, callbacks, options)	
 		})
 	}))
 }
