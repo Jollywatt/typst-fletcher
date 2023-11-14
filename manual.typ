@@ -15,6 +15,10 @@
 	parse-arrow-shorthand: parse-arrow-shorthand,
 )
 #let show-module(path) = {
+	show heading.where(level: 3): it => {
+		v(4em, weak: true)
+		block(text(1.3em, raw(it.body.text + "()")))
+	}
 	tidy.show-module(
 		tidy.parse-module(
 			read(path),
@@ -26,7 +30,7 @@
 
 #align(center)[
 #arrow-diagram(
-		cell-size: 10mm,
+		gutter: 2cm,
 		node((0,1), $A$),
 		node((1,1), $B$),
 		conn((0,1), (1,1), $f$, "->", bend: 40deg),
@@ -92,7 +96,7 @@
 	Inline $f: A -> B$ equation, \
 	Inline #arrow-diagram(node-pad: 4pt, {
 		node((0,0), $A$)
-		conn((0,0), (1,0), $f$, "->", label-sep: 2pt)
+		conn((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt)
 		node((1,0), $B$)
 	}) diagram.
 	```),
@@ -158,8 +162,8 @@ $
 	conn((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
 	conn((0,1), (1,1), "hook->>", dash: "dashed"),
 	conn((1,2), (1,1), "|->"),
+	node((2,0), $pi_1(X union Y)$),
 	conn((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
-	node((2,0), $pi_1(X union Y)$)
 )
 $
 
@@ -206,6 +210,7 @@ This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding
 	#arrow-diagram(
 		debug: 1,
 		gutter: 0pt,
+		node-pad: 0pt,
 		node((0,-1), box(fill: blue.lighten(50%),   width:  5mm, height: 10mm)),
 		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
 		node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
@@ -226,6 +231,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 		arrow-diagram(
 			debug: 1,
 			gutter: 0mm,
+			node-pad: 0pt,
 			node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
 			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
 			node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),

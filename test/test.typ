@@ -13,7 +13,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 #arrow-diagram(
 	debug: 0,
-	pad: (10mm, 5mm),
+	gutter: (10mm, 5mm),
 {
 	for i in (0, 1, 2) {
 		let x = 2*i
@@ -134,16 +134,24 @@ $
 	}).join()
 )
 
-= Default label placement
-Prefer placing label 'above' the line.
+= Label placement
+Default placement above the line.
 
 #arrow-diagram(
 	// cell-size: (2.2cm, 2cm),
-	pad: 2cm,
+	gutter: 2cm,
 	debug: 3,
 {
 	for p in around {
 		conn(p, (0,0), $f$)
+	}
+})
+
+#arrow-diagram(gutter: 1.5cm, {
+	for (i, a) in (left, center, right).enumerate() {
+		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+			conn((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
+		}
 	}
 })
 
@@ -176,18 +184,16 @@ Prefer placing label 'above' the line.
 	conn((0,0), (1,0), "-", "dashed"),
 )
 
-= Layout
+
+= Diagram-level options
 
 #arrow-diagram(
-	debug: 2,
-	gutter: 0mm,
-	cell-size: 20mm,
-	node-pad: 1em,
-	// defocus: 0,
+	node-stroke: black,
+	node-fill: green.lighten(80%),
 	node((0,0), $A$),
-	node((1,1), $sin B + log$, pad: 10pt),
-	node((2,0.2), $C$),
-	node((3,0), $D$),
-	conn((0,0), (1,1), "->>", bend: -45deg),
-	conn((2,0.2), (1,1), "<-"),
+	node((1,1), $sin compose cos compose tan$, fill: none),
+	node((2,0), $C$),
+	node((3,0), $D$, shape: "rect"),
+	conn((0,0), (1,1), "->", bend: -45deg),
+	conn((2,0), (1,1), "<-"),
 )

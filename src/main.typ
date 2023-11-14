@@ -1,14 +1,35 @@
 #import calc: floor, ceil, min, max
-#import "@preview/cetz:0.1.2" as cetz: vector
 #import "utils.typ": *
 #import "layout.typ": *
-#import "marks.typ": *
+#import "draw.typ": *
 
+/// Draw a labelled node in an arrow diagram.
+///
+/// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node,
+///  where `x` is the column and `y` is the row (increasing upwards). The
+///  coordinates are usually integers, but can be fractional.
+///
+///  See the `arrow-diagram()` options to control the physical scale of elastic
+///  coordinates.
+///
+/// - label (content): Node content to display.
+/// - pad (length, none): Padding between the node's content and its bounding
+///  box or bounding circle. If `none`, defaults to the `node-pad` option of
+///  `arrow-diagram()`.
+/// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
+/// `auto`, shape is automatically chosen depending on the aspect ratio of the
+/// node's label.
+/// - stroke (stroke): Stroke of the node. Defaults to the `node-stroke` option
+///  of `arrow-diagram()`.
+/// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
+///  `arrow-diagram()`.
 #let node(
 	pos,
 	label,
 	pad: none,
 	shape: auto,
+	stroke: auto,
+	fill: auto,
 ) = {
 	assert(type(pos) == array and pos.len() == 2)
 
@@ -19,6 +40,8 @@
 		label: label,
 		pad: pad,
 		shape: shape,
+		stroke: stroke,
+		fill: fill,
 	),)
 }
 
@@ -62,7 +85,7 @@
 
 }
 
-/// Draw a connector
+/// Draw a connecting line or arc in an arrow diagram.
 ///
 /// - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
 ///  a node at that point, the connector is adjusted to begin at the node's
@@ -328,265 +351,10 @@
 	),)
 }
 
-#let draw-connector(arrow, nodes, options) = {
-
-	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-node-connectors(arrow, nodes, options)
-	let θ = vector-angle(vector.sub(..cap-points))
-
-	// Get the arrow head adjustment for a given extrusion distance
-	let cap-offsets(y) = zip(arrow.marks, (+1, -1))
-		.map(((mark, dir)) => {
-			if mark == none or mark not in CAP_OFFSETS { 0pt }
-			else {
-				let o = CAP_OFFSETS.at(mark)(y)
-				dir*o*arrow.stroke.thickness
-			}
-		})
-
-	let cap-angles
-	let label-pos
-
-	if arrow.mode == "line" {
-
-		cap-angles = (θ, θ + 180deg)
-
-		for shift in arrow.extrude {
-			let d = shift*arrow.stroke.thickness
-			let shifted-line-points = cap-points
-				.zip(cap-offsets(shift))
-				.map(((point, offset)) => vector.add(
-					point,
-					vector.add(
-						// Shift end points lengthways depending on markers
-						vector-polar(offset, θ),
-						// Shift line sideways (for double line effects, etc) 
-						vector-polar(d, θ + 90deg),
-					)
-				))
-
-			cetz.draw.line(
-				..shifted-line-points,
-				stroke: arrow.stroke,
-			)
-		}
-
-
-		// Choose label anchor based on connector direction
-		if arrow.label-side == auto {
-			arrow.label-side = if calc.abs(θ) < 90deg { left } else { right }
-		}
-		let label-dir = if arrow.label-side == left { +1 } else { -1 }
-
-		if arrow.label-anchor == auto {
-			arrow.label-anchor = angle-to-anchor(θ - label-dir*90deg)
-		}
-		
-		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
-		label-pos = vector.add(
-			vector.lerp(..cap-points, arrow.label-pos),
-			vector-polar(arrow.label-sep, θ + label-dir*90deg),
-		)
-
-	} else if arrow.mode == "arc" {
-
-		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, arrow.bend)
-
-		let bend-dir = if arrow.bend > 0deg { +1 } else { -1 }
-		let δ = bend-dir*90deg
-		cap-angles = (start + δ, stop - δ)
-
-
-		for shift in arrow.extrude {
-			let (start, stop) = (start, stop)
-				.zip(cap-offsets(shift))
-				.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
-
-			cetz.draw.arc(
-				center,
-				radius: radius + shift*arrow.stroke.thickness,
-				start: start,
-				stop: stop,
-				anchor: "center",
-				stroke: arrow.stroke,
-			)
-		}
-
-
-
-		if arrow.label-side == auto {
-			arrow.label-side =  if arrow.bend > 0deg { left } else { right }
-		}
-		let label-dir = if arrow.label-side == left { +1 } else { -1 }
-
-		if arrow.label-anchor == auto {
-			// Choose label anchor based on connector direction
-			arrow.label-anchor = angle-to-anchor(θ + label-dir*90deg)
-		}
-		
-		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
-		label-pos = vector.add(
-			center,
-			vector-polar(
-				radius + label-dir*bend-dir*arrow.label-sep,
-				lerp(start, stop, arrow.label-pos),
-			)
-		)
-
-	} else { panic(arrow) }
-
-
-	for (mark, pt, θ) in zip(arrow.marks, cap-points, cap-angles) {
-		if mark == none { continue }
-		draw-arrow-cap(pt, θ, arrow.stroke, mark)
-	}
-
-	if arrow.label != none {
-
-		cetz.draw.content(
-			label-pos,
-			box(
-				fill: white,
-				inset: .2em,
-				radius: .2em,
-				stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
-				$ #arrow.label $,
-			),
-			anchor: arrow.label-anchor,
-		)
-
-		if options.debug >= 2 {
-			cetz.draw.circle(
-				label-pos,
-				radius: arrow.stroke.thickness,
-				stroke: none,
-				fill: DEBUG_COLOR,
-			)
-		}
-	}
-
-	if options.debug >= 3 {
-		for (cell, point) in zip(nodes, cap-points) {
-			cetz.draw.line(
-				cell.real-pos,
-				point,
-				stroke: DEBUG_COLOR + 0.1pt,
-			)
-		}
-	}
-
-
-}
-
-
-#let draw-diagram(
-	grid,
-	nodes,
-	arrows,
-	options,
-) = {
-
-	for (i, node) in nodes.enumerate() {
-
-		if node.label == none { continue }
-
-		cetz.draw.content(node.real-pos, node.label, anchor: "center")
-
-		if options.debug >= 1 {
-			cetz.draw.circle(
-				node.real-pos,
-				radius: 1pt,
-				fill: DEBUG_COLOR,
-				stroke: none,
-			)
-		}
-
-		if options.debug >= 2 {
-			if options.debug >= 3 or node.shape == "rect" {
-				cetz.draw.rect(
-					vector.sub(node.real-pos, vector.div(node.size, 2)),
-					vector.add(node.real-pos, vector.div(node.size, 2)),
-					stroke: DEBUG_COLOR + 0.25pt,
-				)
-			}
-			if options.debug >= 3 or node.shape == "circle" {
-				cetz.draw.circle(
-					node.real-pos,
-					radius: node.radius,
-					stroke: DEBUG_COLOR + 0.25pt,
-				)
-			}
-		}
-	}
-
-	let find-node-at-pos(pos) = {
-		nodes.filter(node => node.pos == pos).first()
-	}
-
-	for arrow in arrows {
-		// let nodes = arrow.points.map(pos => cells.at(repr(pos)))
-		let nodes = arrow.points.map(find-node-at-pos)
-
-		let intersection-stroke = if options.debug >= 2 {
-			(paint: DEBUG_COLOR, thickness: 0.25pt)
-		}
-
-		draw-connector(arrow, nodes, options)
-
-	}
-
-	// draw axes
-	if options.debug >= 1 {
-
-		cetz.draw.rect(
-			(0,0),
-			grid.bounding-size,
-			stroke: DEBUG_COLOR + 0.25pt
-		)
-
-		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
-
-			for (i, x) in grid.centers.at(axis).enumerate() {
-				let size = grid.sizes.at(axis).at(i)
-
-				// coordinate label
-				cetz.draw.content(
-					coord(x, -.4em),
-					text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-					anchor: if axis == 0 { "top" } else { "right" }
-				)
-
-				// size bracket
-				cetz.draw.line(
-					..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-					stroke: DEBUG_COLOR + .75pt,
-					mark: (start: "|", end: "|")
-				)
-
-				// gridline
-				cetz.draw.line(
-					coord(x, 0),
-					coord(x, grid.bounding-size.at(1 - axis)),
-					stroke: (
-						paint: DEBUG_COLOR,
-						thickness: .3pt,
-						dash: "densely-dotted",
-					),
-				)
-			}
-		}
-	}
-}
-
-#let resolve-coord(grid, coord) = {
-	zip(grid.centers, coord, grid.origin)
-		.map(((c, x, o)) => lerp-at(c, x - o))
-}
-
-#let execute-callbacks(grid, cells, nodes-sized, callbacks, options) = {
+#let execute-callbacks(grid, nodes, callbacks, options) = {
 	for callback in callbacks {
 		let resolved-coords = callback.coords
-			.map(resolve-coord.with(grid))
+			.map(elastic-to-physical-coords.with(grid))
 		let result = (callback.callback)(..resolved-coords)
 		if type(result) != array {
 			panic("Callback should return an array of CeTZ element dictionaries; got " + type(result), result)
@@ -598,43 +366,61 @@
 
 /// Draw an arrow diagram.
 ///
-/// - ..args (array): An array of dictionaries specifying the diagram's
+/// - ..objects (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
+///
+/// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
+///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
+///  anchors, etc.
+///
 /// - gutter (length, pair of lengths): Gaps between rows and columns. Ensures
 ///  that nodes at adjacent grid points are at least this far apart (measured as
 ///  the space between their bounding boxes).
 ///
-/// Separate horizontal/vertical gutters can be specified with `(x, y)`. A
+///  Separate horizontal/vertical gutters can be specified with `(x, y)`. A
 /// single length `d` is short for `(d, d)`.
-/// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
-///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
-///  anchors, etc.
+///
+/// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
+///
 /// - node-pad (length, pair of lengths): Padding between a node's content
 ///  and its bounding box.
+/// - node-stroke (stroke): Default stroke for all nodes in diagram. Overridden
+///  by individual node options.
+/// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
+///  individual node options.
+///
 /// - defocus (number): Strength of the defocus correction. `0` to disable.
-/// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
 #let arrow-diagram(
-	..args,
-	gutter: 3em,
+	..objects,
 	debug: false,
-	node-pad: 15pt,
+	gutter: 3em,
 	cell-size: 0pt,
+	node-pad: 15pt,
+	node-stroke: none,
+	node-fill: none,
 	defocus: 0.2,
 ) = {
 
 	if type(gutter) != array { gutter = (gutter, gutter) }
 	if type(cell-size) != array { cell-size = (cell-size, cell-size) }
 
+	if objects.named().len() > 0 { 
+		let args = objects.named().keys().join(", ")
+		panic("Unexpected named argument(s): " + args)
+	}
+
 	let options = (
 		gutter: gutter,
 		debug: int(debug),
 		node-pad: node-pad,
+		node-stroke: node-stroke,
+		node-fill: node-fill,
 		defocus: defocus,
 		cell-size: cell-size,
-		..args.named(),
+		..objects.named(),
 	)
 
-	let positional-args = args.pos().join()
+	let positional-args = objects.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
 	let arrows = positional-args.filter(e => e.kind == "conn")
 	let callbacks = positional-args.filter(e => e.kind == "coord")
@@ -649,16 +435,13 @@
 		options.gutter = options.gutter.map(to-pt)
 		options.node-pad = to-pt(options.node-pad)
 
-		let nodes-sized = compute-nodes(nodes, styles, options)
-
-		// compute diagram layout
-		let grid = compute-grid(nodes-sized, options)
-		// let cells = compute-cells(nodes-sized, grid, options)
-		let nodes = resolve-elastic-coordinates(nodes-sized, grid, options)
+		let nodes = compute-nodes(nodes, styles, options)
+		let grid = compute-grid(nodes, options)
+		let nodes = compute-node-positions(nodes, grid, options)
 
 		cetz.canvas({
 			draw-diagram(grid, nodes, arrows, options)
-			// execute-callbacks(grid, cells, nodes-sized, callbacks, options)	
+			execute-callbacks(grid, nodes, callbacks, options)	
 		})
 	}))
 }

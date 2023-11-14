@@ -14,6 +14,8 @@
 		node.shape = if is-roundish { "circle" } else { "rect" }
 	}
 
+	if node.stroke == auto {node.stroke = options.node-stroke }
+	if node.fill == auto { node.fill = options.node-fill }
 	if node.pad == none { node.pad = options.node-pad }
 	
 	// add node inset
@@ -29,12 +31,14 @@
 	node
 })
 
-#let resolve-elastic-coordinates(nodes, grid, options) = nodes.map(node => {
-	
-	node.real-pos = zip(node.pos, grid.origin, grid.centers)
-		.map(((coord, origin, centers)) => {
-			lerp-at(centers, coord - origin)
-		})
+#let elastic-to-physical-coords(grid, coord) = {
+	zip(grid.centers, coord, grid.origin)
+		.map(((c, x, o)) => lerp-at(c, x - o))
+}
+
+#let compute-node-positions(nodes, grid, options) = nodes.map(node => {
+
+	node.real-pos = elastic-to-physical-coords(grid, node.pos)
 
 	node.rect = (-1, +1).map(dir => {
 		vector.add(node.real-pos, vector.scale(node.size, dir/2))
@@ -131,47 +135,3 @@
 }	
 
 
-
-#let get-node-connector(node, incident-angle, options) = {
-
-	if node.radius < 1e-3pt { return node.real-pos }
-
-	if node.shape == "circle" {
-		// use bounding circle
-		vector.sub(
-			node.real-pos,
-			vector-polar(node.radius, incident-angle),
-		)
-
-	} else {
-		// use bounding rect
-		let origin = node.real-pos
-		let μ = calc.pow(node.aspect, options.defocus)
-		let origin-δ = (
-			-calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(incident-angle),
-			-calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(incident-angle),
-		)
-		let crossing-line = (
-			vector.add(origin, origin-δ),
-			vector.sub(origin, vector-polar(2*node.radius, incident-angle)),
-		)
-
-		intersect-rect-with-crossing-line(node.rect, crossing-line)
-	}
-}
-
-#let get-node-connectors(arrow, nodes, options) = {
-	let center-center-line = nodes.map(node => node.real-pos)
-
-	let v = vector.sub(..center-center-line)
-	let θ = vector-angle(v) // approximate angle of connector
-
-	let δ = if arrow.mode == "arc" { arrow.bend } else { 0deg }
-	let incident-angles = (θ + δ, θ - δ + 180deg)
-
-	let points = zip(nodes, incident-angles).map(((node, θ)) => {
-		get-node-connector(node, θ, options)
-	})
-
-	points
-}
