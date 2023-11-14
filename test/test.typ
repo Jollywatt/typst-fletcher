@@ -71,7 +71,7 @@ $
 
 #arrow-diagram(
 	debug: 0,
-	min-size: (10mm, 10mm),
+	cell-size: (10mm, 10mm),
 	node((0,1), $X$),
 	node((1,1), $Y$),
 	node((0,0), $Z$),
@@ -84,7 +84,7 @@ $
 = Arc connectors
 
 #arrow-diagram(
-	min-size: 3cm,
+	cell-size: 3cm,
 {
 	node((0,0), "from")
 	node((1,0), "to")
@@ -123,7 +123,7 @@ $
 		((7em, 3em), (3em, 7em)).map(((w, h)) => {
 			align(center + horizon, arrow-diagram(
 				defocus: defocus,
-				node-outset: 0pt,
+				node-pad: 0pt,
 			{
 				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))
 				for p in around {
@@ -138,7 +138,7 @@ $
 Prefer placing label 'above' the line.
 
 #arrow-diagram(
-	// min-size: (2.2cm, 2cm),
+	// cell-size: (2.2cm, 2cm),
 	pad: 2cm,
 	debug: 3,
 {
@@ -174,4 +174,20 @@ Prefer placing label 'above' the line.
 	conn((1,0), (0,1), "->>", "crossing"),
 	conn((1,1), (2,1), $f$, "|->"),
 	conn((0,0), (1,0), "-", "dashed"),
+)
+
+= Layout
+
+#arrow-diagram(
+	debug: 0,
+	gutter: 0mm,
+	cell-size: 20mm,
+	node-pad: 1em,
+	// defocus: 0,
+	node((0,0), $A$),
+	node((1,1), $sin B + log$),
+	node((2,0), $C$),
+	node((3,0), $D$),
+	conn((0,0), (1,1), "->>"),
+	conn((2,0), (1,1), "<-"),
 )

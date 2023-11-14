@@ -54,7 +54,7 @@
 	// (x: (0pt, 0pt, ...), y: ...)
 	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
 
-	let (min-size-width, min-size-height) = options.at("min-size", default: (0pt, 0pt))
+	let (cell-size-width, cell-size-height) = options.at("cell-size", default: (0pt, 0pt))
 
 	for rect in rects {
 		let coords = vector.sub(rect.pos, origin)
@@ -62,16 +62,18 @@
 			cell-sizes.at(axis).at(coords.at(axis)) = max(
 				cell-sizes.at(axis).at(coords.at(axis)),
 				rect.size.at(axis),
-				options.min-size.at(axis),
+				options.cell-size.at(axis),
 			)
 
 		}
 	}
 
 	// (x: (c1x, c2x, ...), y: ...)
-	let cell-centers = zip(cell-sizes, options.pad).map(((sizes, p)) => {
-		zip(cumsum(sizes), sizes, range(sizes.len())).map(((end, size, i)) => end - size/2 + p*i)
-	})
+	let cell-centers = zip(cell-sizes, options.gutter)
+		.map(((sizes, gutter)) => {
+			zip(cumsum(sizes), sizes, range(sizes.len()))
+				.map(((end, size, i)) => end - size/2 + gutter*i)
+		})
 
 	let total-size = cell-centers.zip(cell-sizes).map(((centers, sizes)) => {
 		centers.at(-1) + sizes.at(-1)/2
@@ -142,9 +144,9 @@
 		// add cell inset
 		if cell.radius != 0pt {
 			if cell.is-roundish { 
-				cell.radius += options.node-outset*0.5
+				cell.radius += options.node-pad*0.5
 			} else {
-				cell.size = cell.size.map(x => x + options.node-outset)
+				cell.size = cell.size.map(x => x + options.node-pad)
 			}
 		}
 

@@ -80,7 +80,7 @@
 ///  	dir: ltr,
 ///  	spacing: 1fr,
 ///  	..(0, 0.25, 0.5, 0.75, 1).map(p => arrow-diagram(
-///  		min-size: 1cm,
+///  		cell-size: 1cm,
 ///  		conn((0,0), (1,0), p, "->", label-pos: p))
 ///  	),
 ///  )
@@ -89,7 +89,7 @@
 ///  With the default anchor (`"bottom"`):
 ///  #arrow-diagram(
 ///  	debug: 2,
-///  	min-size: 8mm,
+///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
 ///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
@@ -99,7 +99,7 @@
 ///  With `label-anchor: "center"`:
 ///  #arrow-diagram(
 ///  	debug: 2,
-///  	min-size: 8mm,
+///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
 ///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
@@ -480,9 +480,6 @@
 	options,
 ) = {
 
-	let (pad, debug) = options
-
-
 	for (i, node) in nodes.enumerate() {
 
 		if node.label == none { continue }
@@ -491,7 +488,7 @@
 
 		cetz.draw.content(cell.real-pos, node.label, anchor: "center")
 
-		if debug >= 1 {
+		if options.debug >= 1 {
 			cetz.draw.circle(
 				cell.real-pos,
 				radius: 1pt,
@@ -499,15 +496,15 @@
 				stroke: none,
 			)
 		}
-		if debug >= 2 {
-			if debug >= 3 or cell.bounding-mode == "rect" {
+		if options.debug >= 2 {
+			if options.debug >= 3 or cell.bounding-mode == "rect" {
 				cetz.draw.rect(
 					vector.sub(cell.real-pos, vector.div(cell.size, 2)),
 					vector.add(cell.real-pos, vector.div(cell.size, 2)),
 					stroke: DEBUG_COLOR + 0.25pt,
 				)
 			}
-			if debug >= 3 or cell.bounding-mode == "circle" {
+			if options.debug >= 3 or cell.bounding-mode == "circle" {
 				cetz.draw.circle(
 					cell.real-pos,
 					radius: cell.radius,
@@ -520,7 +517,7 @@
 	for arrow in arrows {
 		let cells = arrow.points.map(pos => cells.at(repr(pos)))
 
-		let intersection-stroke = if debug >= 2 {
+		let intersection-stroke = if options.debug >= 2 {
 			(paint: DEBUG_COLOR, thickness: 0.25pt)
 		}
 
@@ -529,7 +526,7 @@
 	}
 
 	// draw axes
-	if debug >= 1 {
+	if options.debug >= 1 {
 
 		cetz.draw.rect(
 			(0,0),
@@ -593,37 +590,37 @@
 ///
 /// - ..args (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
-/// - pad (length, pair of lengths): Gaps between rows and columns. Ensures that
-///  nodes at adjacent grid points are at least this far apart (measured as the
-///  space between their bounding boxes).
+/// - gutter (length, pair of lengths): Gaps between rows and columns. Ensures
+///  that nodes at adjacent grid points are at least this far apart (measured as
+///  the space between their bounding boxes).
 ///
 /// Separate horizontal/vertical gutters can be specified with `(x, y)`. A
 /// single length `d` is short for `(d, d)`.
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
 ///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
 ///  anchors, etc.
-/// - node-outset (length, pair of lengths): Padding between a node's content
+/// - node-pad (length, pair of lengths): Padding between a node's content
 ///  and its bounding box.
 /// - defocus (number): Strength of the defocus correction. `0` to disable.
-/// - min-size (length, pair of lengths): Minimum size of all rows and columns.
+/// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
 #let arrow-diagram(
 	..args,
-	pad: 3em,
+	gutter: 3em,
 	debug: false,
-	node-outset: 15pt,
+	node-pad: 15pt,
+	cell-size: 0pt,
 	defocus: 0.2,
-	min-size: 0pt,
 ) = {
 
-	if type(pad) != array { pad = (pad, pad) }
-	if type(min-size) != array { min-size = (min-size, min-size) }
+	if type(gutter) != array { gutter = (gutter, gutter) }
+	if type(cell-size) != array { cell-size = (cell-size, cell-size) }
 
 	let options = (
-		pad: pad,
+		gutter: gutter,
 		debug: int(debug),
-		node-outset: node-outset,
+		node-pad: node-pad,
 		defocus: defocus,
-		min-size: min-size,
+		cell-size: cell-size,
 		..args.named(),
 	)
 
@@ -639,8 +636,8 @@
 
 		let options = options
 		options.em-size = em-size
-		options.pad = options.pad.map(to-pt)
-		options.node-outset = to-pt(options.node-outset)
+		options.gutter = options.gutter.map(to-pt)
+		options.node-pad = to-pt(options.node-pad)
 
 		let nodes-sized = nodes.map(node => {
 			let (width, height) = measure(node.label, styles)

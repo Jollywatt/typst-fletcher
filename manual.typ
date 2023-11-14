@@ -25,18 +25,33 @@
 }
 
 #align(center)[
+#arrow-diagram(
+		cell-size: 10mm,
+		node((0,1), $A$),
+		node((1,1), $B$),
+		conn((0,1), (1,1), $f$, "->", bend: 40deg),
+	)
+
+
 	#text(2em, strong(`arrow-diagrams`))
 
-	A Typst package for drawing diagrams with arrows,\
+	A #link("https://typst.app/")[Typst] package for drawing diagrams with arrows,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
+
+
+	#link("https://github.com/jollywatt/arrow-diagrams")
+
+	Version #toml("typst.toml").package.version
 ]
 
 #v(1fr)
+
 #outline(indent: 1em, target:
 	heading.where(level: 1)
 	.or(heading.where(level: 2))
 	.or(heading.where(level: 3)),
 )
+
 #v(1fr)
 
 
@@ -63,7 +78,7 @@
 
 	..code-example(```typ
 	#arrow-diagram(
-		min-size: 10mm,
+		cell-size: 10mm,
 		node((0,1), $X$),
 		node((1,1), $Y$),
 		node((0,0), $X slash ker(f)$),
@@ -75,19 +90,16 @@
 
 	..code-example(```typ
 	Inline $f: A -> B$ equation, \
-	Inline #arrow-diagram(
-		node-outset: 4pt,
-		{
-			node((0,0), $A$)
-			conn((0,0), (1,0), $f$, "->", label-sep: 2pt)
-			node((1,0), $B$)
-		}
-	) diagram.
+	Inline #arrow-diagram(node-pad: 4pt, {
+		node((0,0), $A$)
+		conn((0,0), (1,0), $f$, "->", label-sep: 2pt)
+		node((1,0), $B$)
+	}) diagram.
 	```),
 
 	..code-example(```typ
 	#arrow-diagram(
-		pad: 2cm,
+		gutter: 2cm,
 		node((0,0), $cal(A)$),
 		node((1,0), $cal(B)$),
 		conn((0,0), (1,0), $F$, "->", bend: +35deg),
@@ -103,7 +115,7 @@
 	..(
 		arrow-diagram(
 			debug: 0,
-			min-size: (10mm, 10mm),
+			cell-size: (10mm, 10mm),
 			node((0,1), $X$),
 			node((1,1), $Y$),
 			node((0,0), $X slash ker(f)$),
@@ -114,7 +126,7 @@
 		),
 		arrow-diagram(
 			// debug: 3,
-			pad: 5em,
+			gutter: 5em,
 			node((0,0), $S a$),
 			node((0,1), $T b$),
 			node((1,0), $S a'$),
@@ -131,9 +143,9 @@
 
 $
 #arrow-diagram(
-	min-size: 1cm,
-	node-outset: 1.5em,
-	pad: 20mm,
+	cell-size: 1cm,
+	node-pad: 1.5em,
+	gutter: 20mm,
 	debug: 0,
 	defocus: 0.1,
 	node((0,2), $pi_1(X sect Y)$),
@@ -152,9 +164,9 @@ $
 $
 
 #arrow-diagram(
-	min-size: 3cm,
+	cell-size: 3cm,
 	defocus: 0,
-	node-outset: 10pt,
+	node-pad: 10pt,
 {
 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
 	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
@@ -175,18 +187,16 @@ $
 })
 
 
-= Tutorial
 
-
-= Layout
+= Details
 
 
 == Elastic coordinates
 
 Diagrams are laid out on a flexible coordinate grid, which stretches to fit content like a table.
-When a node is placed in a diagram, the rows and columns grow to accommodate the node's size.
+When a node is placed, the rows and columns grow to accommodate the node's size.
 
-This can be seen more clearly by drawing the coordinate grid with `debug: 1` and setting cell padding to zero:
+This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding between cells:
 
 
 #stack(
@@ -195,7 +205,7 @@ This can be seen more clearly by drawing the coordinate grid with `debug: 1` and
 	..code-example(```typ
 	#arrow-diagram(
 		debug: 1,
-		pad: 0pt,
+		gutter: 0pt,
 		node((0,-1), box(fill: blue.lighten(50%),   width:  5mm, height: 10mm)),
 		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
 		node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
@@ -215,7 +225,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	..(0, .25, .5, .75, 1).map(t => {
 		arrow-diagram(
 			debug: 1,
-			pad: 0mm,
+			gutter: 0mm,
 			node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
 			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
 			node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
@@ -225,7 +235,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	}),
 )
 
-Specifically, fractional coordinates are dealt with by _linearly interpolating_ the layout, in the sense that if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ is at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
+Specifically, fractional coordinates are dealt with by linearly interpolating the layout, in the sense that if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ is at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
 
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise coordinates.
 
@@ -253,7 +263,6 @@ You can convert elastic coordinates to physical coordinates with a callback:
 				(to: p2, rel: (15pt, 15pt)),
 				fill: rgb("00f1"),
 				stroke: (paint: blue, dash: "dashed"),
-
 			)
 		})
 	})
@@ -266,8 +275,8 @@ Lines between nodes connect to the node's bounding circle or bounding rectangle.
 
 $
 #arrow-diagram(
-	pad: (10mm, 6mm),
-	// node-outset: 4pt,
+	gutter: (10mm, 6mm),
+	// node-pad: 4pt,
 	debug: 2,
 	// defocus: 0,
 	node((0,+1), $A times B times C$),
@@ -281,6 +290,27 @@ $
 	conn((0,-1), (0,1)),
 )
 $
+
+// === Marks and arrows
+
+// #align(center, arrow-diagram(
+// 	debug: 0,
+// 	gutter: (10mm, 5mm),
+// {
+// 	for (i, str) in (
+// 		"->",
+// 		"=>",
+// 		"|->",
+// 		"hook->>",
+// 		">--<",
+// 		"harpoon-harpoon'",
+// 	).enumerate() {
+// 		for j in range(2) {
+// 			conn((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j)
+// 		}
+// 	}
+// }))
+
 
 === The `defocus` adjustment
 
@@ -296,7 +326,7 @@ The effect of this is shown below:
 		figure(
 			caption: [#with defocus],
 			arrow-diagram(
-				pad: (10mm, 9mm),
+				gutter: (10mm, 9mm),
 				defocus: d,
 				node((0,1), $A times B times C$),
 				conn((-1,0), (0,1)),
@@ -315,9 +345,9 @@ It is best explained by example:
 	spacing: 1fr,
 	..(+.8, 0, -.8).map(d => {
 		arrow-diagram(
-			pad: 10mm,
+			gutter: 10mm,
 			debug: 0,
-			node-outset: 15pt,
+			node-pad: 15pt,
 			defocus: d,
 			node((0,0), raw("defocus: "+repr(d))),
 			for p in (
