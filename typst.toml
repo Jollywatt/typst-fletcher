@@ -2,6 +2,19 @@
 name = "arrow-diagrams"
 version = "0.1.0"
 entrypoint = "/src/lib.typ"
-authors = ["jollywatt (Joseph Wilson)"]
+authors = ["Joseph Wilson (Jollywatt)"]
 license = "MIT"
-description = "Commutative diagram package built on top of CeTZ."
+description = "Draw diagrams with nodes and arrows, built on CeTZ."
+repository = "https://github.com/Jollywatt/arrow-diagrams"
+keywords = [
+	"automaton",
+	"category",
+	"commutative",
+	"commute",
+	"commuting",
+	"DAG",
+	"diagram",
+	"flowchart",
+	"graph",
+]
+exclude = ["manual.*", "test/"]

@@ -16,7 +16,7 @@
 )
 #let show-module(path) = {
 	show heading.where(level: 3): it => {
-		v(4em, weak: true)
+		align(center, line(length: 100%, stroke: black.lighten(70%)))
 		block(text(1.3em, raw(it.body.text + "()")))
 	}
 	tidy.show-module(
@@ -64,19 +64,19 @@
 = Examples
 
 #let code-example(src) = (
+	{
+		set text(.85em)
+		src
+	},
 	eval(
 		src.text,
 		mode: "markup",
 		scope: scope
 	),
-	{
-		set text(.85em)
-		src
-	},
 )
 
 #table(
-	columns: (1fr, 2fr),
+	columns: (2fr, 1fr),
 	align: (horizon, left),
 	inset: 10pt,
 
@@ -209,14 +209,15 @@ This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding
 	dir: ltr,
 	spacing: 1fr, 
 	..code-example(```typ
+	#let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
 	#arrow-diagram(
 		debug: 1,
 		spacing: 0pt,
 		node-pad: 0pt,
-		node((0,-1), box(fill: blue.lighten(50%),   width:  5mm, height: 10mm)),
-		node((1, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm)),
-		node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
-		node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
+		node((0,-1), b(blue,    5mm, 10mm)),
+		node((1, 0), b(green,  20mm,  5mm)),
+		node((1, 1), b(red,     5mm,  5mm)),
+		node((0, 1), b(orange, 10mm, 10mm)),
 	)
 	```)
 )
@@ -238,7 +239,6 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
 			node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
 			node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
-
 		)
 	}),
 )
