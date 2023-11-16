@@ -9,19 +9,17 @@
 /// - θ (angle): The desired angle from the node's center to the connection
 ///  point.
 /// -> point
-#let get-node-connector(node, θ) = {
+#let get-node-anchor(node, θ) = {
 
 	if node.radius < 1e-3pt { return node.real-pos }
 
 	if node.shape == "circle" {
-		// use bounding circle
 		vector.add(
 			node.real-pos,
 			vector-polar(node.radius, θ),
 		)
 
-	} else {
-		// use bounding rect
+	} else if node.shape == "rect" {
 		let origin = node.real-pos
 		let μ = calc.pow(node.aspect, node.defocus)
 		let origin-δ = (
@@ -34,16 +32,17 @@
 		)
 
 		intersect-rect-with-crossing-line(node.rect, crossing-line)
-	}
+
+	} else { panic(node.shape) }
 }
 
-/// Get the points where a connector between two nodes should be drawn from and
-/// to, taking into account the nodes' sizes and relative positions.
+/// Get the points where a connector between two nodes should be drawn between,
+/// taking into account the nodes' sizes and relative positions.
 ///
 /// - conn (dictionary): The connector whose end points should be determined.
 /// - nodes (pair of dictionaries): The start and end nodes of the connector.
 /// -> pair of points
-#let get-node-connectors(conn, nodes) = {
+#let get-conn-anchors(conn, nodes) = {
 	let center-center-line = nodes.map(node => node.real-pos)
 
 	let v = vector.sub(..center-center-line)
@@ -53,7 +52,7 @@
 	let incident-angles = (θ + δ + 180deg, θ - δ)
 
 	let points = zip(nodes, incident-angles).map(((node, θ)) => {
-		get-node-connector(node, θ)
+		get-node-anchor(node, θ)
 	})
 
 	points
@@ -62,16 +61,16 @@
 #let draw-connector(conn, nodes, options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-node-connectors(conn, nodes)
+	let cap-points = get-conn-anchors(conn, nodes)
 	let θ = vector-angle(vector.sub(..cap-points))
 
 	// Get the arrow head adjustment for a given extrusion distance
 	let cap-offsets(y) = zip(conn.marks, (+1, -1))
 		.map(((mark, dir)) => {
-			if mark == none or mark not in CAP_OFFSETS { 0pt }
-			else {
-				let o = CAP_OFFSETS.at(mark)(y)
-				dir*o*conn.stroke.thickness
+			if mark == none or mark not in CAP_OFFSETS {
+				0pt
+			} else {
+				dir*CAP_OFFSETS.at(mark)(y)*conn.stroke.thickness
 			}
 		})
 
@@ -164,7 +163,7 @@
 			)
 		)
 
-	} else { panic(conn) }
+	} else { panic(conn.mode) }
 
 
 	for (mark, pt, θ) in zip(conn.marks, cap-points, cap-angles) {
@@ -273,7 +272,6 @@
 	}
 
 	for arrow in arrows {
-		// let nodes = arrow.points.map(pos => cells.at(repr(pos)))
 		let nodes = arrow.points.map(find-node-at-pos)
 
 		let intersection-stroke = if options.debug >= 2 {
@@ -281,7 +279,6 @@
 		}
 
 		draw-connector(arrow, nodes, options)
-
 	}
 
 	// draw axes
