@@ -122,7 +122,7 @@ $
 	..(-10, -1, -.25, 0, +.25, +1, +10).map(defocus => {
 		((7em, 3em), (3em, 7em)).map(((w, h)) => {
 			align(center + horizon, arrow-diagram(
-				defocus: defocus,
+				node-defocus: defocus,
 				node-pad: 0pt,
 			{
 				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))

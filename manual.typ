@@ -66,7 +66,7 @@
 #let code-example(src) = (
 	{
 		set text(.85em)
-		src
+		box(src) // box to prevent pagebreaks
 	},
 	eval(
 		src.text,
@@ -252,7 +252,6 @@ As a result, diagrams will automatically adjust when nodes grow or shrink, while
 Elastic coordinates are determined by the sizes and positions of the nodes in the diagram, and are resolved into physical coordinates which are then passed to CeTZ for drawing.
 
 You can convert elastic coordinates to physical coordinates with a callback:
-
 #stack(
 	dir: ltr,
 	spacing: 1fr, 

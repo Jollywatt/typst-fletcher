@@ -398,7 +398,7 @@
 /// - node-defocus (number): Default strength of the "defocus" adjustment for
 ///  nodes. This affects how connectors attach to non-square nodes. If
 ///   `0`, the adjustment is disabled and connectors are always directed at the
-///   exact centers of nodes.
+///   node's exact center.
 ///
 ///   #stack(
 ///  	dir: ltr,
