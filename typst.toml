@@ -1,7 +1,7 @@
 [package]
 name = "arrow-diagrams"
 version = "0.1.0"
-entrypoint = "/src/lib.typ"
+entrypoint = "/src/exports.typ"
 authors = ["Joseph Wilson (Jollywatt)"]
 license = "MIT"
 description = "Draw diagrams with nodes and arrows, built on CeTZ."

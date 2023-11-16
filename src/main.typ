@@ -388,8 +388,8 @@
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
 ///
-/// - node-pad (length, pair of lengths): Padding between a node's content
-///  and its bounding box.
+/// - node-pad (length, pair of lengths): Default padding between a node's
+///  content and its bounding box.
 /// - node-stroke (stroke): Default stroke for all nodes in diagram. Overridden
 ///  by individual node options.
 /// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
@@ -414,6 +414,17 @@
 ///   		})
 ///   	})
 ///   )
+///
+/// - render (function): After the node sizes and grid layout have been
+///  determined, the `render` function is called with the following arguments:
+///   - `grid`: a dictionary of the row and column widths and positions;
+///   - `nodes`: an array of nodes (dictionaries) with computed attributes
+///    (including size and physical coordinates);
+///   - `conns`: an array of connectors (dictionaries) in the diagram; and
+///   - `options`: other diagram attributes.
+///
+///  This callback is exposed so you can access the above data and draw things
+///  directly with CeTZ.
 #let arrow-diagram(
 	..objects,
 	debug: false,
@@ -423,6 +434,9 @@
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
+	render: (grid, nodes, conns, options) => {
+		cetz.canvas(draw-diagram(grid, nodes, conns, options))
+	}
 ) = {
 
 	if type(spacing) != array { spacing = (spacing, spacing) }
@@ -463,10 +477,7 @@
 		let grid = compute-grid(nodes, options)
 		let nodes = compute-node-positions(nodes, grid, options)
 
-		cetz.canvas({
-			draw-diagram(grid, nodes, conns, options)
-			execute-callbacks(grid, nodes, callbacks, options)	
-		})
+		render(grid, nodes, conns, options)
 	}))
 }
 

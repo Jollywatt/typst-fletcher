@@ -1,5 +1,5 @@
 #import "@preview/cetz:0.1.2"
-#import "../src/lib.typ": *
+#import "../src/exports.typ": *
 #import "../src/marks.typ": *
 
 
@@ -167,13 +167,13 @@ Default placement above the line.
 
 = Coord callback
 
-#arrow-diagram({
-	node((1,1), "hi")
-	conn((1,1), (1,2))
-	resolve-coords((1, 2), (1,1), callback: (p1, p2) => {
-		cetz.draw.circle(p1, radius: 5pt, stroke: red)
-	})
-})
+// #arrow-diagram({
+// 	node((1,1), "hi")
+// 	conn((1,1), (1,2))
+// 	resolve-coords((1, 2), (1,1), callback: (p1, p2) => {
+// 		cetz.draw.circle(p1, radius: 5pt, stroke: red)
+// 	})
+// })
 
 = `conn()` argument shorthands
 
@@ -196,4 +196,29 @@ Default placement above the line.
 	node((3,0), $D$, shape: "rect"),
 	conn((0,0), (1,1), "->", bend: -45deg),
 	conn((2,0), (1,1), "<-"),
+)
+
+= CeTZ integration
+
+#arrow-diagram(
+	node((0,0), $A$, stroke: 1pt),
+	node((2,1), [Bézier], stroke: 1pt),
+	render: (grid, nodes, conns, options) => {
+		cetz.canvas({
+			arrow-diagrams.draw-diagram(grid, nodes, conns, options)
+
+			let n1 = arrow-diagrams.find-node-at(nodes, (0,0))
+			let p1 = arrow-diagrams.get-node-anchor(n1, 0deg)
+
+			let n2 = arrow-diagrams.find-node-at(nodes, (2,1))
+			let p2 = arrow-diagrams.get-node-anchor(n2, -90deg)
+
+			let c1 = cetz.vector.add(p1, vector-polar(20pt, 0deg))
+			let c2 = cetz.vector.add(p2, vector-polar(70pt, -90deg))
+
+			arrow-diagrams.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+
+			cetz.draw.bezier(p1, p2, c1, c2)
+		})
+	}
 )

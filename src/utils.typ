@@ -81,11 +81,18 @@
 ///
 /// The bend angle is the angle between chord of the arc (line connecting the
 /// points) and the tangent to the arc and the first point.
+/// 
+/// Returns a dictionary containing:
+/// - `center`: the center of the arc's curvature
+/// - `radius`
+/// - `start`: the start angle of the arc
+/// - `stop`: the end angle of the arc
 ///
 /// - from (point): 2D vector of initial point.
 /// - to (point): 2D vector of final point.
 /// - angle (angle): The bend angle between chord of the arc (line connecting the
 /// points) and the tangent to the arc and the first point.
+/// -> dictionary
 ///
 /// #arrow-diagram(spacing: 2cm, {
 ///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {

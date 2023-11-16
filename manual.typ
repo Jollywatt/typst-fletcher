@@ -1,5 +1,5 @@
 #import "@preview/tidy:0.1.0"
-#import "src/lib.typ": *
+#import "src/exports.typ": *
 #import "src/marks.typ": parse-arrow-shorthand
 
 
@@ -8,11 +8,12 @@
 #show link: set text(blue)
 
 #let scope = (
+	arrow-diagrams: arrow-diagrams,
 	arrow-diagram: arrow-diagram,
 	node: node,
 	conn: conn,
-	resolve-coords: resolve-coords,
 	parse-arrow-shorthand: parse-arrow-shorthand,
+	cetz: arrow-diagrams.cetz,
 )
 #let show-module(path) = {
 	show heading.where(level: 3): it => {
@@ -247,38 +248,38 @@ Specifically, fractional coordinates are dealt with by linearly interpolating th
 
 As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise coordinates.
 
-== Physical coordinates
+// == Physical coordinates
 
-Elastic coordinates are determined by the sizes and positions of the nodes in the diagram, and are resolved into physical coordinates which are then passed to CeTZ for drawing.
+// Elastic coordinates are determined by the sizes and positions of the nodes in the diagram, and are resolved into physical coordinates which are then passed to CeTZ for drawing.
 
-You can convert elastic coordinates to physical coordinates with a callback:
-#stack(
-	dir: ltr,
-	spacing: 1fr, 
-	..code-example(```typ
-	#import "@preview/cetz:0.1.2"
-	#arrow-diagram({
-		let (A, B, C) = ((0,0), (1,1), (1,-1))
-		node(A, $A$)
-		node(B, $B$)
-		node(C, $C$)
-		conn(A, B, "hook->")
-		conn(A, C, "->>")
-		resolve-coords(A, B, callback: (p1, p2) => {
-			cetz.draw.rect(
-				(to: p1, rel: (-15pt, -15pt)),
-				(to: p2, rel: (15pt, 15pt)),
-				fill: rgb("00f1"),
-				stroke: (paint: blue, dash: "dashed"),
-			)
-		})
-	})
-	```),
-)
+// You can convert elastic coordinates to physical coordinates with a callback:
+// #stack(
+// 	dir: ltr,
+// 	spacing: 1fr, 
+// 	..code-example(```typ
+// 	#import "@preview/cetz:0.1.2"
+// 	#arrow-diagram({
+// 		let (A, B, C) = ((0,0), (1,1), (1,-1))
+// 		node(A, $A$)
+// 		node(B, $B$)
+// 		node(C, $C$)
+// 		conn(A, B, "hook->")
+// 		conn(A, C, "->>")
+// 		resolve-coords(A, B, callback: (p1, p2) => {
+// 			cetz.draw.rect(
+// 				(to: p1, rel: (-15pt, -15pt)),
+// 				(to: p2, rel: (15pt, 15pt)),
+// 				fill: rgb("00f1"),
+// 				stroke: (paint: blue, dash: "dashed"),
+// 			)
+// 		})
+// 	})
+// 	```),
+// )
 
 == Connectors
 
-Lines between nodes connect to the node's bounding circle or bounding rectangle. The bounding shape is chosen automatically depending on the node's aspect ratio.
+Connectors between nodes connect to the node's bounding circle or bounding rectangle. The bounding shape is chosen automatically depending on the node's aspect ratio.
 
 $
 #arrow-diagram(
@@ -298,38 +299,76 @@ $
 )
 $
 
-// === Marks and arrows
+=== Marks and arrows
 
-// #align(center, arrow-diagram(
-// 	debug: 0,
-// 	spacing: (10mm, 5mm),
-// {
-// 	for (i, str) in (
-// 		"->",
-// 		"=>",
-// 		"|->",
-// 		"hook->>",
-// 		">--<",
-// 		"harpoon-harpoon'",
-// 	).enumerate() {
-// 		for j in range(2) {
-// 			conn((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j)
-// 		}
-// 	}
-// }))
+A few mathematical arrow heads are supported, designed to match the symbols $arrow$, $arrow.double$, $arrow.twohead$, $arrow.hook$, $arrow.bar$, etc.
+See the `marks` argument of #link(label("conn()"))[`conn()`] for details.
+
+#align(center, arrow-diagram(
+	debug: 0,
+	spacing: (15mm, 10mm),
+{
+	for (i, str) in (
+		"->",
+		"=>",
+		"|->",
+		"hook->>",
+		// ">--<",
+		// "harpoon-harpoon'",
+	).enumerate() {
+		for j in range(2) {
+			conn((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j, thickness: 1pt)
+		}
+	}
+}))
+
+=== CeTZ integration
+
+Currently, only straight and arc connectors are supported.
+However, an escape hatch is provided with the `render` argument of #link(label("arrow-diagram()"))[`arrow-diagram()`] so you can intercept diagram data and draw things using CeTZ directly.
+
+Here is an example of how you might hack together a Bézier connector using the same node anchoring and arrow head functions that this package provides:
+
+#stack(..code-example(```typ
+#arrow-diagram(
+	node((0,0), $A$, stroke: 1pt),
+	node((2,1), [Bézier], stroke: 1pt),
+	render: (grid, nodes, conns, options) => {
+		cetz.canvas({
+			// this is the default code to render the diagram
+			arrow-diagrams.draw-diagram(grid, nodes, conns, options)
+
+			// retrieve node data by coordinates
+			let n1 = arrow-diagrams.find-node-at(nodes, (0,0))
+			let n2 = arrow-diagrams.find-node-at(nodes, (2,1))
+
+			// get anchor points for the connector
+			let p1 = arrow-diagrams.get-node-anchor(n1, 0deg)
+			let p2 = arrow-diagrams.get-node-anchor(n2, -90deg)
+
+			// make some control points
+			let c1 = cetz.vector.add(p1, (20pt, 0pt))
+			let c2 = cetz.vector.add(p2, (0pt, -70pt))
+
+			cetz.draw.bezier(p1, p2, c1, c2)
+
+			// place an arrow head at a given point and angle
+			arrow-diagrams.draw-arrow-cap(p1, 180deg, 1pt + black, "head")
+		})
+	}
+)
+```))
 
 
 === The `defocus` adjustment
 
-For aesthetic reasons, a line connecting to a node should not necessarily be focused to the node's exact center, especially if the node is short and wide or tall and narrow.
-Notice how in the figure above the lines connecting to the node $A times B times C$
-would intersect slightly above its center, making the diagram look more comfortable.
-The effect of this is shown below:
+For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.
+Notice the difference the figures below. "Defocusing" the connecting lines can make the diagram look more comfortable.
 
 #align(center, stack(
 	dir: ltr,
 	spacing: 20%,
-	..(("With", 0.4), ("Without", 0)).map(((with, d)) => {
+	..(("With", 0.2), ("Without", 0)).map(((with, d)) => {
 		figure(
 			caption: [#with defocus],
 			arrow-diagram(
@@ -344,32 +383,7 @@ The effect of this is shown below:
 	})
 ))
 
-The amount is controlled by the `defocus` attribute of the diagram.
-It is best explained by example:
-
-#stack(
-	dir: ltr,
-	spacing: 1fr,
-	..(+.8, 0, -.8).map(d => {
-		arrow-diagram(
-			spacing: 10mm,
-			debug: 0,
-			node-pad: 15pt,
-			node-defocus: d,
-			node((0,0), raw("defocus: "+repr(d))),
-			for p in (
-				(-1,+1), ( 0,+1), (+1,+1),
-				(-1, 0),          (+1, 0),
-				(-1,-1), ( 0,-1), (+1,-1),
-			) {
-				conn((0,0), p)
-			},
-		)
-	})
-)
-
-For `defocus: 0`, the connecting lines are directed exactly at the grid point at the node's center.
-
+See the `node-defocus` argument of #link(label("arrow-diagram()"))[`arrow-diagram()`] for details.
 
 = Function reference
 #show-module("src/main.typ")

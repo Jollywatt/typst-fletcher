@@ -40,7 +40,7 @@
 		"..": (dash: "dotted"),
 	)
 
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|)?"
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|)"
 	let line-selector = "(-|=|--|==|::|\.\.)"
 	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
 	if match == none {

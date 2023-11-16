@@ -209,6 +209,11 @@
 }
 
 
+#let find-node-at(nodes, pos) = {
+	nodes.filter(node => node.pos == pos)
+		.sorted(key: node => node.radius).last()
+}
+
 #let draw-diagram(
 	grid,
 	nodes,
@@ -266,13 +271,8 @@
 		}
 	}
 
-	let find-node-at-pos(pos) = {
-		nodes.filter(node => node.pos == pos)
-			.sorted(key: node => node.radius).last()
-	}
-
 	for arrow in arrows {
-		let nodes = arrow.points.map(find-node-at-pos)
+		let nodes = arrow.points.map(find-node-at.with(nodes))
 
 		let intersection-stroke = if options.debug >= 2 {
 			(paint: DEBUG_COLOR, thickness: 0.25pt)
