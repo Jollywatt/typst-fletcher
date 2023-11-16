@@ -2,76 +2,88 @@
 #import "utils.typ": *
 #import "marks.typ": *
 
-
-#let get-node-connector(node, incident-angle, options) = {
+/// Get the point at which a connector should attach to a node from a given
+/// angle, taking into account the node's size and shape.
+///
+/// - node (dictionary): The node to connect to.
+/// - θ (angle): The desired angle from the node's center to the connection
+///  point.
+/// -> point
+#let get-node-connector(node, θ) = {
 
 	if node.radius < 1e-3pt { return node.real-pos }
 
 	if node.shape == "circle" {
 		// use bounding circle
-		vector.sub(
+		vector.add(
 			node.real-pos,
-			vector-polar(node.radius, incident-angle),
+			vector-polar(node.radius, θ),
 		)
 
 	} else {
 		// use bounding rect
 		let origin = node.real-pos
-		let μ = calc.pow(node.aspect, options.defocus)
+		let μ = calc.pow(node.aspect, node.defocus)
 		let origin-δ = (
-			-calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(incident-angle),
-			-calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(incident-angle),
+			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
+			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
 		)
 		let crossing-line = (
 			vector.add(origin, origin-δ),
-			vector.sub(origin, vector-polar(1e3*node.radius, incident-angle)),
+			vector.add(origin, vector-polar(1e3*node.radius, θ)),
 		)
 
 		intersect-rect-with-crossing-line(node.rect, crossing-line)
 	}
 }
 
-#let get-node-connectors(arrow, nodes, options) = {
+/// Get the points where a connector between two nodes should be drawn from and
+/// to, taking into account the nodes' sizes and relative positions.
+///
+/// - conn (dictionary): The connector whose end points should be determined.
+/// - nodes (pair of dictionaries): The start and end nodes of the connector.
+/// -> pair of points
+#let get-node-connectors(conn, nodes) = {
 	let center-center-line = nodes.map(node => node.real-pos)
 
 	let v = vector.sub(..center-center-line)
 	let θ = vector-angle(v) // approximate angle of connector
 
-	let δ = if arrow.mode == "arc" { arrow.bend } else { 0deg }
-	let incident-angles = (θ + δ, θ - δ + 180deg)
+	let δ = if conn.mode == "arc" { conn.bend } else { 0deg }
+	let incident-angles = (θ + δ + 180deg, θ - δ)
 
 	let points = zip(nodes, incident-angles).map(((node, θ)) => {
-		get-node-connector(node, θ, options)
+		get-node-connector(node, θ)
 	})
 
 	points
 }
 
-#let draw-connector(arrow, nodes, options) = {
+#let draw-connector(conn, nodes, options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-node-connectors(arrow, nodes, options)
+	let cap-points = get-node-connectors(conn, nodes)
 	let θ = vector-angle(vector.sub(..cap-points))
 
 	// Get the arrow head adjustment for a given extrusion distance
-	let cap-offsets(y) = zip(arrow.marks, (+1, -1))
+	let cap-offsets(y) = zip(conn.marks, (+1, -1))
 		.map(((mark, dir)) => {
 			if mark == none or mark not in CAP_OFFSETS { 0pt }
 			else {
 				let o = CAP_OFFSETS.at(mark)(y)
-				dir*o*arrow.stroke.thickness
+				dir*o*conn.stroke.thickness
 			}
 		})
 
 	let cap-angles
 	let label-pos
 
-	if arrow.mode == "line" {
+	if conn.mode == "line" {
 
 		cap-angles = (θ, θ + 180deg)
 
-		for shift in arrow.extrude {
-			let d = shift*arrow.stroke.thickness
+		for shift in conn.extrude {
+			let d = shift*conn.stroke.thickness
 			let shifted-line-points = cap-points
 				.zip(cap-offsets(shift))
 				.map(((point, offset)) => vector.add(
@@ -86,81 +98,81 @@
 
 			cetz.draw.line(
 				..shifted-line-points,
-				stroke: arrow.stroke,
+				stroke: conn.stroke,
 			)
 		}
 
 
 		// Choose label anchor based on connector direction
-		if arrow.label-side == auto {
-			arrow.label-side = if calc.abs(θ) > 90deg { left } else { right }
+		if conn.label-side == auto {
+			conn.label-side = if calc.abs(θ) > 90deg { left } else { right }
 		}
-		let label-dir = if arrow.label-side == right { +1 } else { -1 }
+		let label-dir = if conn.label-side == right { +1 } else { -1 }
 
-		if arrow.label-anchor == auto {
-			arrow.label-anchor = angle-to-anchor(θ - label-dir*90deg)
+		if conn.label-anchor == auto {
+			conn.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 		
-		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
+		conn.label-sep = to-abs-length(conn.label-sep, options.em-size)
 		label-pos = vector.add(
-			vector.lerp(..cap-points, arrow.label-pos),
-			vector-polar(arrow.label-sep, θ + label-dir*90deg),
+			vector.lerp(..cap-points, conn.label-pos),
+			vector-polar(conn.label-sep, θ + label-dir*90deg),
 		)
 
-	} else if arrow.mode == "arc" {
+	} else if conn.mode == "arc" {
 
-		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, arrow.bend)
+		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, conn.bend)
 
-		let bend-dir = if arrow.bend > 0deg { +1 } else { -1 }
+		let bend-dir = if conn.bend > 0deg { +1 } else { -1 }
 		let δ = bend-dir*90deg
 		cap-angles = (start + δ, stop - δ)
 
 
-		for shift in arrow.extrude {
+		for shift in conn.extrude {
 			let (start, stop) = (start, stop)
 				.zip(cap-offsets(shift))
 				.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
 
 			cetz.draw.arc(
 				center,
-				radius: radius + shift*arrow.stroke.thickness,
+				radius: radius + shift*conn.stroke.thickness,
 				start: start,
 				stop: stop,
 				anchor: "center",
-				stroke: arrow.stroke,
+				stroke: conn.stroke,
 			)
 		}
 
 
 
-		if arrow.label-side == auto {
-			arrow.label-side =  if arrow.bend > 0deg { left } else { right }
+		if conn.label-side == auto {
+			conn.label-side =  if conn.bend > 0deg { left } else { right }
 		}
-		let label-dir = if arrow.label-side == left { +1 } else { -1 }
+		let label-dir = if conn.label-side == left { +1 } else { -1 }
 
-		if arrow.label-anchor == auto {
+		if conn.label-anchor == auto {
 			// Choose label anchor based on connector direction
-			arrow.label-anchor = angle-to-anchor(θ + label-dir*90deg)
+			conn.label-anchor = angle-to-anchor(θ + label-dir*90deg)
 		}
 		
-		arrow.label-sep = to-abs-length(arrow.label-sep, options.em-size)
+		conn.label-sep = to-abs-length(conn.label-sep, options.em-size)
 		label-pos = vector.add(
 			center,
 			vector-polar(
-				radius + label-dir*bend-dir*arrow.label-sep,
-				lerp(start, stop, arrow.label-pos),
+				radius + label-dir*bend-dir*conn.label-sep,
+				lerp(start, stop, conn.label-pos),
 			)
 		)
 
-	} else { panic(arrow) }
+	} else { panic(conn) }
 
 
-	for (mark, pt, θ) in zip(arrow.marks, cap-points, cap-angles) {
+	for (mark, pt, θ) in zip(conn.marks, cap-points, cap-angles) {
 		if mark == none { continue }
-		draw-arrow-cap(pt, θ, arrow.stroke, mark)
+		draw-arrow-cap(pt, θ, conn.stroke, mark)
 	}
 
-	if arrow.label != none {
+	if conn.label != none {
 
 		cetz.draw.content(
 			label-pos,
@@ -169,15 +181,15 @@
 				inset: .2em,
 				radius: .2em,
 				stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
-				$ #arrow.label $,
+				$ #conn.label $,
 			),
-			anchor: arrow.label-anchor,
+			anchor: conn.label-anchor,
 		)
 
 		if options.debug >= 2 {
 			cetz.draw.circle(
 				label-pos,
-				radius: arrow.stroke.thickness,
+				radius: conn.stroke.thickness,
 				stroke: none,
 				fill: DEBUG_COLOR,
 			)

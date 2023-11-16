@@ -140,7 +140,7 @@ $
 	node-pad: 1.5em,
 	spacing: 20mm,
 	debug: 0,
-	defocus: 0.1,
+	node-defocus: 0.1,
 	node((0,2), $pi_1(X sect Y)$),
 	node((0,1), $pi_1(X)$),
 	node((1,2), $pi_1(Y)$),
@@ -158,7 +158,7 @@ $
 
 #arrow-diagram(
 	cell-size: 3cm,
-	defocus: 0,
+	node-defocus: 0,
 	node-pad: 10pt,
 {
 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
@@ -286,7 +286,7 @@ $
 	spacing: (10mm, 6mm),
 	// node-pad: 4pt,
 	debug: 2,
-	// defocus: 0,
+	// node-defocus: 0,
 	node((0,+1), $A times B times C$),
 	node((-1,0), $A$),
 	node(( 0,-1), $B$),
@@ -335,7 +335,7 @@ The effect of this is shown below:
 			caption: [#with defocus],
 			arrow-diagram(
 				spacing: (10mm, 9mm),
-				defocus: d,
+				node-defocus: d,
 				node((0,1), $A times B times C$),
 				conn((-1,0), (0,1)),
 				conn((+1,0), (0,1)),
@@ -356,7 +356,7 @@ It is best explained by example:
 			spacing: 10mm,
 			debug: 0,
 			node-pad: 15pt,
-			defocus: d,
+			node-defocus: d,
 			node((0,0), raw("defocus: "+repr(d))),
 			for p in (
 				(-1,+1), ( 0,+1), (+1,+1),
@@ -375,5 +375,6 @@ For `defocus: 0`, the connecting lines are directed exactly at the grid point at
 = Function reference
 #show-module("src/main.typ")
 #show-module("src/layout.typ")
+#show-module("src/draw.typ")
 #show-module("src/marks.typ")
 #show-module("src/utils.typ")

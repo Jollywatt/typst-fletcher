@@ -14,7 +14,7 @@
 ///
 /// - label (content): Node content to display.
 /// - pad (length, none): Padding between the node's content and its bounding
-///  box or bounding circle. If `none`, defaults to the `node-pad` option of
+///  box or bounding circle. If `auto`, defaults to the `node-pad` option of
 ///  `arrow-diagram()`.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
@@ -23,13 +23,17 @@
 ///  of `arrow-diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
 ///  `arrow-diagram()`.
+/// - defocus (number): Strength of the "defocus" adjustment for connectors
+///  incident with this node. If `auto`, defaults to the `node-defocus` option
+///  of `arrow-diagram()` .
 #let node(
 	pos,
 	label,
-	pad: none,
+	pad: auto,
 	shape: auto,
 	stroke: auto,
 	fill: auto,
+	defocus: auto,
 ) = {
 	assert(type(pos) == array and pos.len() == 2)
 
@@ -42,12 +46,14 @@
 		shape: shape,
 		stroke: stroke,
 		fill: fill,
+		defocus: defocus,
 	),)
 }
 
 
 #let CONN_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
+	"dotted": (dash: "dotted"),
 	"double": (double: true),
 	"crossing": (crossing: true),
 )
@@ -257,8 +263,6 @@
 	crossing: false,
 	crossing-thickness: 5,
 ) = {
-	node(from, none)
-	node(to, none)
 
 	let options = (
 		label: label,
@@ -279,7 +283,6 @@
 	options += interpret-conn-args(args)
 
 	let mode = if bend in (none, 0deg) { "line" } else { "arc" }
-	// let label = if args.pos().len() > 0 { args.pos().at(0) } else { none }
 
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
@@ -318,6 +321,9 @@
 		extrude: options.extrude,
 	)
 
+	// add empty nodes at terminal points
+	node(from, none)
+	node(to, none)
 
 	if options.crossing {
 		// duplicate connector with white stroke and place underneath
@@ -389,7 +395,25 @@
 /// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
 ///  individual node options.
 ///
-/// - defocus (number): Strength of the defocus correction. `0` to disable.
+/// - node-defocus (number): Default strength of the "defocus" adjustment for
+///  nodes. This affects how connectors attach to non-square nodes. If
+///   `0`, the adjustment is disabled and connectors are always directed at the
+///   exact centers of nodes.
+///
+///   #stack(
+///  	dir: ltr,
+///  	spacing: 1fr,
+///  	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
+///  		arrow-diagram(spacing: 8mm, {
+///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
+///  			for y in (-1, +1) {
+///   				conn((i - 1, y), (i, 0))
+///   				conn((i, y), (i, 0))
+///   				conn((i + 1, y), (i, 0))
+///   			}
+///   		})
+///   	})
+///   )
 #let arrow-diagram(
 	..objects,
 	debug: false,
@@ -398,7 +422,7 @@
 	node-pad: 15pt,
 	node-stroke: none,
 	node-fill: none,
-	defocus: 0.2,
+	node-defocus: 0.2,
 ) = {
 
 	if type(spacing) != array { spacing = (spacing, spacing) }
@@ -415,14 +439,14 @@
 		node-pad: node-pad,
 		node-stroke: node-stroke,
 		node-fill: node-fill,
-		defocus: defocus,
+		node-defocus: node-defocus,
 		cell-size: cell-size,
 		..objects.named(),
 	)
 
 	let positional-args = objects.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
-	let arrows = positional-args.filter(e => e.kind == "conn")
+	let conns = positional-args.filter(e => e.kind == "conn")
 	let callbacks = positional-args.filter(e => e.kind == "coord")
 
 	box(style(styles => {
@@ -440,7 +464,7 @@
 		let nodes = compute-node-positions(nodes, grid, options)
 
 		cetz.canvas({
-			draw-diagram(grid, nodes, arrows, options)
+			draw-diagram(grid, nodes, conns, options)
 			execute-callbacks(grid, nodes, callbacks, options)	
 		})
 	}))

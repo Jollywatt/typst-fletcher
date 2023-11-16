@@ -3,6 +3,12 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
+#let zip(a, ..others) = if others.pos().len() == 0 {
+	a.map(i => (i,))
+} else {
+	a.zip(..others)
+}
+
 #let to-abs-length(len, em-size) = {
 	len.abs + len.em*em-size
 }
@@ -34,11 +40,6 @@
 	)
 }
 
-#let zip(a, ..others) = if others.pos().len() == 0 {
-	a.map(i => (i,))
-} else {
-	a.zip(..others)
-}
 
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)

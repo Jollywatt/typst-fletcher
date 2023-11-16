@@ -16,7 +16,8 @@
 
 	if node.stroke == auto {node.stroke = options.node-stroke }
 	if node.fill == auto { node.fill = options.node-fill }
-	if node.pad == none { node.pad = options.node-pad }
+	if node.pad == auto { node.pad = options.node-pad }
+	if node.defocus == auto { node.defocus = options.node-defocus }
 	
 	// add node inset
 	if node.radius != 0pt {
