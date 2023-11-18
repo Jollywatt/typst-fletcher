@@ -139,7 +139,7 @@ $
 #arrow-diagram(
 	cell-size: 1cm,
 	node-pad: 1.5em,
-	spacing: 20mm,
+	spacing: 17mm,
 	debug: 0,
 	node-defocus: 0.1,
 	node((0,2), $pi_1(X sect Y)$),
