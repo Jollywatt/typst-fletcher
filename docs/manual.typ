@@ -1,7 +1,6 @@
 #import "@preview/tidy:0.1.0"
-#import "src/exports.typ": *
-#import "src/marks.typ": parse-arrow-shorthand
-
+#import "/src/exports.typ": *
+#import "/src/marks.typ": parse-arrow-shorthand
 
 #set raw(lang: "typc")
 #set page(numbering: "1")
@@ -46,7 +45,7 @@
 
 	#link("https://github.com/jollywatt/arrow-diagrams")
 
-	Version #toml("typst.toml").package.version
+	Version #toml("/typst.toml").package.version
 ]
 
 #v(1fr)
@@ -82,24 +81,25 @@
 	inset: 10pt,
 
 	..code-example(```typ
-	#arrow-diagram(
-		cell-size: 10mm,
-		node((0,1), $X$),
-		node((1,1), $Y$),
-		node((0,0), $X slash ker(f)$),
-		conn((0,1), (1,1), $f$, "->"),
-		conn((0,0), (1,1), "hook-->"),
-		conn((0,1), (0,0), "->"),
-	)
+	#arrow-diagram(cell-size: 15mm, {
+		let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
+		node(src, $G$)
+		node(img, $im f$)
+		node(quo, $G slash ker(f)$)
+		conn(src, img, $f$, "->")
+		conn(quo, img, $tilde(f)$, "hook-->", label-side: right)
+		conn(src, quo, $pi$, "->>")
+	})
 	```),
 
 	..code-example(```typ
-	Inline $f: A -> B$ equation, \
-	Inline #arrow-diagram(node-pad: 4pt, {
-		node((0,0), $A$)
-		conn((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt)
-		node((1,0), $B$)
-	}) diagram.
+	An equation $f: A -> B$, and \
+	a diagram #arrow-diagram(
+		node-pad: 4pt,
+		node((0,0), $A$),
+		conn((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
+		node((1,0), $B$),
+	).
 	```),
 
 	..code-example(```typ
@@ -386,8 +386,8 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 See the `node-defocus` argument of #link(label("arrow-diagram()"))[`arrow-diagram()`] for details.
 
 = Function reference
-#show-module("src/main.typ")
-#show-module("src/layout.typ")
-#show-module("src/draw.typ")
-#show-module("src/marks.typ")
-#show-module("src/utils.typ")
+#show-module("/src/main.typ")
+#show-module("/src/layout.typ")
+#show-module("/src/draw.typ")
+#show-module("/src/marks.typ")
+#show-module("/src/utils.typ")

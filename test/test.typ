@@ -1,6 +1,6 @@
 #import "@preview/cetz:0.1.2"
-#import "../src/exports.typ": *
-#import "../src/marks.typ": *
+#import "/src/exports.typ": *
+#import "/src/marks.typ": *
 
 
 // #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
