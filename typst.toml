@@ -17,4 +17,4 @@ keywords = [
 	"flowchart",
 	"graph",
 ]
-exclude = ["manual.*", "test/"]
+exclude = ["docs/", "test/"]
