@@ -6,7 +6,10 @@
 A [Typst]("https://typst.app/") package for drawing diagrams with arrows,
 built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
-![Commutative diagram for first isomorphism theorem](https://github.com/Jollywatt/arrow-diagrams/raw/master/docs/examples/example.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/arrow-diagrams/raw/master/docs/examples/example-2.svg">
+  <img alt="logo" width="600" src="https://github.com/Jollywatt/arrow-diagrams/raw/master/docs/examples/example-1.svg">
+</picture>
 
 ```typ
 #arrow-diagram(cell-size: 15mm, {

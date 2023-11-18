@@ -415,6 +415,9 @@
 ///   	})
 ///   )
 ///
+/// - crossing-fill (paint): Color to use behind lines or labels to give the
+///  illusion of crossing over other objects.
+///
 /// - render (function): After the node sizes and grid layout have been
 ///  determined, the `render` function is called with the following arguments:
 ///   - `grid`: a dictionary of the row and column widths and positions;
@@ -434,6 +437,7 @@
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
+	crossing-fill: white,
 	render: (grid, nodes, conns, options) => {
 		cetz.canvas(draw-diagram(grid, nodes, conns, options))
 	}
@@ -455,6 +459,7 @@
 		node-fill: node-fill,
 		node-defocus: node-defocus,
 		cell-size: cell-size,
+		crossing-fill: crossing-fill,
 		..objects.named(),
 	)
 

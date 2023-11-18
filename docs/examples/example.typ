@@ -1,14 +1,22 @@
 #import "/src/exports.typ": *
 
+#for dark in (false, true) [
+
+#let c = if dark { white } else { black }
 #set page(width: 22cm, height: 9cm, margin: 1cm)
 
+#set text(fill: white) if dark
+
+
 #show: scale.with(200%, origin: top + left)
+
+#let conn = conn.with(paint: c)
 
 #stack(
 	dir: ltr,
 	spacing: 1cm,
 
-arrow-diagram(cell-size: 15mm, {
+arrow-diagram(cell-size: 15mm, crossing-fill: none, {
 	let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 	node(src, $G$)
 	node(img, $im f$)
@@ -19,11 +27,11 @@ arrow-diagram(cell-size: 15mm, {
 }),
 
 arrow-diagram(
-	node-stroke: black,
-	node-fill: blue.lighten(90%),
+	node-stroke: c,
+	node-fill: rgb("aafa"),
 	node((0,0), `typst`),
 	node((1,0), "A"),
-	node((2,0), "B", stroke: 2pt),
+	node((2,0), "B", stroke: c + 2pt),
 	node((2,1), "C"),
 
 	conn((0,0), (1,0), "->", bend: 15deg),
@@ -33,3 +41,5 @@ arrow-diagram(
 ),
 
 )
+
+]
