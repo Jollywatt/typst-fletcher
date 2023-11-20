@@ -55,6 +55,9 @@
 	).at(int(calc.round(i)))
 }
 
+#let rect-at(origin, size) = (-1, +1).map(dir => {
+	vector.add(origin, vector.scale(size, dir))
+})
 
 #let rect-edges((x0, y0), (x1, y1)) = (
   ((x0, y0), (x1, y0)),

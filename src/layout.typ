@@ -17,12 +17,13 @@
 	if node.stroke == auto {node.stroke = options.node-stroke }
 	if node.fill == auto { node.fill = options.node-fill }
 	if node.pad == auto { node.pad = options.node-pad }
+	if node.outset == auto { node.outset = options.node-outset }
 	if node.defocus == auto { node.defocus = options.node-defocus }
 	
 	// add node inset
 	if node.radius != 0pt {
 		if node.shape == "circle" { 
-			node.radius += node.pad*0.5
+			node.radius += node.pad/2
 		} else {
 			node.size = node.size.map(x => x + node.pad)
 		}
@@ -31,18 +32,23 @@
 	node
 })
 
-#let elastic-to-physical-coords(grid, coord) = {
+#let to-physical-coords(grid, coord) = {
 	zip(grid.centers, coord, grid.origin)
 		.map(((c, x, o)) => lerp-at(c, x - o))
 }
 
 #let compute-node-positions(nodes, grid, options) = nodes.map(node => {
 
-	node.real-pos = elastic-to-physical-coords(grid, node.pos)
+	node.real-pos = to-physical-coords(grid, node.pos)
 
 	node.rect = (-1, +1).map(dir => {
 		vector.add(node.real-pos, vector.scale(node.size, dir/2))
 	})
+
+	node.outer-rect = rect-at(
+		node.real-pos,
+		node.size.map(x => x/2 + node.outset),
+	)
 
 	node
 

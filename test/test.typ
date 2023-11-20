@@ -222,3 +222,18 @@ Default placement above the line.
 		})
 	}
 )
+
+= Node bounds
+
+#arrow-diagram(
+	debug: 2,
+	node-outset: 5pt,
+	node-pad: 5pt,
+	node((0,0), `hello`, stroke: 1pt),
+	node((1,0), `there`, stroke: 1pt),
+	conn((0,0), (1,0), "<=>"),
+)
+
+$ p_theta $
+
+p#sub(sym.theta)

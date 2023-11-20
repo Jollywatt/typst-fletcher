@@ -16,7 +16,7 @@
 	if node.shape == "circle" {
 		vector.add(
 			node.real-pos,
-			vector-polar(node.radius, θ),
+			vector-polar(node.radius + node.outset, θ),
 		)
 
 	} else if node.shape == "rect" {
@@ -31,7 +31,7 @@
 			vector.add(origin, vector-polar(1e3*node.radius, θ)),
 		)
 
-		intersect-rect-with-crossing-line(node.rect, crossing-line)
+		intersect-rect-with-crossing-line(node.outer-rect, crossing-line)
 
 	} else { panic(node.shape) }
 }

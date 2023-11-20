@@ -30,6 +30,7 @@
 	pos,
 	label,
 	pad: auto,
+	outset: auto,
 	shape: auto,
 	stroke: auto,
 	fill: auto,
@@ -43,6 +44,7 @@
 		pos: pos,
 		label: label,
 		pad: pad,
+		outset: outset,
 		shape: shape,
 		stroke: stroke,
 		fill: fill,
@@ -344,18 +346,6 @@
 	(obj,)
 }
 
-/// Resolve coordinates and pass them to a callback function
-///
-/// - ..args (point2f): One or more dimensionless 2D points of the form `(x, y)`.
-/// - callback (function): Function to be called with the resolved coordinates
-/// as arguments.
-#let resolve-coords(..args, callback: (..args) => none) = {
-	((
-		kind: "coord",
-		coords: args.pos(),
-		callback: callback,
-	),)
-}
 
 #let execute-callbacks(grid, nodes, callbacks, options) = {
 	for callback in callbacks {
@@ -434,6 +424,7 @@
 	spacing: 3em,
 	cell-size: 0pt,
 	node-pad: 15pt,
+	node-outset: 0pt,
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
@@ -455,6 +446,7 @@
 		spacing: spacing,
 		debug: int(debug),
 		node-pad: node-pad,
+		node-outset: node-outset,
 		node-stroke: node-stroke,
 		node-fill: node-fill,
 		node-defocus: node-defocus,
