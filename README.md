@@ -36,3 +36,11 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 	conn((1,0), (2,0), "..>", bend: -0deg),
 )
 ```
+
+## Todo
+
+- [x] Mathematical arrow styles
+- [ ] Support CeTZ arrowheads
+- [ ] Allow referring to node coordinates by their content
+- [ ] Support loops connecting a node to itself
+- [ ] More ergonomic syntax to avoid repeating coordinates?
