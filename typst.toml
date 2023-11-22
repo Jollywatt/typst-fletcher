@@ -1,20 +1,20 @@
 [package]
-name = "arrow-diagrams"
+name = "fletcher"
 version = "0.1.0"
 entrypoint = "/src/exports.typ"
 authors = ["Joseph Wilson (Jollywatt)"]
 license = "MIT"
-description = "Draw diagrams with nodes and arrows, built on CeTZ."
-repository = "https://github.com/Jollywatt/arrow-diagrams"
+description = "Draw commutative diagrams with nodes and arrows."
+repository = "https://github.com/Jollywatt/typst-fletcher"
 keywords = [
-	"automaton",
-	"category",
 	"commutative",
-	"commute",
 	"commuting",
-	"DAG",
+	"commute",
 	"diagram",
+	"category",
 	"flowchart",
+	"DAG",
 	"graph",
+	"finite state",
 ]
 exclude = ["docs/", "test/"]

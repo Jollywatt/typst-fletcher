@@ -28,24 +28,25 @@
 	)
 }
 
+#v(.2fr)
+
 #align(center)[
-#arrow-diagram(
-		spacing: 2cm,
+	#arrow-diagram(
+		spacing: 2.3cm,
 		node((0,1), $A$),
 		node((1,1), $B$),
-		conn((0,1), (1,1), $f$, "->", bend: 40deg),
+		conn((0,1), (1,1), $f$, ">>->"),
 	)
 
+	#text(2em, strong(`fletcher`)) \
+	_(noun) a maker of arrows_
 
-	#text(2em, strong(`arrow-diagrams`))
-
-	A #link("https://typst.app/")[Typst] package for drawing diagrams with arrows,
+	A #link("https://typst.app/")[Typst] package for drawing commutative diagrams,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
 
+	#link("https://github.com/Jollywatt/typst-fletcher")
 
-	#link("https://github.com/jollywatt/arrow-diagrams")
-
-	Version #toml("/typst.toml").package.version
+	Version #toml("/typst.toml").package.version *(not yet stable)*
 ]
 
 #v(1fr)
@@ -313,8 +314,6 @@ See the `marks` argument of #link(label("conn()"))[`conn()`] for details.
 		"=>",
 		"|->",
 		"hook->>",
-		// ">--<",
-		// "harpoon-harpoon'",
 	).enumerate() {
 		for j in range(2) {
 			conn((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j, thickness: 1pt)

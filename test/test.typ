@@ -3,8 +3,6 @@
 #import "/src/marks.typ": *
 
 
-// #assert.eq(vector-unitless((4pt, 5pt)), (4, 5))
-
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
@@ -233,7 +231,3 @@ Default placement above the line.
 	node((1,0), `there`, stroke: 1pt),
 	conn((0,0), (1,0), "<=>"),
 )
-
-$ p_theta $
-
-p#sub(sym.theta)

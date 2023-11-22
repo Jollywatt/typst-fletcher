@@ -431,7 +431,7 @@
 	crossing-fill: white,
 	render: (grid, nodes, conns, options) => {
 		cetz.canvas(draw-diagram(grid, nodes, conns, options))
-	}
+	},
 ) = {
 
 	if type(spacing) != array { spacing = (spacing, spacing) }
