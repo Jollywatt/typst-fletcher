@@ -35,7 +35,7 @@
 	)
 	let lines = (
 		"-": (:),
-		"=": (double: true),
+		"=": (extrude: (-1.3, +1.3)),
 		"--": (dash: "dashed"),
 		"..": (dash: "dotted"),
 	)

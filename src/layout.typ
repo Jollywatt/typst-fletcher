@@ -1,7 +1,7 @@
 #import "utils.typ": *
 
 
-#let compute-nodes(nodes, styles, options) = nodes.map(node => {
+#let compute-nodes(nodes, styles) = nodes.map(node => {
 
 	// Determine physical size of node content
 	let (width, height) = measure(node.label, styles)
@@ -13,12 +13,6 @@
 		let is-roundish = max(node.aspect, 1/node.aspect) < 1.5
 		node.shape = if is-roundish { "circle" } else { "rect" }
 	}
-
-	if node.stroke == auto {node.stroke = options.node-stroke }
-	if node.fill == auto { node.fill = options.node-fill }
-	if node.pad == auto { node.pad = options.node-pad }
-	if node.outset == auto { node.outset = options.node-outset }
-	if node.defocus == auto { node.defocus = options.node-defocus }
 	
 	// add node inset
 	if node.radius != 0pt {

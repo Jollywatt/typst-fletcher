@@ -37,6 +37,14 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 })
 
+= Double and triple lines
+
+#arrow-diagram(
+	conn((0,0), (1,0), "->"),
+	conn((0,-1), (1,-1), "->", "double"),
+	conn((0,-2), (1,-2), "->", "triple"),
+)
+
 = Arrow head shorthands
 
 $

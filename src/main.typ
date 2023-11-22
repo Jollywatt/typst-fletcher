@@ -56,7 +56,8 @@
 #let CONN_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
-	"double": (double: true),
+	"double": (extrude: (-1.3, +1.3)),
+	"triple": (extrude: (-2, 0, +2)),
 	"crossing": (crossing: true),
 )
 
@@ -204,7 +205,6 @@
 ///  	)).join()
 /// )
 ///
-/// - double (bool): Shortcut for `extrude: (-1.5, 1.5)`, showing a double stroke.
 /// - extrude (array of numbers): Draw copies of the stroke extruded by the
 ///  given multiple of the stroke thickness. Used to obtain doubling effect.
 ///  Best explained by example:
@@ -256,14 +256,14 @@
 	label-sep: 0.4em,
 	label-anchor: auto,
 	paint: black,
-	thickness: 0.6pt,
+	thickness: auto,
 	dash: none,
 	bend: none,
 	marks: (none, none),
-	double: false,
-	extrude: auto,
+	extrude: (0,),
 	crossing: false,
-	crossing-thickness: 5,
+	crossing-thickness: auto,
+	crossing-fill: auto,
 ) = {
 
 	let options = (
@@ -277,10 +277,10 @@
 		dash: dash,
 		bend: bend,
 		marks: marks,
-		double: double,
 		extrude: extrude,
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
+		crossing-fill: crossing-fill,
 	)
 	options += interpret-conn-args(args)
 
@@ -288,11 +288,6 @@
 
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
-	}
-
-
-	if options.extrude == auto {
-		options.extrude = if options.double { (-1.5, +1.5) } else { (0,) }
 	}
 
 	let stroke = (
@@ -321,6 +316,9 @@
 		stroke: stroke,
 		marks: options.marks,
 		extrude: options.extrude,
+		is-crossing-background: false,
+		crossing-thickness: crossing-thickness,
+		crossing-fill: crossing-fill,
 	)
 
 	// add empty nodes at terminal points
@@ -329,17 +327,16 @@
 
 	if options.crossing {
 		// duplicate connector with white stroke and place underneath
-		let understroke = (
-			..obj.stroke,
-			paint: white,
-			thickness: crossing-thickness*obj.stroke.thickness,
-		)
+		// let understroke = (
+		// 	..obj.stroke,
+		// 	paint: crossing-fill,
+		// 	thickness: crossing-thickness*obj.stroke.thickness,
+		// )
 
 		((
 			..obj,
-			stroke: understroke,
-			marks: (none, none),
-			extrude: obj.extrude.map(i => i/crossing-thickness)
+			is-crossing-background: true
+			// extrude: obj.extrude.map(i => i/crossing-thickness)
 		),)
 	}
 
@@ -347,16 +344,33 @@
 }
 
 
-#let execute-callbacks(grid, nodes, callbacks, options) = {
-	for callback in callbacks {
-		let resolved-coords = callback.coords
-			.map(elastic-to-physical-coords.with(grid))
-		let result = (callback.callback)(..resolved-coords)
-		if type(result) != array {
-			panic("Callback should return an array of CeTZ element dictionaries; got " + type(result), result)
+#let apply-defaults(nodes, conns, options) = {
+	
+	nodes = nodes.map(node => {
+		if node.stroke == auto {node.stroke = options.node-stroke }
+		if node.fill == auto { node.fill = options.node-fill }
+		if node.pad == auto { node.pad = options.node-pad }
+		if node.outset == auto { node.outset = options.node-outset }
+		if node.defocus == auto { node.defocus = options.node-defocus }
+		node
+	})
+	conns = conns.map(conn => {
+		if conn.stroke.thickness == auto { conn.stroke.thickness = options.conn-thickness }
+		if conn.crossing-fill == auto { conn.crossing-fill = options.crossing-fill }
+		if conn.crossing-thickness == auto { conn.crossing-thickness = options.crossing-thickness }
+		if conn.is-crossing-background {
+			conn.stroke = (
+				thickness: conn.crossing-thickness*conn.stroke.thickness,
+				paint: conn.crossing-fill,
+				cap: "round",
+			)
+			conn.marks = (none, none)
+			conn.extrude = conn.extrude.map(e => e/conn.crossing-thickness)
 		}
-		result
-	}
+		conn
+	})
+
+	(nodes: nodes, conns: conns)
 }
 
 
@@ -405,8 +419,12 @@
 ///   	})
 ///   )
 ///
-/// - crossing-fill (paint): Color to use behind lines or labels to give the
-///  illusion of crossing over other objects.
+/// - crossing-fill (paint): Color to use behind connectors or labels to give
+///  the illusion of crossing over other objects.
+///
+/// - crossing-thickness (number): Default thickness of the occlusion made by
+///  crossing connectors. See the `crossing-thickness` option of `conn()`.
+/// 
 ///
 /// - render (function): After the node sizes and grid layout have been
 ///  determined, the `render` function is called with the following arguments:
@@ -428,7 +446,9 @@
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
+	conn-thickness: 0.6pt,
 	crossing-fill: white,
+	crossing-thickness: 3,
 	render: (grid, nodes, conns, options) => {
 		cetz.canvas(draw-diagram(grid, nodes, conns, options))
 	},
@@ -451,8 +471,9 @@
 		node-fill: node-fill,
 		node-defocus: node-defocus,
 		cell-size: cell-size,
+		conn-thickness: conn-thickness,
 		crossing-fill: crossing-fill,
-		..objects.named(),
+		crossing-thickness: crossing-thickness,
 	)
 
 	let positional-args = objects.pos().join()
@@ -470,7 +491,9 @@
 		options.spacing = options.spacing.map(to-pt)
 		options.node-pad = to-pt(options.node-pad)
 
-		let nodes = compute-nodes(nodes, styles, options)
+		let (nodes, conns) = apply-defaults(nodes, conns, options)
+
+		let nodes = compute-nodes(nodes, styles)
 		let grid = compute-grid(nodes, options)
 		let nodes = compute-node-positions(nodes, grid, options)
 
