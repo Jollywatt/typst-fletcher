@@ -1,7 +1,7 @@
 [package]
 name = "fletcher"
 version = "0.1.0"
-entrypoint = "/src/exports.typ"
+entrypoint = "src/exports.typ"
 authors = ["Joseph Wilson (Jollywatt)"]
 license = "MIT"
 description = "Draw commutative diagrams with nodes and arrows."
