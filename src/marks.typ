@@ -1,4 +1,4 @@
-#import "@local/cetz:0.1.2"
+#import "@preview/cetz:0.1.2"
 #import "utils.typ": *
 
 

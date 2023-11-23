@@ -1,5 +1,5 @@
 #import calc: floor, ceil, min, max
-#import "@local/cetz:0.1.2": draw, vector
+#import "@preview/cetz:0.1.2": draw, vector
 
 #let DEBUG_COLOR = rgb("f008")
 
