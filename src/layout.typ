@@ -1,7 +1,7 @@
 #import "utils.typ": *
 
 
-#let compute-nodes(nodes, styles) = nodes.map(node => {
+#let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
 	// Determine physical size of node content
 	let (width, height) = measure(node.label, styles)
@@ -35,9 +35,10 @@
 
 	node.real-pos = to-physical-coords(grid, node.pos)
 
-	node.rect = (-1, +1).map(dir => {
-		vector.add(node.real-pos, vector.scale(node.size, dir/2))
-	})
+	node.rect = (-1, +1).map(dir => vector.add(
+		node.real-pos,
+		vector.scale(node.size, dir/2),
+	))
 
 	node.outer-rect = rect-at(
 		node.real-pos,

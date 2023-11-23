@@ -48,7 +48,7 @@
 	let v = vector.sub(..center-center-line)
 	let θ = vector-angle(v) // approximate angle of connector
 
-	let δ = if conn.mode == "arc" { conn.bend } else { 0deg }
+	let δ = conn.bend
 	let incident-angles = (θ + δ + 180deg, θ - δ)
 
 	let points = zip(nodes, incident-angles).map(((node, θ)) => {
@@ -63,21 +63,16 @@
 	// Stroke end points, before adjusting for the arrow heads
 	let cap-points = get-conn-anchors(conn, nodes)
 	let θ = vector-angle(vector.sub(..cap-points))
-
 	// Get the arrow head adjustment for a given extrusion distance
 	let cap-offsets(y) = zip(conn.marks, (+1, -1))
 		.map(((mark, dir)) => {
-			if mark == none or mark not in CAP_OFFSETS {
-				0pt
-			} else {
-				dir*CAP_OFFSETS.at(mark)(y)*conn.stroke.thickness
-			}
+			dir*cap-offset(mark, y)*conn.stroke.thickness
 		})
 
 	let cap-angles
 	let label-pos
 
-	if conn.mode == "line" {
+	if conn.bend == 0deg {
 
 		cap-angles = (θ, θ + 180deg)
 
@@ -118,7 +113,7 @@
 			vector-polar(conn.label-sep, θ + label-dir*90deg),
 		)
 
-	} else if conn.mode == "arc" {
+	} else {
 
 		let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, conn.bend)
 
@@ -163,7 +158,7 @@
 			)
 		)
 
-	} else { panic(conn.mode) }
+	}
 
 
 	for (mark, pt, θ) in zip(conn.marks, cap-points, cap-angles) {

@@ -1,29 +1,6 @@
 #import "@preview/cetz:0.1.2"
 #import "utils.typ": *
 
-
-
-/// Calculate cap offset of round-style arrow cap
-///
-/// - r (length): Radius of curvature of arrow cap.
-/// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
-///  line to the arrow's edge.
-/// - y (length): Lateral offset from the central stroke line.
-#let round-arrow-cap-offset(r, θ, y) = {
-	r*(calc.sin(θ) - calc.sqrt(1 - calc.pow(calc.cos(θ) - calc.abs(y)/r, 2)))
-}
-
-#let CAP_OFFSETS = (
-	"head":    y => round-arrow-cap-offset(8, 30deg, y),
-	"hook":    y => -2,
-	"hook'":   y => -2,
-	"hooks":   y => -2,
-	"tail":    y => -3 - round-arrow-cap-offset(8, 30deg, y),
-	"twohead": y => round-arrow-cap-offset(8, 30deg, y) - 2,
-	"twotail": y => -3 - round-arrow-cap-offset(8, 30deg, y) - 2,
-)
-
-
 #let parse-arrow-shorthand(str) = {
 	let caps = (
 		"": (none, none),
@@ -57,47 +34,113 @@
 }
 
 
+#let interpret-mark(mark) = {
+	if mark == none { return none }
 
-#let draw-arrow-cap(p, θ, stroke, kind) = {
-
-	let flip = +1
-	if kind.at(-1) == "'" {
-		flip = -1
-		kind = kind.slice(0, -1)
+	if type(mark) == str {
+		mark = (kind: mark)
 	}
 
-	if kind == "harpoon" {
-		let sharpness = 30deg
+	mark.flip = mark.at("flip", default: +1)
+	if mark.kind.at(-1) == "'" {
+		mark.flip = -mark.flip
+		mark.kind = mark.kind.slice(0, -1)
+	}
+
+	let round-style = (
+		size: 8, // radius of curvature, multiples of stroke thickness
+		sharpness: 30deg, // angle at vertex between central line and arrow's edge
+		delta: 40deg, // angle spanned by arc of curved arrow edge
+	)
+
+
+	if mark.kind in ("head", "hook", "hooks", "harpoon", "tail") {
+		round-style + mark
+	} else if mark.kind == "twohead" {
+		round-style + (kind: "head", extrude: (0, -3))
+	} else if mark.kind == "twotail" {
+		round-style + (kind: "tail", extrude: (0, +3))
+	} else if mark.kind == "bar" {
+		(size: 4.5) + mark
+	} else {
+		panic(mark)
+	}
+}
+
+/// Calculate cap offset of round-style arrow cap
+///
+/// - r (length): Radius of curvature of arrow cap.
+/// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
+///  line to the arrow's edge.
+/// - y (length): Lateral offset from the central stroke line.
+#let round-arrow-cap-offset(r, θ, y) = {
+	r*(calc.sin(θ) - calc.sqrt(1 - calc.pow(calc.cos(θ) - calc.abs(y)/r, 2)))
+}
+
+#let cap-offset(mark, y) = {
+	mark = interpret-mark(mark)
+	if mark == none { return 0 }
+
+	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
+
+	if mark.kind == "head" { offset() }
+	else if mark.kind in ("hook", "hook'", "hooks") { -2 }
+	else if mark.kind == "tail" { -3 - offset() }
+	else if mark.kind == "twohead" { offset() - 3 }
+	else if mark.kind == "twotail" { -3 - offset() - 3 }
+	else { 0 }
+}
+
+
+#let draw-arrow-cap(p, θ, stroke, mark) = {
+	mark = interpret-mark(mark)
+
+	let shift(p, x) = cetz.vector.add(
+		p,
+		vector-polar(stroke.thickness*x, θ)
+	)
+
+	if "extrude" in mark {
+		return mark.extrude.map(e => {
+			let mark = mark
+			let _ = mark.remove("extrude")
+			mark.shift = e
+			draw-arrow-cap(p, θ, stroke, mark)
+		}).join()
+	}
+
+
+	if mark.kind == "harpoon" {
 		cetz.draw.arc(
 			p,
-			radius: 8*stroke.thickness,
-			start: θ + flip*(90deg + sharpness),
-			delta: flip*40deg,
+			radius: mark.size*stroke.thickness,
+			start: θ + mark.flip*(90deg + mark.sharpness),
+			delta: mark.flip*mark.delta,
 			stroke: (thickness: stroke.thickness, paint: stroke.paint, cap: "round"),
 		)
 
-	} else if kind == "head" {
-		draw-arrow-cap(p, θ, stroke, "harpoon")
-		draw-arrow-cap(p, θ, stroke, "harpoon'")
+	} else if mark.kind == "head" {
+		if "shift" in mark { p = shift(p, mark.shift) }
+		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon"))
+		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
 
-	} else if kind == "tail" {
-		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at(kind)(0), θ))
-		draw-arrow-cap(p, θ + 180deg, stroke, "head")
+	} else if mark.kind == "tail" {
+		p = shift(p, cap-offset(mark, 0))
+		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
-	} else if kind in ("twohead", "twotail") {
-		let subkind = if kind == "twohead" { "head" } else { "tail" }
-		p = cetz.vector.sub(p, vector-polar(-1*stroke.thickness, θ))
-		draw-arrow-cap(p, θ, stroke, subkind)
-		p = cetz.vector.sub(p, vector-polar(+3*stroke.thickness, θ))
-		draw-arrow-cap(p, θ, stroke, subkind)
+	// } else if mark.kind in ("twohead", "twotail") {
+	// 	let subkind = if mark.kind == "twohead" { "head" } else { "tail" }
+	// 	draw-arrow-cap(p, θ, stroke, mark + (kind: subkind))
+	// 	p = cetz.vector.sub(p, vector-polar(+3*stroke.thickness, θ))
+	// 	draw-arrow-cap(p, θ, stroke, mark + (kind: subkind))
 
-	} else if kind == "hook" {
-		p = vector.add(p, vector-polar(stroke.thickness*CAP_OFFSETS.at("hook")(0), θ))
+	} else if mark.kind == "hook" {
+		p = shift(p, cap-offset(mark, 0))
 		cetz.draw.arc(
 			p,
 			radius: 2.5*stroke.thickness,
-			start: θ + flip*90deg,
-			delta: -flip*180deg,
+			start: θ + mark.flip*90deg,
+			delta: -mark.flip*180deg,
 			stroke: (
 				thickness: stroke.thickness,
 				paint: stroke.paint,
@@ -105,11 +148,11 @@
 			),
 		)
 
-	} else if kind == "hooks" {
-		draw-arrow-cap(p, θ, stroke, "hook")
-		draw-arrow-cap(p, θ, stroke, "hook'")
+	} else if mark.kind == "hooks" {
+		draw-arrow-cap(p, θ, stroke, mark + (kind: "hook"))
+		draw-arrow-cap(p, θ, stroke, mark + (kind: "hook'"))
 
-	} else if kind == "bar" {
+	} else if mark.kind == "bar" {
 		let v = vector-polar(4.5*stroke.thickness, θ + 90deg)
 		cetz.draw.line(
 			(to: p, rel: v),
@@ -122,6 +165,6 @@
 		)
 
 	} else {
-		panic("unknown arrow kind:", kind)
+		panic("unknown mark kind:", mark)
 	}
 }

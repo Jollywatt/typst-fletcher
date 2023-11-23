@@ -2,6 +2,7 @@
 #import "utils.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
+#import "marks.typ": *
 
 /// Draw a labelled node in an arrow diagram.
 ///
@@ -258,7 +259,7 @@
 	paint: black,
 	thickness: auto,
 	dash: none,
-	bend: none,
+	bend: 0deg,
 	marks: (none, none),
 	extrude: (0,),
 	crossing: false,
@@ -284,11 +285,10 @@
 	)
 	options += interpret-conn-args(args)
 
-	let mode = if bend in (none, 0deg) { "line" } else { "arc" }
-
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
 	}
+	options.marks = options.marks.map(interpret-mark)
 
 	let stroke = (
 		paint: options.paint,
@@ -311,7 +311,6 @@
 		label-anchor: options.label-anchor,
 		label-side: options.label-side,
 		paint: options.paint,
-		mode: mode,
 		bend: options.bend,
 		stroke: stroke,
 		marks: options.marks,
@@ -326,17 +325,9 @@
 	node(to, none)
 
 	if options.crossing {
-		// duplicate connector with white stroke and place underneath
-		// let understroke = (
-		// 	..obj.stroke,
-		// 	paint: crossing-fill,
-		// 	thickness: crossing-thickness*obj.stroke.thickness,
-		// )
-
 		((
 			..obj,
 			is-crossing-background: true
-			// extrude: obj.extrude.map(i => i/crossing-thickness)
 		),)
 	}
 
@@ -344,17 +335,18 @@
 }
 
 
-#let apply-defaults(nodes, conns, options) = {
-	
-	nodes = nodes.map(node => {
+#let apply-defaults(nodes, conns, options) = (
+
+	nodes: nodes.map(node => {
 		if node.stroke == auto {node.stroke = options.node-stroke }
 		if node.fill == auto { node.fill = options.node-fill }
 		if node.pad == auto { node.pad = options.node-pad }
 		if node.outset == auto { node.outset = options.node-outset }
 		if node.defocus == auto { node.defocus = options.node-defocus }
 		node
-	})
-	conns = conns.map(conn => {
+	}),
+
+	conns: conns.map(conn => {
 		if conn.stroke.thickness == auto { conn.stroke.thickness = options.conn-thickness }
 		if conn.crossing-fill == auto { conn.crossing-fill = options.crossing-fill }
 		if conn.crossing-thickness == auto { conn.crossing-thickness = options.crossing-thickness }
@@ -368,10 +360,9 @@
 			conn.extrude = conn.extrude.map(e => e/conn.crossing-thickness)
 		}
 		conn
-	})
+	}),
 
-	(nodes: nodes, conns: conns)
-}
+)
 
 
 /// Draw an arrow diagram.
@@ -479,22 +470,19 @@
 	let positional-args = objects.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
 	let conns = positional-args.filter(e => e.kind == "conn")
-	let callbacks = positional-args.filter(e => e.kind == "coord")
 
 	box(style(styles => {
 
-		let em-size = measure(box(width: 1em), styles).width
-		let to-pt(len) = len.abs + len.em*em-size
-
 		let options = options
-		options.em-size = em-size
+		options.em-size = measure(box(width: 1em), styles).width
+		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
 		options.node-pad = to-pt(options.node-pad)
 
 		let (nodes, conns) = apply-defaults(nodes, conns, options)
 
-		let nodes = compute-nodes(nodes, styles)
-		let grid = compute-grid(nodes, options)
+		let nodes = compute-node-sizes(nodes, styles)
+		let grid  = compute-grid(nodes, options)
 		let nodes = compute-node-positions(nodes, grid, options)
 
 		render(grid, nodes, conns, options)

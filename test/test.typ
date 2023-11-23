@@ -21,6 +21,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("head", "head")),
 			(marks: ("tail", "tail")),
 			(marks: ("twotail", "twohead")),
+			(marks: ("twohead", "twotail")),
 			(marks: ("hook", "head")),
 			(marks: ("hook", "hook'")),
 			(marks: ("bar", "bar")),
@@ -41,7 +42,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 #arrow-diagram(
 	conn((0,0), (1,0), "->"),
-	conn((0,-1), (1,-1), "->", "double"),
+	conn((0,-1), (1,-1), marks: (none, (kind: "head", size: 18)), "double"),
 	conn((0,-2), (1,-2), "->", "triple"),
 )
 
