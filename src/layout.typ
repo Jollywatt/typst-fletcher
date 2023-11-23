@@ -17,9 +17,9 @@
 	// add node inset
 	if node.radius != 0pt {
 		if node.shape == "circle" { 
-			node.radius += node.pad/2
+			node.radius += node.inset/2
 		} else {
-			node.size = node.size.map(x => x + node.pad)
+			node.size = node.size.map(x => x + node.inset)
 		}
 	}
 

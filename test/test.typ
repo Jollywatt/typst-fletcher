@@ -10,7 +10,7 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
-	debug: 1,
+	// debug: 1,
 	spacing: (10mm, 5mm),
 {
 	for i in (0, 1, 2) {
@@ -133,7 +133,7 @@ $
 		((7em, 3em), (3em, 7em)).map(((w, h)) => {
 			align(center + horizon, arrow-diagram(
 				node-defocus: defocus,
-				node-pad: 0pt,
+				node-inset: 0pt,
 			{
 				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))
 				for p in around {
@@ -175,15 +175,6 @@ Default placement above the line.
 	conn((2,0), (3,1), "<=>", crossing: true, bend: 20deg)
 })
 
-= Coord callback
-
-// #arrow-diagram({
-// 	node((1,1), "hi")
-// 	conn((1,1), (1,2))
-// 	resolve-coords((1, 2), (1,1), callback: (p1, p2) => {
-// 		cetz.draw.circle(p1, radius: 5pt, stroke: red)
-// 	})
-// })
 
 = `conn()` argument shorthands
 
@@ -238,7 +229,7 @@ Default placement above the line.
 #arrow-diagram(
 	debug: 2,
 	node-outset: 5pt,
-	node-pad: 5pt,
+	node-inset: 5pt,
 	node((0,0), `hello`, stroke: 1pt),
 	node((1,0), `there`, stroke: 1pt),
 	conn((0,0), (1,0), "<=>"),

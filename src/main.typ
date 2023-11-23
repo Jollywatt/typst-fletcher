@@ -14,8 +14,8 @@
 ///  coordinates.
 ///
 /// - label (content): Node content to display.
-/// - pad (length, none): Padding between the node's content and its bounding
-///  box or bounding circle. If `auto`, defaults to the `node-pad` option of
+/// - inset (length, none): Padding between the node's content and its bounding
+///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
 ///  `arrow-diagram()`.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
@@ -30,7 +30,7 @@
 #let node(
 	pos,
 	label,
-	pad: auto,
+	inset: auto,
 	outset: auto,
 	shape: auto,
 	stroke: auto,
@@ -44,7 +44,7 @@
 		kind: "node",
 		pos: pos,
 		label: label,
-		pad: pad,
+		inset: inset,
 		outset: outset,
 		shape: shape,
 		stroke: stroke,
@@ -340,7 +340,7 @@
 	nodes: nodes.map(node => {
 		if node.stroke == auto {node.stroke = options.node-stroke }
 		if node.fill == auto { node.fill = options.node-fill }
-		if node.pad == auto { node.pad = options.node-pad }
+		if node.inset == auto { node.inset = options.node-inset }
 		if node.outset == auto { node.outset = options.node-outset }
 		if node.defocus == auto { node.defocus = options.node-defocus }
 		node
@@ -383,7 +383,7 @@
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
 ///
-/// - node-pad (length, pair of lengths): Default padding between a node's
+/// - node-inset (length, pair of lengths): Default padding between a node's
 ///  content and its bounding box.
 /// - node-stroke (stroke): Default stroke for all nodes in diagram. Overridden
 ///  by individual node options.
@@ -432,7 +432,7 @@
 	debug: false,
 	spacing: 3em,
 	cell-size: 0pt,
-	node-pad: 15pt,
+	node-inset: 15pt,
 	node-outset: 0pt,
 	node-stroke: none,
 	node-fill: none,
@@ -456,7 +456,7 @@
 	let options = (
 		spacing: spacing,
 		debug: int(debug),
-		node-pad: node-pad,
+		node-inset: node-inset,
 		node-outset: node-outset,
 		node-stroke: node-stroke,
 		node-fill: node-fill,
@@ -477,7 +477,7 @@
 		options.em-size = measure(box(width: 1em), styles).width
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
-		options.node-pad = to-pt(options.node-pad)
+		options.node-inset = to-pt(options.node-inset)
 
 		let (nodes, conns) = apply-defaults(nodes, conns, options)
 

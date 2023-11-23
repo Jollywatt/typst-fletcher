@@ -96,7 +96,7 @@
 	..code-example(```typ
 	An equation $f: A -> B$, and \
 	a diagram #arrow-diagram(
-		node-pad: 4pt,
+		node-inset: 4pt,
 		node((0,0), $A$),
 		conn((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
 		node((1,0), $B$),
@@ -139,7 +139,7 @@
 $
 #arrow-diagram(
 	cell-size: 1cm,
-	node-pad: 1.5em,
+	node-inset: 1.5em,
 	spacing: 17mm,
 	debug: 0,
 	node-defocus: 0.1,
@@ -161,7 +161,7 @@ $
 #arrow-diagram(
 	cell-size: 3cm,
 	node-defocus: 0,
-	node-pad: 10pt,
+	node-inset: 10pt,
 {
 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
 	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
@@ -215,7 +215,7 @@ This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding
 	#arrow-diagram(
 		debug: 1,
 		spacing: 0pt,
-		node-pad: 0pt,
+		node-inset: 0pt,
 		node((0,-1), b(blue,    5mm, 10mm)),
 		node((1, 0), b(green,  20mm,  5mm)),
 		node((1, 1), b(red,     5mm,  5mm)),
@@ -236,7 +236,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 		arrow-diagram(
 			debug: 1,
 			spacing: 0mm,
-			node-pad: 0pt,
+			node-inset: 0pt,
 			node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
 			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
 			node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
@@ -285,7 +285,7 @@ Connectors between nodes connect to the node's bounding circle or bounding recta
 $
 #arrow-diagram(
 	spacing: (10mm, 6mm),
-	// node-pad: 4pt,
+	// node-inset: 4pt,
 	debug: 2,
 	// node-defocus: 0,
 	node((0,+1), $A times B times C$),
