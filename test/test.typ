@@ -10,7 +10,7 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #arrow-diagram(
-	debug: 0,
+	debug: 1,
 	spacing: (10mm, 5mm),
 {
 	for i in (0, 1, 2) {
@@ -30,6 +30,8 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
 			(marks: ("bar", "head"), extrude: (2,0,-2)),
 			(marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
+			(marks: ("circle", "bigcircle")),
+			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
 		).enumerate().map(((i, args)) => {
 			conn((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()
@@ -67,6 +69,7 @@ $
 	"<--hook'",
 	"|..|",
 	"hooks--hooks",
+	"o-O",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
 	&= #arrow-diagram(conn((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $

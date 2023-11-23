@@ -1,5 +1,6 @@
 #import "@preview/cetz:0.1.2"
 #import "utils.typ": *
+#import calc: sqrt, abs, sin, cos, max, pow
 
 #let parse-arrow-shorthand(str) = {
 	let caps = (
@@ -9,6 +10,8 @@
 		"<": ("head", "tail"),
 		"<<": ("twohead", "twotail"),
 		"|": ("bar", "bar"),
+		"o": ("circle", "circle"),
+		"O": ("bigcircle", "bigcircle"),
 	)
 	let lines = (
 		"-": (:),
@@ -17,7 +20,7 @@
 		"..": (dash: "dotted"),
 	)
 
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|)"
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\||o|O)"
 	let line-selector = "(-|=|--|==|::|\.\.)"
 	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
 	if match == none {
@@ -62,8 +65,12 @@
 		round-style + (kind: "tail", extrude: (0, +3))
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
+	} else if mark.kind == "circle" {
+		(radius: 2) + mark
+	} else if mark.kind == "bigcircle" {
+		(radius: 4) + mark + (kind: "circle")
 	} else {
-		panic(mark)
+		panic("Cannot interpret mark: " + mark.kind)
 	}
 }
 
@@ -74,7 +81,7 @@
 ///  line to the arrow's edge.
 /// - y (length): Lateral offset from the central stroke line.
 #let round-arrow-cap-offset(r, θ, y) = {
-	r*(calc.sin(θ) - calc.sqrt(1 - calc.pow(calc.cos(θ) - calc.abs(y)/r, 2)))
+	r*(sin(θ) - sqrt(1 - pow(cos(θ) - abs(y)/r, 2)))
 }
 
 #let cap-offset(mark, y) = {
@@ -88,7 +95,10 @@
 	else if mark.kind == "tail" { -3 - offset() }
 	else if mark.kind == "twohead" { offset() - 3 }
 	else if mark.kind == "twotail" { -3 - offset() - 3 }
-	else { 0 }
+	else if mark.kind == "circle" {
+		let r = mark.radius
+		-sqrt(max(0, r*r - y*y)) - r
+	} else { 0 }
 }
 
 
@@ -161,6 +171,17 @@
 				paint: stroke.paint,
 				thickness: stroke.thickness,
 				cap: "round",
+			),
+		)
+
+	} else if mark.kind == "circle" {
+		p = shift(p, -mark.radius)
+		cetz.draw.circle(
+			p,
+			radius: mark.radius*stroke.thickness,
+			stroke: (
+				thickness: stroke.thickness,
+				paint: stroke.paint,
 			),
 		)
 
