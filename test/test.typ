@@ -215,18 +215,18 @@ Default placement above the line.
 	node((2,1), [Bézier], stroke: 1pt),
 	render: (grid, nodes, conns, options) => {
 		cetz.canvas({
-			arrow-diagrams.draw-diagram(grid, nodes, conns, options)
+			fletcher.draw-diagram(grid, nodes, conns, options)
 
-			let n1 = arrow-diagrams.find-node-at(nodes, (0,0))
-			let p1 = arrow-diagrams.get-node-anchor(n1, 0deg)
+			let n1 = fletcher.find-node-at(nodes, (0,0))
+			let p1 = fletcher.get-node-anchor(n1, 0deg)
 
-			let n2 = arrow-diagrams.find-node-at(nodes, (2,1))
-			let p2 = arrow-diagrams.get-node-anchor(n2, -90deg)
+			let n2 = fletcher.find-node-at(nodes, (2,1))
+			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
 			let c1 = cetz.vector.add(p1, vector-polar(20pt, 0deg))
 			let c2 = cetz.vector.add(p2, vector-polar(70pt, -90deg))
 
-			arrow-diagrams.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
 
 			cetz.draw.bezier(p1, p2, c1, c2)
 		})
