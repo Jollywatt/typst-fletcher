@@ -171,7 +171,7 @@
 		cetz.draw.content(
 			label-pos,
 			box(
-				fill: options.crossing-fill,
+				fill: conn.crossing-fill,
 				inset: .2em,
 				radius: .2em,
 				stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },

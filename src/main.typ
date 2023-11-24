@@ -57,8 +57,8 @@
 #let CONN_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
-	"double": (extrude: (-1.3, +1.3)),
-	"triple": (extrude: (-2, 0, +2)),
+	"double": (extrude: (-1.3, +1.3), marks-scale: 120%),
+	"triple": (extrude: (-2.5, 0, +2.5), marks-scale: 150%),
 	"crossing": (crossing: true),
 )
 
@@ -94,6 +94,43 @@
 	named-args
 
 }
+
+#let parse-arrow-shorthand(str) = {
+	let caps = (
+		"": (none, none),
+		">": ("tail", "head"),
+		">>": ("twotail", "twohead"),
+		"<": ("head", "tail"),
+		"<<": ("twohead", "twotail"),
+		"|": ("bar", "bar"),
+		"o": ("circle", "circle"),
+		"O": ("bigcircle", "bigcircle"),
+	)
+	let lines = (
+		"-": (:),
+		"=": CONN_ARGUMENT_SHORTHANDS.double,
+		"==": CONN_ARGUMENT_SHORTHANDS.triple,
+		"--": CONN_ARGUMENT_SHORTHANDS.dashed,
+		"..": CONN_ARGUMENT_SHORTHANDS.dotted,
+	)
+
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\||o|O)"
+	let line-selector = "(-|=|--|==|::|\.\.)"
+	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
+	if match == none {
+		panic("Failed to parse", str)
+	}
+	let (from, line, to) = match.captures
+	(
+		marks: (
+			if from in caps { caps.at(from).at(0) } else { from },
+			if to in caps { caps.at(to).at(1) } else { to },
+		),
+		..lines.at(line),
+	)
+}
+
+
 
 /// Draw a connecting line or arc in an arrow diagram.
 ///
@@ -206,6 +243,21 @@
 ///  	)).join()
 /// )
 ///
+/// - marks-scale (percent):
+/// Scale factor for connector marks or arrow heads. This defaults to `100%` for
+/// single lines, `120%` for double lines and `150%` for triple lines. Does not
+/// affect the stroke thickness of the mark.
+///
+/// #{
+/// 	set raw(lang: none)
+/// 	arrow-diagram(
+/// 		conn-thickness: 1pt,
+/// 		conn((0,0), (1,0), `->`, "->"),
+/// 		conn((2,0), (3,0), `=>`, "=>"),
+/// 		conn((4,0), (5,0), `==>`, "==>"),
+/// 	)
+/// }
+///
 /// - extrude (array of numbers): Draw copies of the stroke extruded by the
 ///  given multiple of the stroke thickness. Used to obtain doubling effect.
 ///  Best explained by example:
@@ -236,6 +288,7 @@
 ///  	conn((2,1), (3,0), thickness: 1pt)
 ///  	conn((2,0), (3,1), thickness: 1pt, crossing: true)
 ///  })
+/// 
 /// - crossing-thickness (number): Thickness of the white "crossing" background
 ///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
 /// 
@@ -246,6 +299,19 @@
 ///  		1em, crossing: true, crossing-thickness: x)
 ///  	}).join()
 ///  })
+/// 
+/// - crossing-fill (paint): Color to use behind connectors or labels to give the illusion of crossing over other objects. Defaults to the `crossing-fill` option of
+///  `arrow-diagram()`.
+///
+///  #let cross(x, fill) = {
+///  	conn((2*x + 0,1), (2*x + 1,0), thickness: 1pt)
+///  	conn((2*x + 0,0), (2*x + 1,1), $f$, thickness: 1pt, crossing: true, crossing-fill: fill)
+///  }
+///  #arrow-diagram(crossing-thickness: 5, {
+///  	cross(0, white)
+///  	cross(1, blue.lighten(50%))
+///  	cross(2, luma(98%))
+///  })
 ///
 #let conn(
 	from,
@@ -254,13 +320,14 @@
 	label: none,
 	label-side: auto,
 	label-pos: 0.5,
-	label-sep: 0.4em,
+	label-sep: auto,
 	label-anchor: auto,
 	paint: black,
 	thickness: auto,
 	dash: none,
 	bend: 0deg,
 	marks: (none, none),
+	marks-scale: 100%,
 	extrude: (0,),
 	crossing: false,
 	crossing-thickness: auto,
@@ -278,6 +345,7 @@
 		dash: dash,
 		bend: bend,
 		marks: marks,
+		marks-scale: marks-scale,
 		extrude: extrude,
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
@@ -288,7 +356,15 @@
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
 	}
-	options.marks = options.marks.map(interpret-mark)
+	options.marks = options.marks
+		.map(interpret-mark)
+		.map(mark => {
+			if mark != none {
+				mark.size *= options.marks-scale/100%
+			}
+			mark
+		})
+
 
 	let stroke = (
 		paint: options.paint,
@@ -350,6 +426,7 @@
 		if conn.stroke.thickness == auto { conn.stroke.thickness = options.conn-thickness }
 		if conn.crossing-fill == auto { conn.crossing-fill = options.crossing-fill }
 		if conn.crossing-thickness == auto { conn.crossing-thickness = options.crossing-thickness }
+		if conn.label-sep == auto { conn.label-sep = options.label-sep }
 		if conn.is-crossing-background {
 			conn.stroke = (
 				thickness: conn.crossing-thickness*conn.stroke.thickness,
@@ -411,7 +488,8 @@
 ///   )
 ///
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
-///  the illusion of crossing over other objects.
+///  the illusion of crossing over other objects. See the `crossing-fill` option
+///  of `conn()`.
 ///
 /// - crossing-thickness (number): Default thickness of the occlusion made by
 ///  crossing connectors. See the `crossing-thickness` option of `conn()`.
@@ -432,11 +510,12 @@
 	debug: false,
 	spacing: 3em,
 	cell-size: 0pt,
-	node-inset: 15pt,
+	node-inset: 12pt,
 	node-outset: 0pt,
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
+	label-sep: 0.4em,
 	conn-thickness: 0.6pt,
 	crossing-fill: white,
 	crossing-thickness: 3,
@@ -461,6 +540,7 @@
 		node-stroke: node-stroke,
 		node-fill: node-fill,
 		node-defocus: node-defocus,
+		label-sep: label-sep,
 		cell-size: cell-size,
 		conn-thickness: conn-thickness,
 		crossing-fill: crossing-fill,
@@ -478,6 +558,7 @@
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
 		options.node-inset = to-pt(options.node-inset)
+		options.label-sep = to-pt(options.label-sep)
 
 		let (nodes, conns) = apply-defaults(nodes, conns, options)
 

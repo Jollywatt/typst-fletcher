@@ -1,6 +1,6 @@
 #import "@preview/tidy:0.1.0"
 #import "/src/exports.typ": *
-#import "/src/marks.typ": parse-arrow-shorthand
+#import "/src/main.typ": parse-arrow-shorthand
 
 #set raw(lang: "typc")
 #set page(numbering: "1")

@@ -1,6 +1,5 @@
 #import "@preview/cetz:0.1.2"
 #import "/src/exports.typ": *
-#import "/src/marks.typ": *
 
 
 #set page(width: 10cm, height: auto)
@@ -42,13 +41,19 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Double and triple lines
 
-#arrow-diagram(
-	conn((0,0), (1,0), "->"),
-	conn((0,-1), (1,-1), marks: (none, (kind: "head", size: 18)), "double"),
-	conn((0,-2), (1,-2), "->", "triple"),
-)
+#for (i, a) in ("->", "=>", "==>").enumerate() [
+	Formula #arrow-diagram(
+		// node-inset: 5pt,
+		label-sep: 1pt + i*1pt,
+		node((0, -i), $A$),
+		conn((0, -i), (1, -i), text(0.6em, $f$), a),
+		node((1, -i), $B$),
+	). \
+]
 
 = Arrow head shorthands
+
+#import "/src/main.typ": parse-arrow-shorthand
 
 $
 #for i in (
@@ -56,6 +61,7 @@ $
 	"<-",
 	"<->",
 	"<=>",
+	"<==>",
 	"|->",
 	"|=>",
 	">->",
@@ -69,6 +75,7 @@ $
 	"<--hook'",
 	"|..|",
 	"hooks--hooks",
+	"o-O",
 	"o-O",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
@@ -191,16 +198,18 @@ Default placement above the line.
 #arrow-diagram(
 	node-stroke: black,
 	node-fill: green.lighten(80%),
+	label-sep: 0pt,
 	node((0,0), $A$),
 	node((1,1), $sin compose cos compose tan$, fill: none),
 	node((2,0), $C$),
 	node((3,0), $D$, shape: "rect"),
-	conn((0,0), (1,1), "->", bend: -45deg),
-	conn((2,0), (1,1), "<-"),
+	conn((0,0), (1,1), $sigma$, "->", bend: -45deg),
+	conn((2,0), (1,1), $f$, "<-"),
 )
 
 = CeTZ integration
 
+#import "/src/utils.typ": vector-polar
 #arrow-diagram(
 	node((0,0), $A$, stroke: 1pt),
 	node((2,1), [Bézier], stroke: 1pt),

@@ -2,40 +2,6 @@
 #import "utils.typ": *
 #import calc: sqrt, abs, sin, cos, max, pow
 
-#let parse-arrow-shorthand(str) = {
-	let caps = (
-		"": (none, none),
-		">": ("tail", "head"),
-		">>": ("twotail", "twohead"),
-		"<": ("head", "tail"),
-		"<<": ("twohead", "twotail"),
-		"|": ("bar", "bar"),
-		"o": ("circle", "circle"),
-		"O": ("bigcircle", "bigcircle"),
-	)
-	let lines = (
-		"-": (:),
-		"=": (extrude: (-1.3, +1.3)),
-		"--": (dash: "dashed"),
-		"..": (dash: "dotted"),
-	)
-
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\||o|O)"
-	let line-selector = "(-|=|--|==|::|\.\.)"
-	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
-	if match == none {
-		panic("Failed to parse", str)
-	}
-	let (from, line, to) = match.captures
-	(
-		marks: (
-			if from in caps { caps.at(from).at(0) } else { from },
-			if to in caps { caps.at(to).at(1) } else { to },
-		),
-		..lines.at(line),
-	)
-}
-
 
 #let interpret-mark(mark) = {
 	if mark == none { return none }
@@ -57,7 +23,7 @@
 	)
 
 
-	if mark.kind in ("head", "hook", "hooks", "harpoon", "tail") {
+	if mark.kind in ("head", "harpoon", "tail") {
 		round-style + mark
 	} else if mark.kind == "twohead" {
 		round-style + (kind: "head", extrude: (0, -3))
@@ -65,10 +31,12 @@
 		round-style + (kind: "tail", extrude: (0, +3))
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
+	} else if mark.kind in ("hook", "hooks") {
+		(size: 2.5) + mark
 	} else if mark.kind == "circle" {
-		(radius: 2) + mark
+		(size: 2) + mark
 	} else if mark.kind == "bigcircle" {
-		(radius: 4) + mark + (kind: "circle")
+		(size: 4) + mark + (kind: "circle")
 	} else {
 		panic("Cannot interpret mark: " + mark.kind)
 	}
@@ -96,7 +64,7 @@
 	else if mark.kind == "twohead" { offset() - 3 }
 	else if mark.kind == "twotail" { -3 - offset() - 3 }
 	else if mark.kind == "circle" {
-		let r = mark.radius
+		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
 	} else { 0 }
 }
@@ -138,17 +106,11 @@
 		p = shift(p, cap-offset(mark, 0))
 		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
-	// } else if mark.kind in ("twohead", "twotail") {
-	// 	let subkind = if mark.kind == "twohead" { "head" } else { "tail" }
-	// 	draw-arrow-cap(p, θ, stroke, mark + (kind: subkind))
-	// 	p = cetz.vector.sub(p, vector-polar(+3*stroke.thickness, θ))
-	// 	draw-arrow-cap(p, θ, stroke, mark + (kind: subkind))
-
 	} else if mark.kind == "hook" {
 		p = shift(p, cap-offset(mark, 0))
 		cetz.draw.arc(
 			p,
-			radius: 2.5*stroke.thickness,
+			radius: mark.size*stroke.thickness,
 			start: θ + mark.flip*90deg,
 			delta: -mark.flip*180deg,
 			stroke: (
@@ -175,10 +137,10 @@
 		)
 
 	} else if mark.kind == "circle" {
-		p = shift(p, -mark.radius)
+		p = shift(p, -mark.size)
 		cetz.draw.circle(
 			p,
-			radius: mark.radius*stroke.thickness,
+			radius: mark.size*stroke.thickness,
 			stroke: (
 				thickness: stroke.thickness,
 				paint: stroke.paint,
