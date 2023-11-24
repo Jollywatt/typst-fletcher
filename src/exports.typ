@@ -1,2 +1,2 @@
-#import "main.typ": arrow-diagram, node, conn
+#import "main.typ": arrow-diagram, node, edge
 #import "all.typ" as fletcher

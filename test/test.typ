@@ -32,7 +32,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("circle", "bigcircle")),
 			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
 		).enumerate().map(((i, args)) => {
-			conn((x, -i), (x + 1, -i), ..args, bend: bend)
+			edge((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()
 
 	}
@@ -46,7 +46,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		// node-inset: 5pt,
 		label-sep: 1pt + i*1pt,
 		node((0, -i), $A$),
-		conn((0, -i), (1, -i), text(0.6em, $f$), a),
+		edge((0, -i), (1, -i), text(0.6em, $f$), a),
 		node((1, -i), $B$),
 	). \
 ]
@@ -79,7 +79,7 @@ $
 	"o-O",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #arrow-diagram(conn((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
+	&= #arrow-diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
 }
 $
 
@@ -92,10 +92,10 @@ $
 	node((0,1), $X$),
 	node((1,1), $Y$),
 	node((0,0), $Z$),
-	conn((0,1), (1,1), marks: (none, "head")),
-	conn((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
-	conn((0,1), (0,0), marks: (none, "twohead")),
-	conn((0,1), (0,1), marks: (none, "head"), bend: -120deg),
+	edge((0,1), (1,1), marks: (none, "head")),
+	edge((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
+	edge((0,1), (0,0), marks: (none, "twohead")),
+	edge((0,1), (0,1), marks: (none, "head"), bend: -120deg),
 )
 
 = Arc connectors
@@ -106,7 +106,7 @@ $
 	node((0,0), "from")
 	node((1,0), "to")
 	for θ in (0deg, 20deg, -50deg) {
-		conn((0,0), (1,0), $#θ$, bend: θ, marks: (none, "head"))
+		edge((0,0), (1,0), $#θ$, bend: θ, marks: (none, "head"))
 	}
 })
 
@@ -114,7 +114,7 @@ $
 	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
-	conn((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
+	edge((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
 )
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
@@ -122,7 +122,7 @@ $
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
-		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => conn((0,0), to, bend: θ, marks: ("tail", "head"))).join()
+		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ("tail", "head"))).join()
 	})
 }
 
@@ -144,7 +144,7 @@ $
 			{
 				node((0,0), rect(width: w, height: h, inset: 0pt, align(center + horizon)[#defocus]))
 				for p in around {
-					conn(p, (0,0))
+					edge(p, (0,0))
 				}
 			}))
 		})
@@ -160,14 +160,14 @@ Default placement above the line.
 	debug: 3,
 {
 	for p in around {
-		conn(p, (0,0), $f$)
+		edge(p, (0,0), $f$)
 	}
 })
 
 #arrow-diagram(spacing: 1.5cm, {
 	for (i, a) in (left, center, right).enumerate() {
 		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
-			conn((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
+			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
 		}
 	}
 })
@@ -176,20 +176,20 @@ Default placement above the line.
 = Crossing connectors
 
 #arrow-diagram({
-	conn((0,1), (1,0))
-	conn((0,0), (1,1), crossing: true)
-	conn((2,1), (3,0), "|-|", bend: -20deg)
-	conn((2,0), (3,1), "<=>", crossing: true, bend: 20deg)
+	edge((0,1), (1,0))
+	edge((0,0), (1,1), crossing: true)
+	edge((2,1), (3,0), "|-|", bend: -20deg)
+	edge((2,0), (3,1), "<=>", crossing: true, bend: 20deg)
 })
 
 
-= `conn()` argument shorthands
+= `edge()` argument shorthands
 
 #arrow-diagram(
-	conn((0,0), (1,1), "->", "double", bend: 45deg),
-	conn((1,0), (0,1), "->>", "crossing"),
-	conn((1,1), (2,1), $f$, "|->"),
-	conn((0,0), (1,0), "-", "dashed"),
+	edge((0,0), (1,1), "->", "double", bend: 45deg),
+	edge((1,0), (0,1), "->>", "crossing"),
+	edge((1,1), (2,1), $f$, "|->"),
+	edge((0,0), (1,0), "-", "dashed"),
 )
 
 
@@ -203,8 +203,8 @@ Default placement above the line.
 	node((1,1), $sin compose cos compose tan$, fill: none),
 	node((2,0), $C$),
 	node((3,0), $D$, shape: "rect"),
-	conn((0,0), (1,1), $sigma$, "->", bend: -45deg),
-	conn((2,0), (1,1), $f$, "<-"),
+	edge((0,0), (1,1), $sigma$, "->", bend: -45deg),
+	edge((2,0), (1,1), $f$, "<-"),
 )
 
 = CeTZ integration
@@ -213,9 +213,9 @@ Default placement above the line.
 #arrow-diagram(
 	node((0,0), $A$, stroke: 1pt),
 	node((2,1), [Bézier], stroke: 1pt),
-	render: (grid, nodes, conns, options) => {
+	render: (grid, nodes, edges, options) => {
 		cetz.canvas({
-			fletcher.draw-diagram(grid, nodes, conns, options)
+			fletcher.draw-diagram(grid, nodes, edges, options)
 
 			let n1 = fletcher.find-node-at(nodes, (0,0))
 			let p1 = fletcher.get-node-anchor(n1, 0deg)
@@ -241,5 +241,5 @@ Default placement above the line.
 	node-inset: 5pt,
 	node((0,0), `hello`, stroke: 1pt),
 	node((1,0), `there`, stroke: 1pt),
-	conn((0,0), (1,0), "<=>"),
+	edge((0,0), (1,0), "<=>"),
 )

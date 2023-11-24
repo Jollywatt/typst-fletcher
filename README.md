@@ -19,9 +19,9 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 	node(src, $G$)
 	node(img, $im f$)
 	node(quo, $G slash ker(f)$)
-	conn(src, img, $f$, "->")
-	conn(quo, img, $tilde(f)$, "hook-->", label-side: right)
-	conn(src, quo, $pi$, "->>")
+	edge(src, img, $f$, "->")
+	edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
+	edge(src, quo, $pi$, "->>")
 })
 
 #arrow-diagram(
@@ -32,10 +32,10 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 	node((2,0), "B", stroke: 2pt),
 	node((2,1), "C"),
 
-	conn((0,0), (1,0), "->", bend: 15deg),
-	conn((0,0), (1,0), "<-", bend: -15deg),
-	conn((1,0), (2,1), "=>", bend: 20deg),
-	conn((1,0), (2,0), "..>", bend: -0deg),
+	edge((0,0), (1,0), "->", bend: 15deg),
+	edge((0,0), (1,0), "<-", bend: -15deg),
+	edge((1,0), (2,1), "=>", bend: 20deg),
+	edge((1,0), (2,0), "..>", bend: -0deg),
 )
 ```
 

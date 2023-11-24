@@ -14,9 +14,11 @@
 ///  coordinates.
 ///
 /// - label (content): Node content to display.
-/// - inset (length, none): Padding between the node's content and its bounding
+/// - inset (length, auto): Padding between the node's content and its bounding
 ///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
 ///  `arrow-diagram()`.
+/// - outset (length, auto): Margin between the node's bounds to the anchor
+///  points for connecting edges.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
@@ -62,7 +64,7 @@
 	"crossing": (crossing: true),
 )
 
-#let interpret-conn-args(args) = {
+#let interpret-edge-args(args) = {
 	let named-args = (:)
 
 	if args.named().len() > 0 {
@@ -144,10 +146,10 @@
 /// - ..args (any): The connector's `label` and `marks` named arguments can also
 ///  be specified as positional arguments. For example, the following are equivalent:
 ///  ```typc
-///  conn((0,0), (1,0), $f$, "->")
-///  conn((0,0), (1,0), $f$, marks: "->")
-///  conn((0,0), (1,0), "->", label: $f$)
-///  conn((0,0), (1,0), label: $f$, marks: "->")
+///  edge((0,0), (1,0), $f$, "->")
+///  edge((0,0), (1,0), $f$, marks: "->")
+///  edge((0,0), (1,0), "->", label: $f$)
+///  edge((0,0), (1,0), label: $f$, marks: "->")
 ///  ```
 /// 
 /// - label-pos (number): Position of the label along the connector, from the
@@ -158,7 +160,7 @@
 ///  	spacing: 1fr,
 ///  	..(0, 0.25, 0.5, 0.75, 1).map(p => arrow-diagram(
 ///  		cell-size: 1cm,
-///  		conn((0,0), (1,0), p, "->", label-pos: p))
+///  		edge((0,0), (1,0), p, "->", label-pos: p))
 ///  	),
 ///  )
 /// - label-sep (number): Separation between the connector and the label anchor.
@@ -169,7 +171,7 @@
 ///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
-///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
+///  			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
 ///  		}
 ///  })
 ///  
@@ -179,7 +181,7 @@
 ///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
-///  			conn((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
+///  			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
 ///  		}
 ///  })
 /// 
@@ -211,14 +213,14 @@
 ///  	let N = 4
 ///  	range(N + 1)
 ///  		.map(x => (x/N - 0.5)*2*100deg)
-///  		.map(θ => conn((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
+///  		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
 ///  		.join()
 ///  })
 ///
 /// - marks (pair of strings):
 /// The start and end marks or arrow heads of the connector. A shorthand such as
 /// `"->"` can used instead. For example,
-/// `conn(p1, p2, "->")` is short for `conn(p1, p2, marks: (none, "head"))`.
+/// `edge(p1, p2, "->")` is short for `edge(p1, p2, marks: (none, "head"))`.
 ///
 /// #table(
 /// 	columns: 3,
@@ -237,7 +239,7 @@
 ///  		">-harpoon",
 ///  		">-harpoon'",
 /// 	).map(str => (
-///  		arrow-diagram(conn((0,0), (1,0), str)),
+///  		arrow-diagram(edge((0,0), (1,0), str)),
 ///  		raw(str, lang: none),
 ///  		raw(repr(parse-arrow-shorthand(str))),
 ///  	)).join()
@@ -251,10 +253,10 @@
 /// #{
 /// 	set raw(lang: none)
 /// 	arrow-diagram(
-/// 		conn-thickness: 1pt,
-/// 		conn((0,0), (1,0), `->`, "->"),
-/// 		conn((2,0), (3,0), `=>`, "=>"),
-/// 		conn((4,0), (5,0), `==>`, "==>"),
+/// 		edge-thickness: 1pt,
+/// 		edge((0,0), (1,0), `->`, "->"),
+/// 		edge((2,0), (3,0), `=>`, "=>"),
+/// 		edge((4,0), (5,0), `==>`, "==>"),
 /// 	)
 /// }
 ///
@@ -270,7 +272,7 @@
 ///  		(-4.5,),
 ///  		(4.5,),
 ///  	).enumerate().map(((i, e)) => {
-///  		conn(
+///  		edge(
 ///  			(2*i, 0), (2*i + 1, 0), [#e], "|->",
 ///  			extrude: e, thickness: 1pt, label-sep: 1em)
 ///  	}).join()
@@ -283,10 +285,10 @@
 /// - crossing (bool): If `true`, draws a white backdrop to give the illusion of
 ///  lines crossing each other.
 ///  #arrow-diagram({
-///  	conn((0,1), (1,0), thickness: 1pt)
-///  	conn((0,0), (1,1), thickness: 1pt)
-///  	conn((2,1), (3,0), thickness: 1pt)
-///  	conn((2,0), (3,1), thickness: 1pt, crossing: true)
+///  	edge((0,1), (1,0), thickness: 1pt)
+///  	edge((0,0), (1,1), thickness: 1pt)
+///  	edge((2,1), (3,0), thickness: 1pt)
+///  	edge((2,0), (3,1), thickness: 1pt, crossing: true)
 ///  })
 /// 
 /// - crossing-thickness (number): Thickness of the white "crossing" background
@@ -294,8 +296,8 @@
 /// 
 ///  #arrow-diagram({
 ///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
-///  		conn((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
-///  		conn((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
+///  		edge((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
+///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
 ///  		1em, crossing: true, crossing-thickness: x)
 ///  	}).join()
 ///  })
@@ -304,8 +306,8 @@
 ///  `arrow-diagram()`.
 ///
 ///  #let cross(x, fill) = {
-///  	conn((2*x + 0,1), (2*x + 1,0), thickness: 1pt)
-///  	conn((2*x + 0,0), (2*x + 1,1), $f$, thickness: 1pt, crossing: true, crossing-fill: fill)
+///  	edge((2*x + 0,1), (2*x + 1,0), thickness: 1pt)
+///  	edge((2*x + 0,0), (2*x + 1,1), $f$, thickness: 1pt, crossing: true, crossing-fill: fill)
 ///  }
 ///  #arrow-diagram(crossing-thickness: 5, {
 ///  	cross(0, white)
@@ -313,7 +315,7 @@
 ///  	cross(2, luma(98%))
 ///  })
 ///
-#let conn(
+#let edge(
 	from,
 	to,
 	..args,
@@ -351,7 +353,7 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 	)
-	options += interpret-conn-args(args)
+	options += interpret-edge-args(args)
 
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
@@ -379,7 +381,7 @@
 	}
 
 	let obj = ( 
-		kind: "conn",
+		kind: "edge",
 		points: (from, to),
 		label: options.label,
 		label-pos: options.label-pos,
@@ -411,7 +413,7 @@
 }
 
 
-#let apply-defaults(nodes, conns, options) = (
+#let apply-defaults(nodes, edges, options) = (
 
 	nodes: nodes.map(node => {
 		if node.stroke == auto {node.stroke = options.node-stroke }
@@ -422,21 +424,21 @@
 		node
 	}),
 
-	conns: conns.map(conn => {
-		if conn.stroke.thickness == auto { conn.stroke.thickness = options.conn-thickness }
-		if conn.crossing-fill == auto { conn.crossing-fill = options.crossing-fill }
-		if conn.crossing-thickness == auto { conn.crossing-thickness = options.crossing-thickness }
-		if conn.label-sep == auto { conn.label-sep = options.label-sep }
-		if conn.is-crossing-background {
-			conn.stroke = (
-				thickness: conn.crossing-thickness*conn.stroke.thickness,
-				paint: conn.crossing-fill,
+	edges: edges.map(edge => {
+		if edge.stroke.thickness == auto { edge.stroke.thickness = options.edge-thickness }
+		if edge.crossing-fill == auto { edge.crossing-fill = options.crossing-fill }
+		if edge.crossing-thickness == auto { edge.crossing-thickness = options.crossing-thickness }
+		if edge.label-sep == auto { edge.label-sep = options.label-sep }
+		if edge.is-crossing-background {
+			edge.stroke = (
+				thickness: edge.crossing-thickness*edge.stroke.thickness,
+				paint: edge.crossing-fill,
 				cap: "round",
 			)
-			conn.marks = (none, none)
-			conn.extrude = conn.extrude.map(e => e/conn.crossing-thickness)
+			edge.marks = (none, none)
+			edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 		}
-		conn
+		edge
 	}),
 
 )
@@ -448,7 +450,7 @@
 ///   nodes and connections.
 ///
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
-///  Level 1 shows a coordinate grid; higher levels show bounding boxes and
+///  Level `1` shows a coordinate grid; higher levels show bounding boxes and
 ///  anchors, etc.
 ///
 /// - spacing (length, pair of lengths): Gaps between rows and columns. Ensures
@@ -479,9 +481,9 @@
 ///  		arrow-diagram(spacing: 8mm, {
 ///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
 ///  			for y in (-1, +1) {
-///   				conn((i - 1, y), (i, 0))
-///   				conn((i, y), (i, 0))
-///   				conn((i + 1, y), (i, 0))
+///   				edge((i - 1, y), (i, 0))
+///   				edge((i, y), (i, 0))
+///   				edge((i + 1, y), (i, 0))
 ///   			}
 ///   		})
 ///   	})
@@ -489,10 +491,10 @@
 ///
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///  the illusion of crossing over other objects. See the `crossing-fill` option
-///  of `conn()`.
+///  of `edge()`.
 ///
 /// - crossing-thickness (number): Default thickness of the occlusion made by
-///  crossing connectors. See the `crossing-thickness` option of `conn()`.
+///  crossing connectors. See the `crossing-thickness` option of `edge()`.
 /// 
 ///
 /// - render (function): After the node sizes and grid layout have been
@@ -500,7 +502,7 @@
 ///   - `grid`: a dictionary of the row and column widths and positions;
 ///   - `nodes`: an array of nodes (dictionaries) with computed attributes
 ///    (including size and physical coordinates);
-///   - `conns`: an array of connectors (dictionaries) in the diagram; and
+///   - `edges`: an array of connectors (dictionaries) in the diagram; and
 ///   - `options`: other diagram attributes.
 ///
 ///  This callback is exposed so you can access the above data and draw things
@@ -516,11 +518,11 @@
 	node-fill: none,
 	node-defocus: 0.2,
 	label-sep: 0.4em,
-	conn-thickness: 0.6pt,
+	edge-thickness: 0.6pt,
 	crossing-fill: white,
 	crossing-thickness: 3,
-	render: (grid, nodes, conns, options) => {
-		cetz.canvas(draw-diagram(grid, nodes, conns, options))
+	render: (grid, nodes, edges, options) => {
+		cetz.canvas(draw-diagram(grid, nodes, edges, options))
 	},
 ) = {
 
@@ -542,14 +544,14 @@
 		node-defocus: node-defocus,
 		label-sep: label-sep,
 		cell-size: cell-size,
-		conn-thickness: conn-thickness,
+		edge-thickness: edge-thickness,
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,
 	)
 
 	let positional-args = objects.pos().join()
 	let nodes = positional-args.filter(e => e.kind == "node")
-	let conns = positional-args.filter(e => e.kind == "conn")
+	let edges = positional-args.filter(e => e.kind == "edge")
 
 	box(style(styles => {
 
@@ -560,13 +562,13 @@
 		options.node-inset = to-pt(options.node-inset)
 		options.label-sep = to-pt(options.label-sep)
 
-		let (nodes, conns) = apply-defaults(nodes, conns, options)
+		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, options)
 		let nodes = compute-node-positions(nodes, grid, options)
 
-		render(grid, nodes, conns, options)
+		render(grid, nodes, edges, options)
 	}))
 }
 

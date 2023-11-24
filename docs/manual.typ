@@ -2,15 +2,15 @@
 #import "/src/exports.typ": *
 #import "/src/main.typ": parse-arrow-shorthand
 
-#set raw(lang: "typc")
 #set page(numbering: "1")
-#show link: set text(blue)
+#set par(justify: true)
+#show link: underline.with(stroke: blue.lighten(50%))
 
 #let scope = (
 	fletcher: fletcher,
 	arrow-diagram: arrow-diagram,
 	node: node,
-	conn: conn,
+	edge: edge,
 	parse-arrow-shorthand: parse-arrow-shorthand,
 	cetz: fletcher.cetz,
 )
@@ -35,7 +35,7 @@
 		spacing: 2.3cm,
 		node((0,1), $A$),
 		node((1,1), $B$),
-		conn((0,1), (1,1), $f$, ">>->"),
+		edge((0,1), (1,1), $f$, ">>->"),
 	)
 
 	#text(2em, strong(`fletcher`)) \
@@ -44,7 +44,7 @@
 	A #link("https://typst.app/")[Typst] package for drawing commutative diagrams,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
 
-	#link("https://github.com/Jollywatt/typst-fletcher")
+	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
 	Version #toml("/typst.toml").package.version *(not yet stable)*
 ]
@@ -87,9 +87,9 @@
 		node(src, $G$)
 		node(img, $im f$)
 		node(quo, $G slash ker(f)$)
-		conn(src, img, $f$, "->")
-		conn(quo, img, $tilde(f)$, "hook-->", label-side: right)
-		conn(src, quo, $pi$, "->>")
+		edge(src, img, $f$, "->")
+		edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
+		edge(src, quo, $pi$, "->>")
 	})
 	```),
 
@@ -98,7 +98,7 @@
 	a diagram #arrow-diagram(
 		node-inset: 4pt,
 		node((0,0), $A$),
-		conn((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
+		edge((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
 		node((1,0), $B$),
 	).
 	```),
@@ -108,9 +108,9 @@
 		spacing: 2cm,
 		node((0,0), $cal(A)$),
 		node((1,0), $cal(B)$),
-		conn((0,0), (1,0), $F$, "->", bend: +35deg),
-		conn((0,0), (1,0), $G$, "->", bend: -35deg),
-		conn((.5,+.21), (.5,-.21), $alpha$, "=>"),
+		edge((0,0), (1,0), $F$, "->", bend: +35deg),
+		edge((0,0), (1,0), $G$, "->", bend: -35deg),
+		edge((.5,+.21), (.5,-.21), $alpha$, "=>"),
 	)
 	```),
 )
@@ -126,11 +126,11 @@
 // 			node((0,1), $T b$),
 // 			node((1,0), $S a'$),
 // 			node((1,1), $T b'$),
-// 			conn((0,0), (0,1), $f$, "hook->>", label-side: left),
-// 			conn((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
-// 			conn((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
-// 			conn((0,1), (1,1), $γ$, bend: 20deg, "->"),
-// 			conn((0,1), (1,1), $β$, bend: -20deg, "->"),
+// 			edge((0,0), (0,1), $f$, "hook->>", label-side: left),
+// 			edge((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
+// 			edge((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
+// 			edge((0,1), (1,1), $γ$, bend: 20deg, "->"),
+// 			edge((0,1), (1,1), $β$, bend: -20deg, "->"),
 // 		),
 
 // 	).map(x => align(center, x))
@@ -147,14 +147,14 @@ $
 	node((0,1), $pi_1(X)$),
 	node((1,2), $pi_1(Y)$),
 	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-	conn((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
-	conn((0,2), (1,2), $i_1$, "hook->"),
-	conn((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
-	conn((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
-	conn((0,1), (1,1), "hook->>", dash: "dashed"),
-	conn((1,2), (1,1), "|->"),
+	edge((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
+	edge((0,2), (1,2), $i_1$, "hook->"),
+	edge((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
+	edge((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
+	edge((0,1), (1,1), "hook->>", dash: "dashed"),
+	edge((1,2), (1,1), "|->"),
 	node((2,0), $pi_1(X union Y)$),
-	conn((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
+	edge((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
 )
 $
 
@@ -172,12 +172,12 @@ $
 			let from = cube-vertices.at(j)
 			// test for adjancency
 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-				conn(proj(from), proj(to), "->", crossing: to.at(2) == 0)
+				edge(proj(from), proj(to), "->", crossing: to.at(2) == 0)
 			}
 		}
 	}
-	conn(proj((1,1,1)), (2, 0.8), dash: "dotted")
-	conn(proj((1,0,1)), (2, 0.8), dash: "dotted")
+	edge(proj((1,1,1)), (2, 0.8), dash: "dotted")
+	edge(proj((1,0,1)), (2, 0.8), dash: "dotted")
 	node((2, 0.8), "fractional coords")
 })
 #arrow-diagram(
@@ -188,24 +188,32 @@ $
 	node((1,0), [2], shape: "circle"),
 	node((2,1), [3], shape: "circle"),
 	node((2,-1), [3'], shape: "circle"),
-	conn((0,0), (1,0), "->"),
-	conn((1,0), (2,+1), "->", bend: -15deg),
-	conn((1,0), (2,-1), "->", bend: +15deg),
-	conn((2,-1), (2,-1), "->", bend: +130deg),
+	edge((0,0), (1,0), "->"),
+	edge((1,0), (2,+1), "->", bend: -15deg),
+	edge((1,0), (2,-1), "->", bend: +15deg),
+	edge((2,-1), (2,-1), "->", bend: +130deg),
 
 )
 
 
+#set raw(lang: "typc")
+#let fn-link(name) = link(label(name), raw(name))
+
 = Details
 
+== Nodes
 
-== Elastic coordinates
+#link(label("node()"))[`node((x, y), label, ..options)`]
 
-Diagrams are laid out on a flexible coordinate grid, which stretches to fit content like a table.
-When a node is placed, the rows and columns grow to accommodate the node's size.
+Nodes are content placed in the diagram at a particular coordinate. They fit to the size of their label (with an `inset` and `outset`), can be circular or rectangular (`shape`), and can be given a `stroke` and `fill`.
 
-This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding between cells:
+=== Elastic coordinates
 
+Diagrams are laid out on a flexible coordinate grid.
+When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
+See the #fn-link("arrow-diagram()") parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
+
+Elastic coordinates can be demonstrated more clearly with a debug grid and no spacing.
 
 #stack(
 	dir: ltr,
@@ -224,10 +232,13 @@ This can be seen more clearly with a coordinate grid (`debug: 1`) and no padding
 	```)
 )
 
+=== Fractional coordinates
 
-While grid points are always at integer coordinates, nodes may have *fractional coordinates*.
-A node placed between grid points still causes the neighbouring rows and columns to grow to accommodate its size, but only partially, depending on proximity.
-For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
+Rows and columns are at integer coordinates, but nodes may have fractional coordinates.
+These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down. Both the node's position and its influence on row/column sizes are interpolated.
+
+As a result, diagrams are responsive to node sizes (like tables) while allowing precise positioning.
+// For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
 
 #stack(
 	dir: ltr,
@@ -245,36 +256,32 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	}),
 )
 
-Specifically, fractional coordinates are dealt with by linearly interpolating the layout, in the sense that if a node is at $(0.25, 0)$, then the width of column $floor(0.25) = 0$ is at least $75%$ of the node's width, and column $ceil(0.25) = 1$ at least $25%$ its width.
 
-As a result, diagrams will automatically adjust when nodes grow or shrink, while still allowing you to place nodes at precise coordinates.
+== Edges
 
-== Connectors
+#link(label("edge()"))[`edge(node-1, node-2, label, marks, ..options)`]
 
-Connectors between nodes connect to the node's bounding circle or bounding rectangle. The bounding shape is chosen automatically depending on the node's aspect ratio.
+Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding circle or rectangle. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
-$
-#arrow-diagram(
-	spacing: (10mm, 6mm),
-	// node-inset: 4pt,
-	debug: 2,
-	// node-defocus: 0,
-	node((0,+1), $A times B times C$),
-	node((-1,0), $A$),
-	node(( 0,-1), $B$),
-	node((+1,0), $C$),
-	conn((-1,0), (0,-1)),
-	conn((+1,0), (0,-1)),
-	conn((-1,0), (0,1)),
-	conn((+1,0), (0,1)),
-	conn((0,-1), (0,1)),
-)
-$
+#stack(dir: ltr, spacing: 1fr, ..code-example(```
+#arrow-diagram(spacing: (12mm, 6mm), {
+		let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
+		node(abc, $A times B times C$)
+		node(a, $A$)
+		node(b, $B$)
+		node(c, $C$)
+		edge(a, b, bend: -10deg, "dashed")
+		edge(c, b, bend: +10deg, "dotted")
+		edge(a, abc, $a$)
+		edge(b, abc, "<=>")
+		edge(c, abc, $c$)
+})
+```))
 
 === Marks and arrows
 
 A few mathematical arrow heads are supported, designed to match the symbols $arrow$, $arrow.double$, $arrow.twohead$, $arrow.hook$, $arrow.bar$, etc.
-See the `marks` argument of #link(label("conn()"))[`conn()`] for details.
+See the `marks` argument of #fn-link("edge()") for details.
 
 #align(center, arrow-diagram(
 	debug: 0,
@@ -287,7 +294,7 @@ See the `marks` argument of #link(label("conn()"))[`conn()`] for details.
 		"hook->>",
 	).enumerate() {
 		for j in range(2) {
-			conn((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j, thickness: 1pt)
+			edge((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j, thickness: 1pt)
 		}
 	}
 }))
@@ -295,7 +302,7 @@ See the `marks` argument of #link(label("conn()"))[`conn()`] for details.
 === CeTZ integration
 
 Currently, only straight and arc connectors are supported.
-However, an escape hatch is provided with the `render` argument of #link(label("arrow-diagram()"))[`arrow-diagram()`] so you can intercept diagram data and draw things using CeTZ directly.
+However, an escape hatch is provided with the `render` argument of #fn-link("arrow-diagram()") so you can intercept diagram data and draw things using CeTZ directly.
 
 Here is an example of how you might hack together a Bézier connector using the same node anchoring and arrow head functions that this package provides:
 
@@ -303,11 +310,11 @@ Here is an example of how you might hack together a Bézier connector using the 
 #arrow-diagram(
 	node((0,0), $A$),
 	node((2,1), [Bézier]),
-	render: (grid, nodes, conns, options) => {
+	render: (grid, nodes, edges, options) => {
 		// cetz is also exported as fletcher.cetz
 		cetz.canvas({
 			// this is the default code to render the diagram
-			fletcher.draw-diagram(grid, nodes, conns, options)
+			fletcher.draw-diagram(grid, nodes, edges, options)
 
 			// retrieve node data by coordinates
 			let n1 = fletcher.find-node-at(nodes, (0,0))
@@ -346,9 +353,9 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 				spacing: (10mm, 9mm),
 				node-defocus: d,
 				node((0,1), $A times B times C$),
-				conn((-1,0), (0,1)),
-				conn((+1,0), (0,1)),
-				conn((0,-1), (0,1)),
+				edge((-1,0), (0,1)),
+				edge((+1,0), (0,1)),
+				edge((0,-1), (0,1)),
 			)
 		)
 	})

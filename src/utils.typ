@@ -99,8 +99,8 @@
 ///
 /// #arrow-diagram(spacing: 2cm, {
 ///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {
-///         conn((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
-///         conn((2*i, 0), (2*i + 1, 0), [#θ], label-side: center, dash:
+///         edge((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
+///         edge((2*i, 0), (2*i + 1, 0), [#θ], label-side: center, dash:
 ///         "dotted")
 ///     }
 /// })
