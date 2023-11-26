@@ -59,8 +59,8 @@
 #let CONN_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
-	"double": (extrude: (-1.3, +1.3), marks-scale: 120%),
-	"triple": (extrude: (-2.5, 0, +2.5), marks-scale: 150%),
+	"double": (extrude: (-1.3, +1.3), mark-scale: 120%),
+	"triple": (extrude: (-2.5, 0, +2.5), mark-scale: 150%),
 	"crossing": (crossing: true),
 )
 
@@ -245,7 +245,7 @@
 ///  	)).join()
 /// )
 ///
-/// - marks-scale (percent):
+/// - mark-scale (percent):
 /// Scale factor for connector marks or arrow heads. This defaults to `100%` for
 /// single lines, `120%` for double lines and `150%` for triple lines. Does not
 /// affect the stroke thickness of the mark.
@@ -331,7 +331,7 @@
 	bend: 0deg,
 	corner: none,
 	marks: (none, none),
-	marks-scale: 100%,
+	mark-scale: auto,
 	extrude: (0,),
 	crossing: false,
 	crossing-thickness: auto,
@@ -351,7 +351,7 @@
 		bend: bend,
 		corner: corner,
 		marks: marks,
-		marks-scale: marks-scale,
+		mark-scale: mark-scale,
 		extrude: extrude,
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
@@ -362,14 +362,8 @@
 	if type(options.marks) == str {
 		options += parse-arrow-shorthand(options.marks)
 	}
-	options.marks = options.marks
-		.map(interpret-mark)
-		.map(mark => {
-			if mark != none {
-				mark.size *= options.marks-scale/100%
-			}
-			mark
-		})
+
+	options.marks = options.marks.map(interpret-mark)
 
 
 	let stroke = (
@@ -398,6 +392,7 @@
 		corner: options.corner,
 		stroke: stroke,
 		marks: options.marks,
+		mark-scale: options.mark-scale,
 		extrude: options.extrude,
 		is-crossing-background: false,
 		crossing-thickness: crossing-thickness,
@@ -435,6 +430,7 @@
 		if edge.crossing-fill == auto { edge.crossing-fill = options.crossing-fill }
 		if edge.crossing-thickness == auto { edge.crossing-thickness = options.crossing-thickness }
 		if edge.label-sep == auto { edge.label-sep = options.label-sep }
+
 		if edge.is-crossing-background {
 			edge.stroke = (
 				thickness: edge.crossing-thickness*edge.stroke.thickness,
@@ -450,6 +446,15 @@
 			else if edge.bend != 0deg { edge.kind = "arc" }
 			else { edge.kind = "line" }
 		}
+
+		if edge.mark-scale == auto { edge.mark-scale = options.mark-scale }
+
+		edge.marks = edge.marks.map(mark => {
+			if mark != none {
+				mark.size *= options.mark-scale/100%
+			}
+			mark
+		})
 
 		edge
 	}),
@@ -530,8 +535,9 @@
 	node-stroke: none,
 	node-fill: none,
 	node-defocus: 0.2,
-	label-sep: 0.4em,
+	label-sep: 0.2em,
 	edge-thickness: 0.6pt,
+	mark-scale: 100%,
 	crossing-fill: white,
 	crossing-thickness: 3,
 	render: (grid, nodes, edges, options) => {
@@ -558,6 +564,7 @@
 		label-sep: label-sep,
 		cell-size: cell-size,
 		edge-thickness: edge-thickness,
+		mark-scale: mark-scale,
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,
 	)

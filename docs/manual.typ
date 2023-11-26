@@ -82,7 +82,7 @@
 	inset: 10pt,
 
 	..code-example(```typ
-	#arrow-diagram(cell-size: 15mm, {
+	#arrow-diagram({
 		let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 		node(src, $G$)
 		node(img, $im f$)
@@ -94,7 +94,7 @@
 	```),
 
 	..code-example(```typ
-	An equation $f: A -> B$, and \
+	An equation $f: A -> B$ and \
 	a diagram #arrow-diagram(
 		node-inset: 4pt,
 		node((0,0), $A$),
@@ -113,28 +113,43 @@
 		edge((.5,+.21), (.5,-.21), $alpha$, "=>"),
 	)
 	```),
+
+	..code-example(```typ
+	#arrow-diagram(
+		spacing: (8mm, 3mm), // wide columns, narrow rows
+		node-stroke: 1pt,    // outline node shapes
+		edge-thickness: 1pt, // thickness of lines
+		mark-scale: 60%,     // make arrowheads smaller
+		edge((-2,0), (-1,0)),
+		edge((-1,0), (0,+1), $f$, "..>", corner: left),
+		edge((-1,0), (0,-1), $g$, "->", corner: right),
+		node((0,+1), $F(s)$),
+		node((0,-1), $G(s)$),
+		edge((0,+1), (1,0), "..>", corner: left),
+		edge((0,-1), (1,0), "->", corner: right),
+		node((1,0), $ + $, inset: 1pt),
+		edge((1,0), (2,0), "->"),
+	)
+	```),
+
+	..code-example(```typ
+	#arrow-diagram(
+		node-stroke: black + 0.5pt,
+		node-fill: blue.lighten(90%),
+		node-outset: 4pt,
+		spacing: (15mm, 8mm),
+		node((0,0), [1]),
+		node((1,0), [2]),
+		node((2,1), [3a]),
+		node((2,-1), [3b]),
+		edge((0,0), (1,0), "->"),
+		edge((1,0), (2,+1), "->", bend: -15deg),
+		edge((1,0), (2,-1), "->", bend: +15deg),
+		edge((2,-1), (2,-1), "->", bend: +130deg, label: "loop!"),
+	)
+	```)
 )
 
-// #grid(
-// 	spacing: 2em,
-// 	columns: (1fr, 1fr),
-// 	..(
-// 		arrow-diagram(
-// 			// debug: 3,
-// 			spacing: 5em,
-// 			node((0,0), $S a$),
-// 			node((0,1), $T b$),
-// 			node((1,0), $S a'$),
-// 			node((1,1), $T b'$),
-// 			edge((0,0), (0,1), $f$, "hook->>", label-side: left),
-// 			edge((1,0), (1,1), $f'$, "<-|", label-anchor: "center", label-sep: 0pt),
-// 			edge((0,0), (1,0), $α$, extrude: (-4,0,4), label-side: right),
-// 			edge((0,1), (1,1), $γ$, bend: 20deg, "->"),
-// 			edge((0,1), (1,1), $β$, bend: -20deg, "->"),
-// 		),
-
-// 	).map(x => align(center, x))
-// )
 
 $
 #arrow-diagram(
@@ -180,20 +195,7 @@ $
 	edge(proj((1,0,1)), (2, 0.8), dash: "dotted")
 	node((2, 0.8), "fractional coords")
 })
-#arrow-diagram(
-	node-stroke: black + 0.5pt,
-	node-fill: blue.lighten(90%),
-	spacing: (15mm, 8mm),
-	node((0,0), [1]),
-	node((1,0), [2], shape: "circle"),
-	node((2,1), [3], shape: "circle"),
-	node((2,-1), [3'], shape: "circle"),
-	edge((0,0), (1,0), "->"),
-	edge((1,0), (2,+1), "->", bend: -15deg),
-	edge((1,0), (2,-1), "->", bend: +15deg),
-	edge((2,-1), (2,-1), "->", bend: +130deg),
 
-)
 
 
 #set raw(lang: "typc")
