@@ -29,6 +29,7 @@ arrow-diagram(cell-size: 15mm, crossing-fill: none, {
 arrow-diagram(
 	node-stroke: c,
 	node-fill: rgb("aafa"),
+	node-outset: 2pt,
 	node((0,0), `typst`),
 	node((1,0), "A"),
 	node((2,0), "B", stroke: c + 2pt),
