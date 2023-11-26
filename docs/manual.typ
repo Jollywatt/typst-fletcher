@@ -392,8 +392,26 @@ See the `marks` argument of #fn-link("edge()") for details.
 	}
 }))
 
-=== CeTZ integration
+Most marks have some parameters like size or sharpness angle that you can customize. This isn't a stable feature, but here's something to get you started:
 
+#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+#fletcher.diagram(
+	edge-thickness: 1.5pt,
+	spacing: (4cm, 1cm),
+	{
+		let custom-head = ( // sharper arrow head
+			kind: "head",
+			sharpness: 10deg,
+			size: 70,
+			delta: 10deg,
+		)
+		edge((0,1), (1,1), marks: (custom-head, custom-head + (sharpness: 20deg)))
+		edge((0,0), (1,0), marks: ("bar", (kind: "bar", size: 2))) // smaller bar
+	},
+)
+```))
+
+=== CeTZ integration
 Currently, only straight and arc connectors are supported.
 However, an escape hatch is provided with the `render` argument of #fn-link("diagram()") so you can intercept diagram data and draw things using CeTZ directly.
 

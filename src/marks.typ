@@ -26,9 +26,9 @@
 	if mark.kind in ("head", "harpoon", "tail") {
 		round-style + mark
 	} else if mark.kind == "twohead" {
-		round-style + (kind: "head", extrude: (0, -3))
+		round-style + mark + (kind: "head", extrude: (0, -3))
 	} else if mark.kind == "twotail" {
-		round-style + (kind: "tail", extrude: (0, +3))
+		round-style + mark + (kind: "tail", extrude: (0, +3))
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
 	} else if mark.kind in ("hook", "hooks") {
@@ -125,7 +125,7 @@
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "hook'"))
 
 	} else if mark.kind == "bar" {
-		let v = vector-polar(4.5*stroke.thickness, θ + 90deg)
+		let v = vector-polar(mark.size*stroke.thickness, θ + 90deg)
 		cetz.draw.line(
 			(to: p, rel: v),
 			(to: p, rel: vector.scale(v, -1)),
