@@ -331,7 +331,7 @@
 	bend: 0deg,
 	corner: none,
 	marks: (none, none),
-	mark-scale: auto,
+	mark-scale: 100%,
 	extrude: (0,),
 	crossing: false,
 	crossing-thickness: auto,
@@ -447,11 +447,11 @@
 			else { edge.kind = "line" }
 		}
 
-		if edge.mark-scale == auto { edge.mark-scale = options.mark-scale }
+		edge.mark-scale *= options.mark-scale
 
 		edge.marks = edge.marks.map(mark => {
 			if mark != none {
-				mark.size *= options.mark-scale/100%
+				mark.size *= edge.mark-scale/100%
 			}
 			mark
 		})

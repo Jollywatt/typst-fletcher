@@ -161,50 +161,131 @@
 )
 
 
-$
-#fletcher.diagram(
-	cell-size: 1cm,
-	node-inset: 1.5em,
-	spacing: 17mm,
-	debug: 0,
-	node-defocus: 0.1,
-	node((0,2), $pi_1(X sect Y)$),
-	node((0,1), $pi_1(X)$),
-	node((1,2), $pi_1(Y)$),
-	node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-	edge((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
-	edge((0,2), (1,2), $i_1$, "hook->"),
-	edge((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
-	edge((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
-	edge((0,1), (1,1), "hook->>", dash: "dashed"),
-	edge((1,2), (1,1), "|->"),
-	node((2,0), $pi_1(X union Y)$),
-	edge((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
-)
-$
+#align(center)[
 
-#fletcher.diagram(
-	cell-size: 3cm,
-	node-defocus: 0,
-	node-inset: 10pt,
-{
-	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
-	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
-	for i in range(8) {
-		let to = cube-vertices.at(i)
-		node(proj(to), [#to])
-		for j in range(i) {
-			let from = cube-vertices.at(j)
-			// test for adjancency
-			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-				edge(proj(from), proj(to), "->", crossing: to.at(2) == 0)
-			}
-		}
-	}
-	edge(proj((1,1,1)), (2, 0.8), dash: "dotted")
-	edge(proj((1,0,1)), (2, 0.8), dash: "dotted")
-	node((2, 0.8), "fractional coords")
-})
+
+	#fletcher.diagram(
+		// node-stroke: 1pt ,
+		node-fill: luma(90%),
+		node((0,0), "edge types"),
+		edge((0,0), (1,1), [arc], "..>", bend: +60deg),
+		edge((0,0), (1,0), [line], "-->"),
+		edge((0,0), (1,-1), [corner], "->", corner: right),
+	)
+
+	#v(1fr)
+
+	#fletcher.diagram(
+		cell-size: 1cm,
+		node-inset: 1.5em,
+		spacing: 20mm,
+		debug: 0,
+		node-defocus: 0.1,
+		node((0,2), $pi_1(X sect Y)$),
+		node((0,1), $pi_1(X)$),
+		node((1,2), $pi_1(Y)$),
+		node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
+		edge((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
+		edge((0,2), (1,2), $i_1$, "hook->"),
+		edge((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
+		edge((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
+		edge((0,1), (1,1), "hook->>", dash: "dashed"),
+		edge((1,2), (1,1), "|->"),
+		node((2,0), $pi_1(X union Y)$),
+		edge((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
+	)
+
+	#v(1fr)
+
+	// #fletcher.diagram(
+	// 	cell-size: 3cm,
+	// 	node-defocus: 0,
+	// 	node-inset: 10pt,
+	// {
+	// 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
+	// 	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
+	// 	for i in range(8) {
+	// 		let to = cube-vertices.at(i)
+	// 		node(proj(to), [#to])
+	// 		for j in range(i) {
+	// 			let from = cube-vertices.at(j)
+	// 			// test for adjancency
+	// 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
+	// 				edge(proj(from), proj(to), "->", crossing: to.at(2) == 0)
+	// 			}
+	// 		}
+	// 	}
+	// 	edge(proj((1,1,1)), (2, 0.8), dash: "dotted")
+	// 	edge(proj((1,0,1)), (2, 0.8), dash: "dotted")
+	// 	node((2, 0.8), "fractional coords")
+	// })
+
+	// #v(1fr)
+
+
+	#let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
+	#fletcher.diagram(
+	  spacing: 4cm,
+	  node-defocus: 0,
+	  {
+
+	  let v000 = c(0, 0, 0)
+
+	  node(v000, $P$)
+	  node(c(1,0,0), $P$)
+	  node(c(2,0,0), $X$)
+	  node(c(0,1,0), $J P$)
+	  node(c(1,1,0), $J P$)
+	  node(c(2,1,0), $"CP"$)
+	  
+	  node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
+	  node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
+	  node(c(2,0,1), $T X times.circle T^* X$)
+	  node(c(0,1,1), $T P times.circle pi^* T^* X$)
+	  node(c(1,1,1), $T P times.circle pi^* T^* X$)
+	  node(c(2,1,1), $T_G P times.circle T^* X$)
+	  
+
+	  // aways
+	  edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
+	  edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
+	  edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
+	  
+	  edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
+	  edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
+	  edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
+	  
+	  // downs
+	  edge(c(0,1,0), v000, $pi_J$, "==>", label-pos: 0.2)
+	  edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
+	  edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
+	  
+	  edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
+	  edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
+	  edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "->", label-pos: 0.2)
+	  
+	  // acrosses
+	  edge(v000, c(1,0,0), $lambda_g$, "->")
+	  edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
+	  
+	  edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
+	  edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
+	  
+	  edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
+	  
+	  edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
+	  edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
+
+	  edge(c(1,1,1), c(2,1,1), $Ω$, "<..>", bend: 60deg)
+	})
+
+	#v(1fr)
+
+
+
+]
+
+
 
 
 
