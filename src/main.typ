@@ -43,7 +43,7 @@
 
 	if type(label) == content and label.func() == circle { panic(label) }
 	((
-		kind: "node",
+		class: "node",
 		pos: pos,
 		label: label,
 		inset: inset,
@@ -327,7 +327,9 @@
 	paint: black,
 	thickness: auto,
 	dash: none,
+	kind: auto,
 	bend: 0deg,
+	corner: none,
 	marks: (none, none),
 	marks-scale: 100%,
 	extrude: (0,),
@@ -345,7 +347,9 @@
 		paint: paint,
 		thickness: thickness,
 		dash: dash,
+		kind: kind,
 		bend: bend,
+		corner: corner,
 		marks: marks,
 		marks-scale: marks-scale,
 		extrude: extrude,
@@ -381,7 +385,7 @@
 	}
 
 	let obj = ( 
-		kind: "edge",
+		class: "edge",
 		points: (from, to),
 		label: options.label,
 		label-pos: options.label-pos,
@@ -389,7 +393,9 @@
 		label-anchor: options.label-anchor,
 		label-side: options.label-side,
 		paint: options.paint,
+		kind: options.kind,
 		bend: options.bend,
+		corner: options.corner,
 		stroke: stroke,
 		marks: options.marks,
 		extrude: options.extrude,
@@ -438,6 +444,13 @@
 			edge.marks = (none, none)
 			edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 		}
+
+		if edge.kind == auto {
+			if edge.corner != none { edge.kind = "corner" }
+			else if edge.bend != 0deg { edge.kind = "arc" }
+			else { edge.kind = "line" }
+		}
+
 		edge
 	}),
 
@@ -550,8 +563,8 @@
 	)
 
 	let positional-args = objects.pos().join()
-	let nodes = positional-args.filter(e => e.kind == "node")
-	let edges = positional-args.filter(e => e.kind == "edge")
+	let nodes = positional-args.filter(e => e.class == "node")
+	let edges = positional-args.filter(e => e.class == "edge")
 
 	box(style(styles => {
 

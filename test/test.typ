@@ -76,7 +76,7 @@ $
 	"|..|",
 	"hooks--hooks",
 	"o-O",
-	"o-O",
+	"o==O",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
 	&= #arrow-diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
@@ -243,3 +243,26 @@ Default placement above the line.
 	node((1,0), `there`, stroke: 1pt),
 	edge((0,0), (1,0), "<=>"),
 )
+
+
+= Corner edges
+
+#let around = (
+	(-1,+1), (+1,+1),
+	(-1,-1), (+1,-1),
+)
+
+#for dir in (left, right) {
+	pad(1mm, arrow-diagram(
+		// debug: 2,
+		spacing: 1cm,
+		node((0,0), [#dir]),
+		{
+			for c in around {
+				node(c, $#c$)
+				edge((0,0), c, $f$, "O=>", corner: dir, label-pos: 0.4)
+			}
+		}
+	))
+}
+
