@@ -14,7 +14,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 </picture>
 
 ```typ
-#arrow-diagram(cell-size: 15mm, {
+#fletcher.diagram(cell-size: 15mm, {
 	let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 	node(src, $G$)
 	node(img, $im f$)
@@ -24,7 +24,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 	edge(src, quo, $pi$, "->>")
 })
 
-#arrow-diagram(
+#fletcher.diagram(
 	node-stroke: black,
 	node-fill: blue.lighten(90%),
 	node((0,0), `typst`),

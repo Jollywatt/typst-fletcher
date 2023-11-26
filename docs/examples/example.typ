@@ -16,7 +16,7 @@
 	dir: ltr,
 	spacing: 1cm,
 
-arrow-diagram(cell-size: 15mm, crossing-fill: none, {
+fletcher.diagram(cell-size: 15mm, crossing-fill: none, {
 	let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 	node(src, $G$)
 	node(img, $im f$)
@@ -26,7 +26,7 @@ arrow-diagram(cell-size: 15mm, crossing-fill: none, {
 	edge(src, quo, $pi$, "->>")
 }),
 
-arrow-diagram(
+fletcher.diagram(
 	node-stroke: c,
 	node-fill: rgb("aafa"),
 	node-outset: 2pt,

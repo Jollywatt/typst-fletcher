@@ -10,25 +10,25 @@
 ///  where `x` is the column and `y` is the row (increasing upwards). The
 ///  coordinates are usually integers, but can be fractional.
 ///
-///  See the `arrow-diagram()` options to control the physical scale of elastic
+///  See the `fletcher.diagram()` options to control the physical scale of elastic
 ///  coordinates.
 ///
 /// - label (content): Node content to display.
 /// - inset (length, auto): Padding between the node's content and its bounding
 ///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
-///  `arrow-diagram()`.
+///  `fletcher.diagram()`.
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///  points for connecting edges.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
 /// - stroke (stroke): Stroke of the node. Defaults to the `node-stroke` option
-///  of `arrow-diagram()`.
+///  of `fletcher.diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
-///  `arrow-diagram()`.
+///  `fletcher.diagram()`.
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
 ///  incident with this node. If `auto`, defaults to the `node-defocus` option
-///  of `arrow-diagram()` .
+///  of `fletcher.diagram()` .
 #let node(
 	pos,
 	label,
@@ -158,7 +158,7 @@
 ///  #stack(
 ///  	dir: ltr,
 ///  	spacing: 1fr,
-///  	..(0, 0.25, 0.5, 0.75, 1).map(p => arrow-diagram(
+///  	..(0, 0.25, 0.5, 0.75, 1).map(p => fletcher.diagram(
 ///  		cell-size: 1cm,
 ///  		edge((0,0), (1,0), p, "->", label-pos: p))
 ///  	),
@@ -166,7 +166,7 @@
 /// - label-sep (number): Separation between the connector and the label anchor.
 ///  
 ///  With the default anchor (`"bottom"`):
-///  #arrow-diagram(
+///  #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
 ///  	{
@@ -176,7 +176,7 @@
 ///  })
 ///  
 ///  With `label-anchor: "center"`:
-///  #arrow-diagram(
+///  #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
 ///  	{
@@ -207,7 +207,7 @@
 /// - bend (angle): Curvature of the connector. If `0deg`, the connector is a
 ///  straight line; positive angles bend clockwise.
 /// 
-///  #arrow-diagram(debug: 0, {
+///  #fletcher.diagram(debug: 0, {
 ///  	node((0,0), $A$)
 ///  	node((1,1), $B$)
 ///  	let N = 4
@@ -239,7 +239,7 @@
 ///  		">-harpoon",
 ///  		">-harpoon'",
 /// 	).map(str => (
-///  		arrow-diagram(edge((0,0), (1,0), str)),
+///  		fletcher.diagram(edge((0,0), (1,0), str)),
 ///  		raw(str, lang: none),
 ///  		raw(repr(parse-arrow-shorthand(str))),
 ///  	)).join()
@@ -252,7 +252,7 @@
 ///
 /// #{
 /// 	set raw(lang: none)
-/// 	arrow-diagram(
+/// 	fletcher.diagram(
 /// 		edge-thickness: 1pt,
 /// 		edge((0,0), (1,0), `->`, "->"),
 /// 		edge((2,0), (3,0), `=>`, "=>"),
@@ -264,7 +264,7 @@
 ///  given multiple of the stroke thickness. Used to obtain doubling effect.
 ///  Best explained by example:
 ///
-///  #arrow-diagram({
+///  #fletcher.diagram({
 ///  	(
 ///  		(0,),
 ///  		(-1.5,+1.5),
@@ -284,7 +284,7 @@
 ///
 /// - crossing (bool): If `true`, draws a white backdrop to give the illusion of
 ///  lines crossing each other.
-///  #arrow-diagram({
+///  #fletcher.diagram({
 ///  	edge((0,1), (1,0), thickness: 1pt)
 ///  	edge((0,0), (1,1), thickness: 1pt)
 ///  	edge((2,1), (3,0), thickness: 1pt)
@@ -294,7 +294,7 @@
 /// - crossing-thickness (number): Thickness of the white "crossing" background
 ///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
 /// 
-///  #arrow-diagram({
+///  #fletcher.diagram({
 ///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
 ///  		edge((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
 ///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
@@ -303,13 +303,13 @@
 ///  })
 /// 
 /// - crossing-fill (paint): Color to use behind connectors or labels to give the illusion of crossing over other objects. Defaults to the `crossing-fill` option of
-///  `arrow-diagram()`.
+///  `fletcher.diagram()`.
 ///
 ///  #let cross(x, fill) = {
 ///  	edge((2*x + 0,1), (2*x + 1,0), thickness: 1pt)
 ///  	edge((2*x + 0,0), (2*x + 1,1), $f$, thickness: 1pt, crossing: true, crossing-fill: fill)
 ///  }
-///  #arrow-diagram(crossing-thickness: 5, {
+///  #fletcher.diagram(crossing-thickness: 5, {
 ///  	cross(0, white)
 ///  	cross(1, blue.lighten(50%))
 ///  	cross(2, luma(98%))
@@ -496,7 +496,7 @@
 ///  	dir: ltr,
 ///  	spacing: 1fr,
 ///  	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
-///  		arrow-diagram(spacing: 8mm, {
+///  		fletcher.diagram(spacing: 8mm, {
 ///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
 ///  			for y in (-1, +1) {
 ///   				edge((i - 1, y), (i, 0))
@@ -525,7 +525,7 @@
 ///
 ///  This callback is exposed so you can access the above data and draw things
 ///  directly with CeTZ.
-#let arrow-diagram(
+#let diagram(
 	..objects,
 	debug: false,
 	spacing: 3em,

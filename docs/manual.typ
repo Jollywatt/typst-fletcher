@@ -1,14 +1,16 @@
 #import "@preview/tidy:0.1.0"
-#import "/src/exports.typ": *
+#import "/src/exports.typ": fletcher, diagram, node, edge
 #import "/src/main.typ": parse-arrow-shorthand
 
 #set page(numbering: "1")
 #set par(justify: true)
 #show link: underline.with(stroke: blue.lighten(50%))
 
+#let VERSION = toml("/typst.toml").package.version
+
 #let scope = (
 	fletcher: fletcher,
-	arrow-diagram: arrow-diagram,
+	diagram: fletcher.diagram,
 	node: node,
 	edge: edge,
 	parse-arrow-shorthand: parse-arrow-shorthand,
@@ -31,7 +33,7 @@
 #v(.2fr)
 
 #align(center)[
-	#arrow-diagram(
+	#fletcher.diagram(
 		spacing: 2.3cm,
 		node((0,1), $A$),
 		node((1,1), $B$),
@@ -41,12 +43,18 @@
 	#text(2em, strong(`fletcher`)) \
 	_(noun) a maker of arrows_
 
-	A #link("https://typst.app/")[Typst] package for drawing commutative diagrams,
+	A #link("https://typst.app/")[Typst] package for diagrams full of arrows,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
+
+	#emph[
+	For commutative diagrams,
+	finite state machines,
+	control systems block diagrams...
+	]
 
 	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-	Version #toml("/typst.toml").package.version *(not yet stable)*
+	Version #VERSION *(not yet stable)*
 ]
 
 #v(1fr)
@@ -60,9 +68,11 @@
 #v(1fr)
 
 
-#show heading.where(level: 1): it => pagebreak(weak: true) + it
+#show heading.where(level: 1): it => pagebreak(weak: true) + it + v(0.5em)
 
 = Examples
+
+#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
 
 #let code-example(src) = (
 	{
@@ -82,7 +92,7 @@
 	inset: 10pt,
 
 	..code-example(```typ
-	#arrow-diagram({
+	#fletcher.diagram({
 		let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 		node(src, $G$)
 		node(img, $im f$)
@@ -95,7 +105,7 @@
 
 	..code-example(```typ
 	An equation $f: A -> B$ and \
-	a diagram #arrow-diagram(
+	a diagram #fletcher.diagram(
 		node-inset: 4pt,
 		node((0,0), $A$),
 		edge((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
@@ -104,7 +114,7 @@
 	```),
 
 	..code-example(```typ
-	#arrow-diagram(
+	#fletcher.diagram(
 		spacing: 2cm,
 		node((0,0), $cal(A)$),
 		node((1,0), $cal(B)$),
@@ -115,7 +125,7 @@
 	```),
 
 	..code-example(```typ
-	#arrow-diagram(
+	#fletcher.diagram(
 		spacing: (8mm, 3mm), // wide columns, narrow rows
 		node-stroke: 1pt,    // outline node shapes
 		edge-thickness: 1pt, // thickness of lines
@@ -133,7 +143,7 @@
 	```),
 
 	..code-example(```typ
-	#arrow-diagram(
+	#fletcher.diagram(
 		node-stroke: black + 0.5pt,
 		node-fill: blue.lighten(90%),
 		node-outset: 4pt,
@@ -152,7 +162,7 @@
 
 
 $
-#arrow-diagram(
+#fletcher.diagram(
 	cell-size: 1cm,
 	node-inset: 1.5em,
 	spacing: 17mm,
@@ -173,7 +183,7 @@ $
 )
 $
 
-#arrow-diagram(
+#fletcher.diagram(
 	cell-size: 3cm,
 	node-defocus: 0,
 	node-inset: 10pt,
@@ -213,7 +223,7 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 
 Diagrams are laid out on a flexible coordinate grid.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
-See the #fn-link("arrow-diagram()") parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
+See the #fn-link("diagram()") parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
 
 Elastic coordinates can be demonstrated more clearly with a debug grid and no spacing.
 
@@ -222,7 +232,7 @@ Elastic coordinates can be demonstrated more clearly with a debug grid and no sp
 	spacing: 1fr, 
 	..code-example(```typ
 	#let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
-	#arrow-diagram(
+	#fletcher.diagram(
 		debug: 1,
 		spacing: 0pt,
 		node-inset: 0pt,
@@ -246,7 +256,7 @@ As a result, diagrams are responsive to node sizes (like tables) while allowing 
 	dir: ltr,
 	spacing: 1fr,
 	..(0, .25, .5, .75, 1).map(t => {
-		arrow-diagram(
+		fletcher.diagram(
 			debug: 1,
 			spacing: 0mm,
 			node-inset: 0pt,
@@ -266,7 +276,7 @@ As a result, diagrams are responsive to node sizes (like tables) while allowing 
 Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding circle or rectangle. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```
-#arrow-diagram(spacing: (12mm, 6mm), {
+#fletcher.diagram(spacing: (12mm, 6mm), {
 		let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
 		node(abc, $A times B times C$)
 		node(a, $A$)
@@ -285,7 +295,7 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 A few mathematical arrow heads are supported, designed to match the symbols $arrow$, $arrow.double$, $arrow.twohead$, $arrow.hook$, $arrow.bar$, etc.
 See the `marks` argument of #fn-link("edge()") for details.
 
-#align(center, arrow-diagram(
+#align(center, fletcher.diagram(
 	debug: 0,
 	spacing: (15mm, 10mm),
 {
@@ -304,12 +314,12 @@ See the `marks` argument of #fn-link("edge()") for details.
 === CeTZ integration
 
 Currently, only straight and arc connectors are supported.
-However, an escape hatch is provided with the `render` argument of #fn-link("arrow-diagram()") so you can intercept diagram data and draw things using CeTZ directly.
+However, an escape hatch is provided with the `render` argument of #fn-link("diagram()") so you can intercept diagram data and draw things using CeTZ directly.
 
 Here is an example of how you might hack together a Bézier connector using the same node anchoring and arrow head functions that this package provides:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
-#arrow-diagram(
+#fletcher.diagram(
 	node((0,0), $A$),
 	node((2,1), [Bézier]),
 	render: (grid, nodes, edges, options) => {
@@ -351,7 +361,7 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 	..(("With", 0.2), ("Without", 0)).map(((with, d)) => {
 		figure(
 			caption: [#with defocus],
-			arrow-diagram(
+			fletcher.diagram(
 				spacing: (10mm, 9mm),
 				node-defocus: d,
 				node((0,1), $A times B times C$),
@@ -363,7 +373,7 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 	})
 ))
 
-See the `node-defocus` argument of #link(label("arrow-diagram()"))[`arrow-diagram()`] for details.
+See the `node-defocus` argument of #link(label("diagram()"))[`diagram()`] for details.
 
 = Function reference
 #show-module("/src/main.typ")

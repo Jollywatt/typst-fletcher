@@ -8,7 +8,7 @@
 = Arrow heads
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
-#arrow-diagram(
+#fletcher.diagram(
 	// debug: 1,
 	spacing: (10mm, 5mm),
 {
@@ -42,7 +42,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 = Double and triple lines
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [
-	Formula #arrow-diagram(
+	Formula #fletcher.diagram(
 		// node-inset: 5pt,
 		label-sep: 1pt + i*1pt,
 		node((0, -i), $A$),
@@ -79,14 +79,14 @@ $
 	"o==O",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #arrow-diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
+	&= #fletcher.diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
 }
 $
 
 = Connectors
 
 
-#arrow-diagram(
+#fletcher.diagram(
 	debug: 0,
 	cell-size: (10mm, 10mm),
 	node((0,1), $X$),
@@ -100,7 +100,7 @@ $
 
 = Arc connectors
 
-#arrow-diagram(
+#fletcher.diagram(
 	cell-size: 3cm,
 {
 	node((0,0), "from")
@@ -110,7 +110,7 @@ $
 	}
 })
 
-#arrow-diagram(
+#fletcher.diagram(
 	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
@@ -118,7 +118,7 @@ $
 )
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
-	arrow-diagram(debug: 0, {
+	fletcher.diagram(debug: 0, {
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
@@ -138,7 +138,7 @@ $
 	columns: 2,
 	..(-10, -1, -.25, 0, +.25, +1, +10).map(defocus => {
 		((7em, 3em), (3em, 7em)).map(((w, h)) => {
-			align(center + horizon, arrow-diagram(
+			align(center + horizon, fletcher.diagram(
 				node-defocus: defocus,
 				node-inset: 0pt,
 			{
@@ -154,7 +154,7 @@ $
 = Label placement
 Default placement above the line.
 
-#arrow-diagram(
+#fletcher.diagram(
 	// cell-size: (2.2cm, 2cm),
 	spacing: 2cm,
 	debug: 3,
@@ -164,7 +164,7 @@ Default placement above the line.
 	}
 })
 
-#arrow-diagram(spacing: 1.5cm, {
+#fletcher.diagram(spacing: 1.5cm, {
 	for (i, a) in (left, center, right).enumerate() {
 		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
 			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
@@ -175,7 +175,7 @@ Default placement above the line.
 
 = Crossing connectors
 
-#arrow-diagram({
+#fletcher.diagram({
 	edge((0,1), (1,0))
 	edge((0,0), (1,1), crossing: true)
 	edge((2,1), (3,0), "|-|", bend: -20deg)
@@ -185,7 +185,7 @@ Default placement above the line.
 
 = `edge()` argument shorthands
 
-#arrow-diagram(
+#fletcher.diagram(
 	edge((0,0), (1,1), "->", "double", bend: 45deg),
 	edge((1,0), (0,1), "->>", "crossing"),
 	edge((1,1), (2,1), $f$, "|->"),
@@ -195,7 +195,7 @@ Default placement above the line.
 
 = Diagram-level options
 
-#arrow-diagram(
+#fletcher.diagram(
 	node-stroke: black,
 	node-fill: green.lighten(80%),
 	label-sep: 0pt,
@@ -210,7 +210,7 @@ Default placement above the line.
 = CeTZ integration
 
 #import "/src/utils.typ": vector-polar
-#arrow-diagram(
+#fletcher.diagram(
 	node((0,0), $A$, stroke: 1pt),
 	node((2,1), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
@@ -235,7 +235,7 @@ Default placement above the line.
 
 = Node bounds
 
-#arrow-diagram(
+#fletcher.diagram(
 	debug: 2,
 	node-outset: 5pt,
 	node-inset: 5pt,
@@ -253,7 +253,7 @@ Default placement above the line.
 )
 
 #for dir in (left, right) {
-	pad(1mm, arrow-diagram(
+	pad(1mm, fletcher.diagram(
 		// debug: 2,
 		spacing: 1cm,
 		node((0,0), [#dir]),
