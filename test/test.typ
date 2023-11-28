@@ -24,6 +24,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("hook", "head")),
 			(marks: ("hook", "hook'")),
 			(marks: ("bar", "bar")),
+			(marks: ("twobar", "twobar")),
 			(marks: (none, none), extrude: (2.5,0,-2.5)),
 			(marks: ("head", "head"), extrude: (1.5,-1.5)),
 			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
@@ -31,6 +32,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
 			(marks: ("circle", "bigcircle")),
 			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
+			(marks: ("solidtail", "solidhead")),
 		).enumerate().map(((i, args)) => {
 			edge((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()
@@ -42,13 +44,13 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 = Double and triple lines
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [
-	Formula #fletcher.diagram(
+	Diagram #fletcher.diagram(
 		// node-inset: 5pt,
 		label-sep: 1pt + i*1pt,
 		node((0, -i), $A$),
 		edge((0, -i), (1, -i), text(0.6em, $f$), a),
 		node((1, -i), $B$),
-	). \
+	) and equation #($A -> B$, $A => B$, $A arrow.triple B$).at(i). \
 ]
 
 = Arrow head shorthands
@@ -77,6 +79,9 @@ $
 	"hooks--hooks",
 	"o-O",
 	"o==O",
+	"||->>",
+	"<|-|>",
+	"|>-<|",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
 	&= #fletcher.diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
@@ -203,8 +208,8 @@ Default placement above the line.
 	node((1,1), $sin compose cos compose tan$, fill: none),
 	node((2,0), $C$),
 	node((3,0), $D$, shape: "rect"),
-	edge((0,0), (1,1), $sigma$, "->", bend: -45deg),
-	edge((2,0), (1,1), $f$, "<-"),
+	edge((0,0), (1,1), $sigma$, "-|>", bend: -45deg),
+	edge((2,0), (1,1), $f$, "<|-"),
 )
 
 = CeTZ integration

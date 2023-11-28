@@ -3,6 +3,8 @@
 #import calc: sqrt, abs, sin, cos, max, pow
 
 
+/// Take a string or dictionary specifying a mark and return a dictionary,
+/// adding defaults for any necessary missing parameters.
 #let interpret-mark(mark) = {
 	if mark == none { return none }
 
@@ -26,9 +28,11 @@
 	if mark.kind in ("head", "harpoon", "tail") {
 		round-style + mark
 	} else if mark.kind == "twohead" {
-		round-style + mark + (kind: "head", extrude: (0, -3))
+		round-style + mark + (kind: "head", extrude: (-3, 0))
 	} else if mark.kind == "twotail" {
-		round-style + mark + (kind: "tail", extrude: (0, +3))
+		round-style + mark + (kind: "tail", extrude: (-3, 0))
+	} else if mark.kind == "twobar" {
+		(size: 4.5) + mark + (kind: "bar", extrude: (-3, 0))
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
 	} else if mark.kind in ("hook", "hooks") {
@@ -37,6 +41,8 @@
 		(size: 2) + mark
 	} else if mark.kind == "bigcircle" {
 		(size: 4) + mark + (kind: "circle")
+	} else if mark.kind in ("solidhead", "solidtail") {
+		(size: 10, sharpness: 19deg) + mark
 	} else {
 		panic("Cannot interpret mark: " + mark.kind)
 	}
@@ -66,6 +72,10 @@
 	else if mark.kind == "circle" {
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
+	} else if mark.kind == "solidhead" {
+		-mark.size*cos(mark.sharpness)
+	} else if mark.kind == "solidtail" {
+		-1
 	} else { 0 }
 }
 
@@ -73,19 +83,20 @@
 #let draw-arrow-cap(p, θ, stroke, mark) = {
 	mark = interpret-mark(mark)
 
-	let shift(p, x) = cetz.vector.add(
-		p,
-		vector-polar(stroke.thickness*x, θ)
-	)
+	let shift(p, x) = vector.add(p, vector-polar(stroke.thickness*x, θ))
 
+	// extrude draws multiple copies of the mark
+	// at shifted positions
 	if "extrude" in mark {
-		return mark.extrude.map(e => {
+		for x in mark.extrude {
 			let mark = mark
 			let _ = mark.remove("extrude")
-			mark.shift = e
-			draw-arrow-cap(p, θ, stroke, mark)
-		}).join()
+			draw-arrow-cap(shift(p, x), θ, stroke, mark)
+		}
+		return
 	}
+
+	let stroke = (thickness: stroke.thickness, paint: stroke.paint, cap: "round")
 
 
 	if mark.kind == "harpoon" {
@@ -94,11 +105,10 @@
 			radius: mark.size*stroke.thickness,
 			start: θ + mark.flip*(90deg + mark.sharpness),
 			delta: mark.flip*mark.delta,
-			stroke: (thickness: stroke.thickness, paint: stroke.paint, cap: "round"),
+			stroke: stroke,
 		)
 
 	} else if mark.kind == "head" {
-		if "shift" in mark { p = shift(p, mark.shift) }
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon"))
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
 
@@ -113,11 +123,7 @@
 			radius: mark.size*stroke.thickness,
 			start: θ + mark.flip*90deg,
 			delta: -mark.flip*180deg,
-			stroke: (
-				thickness: stroke.thickness,
-				paint: stroke.paint,
-				cap: "round",
-			),
+			stroke: stroke,
 		)
 
 	} else if mark.kind == "hooks" {
@@ -129,11 +135,7 @@
 		cetz.draw.line(
 			(to: p, rel: v),
 			(to: p, rel: vector.scale(v, -1)),
-			stroke: (
-				paint: stroke.paint,
-				thickness: stroke.thickness,
-				cap: "round",
-			),
+			stroke: stroke,
 		)
 
 	} else if mark.kind == "circle" {
@@ -141,11 +143,23 @@
 		cetz.draw.circle(
 			p,
 			radius: mark.size*stroke.thickness,
-			stroke: (
-				thickness: stroke.thickness,
-				paint: stroke.paint,
-			),
+			stroke: stroke,
 		)
+
+	} else if mark.kind == "solidhead" {
+		cetz.draw.line(
+			p,
+			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),
+			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ - mark.sharpness)),
+			fill: stroke.paint,
+			stroke: none,
+		)
+
+	} else if mark.kind == "solidtail" {
+		mark +=  (kind: "solidhead")
+		p = shift(p, cap-offset(mark, 0))
+		draw-arrow-cap(p, θ + 180deg, stroke, mark)
+
 
 	} else {
 		panic("unknown mark kind:", mark)

@@ -56,7 +56,7 @@
 }
 
 
-#let CONN_ARGUMENT_SHORTHANDS = (
+#let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
 	"double": (extrude: (-1.3, +1.3), mark-scale: 120%),
@@ -73,22 +73,25 @@
 
 	let pos = args.pos()
 
+	// interpret first non-string argument as the label
 	if pos.len() >= 1 and type(pos.at(0)) != str {
 		named-args.label = pos.remove(0)
 	}
 
+	// interpret a string that's not an argument shorthand as
+	// a marks/arrowhead shorthand
 	if (pos.len() >= 1 and type(pos.at(0)) == str and
-		pos.at(0) not in CONN_ARGUMENT_SHORTHANDS) {
+		pos.at(0) not in EDGE_ARGUMENT_SHORTHANDS) {
 		named-args.marks = pos.remove(0)
 	}
 
 	for arg in pos {
-		if type(arg) == str and arg in CONN_ARGUMENT_SHORTHANDS {
-			named-args += CONN_ARGUMENT_SHORTHANDS.at(arg)
+		if type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS {
+			named-args += EDGE_ARGUMENT_SHORTHANDS.at(arg)
 		} else {
 			panic(
 				"Unrecognised argument " + repr(arg) + ". Must be one of:",
-				CONN_ARGUMENT_SHORTHANDS.keys(),
+				EDGE_ARGUMENT_SHORTHANDS.keys(),
 			)
 		}
 	}
@@ -104,23 +107,26 @@
 		">>": ("twotail", "twohead"),
 		"<": ("head", "tail"),
 		"<<": ("twohead", "twotail"),
+		"|>": ("solidtail", "solidhead"),
+		"<|": ("solidhead", "solidtail"),
 		"|": ("bar", "bar"),
+		"||": ("twobar", "twobar"),
 		"o": ("circle", "circle"),
 		"O": ("bigcircle", "bigcircle"),
 	)
 	let lines = (
 		"-": (:),
-		"=": CONN_ARGUMENT_SHORTHANDS.double,
-		"==": CONN_ARGUMENT_SHORTHANDS.triple,
-		"--": CONN_ARGUMENT_SHORTHANDS.dashed,
-		"..": CONN_ARGUMENT_SHORTHANDS.dotted,
+		"=": EDGE_ARGUMENT_SHORTHANDS.double,
+		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
+		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
+		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
 	)
 
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\||o|O)"
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|o|O|<\||\|>)"
 	let line-selector = "(-|=|--|==|::|\.\.)"
 	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
 	if match == none {
-		panic("Failed to parse", str)
+		panic("Failed to parse '" + str + "' as a edge style shorthand.")
 	}
 	let (from, line, to) = match.captures
 	(
