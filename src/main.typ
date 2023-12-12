@@ -56,19 +56,12 @@
 }
 
 
-#let EDGE_ARGUMENT_SHORTHANDS = (
-	"dashed": (dash: "dashed"),
-	"dotted": (dash: "dotted"),
-	"double": (extrude: (-1.3, +1.3), mark-scale: 120%),
-	"triple": (extrude: (-2.5, 0, +2.5), mark-scale: 150%),
-	"crossing": (crossing: true),
-)
 
 #let interpret-edge-args(args) = {
 	let named-args = (:)
 
 	if args.named().len() > 0 {
-		panic("Unexpected named argument(s):", ..args.named().keys())
+		panic("Unexpected named argument(s):", args)
 	}
 
 	let pos = args.pos()
@@ -99,46 +92,6 @@
 	named-args
 
 }
-
-#let parse-arrow-shorthand(str) = {
-	let caps = (
-		"": (none, none),
-		">": ("tail", "head"),
-		">>": ("twotail", "twohead"),
-		"<": ("head", "tail"),
-		"<<": ("twohead", "twotail"),
-		"|>": ("solidtail", "solidhead"),
-		"<|": ("solidhead", "solidtail"),
-		"|": ("bar", "bar"),
-		"||": ("twobar", "twobar"),
-		"o": ("circle", "circle"),
-		"O": ("bigcircle", "bigcircle"),
-	)
-	let lines = (
-		"-": (:),
-		"=": EDGE_ARGUMENT_SHORTHANDS.double,
-		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
-	)
-
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|o|O|<\||\|>)"
-	let line-selector = "(-|=|--|==|::|\.\.)"
-	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
-	if match == none {
-		panic("Failed to parse '" + str + "' as a edge style shorthand.")
-	}
-	let (from, line, to) = match.captures
-	(
-		marks: (
-			if from in caps { caps.at(from).at(0) } else { from },
-			if to in caps { caps.at(to).at(1) } else { to },
-		),
-		..lines.at(line),
-	)
-}
-
-
 
 /// Draw a connecting line or arc in an arrow diagram.
 ///
@@ -423,52 +376,61 @@
 }
 
 
-#let apply-defaults(nodes, edges, options) = (
+#let apply-defaults(nodes, edges, options) = {
+	let to-pt(len) = len.abs + len.em*options.em-size
 
-	nodes: nodes.map(node => {
-		if node.stroke == auto {node.stroke = options.node-stroke }
-		if node.fill == auto { node.fill = options.node-fill }
-		if node.inset == auto { node.inset = options.node-inset }
-		if node.outset == auto { node.outset = options.node-outset }
-		if node.defocus == auto { node.defocus = options.node-defocus }
-		node
-	}),
+	(
+		nodes: nodes.map(node => {
+			if node.stroke == auto {node.stroke = options.node-stroke }
+			if node.fill == auto { node.fill = options.node-fill }
+			if node.inset == auto { node.inset = options.node-inset }
+			if node.outset == auto { node.outset = options.node-outset }
+			if node.defocus == auto { node.defocus = options.node-defocus }
 
-	edges: edges.map(edge => {
-		if edge.stroke.thickness == auto { edge.stroke.thickness = options.edge-thickness }
-		if edge.crossing-fill == auto { edge.crossing-fill = options.crossing-fill }
-		if edge.crossing-thickness == auto { edge.crossing-thickness = options.crossing-thickness }
-		if edge.label-sep == auto { edge.label-sep = options.label-sep }
+			node.inset = to-pt(node.inset)
+			node.outset = to-pt(node.outset)
 
-		if edge.is-crossing-background {
-			edge.stroke = (
-				thickness: edge.crossing-thickness*edge.stroke.thickness,
-				paint: edge.crossing-fill,
-				cap: "round",
-			)
-			edge.marks = (none, none)
-			edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
-		}
+			node
+		}),
 
-		if edge.kind == auto {
-			if edge.corner != none { edge.kind = "corner" }
-			else if edge.bend != 0deg { edge.kind = "arc" }
-			else { edge.kind = "line" }
-		}
+		edges: edges.map(edge => {
+			if edge.stroke.thickness == auto { edge.stroke.thickness = options.edge-thickness }
+			if edge.crossing-fill == auto { edge.crossing-fill = options.crossing-fill }
+			if edge.crossing-thickness == auto { edge.crossing-thickness = options.crossing-thickness }
+			if edge.label-sep == auto { edge.label-sep = options.label-sep }
 
-		edge.mark-scale *= options.mark-scale
-
-		edge.marks = edge.marks.map(mark => {
-			if mark != none {
-				mark.size *= edge.mark-scale/100%
+			if edge.is-crossing-background {
+				edge.stroke = (
+					thickness: edge.crossing-thickness*edge.stroke.thickness,
+					paint: edge.crossing-fill,
+					cap: "round",
+				)
+				edge.marks = (none, none)
+				edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 			}
-			mark
-		})
 
-		edge
-	}),
+			if edge.kind == auto {
+				if edge.corner != none { edge.kind = "corner" }
+				else if edge.bend != 0deg { edge.kind = "arc" }
+				else { edge.kind = "line" }
+			}
 
-)
+			edge.mark-scale *= options.mark-scale
+
+			edge.marks = edge.marks.map(mark => {
+				if mark != none {
+					mark.size *= edge.mark-scale/100%
+				}
+				mark
+			})
+
+			edge.stroke.thickness = to-pt(edge.stroke.thickness)
+			edge.label-sep = to-pt(edge.label-sep)
+
+			edge
+		}),
+	)
+}
 
 
 /// Draw an arrow diagram.
@@ -476,8 +438,8 @@
 /// - ..objects (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
 /// 
-///  Note the results of `node()` and `edge()` can be joined, so you can mix the
-///  following styles:
+///  The results of `node()` and `edge()` can be joined, meaning you can specify
+///  them as separate arguments, or in a block:
 ///
 ///  ```typ
 ///  #fletcher.diagram(
@@ -508,6 +470,8 @@
 ///
 /// - node-inset (length, pair of lengths): Default padding between a node's
 ///  content and its bounding box.
+/// - node-outset (length, pair of lengths): Default padding between a node's
+///  boundary and where edges terminate.
 /// - node-stroke (stroke): Default stroke for all nodes in diagram. Overridden
 ///  by individual node options.
 /// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
@@ -562,7 +526,7 @@
 	node-fill: none,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
-	edge-thickness: 0.6pt,
+	edge-thickness: 0.048em,
 	mark-scale: 100%,
 	crossing-fill: white,
 	crossing-thickness: 3,

@@ -3,6 +3,66 @@
 #import calc: sqrt, abs, sin, cos, max, pow
 
 
+#let EDGE_ARGUMENT_SHORTHANDS = (
+	"dashed": (dash: "dashed"),
+	"dotted": (dash: "dotted"),
+	"double": (extrude: (-2, +2), mark-scale: 110%, mark-variant: 2),
+	"triple": (extrude: (-4, 0, +4), mark-scale: 150%, mark-variant: 3),
+	"crossing": (crossing: true),
+)
+
+
+#let parse-arrow-shorthand(str) = {
+	let caps = (
+		"": (none, none),
+		">": ("tail", "head"),
+		">>": ("twotail", "twohead"),
+		"<": ("head", "tail"),
+		"<<": ("twohead", "twotail"),
+		"|>": ("solidtail", "solidhead"),
+		"<|": ("solidhead", "solidtail"),
+		"|": ("bar", "bar"),
+		"||": ("twobar", "twobar"),
+		"o": ("circle", "circle"),
+		"O": ("bigcircle", "bigcircle"),
+	)
+	let lines = (
+		"-": (:),
+		"=": EDGE_ARGUMENT_SHORTHANDS.double,
+		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
+		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
+		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
+	)
+
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|o|O|<\||\|>)"
+	let line-selector = "(-|=|--|==|::|\.\.)"
+	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
+	if match == none {
+		panic("Failed to parse '" + str + "' as a edge style shorthand.")
+	}
+	let (from, line, to) = match.captures
+
+	from = if from in caps { caps.at(from).at(0) } else { from }
+	to = if to in caps { caps.at(to).at(1) } else { to }
+
+	if line == "=" {
+		// make arrows slightly larger, suited for double stroked line
+		if from == "head" { from = "doublehead" } 
+		if to == "head" { to = "doublehead" } 
+	} else if line == "==" {
+		if from == "head" { from = "triplehead" } 
+		if to == "head" { to = "triplehead" } 	
+	}
+
+	(
+		marks: (from, to),
+		..lines.at(line),
+	)
+}
+
+
+
+
 /// Take a string or dictionary specifying a mark and return a dictionary,
 /// adding defaults for any necessary missing parameters.
 #let interpret-mark(mark) = {
@@ -33,10 +93,26 @@
 		round-style + mark + (kind: "tail", extrude: (-3, 0))
 	} else if mark.kind == "twobar" {
 		(size: 4.5) + mark + (kind: "bar", extrude: (-3, 0))
+	} else if mark.kind == "doublehead" {
+		// tuned to match sym.arrow.double
+		(
+			kind: "head",
+			size: 9.6,
+			sharpness: 19deg,
+			delta: 43.7deg,
+		)
+	} else if mark.kind == "triplehead" {
+		// tuned to match sym.arrow.triple
+		(
+			kind: "head",
+			size: 9,
+			sharpness: 25deg,
+			delta: 43deg,
+		)
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
 	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.88, rim: 0.9) + mark
+		(size: 2.88, rim: 0.85) + mark
 	} else if mark.kind == "circle" {
 		(size: 2) + mark
 	} else if mark.kind == "bigcircle" {
@@ -65,7 +141,7 @@
 	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
 
 	if mark.kind == "head" { offset() }
-	else if mark.kind in ("hook", "hook'", "hooks") { -2.7 }
+	else if mark.kind in ("hook", "hook'", "hooks") { -2.65 }
 	else if mark.kind == "tail" { -3 - offset() }
 	else if mark.kind == "twohead" { offset() - 3 }
 	else if mark.kind == "twotail" { -3 - offset() - 3 }

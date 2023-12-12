@@ -43,47 +43,96 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Symbol matching
 
-Red is output; cyan is reference symbol in default math font.
+Red is our output; cyan is reference symbol in default math font.
+#{
+	set text(10em)
 
+	fletcher.diagram(
+		spacing: 0.815em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $->$),
+			"->",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+	fletcher.diagram(
+		spacing: 0.835em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $->>$),
+			"->>",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+	fletcher.diagram(
+		spacing: 0.815em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $arrow.hook$),
+			"hook->",
+			paint: rgb("f006"),
+			label-side: right,
+			label-sep: -0.0195em,
+			label-anchor: "center",
+		),
+	)
+
+	fletcher.diagram(
+		spacing: 0.8em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $=>$),
+			"=>",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+
+	fletcher.diagram(
+		spacing: 0.83em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $arrow.triple$),
+			"==>",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+}
+
+$A -> B$, 
 #fletcher.diagram(
-	edge-thickness: 4.8pt,
-	// paint: ,
-	spacing: 82pt,
-	crossing-fill: none,
-	edge((0,0), (1,0),
-		text(100pt, rgb("0ff5"), $->$),
-		"->",
-		paint: rgb("f006"),
-		label-side: center,
-	),
+	edge-thickness: 0.53pt,
+	node-inset: 5pt,
+	label-sep: 1pt,
+	// spacing: 25pt,
+	node((0,0), $A$), edge((0,0), (1,0), "->"), node((1,0), $B$)
 )
 
+$A => B$, 
 #fletcher.diagram(
-	edge-thickness: 4.8pt,
-	// paint: ,
-	spacing: 84pt,
-	crossing-fill: none,
-	edge((0,0), (1,0),
-		text(100pt, rgb("0ff5"), $->>$),
-		"->>",
-		paint: rgb("f006"),
-		label-side: center,
-	),
+	edge-thickness: 0.53pt,
+	node-inset: 5pt,
+	label-sep: 2pt,
+	// spacing: 25pt,
+	node((0,0), $A$), edge((0,0), (1,0), "=>"), node((1,0), $B$)
 )
 
+$A arrow.triple B$, 
 #fletcher.diagram(
-	edge-thickness: 4.8pt,
-	// paint: ,
-	spacing: 82pt,
-	crossing-fill: none,
-	edge((0,0), (1,0),
-		text(100pt, rgb("0ff5"), $arrow.hook$),
-		"hook->",
-		paint: rgb("f006"),
-		label-side: right,
-		label-sep: -2pt,
-		label-anchor: "center",
-	),
+	edge-thickness: 0.53pt,
+	node-inset: 5pt,
+	label-sep: 3pt,
+	// spacing: 25pt,
+	node((0,0), $A$), edge((0,0), (1,0), "==>"), node((1,0), $B$)
 )
 
 
@@ -130,7 +179,7 @@ $
 	"|>-<|",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #fletcher.diagram(edge((0,0), (1,0), ..parse-arrow-shorthand(i))) \ $
+	&= #fletcher.diagram(edge((0,0), (1,0), i)) \ $
 }
 $
 
