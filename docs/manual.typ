@@ -73,99 +73,7 @@
 
 #v(1fr)
 
-
-#show heading.where(level: 1): it => pagebreak(weak: true) + it + v(0.5em)
-
-= Examples
-
-#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
-
-#let code-example(src) = (
-	{
-		set text(.85em)
-		box(src) // box to prevent pagebreaks
-	},
-	eval(
-		src.text,
-		mode: "markup",
-		scope: scope
-	),
-)
-
-#table(
-	columns: (2fr, 1fr),
-	align: (horizon, left),
-	inset: 10pt,
-
-	..code-example(```typ
-	#fletcher.diagram({
-		let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
-		node(src, $G$)
-		node(img, $im f$)
-		node(quo, $G slash ker(f)$)
-		edge(src, img, $f$, "->")
-		edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
-		edge(src, quo, $pi$, "->>")
-	})
-	```),
-
-	..code-example(```typ
-	An equation $f: A -> B$ and \
-	a diagram #fletcher.diagram(
-		node-inset: 4pt,
-		node((0,0), $A$),
-		edge((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
-		node((1,0), $B$),
-	).
-	```),
-
-	..code-example(```typ
-	#fletcher.diagram(
-		spacing: 2cm,
-		node((0,0), $cal(A)$),
-		node((1,0), $cal(B)$),
-		edge((0,0), (1,0), $F$, "->", bend: +35deg),
-		edge((0,0), (1,0), $G$, "->", bend: -35deg),
-		edge((.5,+.21), (.5,-.21), $alpha$, "=>"),
-	)
-	```),
-
-	..code-example(```typ
-	#fletcher.diagram(
-		spacing: (8mm, 3mm), // wide columns, narrow rows
-		node-stroke: 1pt,    // outline node shapes
-		edge-thickness: 1pt, // thickness of lines
-		mark-scale: 60%,     // make arrowheads smaller
-		edge((-2,0), (-1,0)),
-		edge((-1,0), (0,+1), $f$, "..>", corner: left),
-		edge((-1,0), (0,-1), $g$, "->", corner: right),
-		node((0,+1), $F(s)$),
-		node((0,-1), $G(s)$),
-		edge((0,+1), (1,0), "..>", corner: left),
-		edge((0,-1), (1,0), "->", corner: right),
-		node((1,0), $ + $, inset: 1pt),
-		edge((1,0), (2,0), "->"),
-	)
-	```),
-
-	..code-example(```typ
-	#fletcher.diagram(
-		node-stroke: black + 0.5pt,
-		node-fill: blue.lighten(90%),
-		node-outset: 4pt,
-		spacing: (15mm, 8mm),
-		node((0,0), [1]),
-		node((1,0), [2]),
-		node((2,1), [3a]),
-		node((2,-1), [3b]),
-		edge((0,0), (1,0), "->"),
-		edge((1,0), (2,+1), "->", bend: -15deg),
-		edge((1,0), (2,-1), "->", bend: +15deg),
-		edge((2,-1), (2,-1), "->", bend: +130deg, label: "loop!"),
-	)
-	```)
-)
-
+#pagebreak()
 
 #align(center)[
 
@@ -359,6 +267,100 @@
 	#v(1fr)
 
 ]
+
+
+
+#show heading.where(level: 1): it => pagebreak(weak: true) + it + v(0.5em)
+
+= Examples
+
+#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
+
+#let code-example(src) = (
+	{
+		set text(.85em)
+		box(src) // box to prevent pagebreaks
+	},
+	eval(
+		src.text,
+		mode: "markup",
+		scope: scope
+	),
+)
+
+#table(
+	columns: (2fr, 1fr),
+	align: (horizon, left),
+	inset: 10pt,
+
+	..code-example(```typ
+	#fletcher.diagram({
+		let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
+		node(src, $G$)
+		node(img, $im f$)
+		node(quo, $G slash ker(f)$)
+		edge(src, img, $f$, "->")
+		edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
+		edge(src, quo, $pi$, "->>")
+	})
+	```),
+
+	..code-example(```typ
+	An equation $f: A -> B$ and \
+	a diagram #fletcher.diagram(
+		node-inset: 4pt,
+		node((0,0), $A$),
+		edge((0,0), (1,0), text(0.8em, $f$), "->", label-sep: 1pt),
+		node((1,0), $B$),
+	).
+	```),
+
+	..code-example(```typ
+	#fletcher.diagram(
+		spacing: 2cm,
+		node((0,0), $cal(A)$),
+		node((1,0), $cal(B)$),
+		edge((0,0), (1,0), $F$, "->", bend: +35deg),
+		edge((0,0), (1,0), $G$, "->", bend: -35deg),
+		edge((.5,+.21), (.5,-.21), $alpha$, "=>"),
+	)
+	```),
+
+	..code-example(```typ
+	#fletcher.diagram(
+		spacing: (8mm, 3mm), // wide columns, narrow rows
+		node-stroke: 1pt,    // outline node shapes
+		edge-thickness: 1pt, // thickness of lines
+		mark-scale: 60%,     // make arrowheads smaller
+		edge((-2,0), (-1,0)),
+		edge((-1,0), (0,+1), $f$, "..>", corner: left),
+		edge((-1,0), (0,-1), $g$, "->", corner: right),
+		node((0,+1), $F(s)$),
+		node((0,-1), $G(s)$),
+		edge((0,+1), (1,0), "..>", corner: left),
+		edge((0,-1), (1,0), "->", corner: right),
+		node((1,0), $ + $, inset: 1pt),
+		edge((1,0), (2,0), "->"),
+	)
+	```),
+
+	..code-example(```typ
+	#fletcher.diagram(
+		node-stroke: black + 0.5pt,
+		node-fill: blue.lighten(90%),
+		node-outset: 4pt,
+		spacing: (15mm, 8mm),
+		node((0,0), [1]),
+		node((1,0), [2]),
+		node((2,1), [3a]),
+		node((2,-1), [3b]),
+		edge((0,0), (1,0), "->"),
+		edge((1,0), (2,+1), "->", bend: -15deg),
+		edge((1,0), (2,-1), "->", bend: +15deg),
+		edge((2,-1), (2,-1), "->", bend: +130deg, label: "loop!"),
+	)
+	```)
+)
 
 
 

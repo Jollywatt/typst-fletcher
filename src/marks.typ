@@ -19,9 +19,9 @@
 	}
 
 	let round-style = (
-		size: 8, // radius of curvature, multiples of stroke thickness
-		sharpness: 30deg, // angle at vertex between central line and arrow's edge
-		delta: 40deg, // angle spanned by arc of curved arrow edge
+		size: 7, // radius of curvature, multiples of stroke thickness
+		sharpness: 24deg, // angle at vertex between central line and arrow's edge
+		delta: 54deg, // angle spanned by arc of curved arrow edge
 	)
 
 
@@ -36,7 +36,7 @@
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
 	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.5) + mark
+		(size: 2.88, rim: 0.9) + mark
 	} else if mark.kind == "circle" {
 		(size: 2) + mark
 	} else if mark.kind == "bigcircle" {
@@ -65,7 +65,7 @@
 	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
 
 	if mark.kind == "head" { offset() }
-	else if mark.kind in ("hook", "hook'", "hooks") { -2 }
+	else if mark.kind in ("hook", "hook'", "hooks") { -2.7 }
 	else if mark.kind == "tail" { -3 - offset() }
 	else if mark.kind == "twohead" { offset() - 3 }
 	else if mark.kind == "twotail" { -3 - offset() - 3 }
@@ -124,6 +124,13 @@
 			start: θ + mark.flip*90deg,
 			delta: -mark.flip*180deg,
 			stroke: stroke,
+		)
+		let q = vector.add(p, vector-polar(2*mark.size*stroke.thickness, θ - mark.flip*90deg))
+		let rim = vector-polar(-mark.rim*stroke.thickness, θ)
+		cetz.draw.line(
+			q,
+			(rel: rim, to: q),
+			stroke: stroke
 		)
 
 	} else if mark.kind == "hooks" {

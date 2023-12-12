@@ -41,6 +41,52 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 })
 
+= Symbol matching
+
+Red is output; cyan is reference symbol in default math font.
+
+#fletcher.diagram(
+	edge-thickness: 4.8pt,
+	// paint: ,
+	spacing: 82pt,
+	crossing-fill: none,
+	edge((0,0), (1,0),
+		text(100pt, rgb("0ff5"), $->$),
+		"->",
+		paint: rgb("f006"),
+		label-side: center,
+	),
+)
+
+#fletcher.diagram(
+	edge-thickness: 4.8pt,
+	// paint: ,
+	spacing: 84pt,
+	crossing-fill: none,
+	edge((0,0), (1,0),
+		text(100pt, rgb("0ff5"), $->>$),
+		"->>",
+		paint: rgb("f006"),
+		label-side: center,
+	),
+)
+
+#fletcher.diagram(
+	edge-thickness: 4.8pt,
+	// paint: ,
+	spacing: 82pt,
+	crossing-fill: none,
+	edge((0,0), (1,0),
+		text(100pt, rgb("0ff5"), $arrow.hook$),
+		"hook->",
+		paint: rgb("f006"),
+		label-side: right,
+		label-sep: -2pt,
+		label-anchor: "center",
+	),
+)
+
+
 = Double and triple lines
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [

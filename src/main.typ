@@ -475,6 +475,23 @@
 ///
 /// - ..objects (array): An array of dictionaries specifying the diagram's
 ///   nodes and connections.
+/// 
+///  Note the results of `node()` and `edge()` can be joined, so you can mix the
+///  following styles:
+///
+///  ```typ
+///  #fletcher.diagram(
+///    // one object per argument
+///    node((0, 0), $A$),
+///    node((1, 0), $B$),
+///    {
+///      // multiple objects in a block
+///      // can use scripting, loops, etc
+///      node((2, 0), $C$)
+///      node((3, 0), $D$)
+///    },
+///  )
+///  ```
 ///
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
 ///  Level `1` shows a coordinate grid; higher levels show bounding boxes and
