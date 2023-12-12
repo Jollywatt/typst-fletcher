@@ -10,25 +10,25 @@
 ///  where `x` is the column and `y` is the row (increasing upwards). The
 ///  coordinates are usually integers, but can be fractional.
 ///
-///  See the `fletcher.diagram()` options to control the physical scale of elastic
+///  See the `diagram()` options to control the physical scale of elastic
 ///  coordinates.
 ///
 /// - label (content): Node content to display.
 /// - inset (length, auto): Padding between the node's content and its bounding
 ///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
-///  `fletcher.diagram()`.
+///  `diagram()`.
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///  points for connecting edges.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
 /// - stroke (stroke): Stroke of the node. Defaults to the `node-stroke` option
-///  of `fletcher.diagram()`.
+///  of `diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
-///  `fletcher.diagram()`.
+///  `diagram()`.
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
 ///  incident with this node. If `auto`, defaults to the `node-defocus` option
-///  of `fletcher.diagram()` .
+///  of `diagram()` .
 #let node(
 	pos,
 	label,
@@ -172,6 +172,7 @@
 /// - label-sep (number): Separation between the connector and the label anchor.
 ///  
 ///  With the default anchor (`"bottom"`):
+///
 ///  #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
@@ -182,6 +183,7 @@
 ///  })
 ///  
 ///  With `label-anchor: "center"`:
+///  
 ///  #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
@@ -290,6 +292,7 @@
 ///
 /// - crossing (bool): If `true`, draws a white backdrop to give the illusion of
 ///  lines crossing each other.
+///
 ///  #fletcher.diagram({
 ///  	edge((0,1), (1,0), thickness: 1pt)
 ///  	edge((0,0), (1,1), thickness: 1pt)
@@ -309,7 +312,7 @@
 ///  })
 /// 
 /// - crossing-fill (paint): Color to use behind connectors or labels to give the illusion of crossing over other objects. Defaults to the `crossing-fill` option of
-///  `fletcher.diagram()`.
+///  `diagram()`.
 ///
 ///  #let cross(x, fill) = {
 ///  	edge((2*x + 0,1), (2*x + 1,0), thickness: 1pt)

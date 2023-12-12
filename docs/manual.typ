@@ -30,6 +30,12 @@
 	)
 }
 
+#show raw.where(block: false): it => {
+	if it.text.ends-with("()") {
+		link(label(it.text), it.text)
+	} else { it }
+}
+
 #v(.2fr)
 
 #align(center)[
@@ -163,7 +169,7 @@
 
 #align(center)[
 
-
+/*
 	#fletcher.diagram(
 		// node-stroke: 1pt ,
 		node-fill: luma(90%),
@@ -221,6 +227,7 @@
 	// })
 
 	// #v(1fr)
+	*/
 
 
 	#let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
@@ -281,7 +288,75 @@
 
 	#v(1fr)
 
+	#fletcher.diagram(
+		node-defocus: 0,
+		spacing: (1cm, 2cm),
+		edge-thickness: 1pt,
+		crossing-thickness: 5,
+		mark-scale: 70%,
+		node-fill: luma(97%),
+		node-outset: 3pt,
+		node((0,0), "magma"),
 
+		node((-1,-1), "semigroup"),
+		node(( 0,-1), "unital magma"),
+		node((+1,-1), "quasigroup"),
+
+		node((-1,-2), "monoid"),
+		node(( 0,-2), "inverse semigroup"),
+		node((+1,-2), "loop"),
+
+		node(( 0,-3), "group"),
+
+		{
+			let quad(a, b, label, paint, ..args) = {
+				paint = paint.darken(25%)
+				edge(a, b, text(paint, label), "-|>", paint: paint, label-side: center, ..args)
+			}
+
+			quad((0,0), (-1,-1), "Assoc", blue)
+			quad((0,-1), (-1,-2), "Assoc", blue, label-pos: 0.3)
+			quad((1,-2), (0,-3), "Assoc", blue)
+
+			quad((0,0), (0,-1), "Id", red)
+			quad((-1,-1), (-1,-2), "Id", red, label-pos: 0.3)
+			quad((+1,-1), (+1,-2), "Id", red, label-pos: 0.3)
+			quad((0,-2), (0,-3), "Id", red)
+
+			quad((0,0), (1,-1), "Div", yellow)
+			quad((-1,-1), (0,-2), "Div", yellow, label-pos: 0.3, "crossing")
+
+			quad((-1,-2), (0,-3), "Inv", green)
+			quad((0,-1), (+1,-2), "Inv", green, label-pos: 0.3)
+
+			quad((1,-1), (0,-2), "Assoc", blue, label-pos: 0.3, "crossing")
+		},
+	)
+
+	#v(1fr)
+
+	#{
+		set text(white, font: "Fira Sans")
+		let colors = (maroon, olive, eastern)
+		fletcher.diagram(
+			edge-thickness: 1pt,
+			node((0,0), [input], fill: colors.at(0)),
+			edge((0,0), (1,0)),
+			edge((1,0), (2,+1), "-|>", corner: left),
+			edge((1,0), (2,-1), corner: right),
+			node((2,+1), [control unit (CU)], fill: colors.at(1)),
+			edge((2,+1), (2,0), "<|-|>"),
+			node((2, 0), align(center)[arithmetic & logic \ unit (ALU)], fill: colors.at(1)),
+			edge((2, 0), (2,-1), "<|-|>"),
+			node((2,-1), [memory unit (MU)], fill: colors.at(1)),
+			edge((2,+1), (3,0), corner: left),
+			edge((2,-1), (3,0), "<|-", corner: right),
+			edge((3,0), (4,0), "-|>"),
+			node((4,0), [output], fill: colors.at(2))
+		)
+	}
+
+	#v(1fr)
 
 ]
 
@@ -304,7 +379,7 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 
 Diagrams are laid out on a flexible coordinate grid.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
-See the #fn-link("diagram()") parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
+See the `diagram()` parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
 
 Elastic coordinates can be demonstrated more clearly with a debug grid and no spacing.
 
@@ -374,7 +449,7 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 === Marks and arrows
 
 A few mathematical arrow heads are supported, designed to match the symbols $arrow$, $arrow.double$, $arrow.twohead$, $arrow.hook$, $arrow.bar$, etc.
-See the `marks` argument of #fn-link("edge()") for details.
+See the `marks` argument of `edge()` for details.
 
 #align(center, fletcher.diagram(
 	debug: 0,
@@ -413,7 +488,7 @@ Most marks have some parameters like size or sharpness angle that you can custom
 
 === CeTZ integration
 Currently, only straight and arc connectors are supported.
-However, an escape hatch is provided with the `render` argument of #fn-link("diagram()") so you can intercept diagram data and draw things using CeTZ directly.
+However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
 
 Here is an example of how you might hack together a Bézier connector using the same node anchoring and arrow head functions that this package provides:
 
