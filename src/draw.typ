@@ -346,7 +346,6 @@
 			if node.shape == "rect" {
 				let radii = vector.scale(node.size, 0.5).map(x => x + offset)
 				cetz.draw.rect(
-					// ..node.rect,
 					..rect-at(node.real-pos, radii),
 					stroke: node.stroke,
 					fill: fill,

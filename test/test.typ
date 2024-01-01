@@ -1,5 +1,5 @@
 #import "@preview/cetz:0.1.2"
-#import "/src/exports.typ": *
+#import "/src/exports.typ" as fletcher: node, edge
 
 
 #set page(width: 10cm, height: auto)

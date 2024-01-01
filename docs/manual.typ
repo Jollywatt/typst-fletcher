@@ -1,5 +1,5 @@
 #import "@preview/tidy:0.1.0"
-#import "/src/exports.typ": fletcher, diagram, node, edge
+#import "/src/exports.typ" as fletcher: node, edge
 #import "/src/main.typ": parse-arrow-shorthand
 
 #set page(numbering: "1")
@@ -371,6 +371,10 @@
 #let fn-link(name) = link(label(name), raw(name))
 
 = Details
+
+The recommended way to load the package is:
+#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge", block: true)
+Other functions (including internal functions) are exported, so avoid importing everything with #raw(lang: none, "*") and access them as needed with, e.g., `fletcher.diagram`.
 
 == Nodes
 

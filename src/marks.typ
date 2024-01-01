@@ -124,7 +124,8 @@
 	}
 }
 
-/// Calculate cap offset of round-style arrow cap
+/// Calculate cap offset of round-style arrow cap,
+/// $r (sin θ - sqrt(1 - (cos θ - (|y|)/r)^2))$.
 ///
 /// - r (length): Radius of curvature of arrow cap.
 /// - θ (angle): Angle made at the the arrow's vertex, from the central stroke

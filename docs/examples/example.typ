@@ -1,4 +1,4 @@
-#import "/src/exports.typ": *
+#import "/src/exports.typ" as fletcher: node, edge
 
 #for dark in (false, true) [
 
