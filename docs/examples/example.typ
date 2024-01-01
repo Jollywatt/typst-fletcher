@@ -33,11 +33,11 @@ fletcher.diagram(
 	node((0,0), `typst`),
 	node((1,0), "A"),
 	node((2,0), "B", stroke: c + 2pt),
-	node((2,1), "C"),
+	node((2,1), "C "),
 
-	edge((0,0), (1,0), "->", bend: 15deg),
-	edge((0,0), (1,0), "<-", bend: -15deg),
-	edge((1,0), (2,1), "=>", bend: 20deg),
+	edge((0,0), (1,0), "->", bend: 20deg),
+	edge((0,0), (1,0), "<-", bend: -20deg),
+	edge((1,0), (2,1), "=>", corner: left),
 	edge((1,0), (2,0), "..>", bend: -0deg),
 ),
 

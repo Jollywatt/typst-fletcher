@@ -49,11 +49,11 @@
 	#text(2em, strong(`fletcher`)) \
 	_(noun) a maker of arrows_
 
-	A #link("https://typst.app/")[Typst] package for diagrams full of arrows,
+	A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
 
 	#emph[
-	For commutative diagrams,
+	Commutative diagrams,
 	finite state machines,
 	control systems block diagrams...
 	]
@@ -316,14 +316,15 @@
 	```),
 
 	..code-example(```typ
-	#fletcher.diagram(
-		spacing: 2cm,
-		node((0,0), $cal(A)$),
-		node((1,0), $cal(B)$),
-		edge((0,0), (1,0), $F$, "->", bend: +35deg),
-		edge((0,0), (1,0), $G$, "->", bend: -35deg),
-		edge((.5,+.21), (.5,-.21), $alpha$, "=>"),
-	)
+	#fletcher.diagram(spacing: 2cm, {
+		let (A, B) = ((0,0), (1,0))
+		node(A, $cal(A)$)
+		node(B, $cal(B)$)
+		edge(A, B, $F$, "->", bend: +35deg)
+		edge(A, B, $G$, "->", bend: -35deg)
+		let h = 0.21
+		edge((.5,+h), (.5,-h), $alpha$, "=>")
+	})
 	```),
 
 	..code-example(```typ
@@ -333,14 +334,14 @@
 		edge-thickness: 1pt, // thickness of lines
 		mark-scale: 60%,     // make arrowheads smaller
 		edge((-2,0), (-1,0)),
-		edge((-1,0), (0,+1), $f$, "..>", corner: left),
-		edge((-1,0), (0,-1), $g$, "->", corner: right),
+		edge((-1,0), (0,+1), $f$, "..|>", corner: left),
+		edge((-1,0), (0,-1), $g$, "-|>", corner: right),
 		node((0,+1), $F(s)$),
 		node((0,-1), $G(s)$),
-		edge((0,+1), (1,0), "..>", corner: left),
-		edge((0,-1), (1,0), "->", corner: right),
+		edge((0,+1), (1,0), "..|>", corner: left),
+		edge((0,-1), (1,0), "-|>", corner: right),
 		node((1,0), $ + $, inset: 1pt),
-		edge((1,0), (2,0), "->"),
+		edge((1,0), (2,0), "-|>"),
 	)
 	```),
 
@@ -357,7 +358,7 @@
 		edge((0,0), (1,0), "->"),
 		edge((1,0), (2,+1), "->", bend: -15deg),
 		edge((1,0), (2,-1), "->", bend: +15deg),
-		edge((2,-1), (2,-1), "->", bend: +130deg, label: "loop!"),
+		edge((2,-1), (2,-1), "->", bend: +130deg, label: [loop!]),
 	)
 	```)
 )
@@ -407,7 +408,7 @@ Elastic coordinates can be demonstrated more clearly with a debug grid and no sp
 Rows and columns are at integer coordinates, but nodes may have fractional coordinates.
 These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down. Both the node's position and its influence on row/column sizes are interpolated.
 
-As a result, diagrams are responsive to node sizes (like tables) while allowing precise positioning.
+As a result, diagrams are responsive to node sizes (like tables) while also allowing precise positioning.
 // For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
 
 #stack(
@@ -433,7 +434,7 @@ As a result, diagrams are responsive to node sizes (like tables) while allowing 
 
 Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding circle or rectangle. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
-#stack(dir: ltr, spacing: 1fr, ..code-example(```
+#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
 		let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
 		node(abc, $A times B times C$)
@@ -489,10 +490,10 @@ Most marks have some parameters like size or sharpness angle that you can custom
 ```))
 
 === CeTZ integration
-Currently, only straight and arc connectors are supported.
+Currently, only straight, arc and right-angled connectors are supported.
 However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
 
-Here is an example of how you might hack together a Bézier connector using the same node anchoring and arrow head functions that this package provides:
+Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes and draw arrow heads:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 #fletcher.diagram(
