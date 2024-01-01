@@ -336,6 +336,73 @@
 }
 
 
+#let draw-node(node, options) = {
+	if node.label == none { return }
+
+	if node.stroke != none or node.fill != none {
+
+		for (i, offset-factor) in node.extrude.enumerate() {
+
+			// this will be easier when we get the stroke() constructor
+			let thickness = if type(node.stroke) == stroke {
+				node.stroke.thickness
+			} else if type(node.stroke) == length { 
+				node.stroke
+			} else { 1pt }
+			let offset = offset-factor*thickness
+
+
+			let fill = if i == 0 { node.fill } else { none }
+			// if fill == red {panic(node)}
+
+			if node.shape == "rect" {
+				let radii = vector.scale(node.size, 0.5).map(x => x + offset)
+				cetz.draw.rect(
+					// ..node.rect,
+					..rect-at(node.real-pos, radii),
+					stroke: node.stroke,
+					fill: fill,
+				)
+			}
+			if node.shape == "circle" {
+				cetz.draw.circle(
+					node.real-pos,
+					radius: node.radius + offset,
+					stroke: node.stroke,
+					fill: fill,
+				)
+			}
+		}
+	}
+
+	cetz.draw.content(node.real-pos, node.label, anchor: "center")
+
+	if options.debug >= 1 {
+		cetz.draw.circle(
+			node.real-pos,
+			radius: 1pt,
+			fill: DEBUG_COLOR,
+			stroke: none,
+		)
+	}
+
+	if options.debug >= 2 {
+		if options.debug >= 3 or node.shape == "rect" {
+			cetz.draw.rect(
+				..node.rect,
+				stroke: DEBUG_COLOR + 0.25pt,
+			)
+		}
+		if options.debug >= 3 or node.shape == "circle" {
+			cetz.draw.circle(
+				node.real-pos,
+				radius: node.radius,
+				stroke: DEBUG_COLOR + 0.25pt,
+			)
+		}
+	}
+}
+
 
 
 #let find-node-at(nodes, pos) = {
@@ -350,54 +417,8 @@
 	options,
 ) = {
 
-	for (i, node) in nodes.enumerate() {
-
-		if node.label == none { continue }
-
-		if node.stroke != none or node.fill != none {
-			if node.shape == "rect" {
-				cetz.draw.rect(
-					..node.rect,
-					stroke: node.stroke,
-					fill: node.fill,
-				)
-			}
-			if node.shape == "circle" {
-				cetz.draw.circle(
-					node.real-pos,
-					radius: node.radius,
-					stroke: node.stroke,
-					fill: node.fill,
-				)
-			}
-		}
-
-		cetz.draw.content(node.real-pos, node.label, anchor: "center")
-
-		if options.debug >= 1 {
-			cetz.draw.circle(
-				node.real-pos,
-				radius: 1pt,
-				fill: DEBUG_COLOR,
-				stroke: none,
-			)
-		}
-
-		if options.debug >= 2 {
-			if options.debug >= 3 or node.shape == "rect" {
-				cetz.draw.rect(
-					..node.rect,
-					stroke: DEBUG_COLOR + 0.25pt,
-				)
-			}
-			if options.debug >= 3 or node.shape == "circle" {
-				cetz.draw.circle(
-					node.real-pos,
-					radius: node.radius,
-					stroke: DEBUG_COLOR + 0.25pt,
-				)
-			}
-		}
+	for node in nodes {
+		draw-node(node, options)
 	}
 
 	for arrow in arrows {

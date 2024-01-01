@@ -351,7 +351,7 @@
 		node-fill: blue.lighten(90%),
 		node-outset: 4pt,
 		spacing: (15mm, 8mm),
-		node((0,0), [1]),
+		node((0,0), [1], extrude: (4, 0)), // double stroke effect 
 		node((1,0), [2]),
 		node((2,1), [3a]),
 		node((2,-1), [3b]),

@@ -29,6 +29,21 @@
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
 ///  incident with this node. If `auto`, defaults to the `node-defocus` option
 ///  of `diagram()` .
+/// - extrude (array of numbers): Draw copies of the node's stroke extruded by
+///  the given multiples of the stroke's thickness. Used to create a stroke
+///  doubling effect. See also the `extrude` option of `edge()`.
+///
+///  The node's fill is bounded by the stroke with the first extrusion length
+///  given in the array.
+///
+///  #fletcher.diagram(
+///  	node-stroke: 1pt,
+///		node-fill: red.lighten(70%),
+///  	node((0,0), `(0,)`),
+///  	node((1,0), `(0, 2)`, extrude: (0, 2)),
+///  	node((2,0), `(2, 0)`, extrude: (2, 0)),
+///  	node((3,0), `(0, -2.5, 5)`, extrude: (0, -2.5, 5)),
+///  )
 #let node(
 	pos,
 	label,
@@ -38,6 +53,7 @@
 	stroke: auto,
 	fill: auto,
 	defocus: auto,
+	extrude: (0,),
 ) = {
 	assert(type(pos) == array and pos.len() == 2)
 
@@ -52,6 +68,7 @@
 		stroke: stroke,
 		fill: fill,
 		defocus: defocus,
+		extrude: extrude,
 	),)
 }
 
@@ -222,8 +239,8 @@
 /// }
 ///
 /// - extrude (array of numbers): Draw copies of the stroke extruded by the
-///  given multiple of the stroke thickness. Used to obtain doubling effect.
-///  Best explained by example:
+///  given multiples of the stroke's thickness. Used to obtain a stroke doubling
+///  effect. Best explained by example:
 ///
 ///  #fletcher.diagram({
 ///  	(
@@ -529,7 +546,7 @@
 	edge-thickness: 0.048em,
 	mark-scale: 100%,
 	crossing-fill: white,
-	crossing-thickness: 3,
+	crossing-thickness: 5,
 	render: (grid, nodes, edges, options) => {
 		cetz.canvas(draw-diagram(grid, nodes, edges, options))
 	},
