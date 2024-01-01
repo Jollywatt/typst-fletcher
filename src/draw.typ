@@ -95,7 +95,7 @@
 // Get the arrow head adjustment for a given extrusion distance
 #let cap-offsets(edge, y) = {
 	zip(edge.marks, (+1, -1)).map(((mark, dir)) => {
-		dir*cap-offset(mark, y)*edge.stroke.thickness
+		dir*cap-offset(mark, y/edge.stroke.thickness)*edge.stroke.thickness
 	})
 }
 
@@ -109,7 +109,6 @@
 	let cap-angles = (θ, θ + 180deg)
 
 	for shift in edge.extrude {
-		let d = shift*edge.stroke.thickness
 		let shifted-line-points = cap-points
 			.zip(cap-offsets(edge, shift))
 			.map(((point, offset)) => vector.add(
@@ -118,7 +117,7 @@
 					// Shift end points lengthways depending on markers
 					vector-polar(offset, θ),
 					// Shift line sideways (for double line effects, etc) 
-					vector-polar(d, θ + 90deg),
+					vector-polar(shift, θ + 90deg),
 				)
 			))
 
@@ -178,7 +177,7 @@
 
 		cetz.draw.arc(
 			center,
-			radius: radius + shift*edge.stroke.thickness,
+			radius: radius + shift,
 			start: start,
 			stop: stop,
 			anchor: "center",
@@ -272,7 +271,7 @@
 	// taking into account extrusions and mark offsets
 	let get-vertices(shift) = {
 		let (a, b) = cap-angles.zip((-1, +1)).map(((θ, dir)) => {
-			vector-polar(shift*edge.stroke.thickness, θ + dir*90deg)
+			vector-polar(shift, θ + dir*90deg)
 		})
 		
 		// apply extrusions
@@ -317,7 +316,7 @@
 			edge.label-anchor = angle-to-anchor(θ + label-dir*90deg)
 		}
 
-		let v = get-vertices(label-dir*edge.label-sep/edge.stroke.thickness)
+		let v = get-vertices(label-dir*edge.label-sep)
 		let label-pos = zip(..v).map(coords => {
 			lerp-at(coords, 2*edge.label-pos)
 		})
@@ -341,19 +340,8 @@
 
 	if node.stroke != none or node.fill != none {
 
-		for (i, offset-factor) in node.extrude.enumerate() {
-
-			// this will be easier when we get the stroke() constructor
-			let thickness = if type(node.stroke) == stroke {
-				node.stroke.thickness
-			} else if type(node.stroke) == length { 
-				node.stroke
-			} else { 1pt }
-			let offset = offset-factor*thickness
-
-
+		for (i, offset) in node.extrude.enumerate() {
 			let fill = if i == 0 { node.fill } else { none }
-			// if fill == red {panic(node)}
 
 			if node.shape == "rect" {
 				let radii = vector.scale(node.size, 0.5).map(x => x + offset)

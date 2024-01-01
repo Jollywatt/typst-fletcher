@@ -29,12 +29,12 @@
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
 ///  incident with this node. If `auto`, defaults to the `node-defocus` option
 ///  of `diagram()` .
-/// - extrude (array of numbers): Draw copies of the node's stroke extruded by
-///  the given multiples of the stroke's thickness. Used to create a stroke
-///  doubling effect. See also the `extrude` option of `edge()`.
+/// - extrude (array): Draw strokes around the node at the given offsets to
+///  obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
+///  of the stroke's thickness) or lengths.
 ///
-///  The node's fill is bounded by the stroke with the first extrusion length
-///  given in the array.
+///  The node's fill is drawn within the boundary defined by the first offset in
+///  the array.
 ///
 ///  #fletcher.diagram(
 ///  	node-stroke: 1pt,
@@ -42,8 +42,10 @@
 ///  	node((0,0), `(0,)`),
 ///  	node((1,0), `(0, 2)`, extrude: (0, 2)),
 ///  	node((2,0), `(2, 0)`, extrude: (2, 0)),
-///  	node((3,0), `(0, -2.5, 5)`, extrude: (0, -2.5, 5)),
+///  	node((3,0), `(0, -2.5, 2mm)`, extrude: (0, -2.5, 2mm)),
 ///  )
+///
+///  See also the `extrude` option of `edge()`.
 #let node(
 	pos,
 	label,
@@ -238,9 +240,9 @@
 /// 	)
 /// }
 ///
-/// - extrude (array of numbers): Draw copies of the stroke extruded by the
-///  given multiples of the stroke's thickness. Used to obtain a stroke doubling
-///  effect. Best explained by example:
+/// - extrude (array): Draw a separate stroke for each extrusion offset to
+///  obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
+///  of the stroke's thickness) or lengths.
 ///
 ///  #fletcher.diagram({
 ///  	(
@@ -272,6 +274,7 @@
 /// 
 /// - crossing-thickness (number): Thickness of the white "crossing" background
 ///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
+///  Defaults to the `crossing-thickness` option of `diagram()`.
 /// 
 ///  #fletcher.diagram({
 ///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
@@ -404,6 +407,17 @@
 			if node.outset == auto { node.outset = options.node-outset }
 			if node.defocus == auto { node.defocus = options.node-defocus }
 
+			let real-stroke-thickness = if type(node.stroke) == stroke {
+				node.stroke.thickness
+			} else if type(node.stroke) == length {
+				node.stroke
+			} else { 1pt }
+
+			node.extrude = node.extrude.map(d => {
+				if type(d) == length { to-pt(d) }
+				else { d*real-stroke-thickness }
+			})
+
 			node.inset = to-pt(node.inset)
 			node.outset = to-pt(node.outset)
 
@@ -432,6 +446,7 @@
 				else { edge.kind = "line" }
 			}
 
+
 			edge.mark-scale *= options.mark-scale
 
 			edge.marks = edge.marks.map(mark => {
@@ -443,6 +458,15 @@
 
 			edge.stroke.thickness = to-pt(edge.stroke.thickness)
 			edge.label-sep = to-pt(edge.label-sep)
+
+			edge.extrude = edge.extrude.map(d => {
+				if type(d) == length { to-pt(d) }
+				else { d*edge.stroke.thickness }
+			})
+
+			for d in edge.extrude {
+				if type(d) != length { panic(edge) }
+			}
 
 			edge
 		}),

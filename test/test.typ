@@ -387,3 +387,10 @@ Default placement above the line.
 	node((1,0), `inner`, stroke: 1pt, extrude: (+1, -1), fill: green),
 	node((2,0), `middle`, stroke: 1pt, extrude: (0, +2, -2), fill: green),
 )
+
+Relative and absolute extrusion lengths
+
+#fletcher.diagram(
+	node((0,0), `outer`, stroke: 1pt, extrude: (-1mm, 0pt), fill: green),
+	node((1,0), `inner`, stroke: 1pt, extrude: (0, +.5em, -2pt), fill: green),
+)
