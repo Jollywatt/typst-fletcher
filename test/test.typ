@@ -9,7 +9,7 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #fletcher.diagram(
-	// debug: 1,
+	// debug: 3,
 	spacing: (10mm, 5mm),
 {
 	for i in (0, 1, 2) {
@@ -41,7 +41,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 })
 
-= Symbol matching
+= Matching math arrows
 
 Red is our output; cyan is reference symbol in default math font.
 #{
@@ -78,6 +78,7 @@ Red is our output; cyan is reference symbol in default math font.
 			"hook->",
 			paint: rgb("f006"),
 			label-side: right,
+			label-pos: 0.408,
 			label-sep: -0.0195em,
 			label-anchor: "center",
 		),
@@ -354,7 +355,6 @@ Default placement above the line.
 
 #for dir in (left, right) {
 	pad(1mm, fletcher.diagram(
-		// debug: 2,
 		spacing: 1cm,
 		node((0,0), [#dir]),
 		{

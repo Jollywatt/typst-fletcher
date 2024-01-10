@@ -85,14 +85,16 @@
 	)
 
 
-	if mark.kind in ("head", "harpoon", "tail") {
+	if mark.kind in ("head", "harpoon") {
+		round-style + (underhang: 3) + mark
+	} else if mark.kind == "tail" {
 		round-style + mark
 	} else if mark.kind == "twohead" {
-		round-style + mark + (kind: "head", extrude: (-3, 0))
+		round-style + mark + (kind: "head", extrude: (-3, 0), underhang: 4)
 	} else if mark.kind == "twotail" {
-		round-style + mark + (kind: "tail", extrude: (-3, 0))
+		round-style + mark + (kind: "tail", extrude: (-3, 0), underhang: 5)
 	} else if mark.kind == "twobar" {
-		(size: 4.5) + mark + (kind: "bar", extrude: (-3, 0))
+		(size: 4.5) + mark + (kind: "bar", extrude: (-3, 0), underhang: 3)
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
 		(
@@ -117,8 +119,10 @@
 		(size: 2) + mark
 	} else if mark.kind == "bigcircle" {
 		(size: 4) + mark + (kind: "circle")
-	} else if mark.kind in ("solidhead", "solidtail") {
-		(size: 10, sharpness: 19deg) + mark
+	} else if mark.kind == "solidhead" {
+		(size: 10, sharpness: 19deg, underhang: 0) + mark
+	} else if mark.kind == "solidtail" {
+		(size: 10, sharpness: 19deg, underhang: 8) + mark
 	} else {
 		panic("Cannot interpret mark: " + mark.kind)
 	}
@@ -190,11 +194,11 @@
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
 
 	} else if mark.kind == "tail" {
-		p = shift(p, cap-offset(mark, 0))
+		// p = shift(p, cap-offset(mark, 0))
 		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
 	} else if mark.kind == "hook" {
-		p = shift(p, cap-offset(mark, 0))
+		// p = shift(p, cap-offset(mark, 0))
 		cetz.draw.arc(
 			p,
 			radius: mark.size*stroke.thickness,
@@ -223,7 +227,7 @@
 		)
 
 	} else if mark.kind == "circle" {
-		p = shift(p, -mark.size)
+		p = shift(p, mark.size)
 		cetz.draw.circle(
 			p,
 			radius: mark.size*stroke.thickness,
@@ -231,6 +235,7 @@
 		)
 
 	} else if mark.kind == "solidhead" {
+		p = shift(p, -cap-offset(mark, 0))
 		cetz.draw.line(
 			p,
 			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),
@@ -241,7 +246,7 @@
 
 	} else if mark.kind == "solidtail" {
 		mark +=  (kind: "solidhead")
-		p = shift(p, cap-offset(mark, 0))
+		p = shift(p, 1)
 		draw-arrow-cap(p, θ + 180deg, stroke, mark)
 
 

@@ -127,6 +127,10 @@
 		)
 	}
 
+	cap-points = cap-points
+		.zip(cap-offsets(edge, 0pt))
+		.map(((point, offset)) => vector.add(point, vector-polar(offset, θ)))
+
 	// Draw marks
 	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {
 		if mark == none { continue }
@@ -181,16 +185,67 @@
 		)
 	}
 
+	if options.debug >= 3 {
+		cetz.draw.arc(
+			center,
+			radius: radius,
+			start: start,
+			stop: stop,
+			anchor: "center",
+			stroke: DEBUG_COLOR + 0.5pt,
+		)
+	}
+
+	// shift cap points along arc
+	let offsets = cap-offsets(edge, 0pt)
+	cap-points = (start, stop)
+		.zip(offsets)
+		.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
+		.map(θ => vector.add(center, vector-polar(radius, θ)))
+
+
+	// for pt in cap-points {
+	// 	cetz.draw.circle(
+	// 		pt,
+	// 		radius: .3pt,
+	// 		fill: green,
+	// 		stroke: none,
+	// 	)	
+	// }
+
 	let δ = bend-dir*90deg
-	// let φ = calc.asin(0pt/radius)
-	// δ -= φ
 	let cap-angles = (start + δ, stop - δ)
+
+	cap-angles = cap-angles.zip(offsets)
+		.map(((θ, arclen)) => θ + calc.asin(arclen/radius/2))
+
+	let φ = edge.marks
+		.zip((-1, +1))
+		.map(((mark, dir)) => {
+			if mark != none and "underhang" in mark {
+				dir*mark.underhang
+			} else { 0 } * edge.stroke.thickness
+		})
+		.map(o => calc.asin(o/radius/2))
+	cap-angles = vector.add(cap-angles, φ)
 
 	// Draw marks
 	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {
 		if mark == none { continue }
 		draw-arrow-cap(pt, θ, edge.stroke, mark)
+
+		if options.debug >= 3 {
+			cetz.draw.circle(
+				pt,
+				radius: .5pt,
+				fill: DEBUG_COLOR,
+				stroke: none,
+			)
+		}
 	}
+
+
+
 
 	// Draw label
 	if edge.label != none {
@@ -300,7 +355,8 @@
 	}
 
 	// Draw marks
-	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {
+	let (pt-start, _, pt-end) = get-vertices(0pt)
+	for (mark, pt, θ) in zip(edge.marks, (pt-start, pt-end), cap-angles) {
 		if mark == none { continue }
 		draw-arrow-cap(pt, θ, edge.stroke, mark)
 	}
