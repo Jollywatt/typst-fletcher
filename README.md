@@ -49,3 +49,21 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 - [ ] Allow referring to node coordinates by their content
 - [ ] Support loops connecting a node to itself
 - [ ] More ergonomic syntax to avoid repeating coordinates?
+
+## Change log
+
+### 0.4.0
+
+- Add `width`, `height` and `radius` options to `node()` for explicit control over size.
+- Improve mark/arrow positioning on curved edges. Arrows on tightly curving arcs now rotate a bit to fit more comfortably along the arc.
+
+### 0.3.0
+
+- Make round-style arrow heads better approximate the default math font.
+- Add solid arrow heads with shorthand `<|-`, `-|>` and double-bar `||-`, `-||`.
+- Add an `extrude` option to `node()` which duplicates and extrudes the node's stroke, enabling double stroke effects.
+
+### 0.2.0
+
+- Experimental support for customising arrowheads.
+- Add right-angled edges with `edge(..., corner: left/right)`.
