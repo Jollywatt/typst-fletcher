@@ -9,12 +9,9 @@
 Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #fletcher.diagram(
-	// debug: 3,
 	spacing: (10mm, 5mm),
-{
-	for i in (0, 1, 2) {
+	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i
-		let bend = 40deg*i
 		(
 			(marks: ("harpoon", "harpoon'")),
 			(marks: ("head", "head")),
@@ -38,8 +35,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 		}).join()
 
 	}
-
-})
+)
 
 = Matching math arrows
 
@@ -407,3 +403,26 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 	node((1,0), [height], stroke: 1pt, height: 4em, inset: 0pt),
 	node((2,0), [both], width: 1em, height: 1em, fill: blue),
 )
+
+
+= Example
+
+#{
+	set text(size: 0.65em)
+	fletcher.diagram(
+	  node-stroke: .1em,
+	  edge-thickness: .06em,
+	  spacing: 7em,
+	  node-inset: .2em,
+	  mark-scale: 120%,
+	  node((0,0), `reading`, radius: 2em, shape: "circle"),
+	  node((1,0), `eof`, radius: 2em, shape: "circle"),
+	  node((2,0), `closed`, radius: 2em, shape: "circle", extrude: (-2, 0)),
+	  node((-.7,0), `open(path)`, stroke: none),
+	  edge((-.7,0), (0,0), "-|>"),
+	  edge((0,0), (1,0), `read()`, "-|>"),
+	  edge((0,0), (0,0), `read()`, "<|-", bend: -130deg),
+	  edge((1,0), (2,0), `close()`, "-|>"),
+	  edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
+	)
+}

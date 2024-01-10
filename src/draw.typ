@@ -104,10 +104,11 @@
 
 	// Stroke end points, before adjusting for the arrow heads
 	let cap-points = get-edge-anchors(edge, nodes)
-	let θ = vector-angle(vector.sub(..cap-points))
 
+	let θ = vector-angle(vector.sub(..cap-points))
 	let cap-angles = (θ, θ + 180deg)
 
+	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
 		let shifted-line-points = cap-points
 			.zip(cap-offsets(edge, shift))
@@ -127,6 +128,7 @@
 		)
 	}
 
+	// Apply cap offsets to the stroke end poins
 	cap-points = cap-points
 		.zip(cap-offsets(edge, 0pt))
 		.map(((point, offset)) => vector.add(point, vector-polar(offset, θ)))
@@ -167,71 +169,58 @@
 	let cap-points = get-edge-anchors(edge, nodes)
 	let θ = vector-angle(vector.sub(..cap-points))
 
+	// Determine the arc from the stroke end points and bend angle
 	let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, edge.bend)
 
 	let bend-dir = if edge.bend > 0deg { +1 } else { -1 }
+
+	// Draw arc(s), one for each extrusion shift
 	for shift in edge.extrude {
-		let (start, stop) = (start, stop)
-			.zip(cap-offsets(edge, shift))
-			.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
+
+		// Adjust arc angles to accomodate for cap offsets
+		let (δ-start, δ-stop) = cap-offsets(edge, shift)
+			.map(arclen => bend-dir*arclen/radius*1rad)
 
 		cetz.draw.arc(
 			center,
 			radius: radius + shift,
-			start: start,
-			stop: stop,
+			start: start + δ-start,
+			stop: stop + δ-stop,
 			anchor: "center",
 			stroke: edge.stroke,
 		)
 	}
 
-	if options.debug >= 3 {
-		cetz.draw.arc(
-			center,
-			radius: radius,
-			start: start,
-			stop: stop,
-			anchor: "center",
-			stroke: DEBUG_COLOR + 0.5pt,
-		)
-	}
 
-	// shift cap points along arc
+
+
 	let offsets = cap-offsets(edge, 0pt)
-	cap-points = (start, stop)
-		.zip(offsets)
-		.map(((θ, arclen)) => θ + bend-dir*arclen/radius*1rad)
-		.map(θ => vector.add(center, vector-polar(radius, θ)))
 
-
-	// for pt in cap-points {
-	// 	cetz.draw.circle(
-	// 		pt,
-	// 		radius: .3pt,
-	// 		fill: green,
-	// 		stroke: none,
-	// 	)	
-	// }
+	// Apply cap offsets to the stroke end poins
+	cap-points = offsets
+		.map(arclen => bend-dir*arclen/radius*1rad) // convert arclength to angle
+		.zip((start, stop))
+		.map(((δ, θ)) => vector.add(center, vector-polar(radius, θ + δ)))
 
 	let δ = bend-dir*90deg
 	let cap-angles = (start + δ, stop - δ)
 
+	// First angle correction
+	// Rotate caps to account for how they were offset along the arc
 	cap-angles = cap-angles.zip(offsets)
-		.map(((θ, arclen)) => θ + calc.asin(arclen/radius/2))
-
-	let φ = edge.marks
-		.zip((-1, +1))
-		.map(((mark, dir)) => {
-			if mark != none and "underhang" in mark {
-				dir*mark.underhang
-			} else { 0 } * edge.stroke.thickness
-		})
-		.map(o => calc.asin(o/radius/2))
-	cap-angles = vector.add(cap-angles, φ)
+		.map(((θ, arclen)) => θ + bend-dir*calc.asin(arclen/radius/2))
 
 	// Draw marks
-	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {
+	for (mark, pt, θ, dir) in zip(edge.marks, cap-points, cap-angles, (-1, +1)) {
 		if mark == none { continue }
+
+		// Second angle correction
+		// Rotate caps with underhang so that they to not hang off the arc
+		if "underhang" in mark {
+			let d = mark.underhang*edge.stroke.thickness
+			θ += dir*bend-dir*calc.asin(d/radius/2)
+		}
+
 		draw-arrow-cap(pt, θ, edge.stroke, mark)
 
 		if options.debug >= 3 {
@@ -245,6 +234,16 @@
 	}
 
 
+	if options.debug >= 3 {
+		cetz.draw.arc(
+			center,
+			radius: radius,
+			start: start,
+			stop: stop,
+			anchor: "center",
+			stroke: DEBUG_COLOR + 0.25pt,
+		)
+	}
 
 
 	// Draw label
@@ -291,11 +290,10 @@
 #let draw-edge-corner(edge, nodes, options) = {
 
 	let θ = vector-angle(vector.sub(..edge.points))
-
 	let θ-floor = calc.floor(θ/90deg)*90deg
 	let θ-ceil = calc.ceil(θ/90deg)*90deg
 
-	// angles that arrow heads would point
+	// Angles at which arrow heads point
 	let cap-angles = if edge.corner == left {
 		(θ-ceil, θ-floor + 180deg)
 	} else if edge.corner == right {
@@ -309,16 +307,15 @@
 
 
 	let i = if edge.corner == left { 1 } else { 0 }
-	let corner = if calc.even(calc.floor(θ/90deg) + i) {
+	let corner-point = if calc.even(calc.floor(θ/90deg) + i) {
 		(cap-points.at(1).at(0), cap-points.at(0).at(1))
 	} else {
 		(cap-points.at(0).at(0), cap-points.at(1).at(1))
 	}
 
-
 	let verts = (
 		cap-points.at(0),
-		corner,
+		corner-point,
 		cap-points.at(1),
 	)
 
@@ -334,7 +331,6 @@
 			.map(((v, o)) => vector.add(v, o))
 
 		// apply mark offsets
-
 		let offsets = zip(cap-offsets(edge, shift), cap-angles).map(((o, θ)) => {
 			vector-polar(o, θ)
 		})
@@ -347,6 +343,7 @@
 
 	}
 
+	// Draw right-angled line(s), one for each extrusion shift
 	for shift in edge.extrude {
 		cetz.draw.line(
 			..get-vertices(shift),

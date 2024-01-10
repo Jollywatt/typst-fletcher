@@ -426,9 +426,9 @@
 			} else { 1pt }
 
 			node.extrude = node.extrude.map(d => {
-				if type(d) == length { to-pt(d) }
+				if type(d) == length { d }
 				else { d*real-stroke-thickness }
-			})
+			}).map(to-pt)
 
 			node.inset = to-pt(node.inset)
 			node.outset = to-pt(node.outset)
@@ -478,6 +478,7 @@
 
 			for d in edge.extrude {
 				if type(d) != length { panic(edge) }
+				if d == -2 { panic(edge) }
 			}
 
 			edge
