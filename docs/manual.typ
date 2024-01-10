@@ -349,9 +349,9 @@
 	#fletcher.diagram(
 		node-stroke: black + 0.5pt,
 		node-fill: blue.lighten(90%),
-		node-outset: 4pt,
+		node-outset: 3pt,
 		spacing: (15mm, 8mm),
-		node((0,0), [1], extrude: (4, 0)), // double stroke effect 
+		node((0,0), [1], extrude: (0, -4)), // double stroke effect 
 		node((1,0), [2]),
 		node((2,1), [3a]),
 		node((2,-1), [3b]),

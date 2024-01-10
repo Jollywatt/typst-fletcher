@@ -166,10 +166,6 @@
 	let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, edge.bend)
 
 	let bend-dir = if edge.bend > 0deg { +1 } else { -1 }
-	let δ = bend-dir*90deg
-	let cap-angles = (start + δ, stop - δ)
-
-
 	for shift in edge.extrude {
 		let (start, stop) = (start, stop)
 			.zip(cap-offsets(edge, shift))
@@ -185,6 +181,10 @@
 		)
 	}
 
+	let δ = bend-dir*90deg
+	// let φ = calc.asin(0pt/radius)
+	// δ -= φ
+	let cap-angles = (start + δ, stop - δ)
 
 	// Draw marks
 	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {

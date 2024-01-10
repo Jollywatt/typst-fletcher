@@ -52,6 +52,9 @@
 	inset: auto,
 	outset: auto,
 	shape: auto,
+	width: auto,
+	height: auto,
+	radius: auto,
 	stroke: auto,
 	fill: auto,
 	defocus: auto,
@@ -66,6 +69,8 @@
 		label: label,
 		inset: inset,
 		outset: outset,
+		size: (width, height),
+		radius: radius,
 		shape: shape,
 		stroke: stroke,
 		fill: fill,
@@ -397,7 +402,11 @@
 
 
 #let apply-defaults(nodes, edges, options) = {
-	let to-pt(len) = len.abs + len.em*options.em-size
+	let to-pt(len) = if type(len) == length {
+		len.abs + len.em*options.em-size
+	} else {
+		len
+	}
 
 	(
 		nodes: nodes.map(node => {
@@ -406,6 +415,9 @@
 			if node.inset == auto { node.inset = options.node-inset }
 			if node.outset == auto { node.outset = options.node-outset }
 			if node.defocus == auto { node.defocus = options.node-defocus }
+
+			node.size = node.size.map(to-pt)
+			node.radius = to-pt(node.radius)
 
 			let real-stroke-thickness = if type(node.stroke) == stroke {
 				node.stroke.thickness
@@ -607,11 +619,9 @@
 	box(style(styles => {
 
 		let options = options
-		options.em-size = measure(box(width: 1em), styles).width
+		options.em-size = measure(h(1em), styles).width
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
-		options.node-inset = to-pt(options.node-inset)
-		options.label-sep = to-pt(options.label-sep)
 
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 

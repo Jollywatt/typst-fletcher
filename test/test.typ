@@ -394,3 +394,16 @@ Relative and absolute extrusion lengths
 	node((0,0), `outer`, stroke: 1pt, extrude: (-1mm, 0pt), fill: green),
 	node((1,0), `inner`, stroke: 1pt, extrude: (0, +.5em, -2pt), fill: green),
 )
+
+= Custom node sizes
+
+Make sure provided dimensions are exact, not affected by node `inset`.
+
+#circle(radius: 1cm, align(center + horizon, `1cm`))
+
+#fletcher.diagram(
+	node((0,1), `1cm`, stroke: 1pt, radius: 1cm, inset: 1cm, shape: "circle"),
+	node((0,0), [width], stroke: 1pt, width: 2cm),
+	node((1,0), [height], stroke: 1pt, height: 4em, inset: 0pt),
+	node((2,0), [both], width: 1em, height: 1em, fill: blue),
+)
