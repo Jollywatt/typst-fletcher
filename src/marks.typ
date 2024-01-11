@@ -6,12 +6,13 @@
 #let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
-	"double": (extrude: (-2, +2), mark-scale: 110%, mark-variant: 2),
-	"triple": (extrude: (-4, 0, +4), mark-scale: 150%, mark-variant: 3),
+	"double": (extrude: (-2, +2)),
+	"triple": (extrude: (-4, 0, +4)),
 	"crossing": (crossing: true),
 )
 
 
+/// 
 #let parse-arrow-shorthand(str) = {
 	let caps = (
 		"": (none, none),
@@ -90,26 +91,28 @@
 	} else if mark.kind == "tail" {
 		round-style + mark
 	} else if mark.kind == "twohead" {
-		round-style + mark + (kind: "head", extrude: (-3, 0), underhang: 4)
+		round-style + (extrude: (-3, 0), underhang: 4) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
-		round-style + mark + (kind: "tail", extrude: (-3, 0), underhang: 5)
+		round-style + (extrude: (-3, 0), underhang: 5) + mark + (kind: "tail")
 	} else if mark.kind == "twobar" {
-		(size: 4.5) + mark + (kind: "bar", extrude: (-3, 0), underhang: 3)
+		(size: 4.5) + (extrude: (-3, 0), underhang: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
 		(
 			kind: "head",
-			size: 9.6,
+			size: 9.6*1.1,
 			sharpness: 19deg,
 			delta: 43.7deg,
+			underhang: 4.5,
 		)
 	} else if mark.kind == "triplehead" {
 		// tuned to match sym.arrow.triple
 		(
 			kind: "head",
-			size: 9,
+			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
+			underhang: 7.5,
 		)
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark

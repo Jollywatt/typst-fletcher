@@ -83,7 +83,7 @@
 	if options.debug >= 2 {
 		cetz.draw.circle(
 			label-pos,
-			radius: edge.stroke.thickness,
+			radius: 0.75pt,
 			stroke: none,
 			fill: DEBUG_COLOR,
 		)
@@ -219,6 +219,15 @@
 		if "underhang" in mark {
 			let d = mark.underhang*edge.stroke.thickness
 			θ += dir*bend-dir*calc.asin(d/radius/2)
+
+			if options.debug >= 3 {
+				cetz.draw.on-layer(1, cetz.draw.circle(
+					(to: pt, rel: vector-polar(-d, θ)),
+					radius: edge.stroke.thickness/2,
+					fill: DEBUG_COLOR,
+					stroke: none,
+				))
+			}
 		}
 
 		draw-arrow-cap(pt, θ, edge.stroke, mark)
@@ -226,7 +235,7 @@
 		if options.debug >= 3 {
 			cetz.draw.circle(
 				pt,
-				radius: .5pt,
+				radius: edge.stroke.thickness/2,
 				fill: DEBUG_COLOR,
 				stroke: none,
 			)
@@ -241,7 +250,7 @@
 			start: start,
 			stop: stop,
 			anchor: "center",
-			stroke: DEBUG_COLOR + 0.25pt,
+			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
 		)
 	}
 

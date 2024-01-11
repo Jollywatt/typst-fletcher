@@ -288,6 +288,12 @@
 	),
 )
 
+#let code-example-row(src) = stack(
+	dir: ltr,
+	spacing: 1fr,
+	..code-example(src)
+)
+
 #table(
 	columns: (2fr, 1fr),
 	align: (horizon, left),
@@ -382,6 +388,25 @@ Other functions (including internal functions) are exported, so avoid importing 
 
 Nodes are content placed in the diagram at a particular coordinate. They fit to the size of their label (with an `inset` and `outset`), can be circular or rectangular (`shape`), and can be given a `stroke` and `fill`.
 
+#code-example-row(```typ
+#fletcher.diagram(
+	debug: 1,
+	spacing: (1em, 3em), // (x, y)
+	node((0, 0), $f$),
+	node((1, 0), $f$, stroke: 1pt, radius: 8mm),
+	node((2, 0), $f$, stroke: 1pt, shape: "rect"),
+	node((3, 0), $f$, stroke: 1pt, extrude: (0, 2)),
+	{
+		let b = blue.lighten(70%)
+		node((0,-1), `xyz`, fill: b, )
+		let complex-stroke = (paint: blue, dash: "dashed")
+		node((1,-1), `xyz`, stroke: complex-stroke, inset: 2em)
+		node((2,-1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
+		node((3,-1), `xyz`, fill: b, height: 5em)
+	}
+)
+```)
+
 === Elastic coordinates
 
 Diagrams are laid out on a flexible coordinate grid.
@@ -390,22 +415,18 @@ See the `diagram()` parameters for more control: `node-size` is the minimum row 
 
 Elastic coordinates can be demonstrated more clearly with a debug grid and no spacing.
 
-#stack(
-	dir: ltr,
-	spacing: 1fr, 
-	..code-example(```typ
-	#let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
-	#fletcher.diagram(
-		debug: 1,
-		spacing: 0pt,
-		node-inset: 0pt,
-		node((0,-1), b(blue,    5mm, 10mm)),
-		node((1, 0), b(green,  20mm,  5mm)),
-		node((1, 1), b(red,     5mm,  5mm)),
-		node((0, 1), b(orange, 10mm, 10mm)),
-	)
-	```)
+#code-example-row(```typ
+#let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
+#fletcher.diagram(
+	debug: 1,
+	spacing: 0pt,
+	node-inset: 0pt,
+	node((0,-1), b(blue,    5mm, 10mm)),
+	node((1, 0), b(green,  20mm,  5mm)),
+	node((1, 1), b(red,     5mm,  5mm)),
+	node((0, 1), b(orange, 10mm, 10mm)),
 )
+```)
 
 === Fractional coordinates
 
@@ -438,60 +459,130 @@ As a result, diagrams are responsive to node sizes (like tables) while also allo
 
 Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding circle or rectangle. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
-#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+#code-example-row(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
-		let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
-		node(abc, $A times B times C$)
-		node(a, $A$)
-		node(b, $B$)
-		node(c, $C$)
-		edge(a, b, bend: -10deg, "dashed")
-		edge(c, b, bend: +10deg, "dotted")
-		edge(a, abc, $a$)
-		edge(b, abc, "<=>")
-		edge(c, abc, $c$)
+	let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
+	node(abc, $A times B times C$)
+	node(a, $A$)
+	node(b, $B$)
+	node(c, $C$)
+
+	edge(a, b, bend: -10deg, "dashed")
+	edge(c, b, bend: +10deg, "<-<<")
+	edge(a, abc, $a$)
+	edge(b, abc, "<=>")
+	edge(c, abc, $c$)
+
+	node((0.6, -3), [_just a thought..._])
+	edge(b, (0.6, -3), "<|..", corner: right)
 })
 ```))
 
-=== Marks and arrows
+== Marks and arrows
 
-A few mathematical arrow heads are supported, designed to match the symbols $arrow$, $arrow.double$, $arrow.twohead$, $arrow.hook$, $arrow.bar$, etc.
-See the `marks` argument of `edge()` for details.
+A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, $arrow.hook$, etc.
+
 
 #align(center, fletcher.diagram(
 	debug: 0,
-	spacing: (15mm, 10mm),
+	spacing: (14mm, 12mm),
 {
 	for (i, str) in (
 		"->",
 		"=>",
+		"==>",
 		"|->",
-		"hook->>",
+		"->>",
+		"hook->",
 	).enumerate() {
 		for j in range(2) {
-			edge((2*i, -j), (2*i + 1, -j), str, bend: 40deg*j, thickness: 1pt)
+			let label = if j == 0 { raw("\""+str+"\"") }
+			edge((2*i, -j), (2*i + 1, -j), str, bend: 50deg*j, thickness: 0.9pt,
+			label: label, label-sep: 1em)
 		}
 	}
 }))
 
-Most marks have some parameters like size or sharpness angle that you can customize. This isn't a stable feature, but here's something to get you started:
+In addition, some other miscellaneous caps are supported:
+
+#align(center, fletcher.diagram(
+	debug: 0,
+	spacing: (14mm, 12mm),
+{
+	for (i, str) in (
+		">>->",
+		"||--|>",
+		"o..O",
+		"hook'-hook",
+		"o-harpoon'"
+	).enumerate() {
+		let label = raw("\""+str+"\"")
+		edge((2*i, 0), (2*i + 1, 0), str, thickness: 0.9pt,
+		label: label, label-sep: 1em)
+	}
+}))
+
+See the `marks` argument of `edge()` for details.
+
+=== Customised marks
+
+While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands such as `"<->"` are shortcurs for specific combinations of `edge()` options.
+For example, `edge(a, b, "|=>")` is the equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `parse-arrow-shorthand()`:
+#code-example-row(```typ
+#fletcher.parse-arrow-shorthand("|=>")
+```)
+
+Furthermore, a mark name such as `"bar"` or `"doublehead"` is a shorthand for a dictionary defining the mark's geometry.
+The expanded form can be retrieved with `interpret-mark()`.
+#code-example-row(```typ
+#fletcher.interpret-mark("doublehead")
+// In this particular example:
+// - `kind` selects the type of arrow head
+// - `size` controls the radius of the arc
+// - `sharpness` is (half) the angle of the tip
+// - `delta` is the angle spanned by the arcs
+// - `underhang` is approximately the distance from the arrow's tip to
+//    the end of its arms. This is used to calculate a correction to the
+//    arrowhead's bearing for tightly curved edges
+// Distances are multiples of the stroke thickness.
+```)
+
+You can customise marks by adjusting these parameters.
+For example:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+#let custom-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
+#let custom-bar = (kind: "bar", extrude: (0, -3, -6))
+#let custom-solidhead = (kind: "solidhead", sharpness: 45deg)
 #fletcher.diagram(
-	edge-thickness: 1.5pt,
-	spacing: (4cm, 1cm),
-	{
-		let custom-head = ( // sharper arrow head
-			kind: "head",
-			sharpness: 10deg,
-			size: 70,
-			delta: 10deg,
-		)
-		edge((0,1), (1,1), marks: (custom-head, custom-head + (sharpness: 20deg)))
-		edge((0,0), (1,0), marks: ("bar", (kind: "bar", size: 2))) // smaller bar
-	},
+	edge-thickness: 1.4pt,
+	spacing: (3cm, 1cm),
+	edge((0,1), (1,1), marks: (custom-head, custom-head + (sharpness: 20deg))),
+	edge((0,0), (1,0), marks: (custom-bar, custom-solidhead)),
 )
 ```))
+
+The exact parameters for each kind of arrow head will probably change often as this package is updated, so they are undocumented.
+However, you are encouraged to use the functions `parse-arrow-shorthand()` and `interpret-mark()` to discover the parameters if you want finer control.
+
+=== Underhang correction
+
+All marks accept an `underhang` parameter, the effect of which can be seen below:
+#code-example-row(```typ
+#fletcher.diagram(
+	edge-thickness: 3pt,
+	spacing: 2cm,
+	debug: 3,
+	
+	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
+		marks: (none, (kind: "twohead", underhang: 0))),
+	edge((0,0), (1,0), paint: gray, bend: 90deg, label-pos: 0.1, label: [with],
+		marks: (none, (kind: "twohead"))), // use default underhang
+)
+```)
+The underhang specifies the length (in multiples of the stroke thickness) that the arrow head visually extends backwards over the stroke.
+This is the distance between the two red dots on the second arrow head above.
+The mark is rotated so that both these points lie on the arc.
 
 === CeTZ integration
 Currently, only straight, arc and right-angled connectors are supported.
