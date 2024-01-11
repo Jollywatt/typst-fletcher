@@ -55,7 +55,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 ### 0.4.0
 
 - Add `width`, `height` and `radius` options to `node()` for explicit control over size.
-- Improve mark/arrow positioning on curved edges. Arrows on tightly curving arcs now rotate a bit to fit more comfortably along the arc.
+- Add `tail-hang` correction to marks/arrows on curved edges. Marks on curves now rotate a bit to fit more comfortably along the arc.
 
 ### 0.3.0
 

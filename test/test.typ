@@ -26,7 +26,7 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 			(marks: ("head", "head"), extrude: (1.5,-1.5)),
 			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
 			(marks: ("bar", "head"), extrude: (2,0,-2)),
-			(marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
+			// (marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
 			(marks: ("circle", "bigcircle")),
 			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
 			(marks: ("solidtail", "solidhead")),

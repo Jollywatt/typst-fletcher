@@ -39,15 +39,23 @@
 #v(.2fr)
 
 #align(center)[
-	#fletcher.diagram(
-		spacing: 2.3cm,
-		node((0,1), $A$),
-		node((1,1), $B$),
-		edge((0,1), (1,1), $f$, ">>->"),
+	#stack(
+		spacing: 12pt,
+		{
+			set text(1.3em)
+			fletcher.diagram(
+				edge-thickness: 1pt,
+				spacing: 31mm,
+				node((0,1), $A$),
+				node((1,1), $B$),
+				edge((0,1), (1,1), $f$, ">>->"),
+			)
+		},
+		text(2.7em, strong(`fletcher`)),
+		[_(noun) a maker of arrows_],
 	)
 
-	#text(2em, strong(`fletcher`)) \
-	_(noun) a maker of arrows_
+	#v(30pt)
 
 	A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
 	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
@@ -526,14 +534,14 @@ See the `marks` argument of `edge()` for details.
 
 === Customised marks
 
-While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands such as `"<->"` are shortcurs for specific combinations of `edge()` options.
-For example, `edge(a, b, "|=>")` is the equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `parse-arrow-shorthand()`:
+While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands like `"<->"` expand into specific `edge()` options.
+For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `parse-arrow-shorthand()`:
 #code-example-row(```typ
 #fletcher.parse-arrow-shorthand("|=>")
 ```)
 
-Furthermore, a mark name such as `"bar"` or `"doublehead"` is a shorthand for a dictionary defining the mark's geometry.
-The expanded form can be retrieved with `interpret-mark()`.
+Furthermore, a mark name such as `"bar"` or `"doublehead"` is itself shorthand for a dictionary defining the mark's parameters.
+The expanded form can be retrieved with `interpret-mark()`, for example:
 #code-example-row(```typ
 #fletcher.interpret-mark("doublehead")
 // In this particular example:
@@ -541,13 +549,13 @@ The expanded form can be retrieved with `interpret-mark()`.
 // - `size` controls the radius of the arc
 // - `sharpness` is (half) the angle of the tip
 // - `delta` is the angle spanned by the arcs
-// - `underhang` is approximately the distance from the arrow's tip to
-//    the end of its arms. This is used to calculate a correction to the
-//    arrowhead's bearing for tightly curved edges
+// - `tail-hang` is approximately the distance from the cap's tip to
+//    the end of its arms. This is used to calculate a "tail hang"
+//    correction to the arrowhead's bearing for tightly curved edges.
 // Distances are multiples of the stroke thickness.
 ```)
 
-You can customise marks by adjusting these parameters.
+You can customise these basic marks by adjusting these parameters.
 For example:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
@@ -562,25 +570,25 @@ For example:
 )
 ```))
 
-The exact parameters for each kind of arrow head will probably change often as this package is updated, so they are undocumented.
-However, you are encouraged to use the functions `parse-arrow-shorthand()` and `interpret-mark()` to discover the parameters if you want finer control.
+The specific mark kinds and parameters will likely change as this package is updated, so they not (yet) undocumented.
+However, if you want finer control, you are encouraged to use the functions `parse-arrow-shorthand()` and `interpret-mark()` to discover the parameters.
 
-=== Underhang correction
+=== Hanging tail correction
 
-All marks accept an `underhang` parameter, the effect of which can be seen below:
+All marks accept an `tail-hang` parameter, the effect of which can be seen below:
 #code-example-row(```typ
 #fletcher.diagram(
 	edge-thickness: 3pt,
 	spacing: 2cm,
 	debug: 3,
-	
+
 	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
-		marks: (none, (kind: "twohead", underhang: 0))),
+		marks: (none, (kind: "twohead", tail-hang: 0))),
 	edge((0,0), (1,0), paint: gray, bend: 90deg, label-pos: 0.1, label: [with],
-		marks: (none, (kind: "twohead"))), // use default underhang
+		marks: (none, (kind: "twohead"))), // use default hang
 )
 ```)
-The underhang specifies the length (in multiples of the stroke thickness) that the arrow head visually extends backwards over the stroke.
+The hang specifies the length (in multiples of the stroke thickness) that the arrow head visually extends backwards over the stroke.
 This is the distance between the two red dots on the second arrow head above.
 The mark is rotated so that both these points lie on the arc.
 

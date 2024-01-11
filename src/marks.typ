@@ -87,15 +87,15 @@
 
 
 	if mark.kind in ("head", "harpoon") {
-		round-style + (underhang: 3) + mark
+		round-style + (tail-hang: 3) + mark
 	} else if mark.kind == "tail" {
-		round-style + mark
+		round-style + (tail-hang: -3) + mark
 	} else if mark.kind == "twohead" {
-		round-style + (extrude: (-3, 0), underhang: 4) + mark + (kind: "head")
+		round-style + (extrude: (-3, 0), tail-hang: 4) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
-		round-style + (extrude: (-3, 0), underhang: 5) + mark + (kind: "tail")
+		round-style + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "tail")
 	} else if mark.kind == "twobar" {
-		(size: 4.5) + (extrude: (-3, 0), underhang: 3) + mark + (kind: "bar")
+		(size: 4.5) + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
 		(
@@ -103,7 +103,7 @@
 			size: 9.6*1.1,
 			sharpness: 19deg,
 			delta: 43.7deg,
-			underhang: 4.5,
+			tail-hang: 4.5,
 		)
 	} else if mark.kind == "triplehead" {
 		// tuned to match sym.arrow.triple
@@ -112,7 +112,7 @@
 			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
-			underhang: 7.5,
+			tail-hang: 7.5,
 		)
 	} else if mark.kind == "bar" {
 		(size: 4.5) + mark
@@ -123,9 +123,9 @@
 	} else if mark.kind == "bigcircle" {
 		(size: 4) + mark + (kind: "circle")
 	} else if mark.kind == "solidhead" {
-		(size: 10, sharpness: 19deg, underhang: 0) + mark
+		(size: 10, sharpness: 19deg, tail-hang: 0) + mark
 	} else if mark.kind == "solidtail" {
-		(size: 10, sharpness: 19deg, underhang: 8) + mark
+		(size: 10, sharpness: 19deg, tail-hang: 8) + mark
 	} else {
 		panic("Cannot interpret mark: " + mark.kind)
 	}

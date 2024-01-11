@@ -173,6 +173,8 @@
 	let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, edge.bend)
 
 	let bend-dir = if edge.bend > 0deg { +1 } else { -1 }
+	let δ = bend-dir*90deg
+	let cap-angles = (start + δ, stop - δ)
 
 	// Draw arc(s), one for each extrusion shift
 	for shift in edge.extrude {
@@ -202,22 +204,20 @@
 		.zip((start, stop))
 		.map(((δ, θ)) => vector.add(center, vector-polar(radius, θ + δ)))
 
-	let δ = bend-dir*90deg
-	let cap-angles = (start + δ, stop - δ)
 
 	// First angle correction
 	// Rotate caps to account for how they were offset along the arc
 	cap-angles = cap-angles.zip(offsets)
-		.map(((θ, arclen)) => θ + bend-dir*calc.asin(arclen/radius/2))
+		.map(((θ, arclen)) => θ + bend-dir*calc.asin(arclen/radius))
 
 	// Draw marks
 	for (mark, pt, θ, dir) in zip(edge.marks, cap-points, cap-angles, (-1, +1)) {
 		if mark == none { continue }
 
 		// Second angle correction
-		// Rotate caps with underhang so that they to not hang off the arc
-		if "underhang" in mark {
-			let d = mark.underhang*edge.stroke.thickness
+		// Rotate caps with tail-hang so that they to not hang off the arc
+		if "tail-hang" in mark {
+			let d = mark.tail-hang*edge.stroke.thickness
 			θ += dir*bend-dir*calc.asin(d/radius/2)
 
 			if options.debug >= 3 {
