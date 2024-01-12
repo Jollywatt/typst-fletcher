@@ -125,7 +125,7 @@
 			tail-hang: 7.5,
 		)
 	} else if mark.kind == "bar" {
-		(size: 4.5, angle: 0deg) + mark
+		(size: 4.9, angle: 0deg) + mark
 	} else if mark.kind == "cross" {
 		(size: 4, angle: 45deg) + mark
 	} else if mark.kind in ("hook", "hooks") {

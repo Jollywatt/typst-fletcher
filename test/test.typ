@@ -6,7 +6,6 @@
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 = Arrow heads
-Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.arrow.bar$
 
 #fletcher.diagram(
 	spacing: (10mm, 5mm),
@@ -39,6 +38,8 @@ Compare to symbols $#sym.arrow$, $#sym.arrow.twohead$, $#sym.arrow.hook$, $#sym.
 
 = Matching math arrows
 
+Compare to $->$, $=>$ $arrow.triple$ $arrow.twohead$, $arrow.hook$, $|->$.
+
 Red is our output; cyan is reference symbol in default math font.
 #{
 	set text(10em)
@@ -50,6 +51,28 @@ Red is our output; cyan is reference symbol in default math font.
 			(0,0), (1,0),
 			text(rgb("0ff5"), $->$),
 			"->",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+	fletcher.diagram(
+		spacing: 0.8em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $=>$),
+			"=>",
+			paint: rgb("f006"),
+			label-side: center,
+		),
+	)
+	fletcher.diagram(
+		spacing: 0.83em,
+		crossing-fill: none,
+		edge(
+			(0,0), (1,0),
+			text(rgb("0ff5"), $arrow.triple$),
+			"==>",
 			paint: rgb("f006"),
 			label-side: center,
 		),
@@ -79,58 +102,21 @@ Red is our output; cyan is reference symbol in default math font.
 			label-anchor: "center",
 		),
 	)
-
 	fletcher.diagram(
-		spacing: 0.8em,
+		spacing: 0.815em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $=>$),
-			"=>",
+			text(rgb("0ff5"), $|->$),
+			"|->",
 			paint: rgb("f006"),
 			label-side: center,
+			label-anchor: "center",
 		),
 	)
 
-	fletcher.diagram(
-		spacing: 0.83em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(rgb("0ff5"), $arrow.triple$),
-			"==>",
-			paint: rgb("f006"),
-			label-side: center,
-		),
-	)
 }
 
-$A -> B$, 
-#fletcher.diagram(
-	edge-thickness: 0.53pt,
-	node-inset: 5pt,
-	label-sep: 1pt,
-	// spacing: 25pt,
-	node((0,0), $A$), edge((0,0), (1,0), "->"), node((1,0), $B$)
-)
-
-$A => B$, 
-#fletcher.diagram(
-	edge-thickness: 0.53pt,
-	node-inset: 5pt,
-	label-sep: 2pt,
-	// spacing: 25pt,
-	node((0,0), $A$), edge((0,0), (1,0), "=>"), node((1,0), $B$)
-)
-
-$A arrow.triple B$, 
-#fletcher.diagram(
-	edge-thickness: 0.53pt,
-	node-inset: 5pt,
-	label-sep: 3pt,
-	// spacing: 25pt,
-	node((0,0), $A$), edge((0,0), (1,0), "==>"), node((1,0), $B$)
-)
 
 
 = Double and triple lines
