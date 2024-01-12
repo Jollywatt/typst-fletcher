@@ -95,7 +95,7 @@
 // Get the arrow head adjustment for a given extrusion distance
 #let cap-offsets(edge, y) = {
 	zip(edge.marks, (+1, -1)).map(((mark, dir)) => {
-		dir*cap-offset(mark, y/edge.stroke.thickness)*edge.stroke.thickness
+		dir*cap-offset(mark, dir*y/edge.stroke.thickness)*edge.stroke.thickness
 	})
 }
 

@@ -601,7 +601,7 @@ Here is an example of how you might hack together a Bézier connector using the 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 #fletcher.diagram(
 	node((0,0), $A$),
-	node((2,1), [Bézier]),
+	node((2,1), [Bézier], fill: purple.lighten(80%)),
 	render: (grid, nodes, edges, options) => {
 		// cetz is also exported as fletcher.cetz
 		cetz.canvas({
@@ -617,13 +617,14 @@ Here is an example of how you might hack together a Bézier connector using the 
 			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
 			// make some control points
-			let c1 = cetz.vector.add(p1, (20pt, 0pt))
+			let c1 = cetz.vector.add(p1, (30pt, 0pt))
 			let c2 = cetz.vector.add(p2, (0pt, -70pt))
 
 			cetz.draw.bezier(p1, p2, c1, c2)
 
 			// place an arrow head at a given point and angle
-			fletcher.draw-arrow-cap(p2, 90deg, 1pt + black, "twohead")
+			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, "twohead")
+			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black, (kind: "hook'", size: 3))
 		})
 	}
 )
