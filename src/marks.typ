@@ -119,7 +119,18 @@
 	marks
 }
 
-/// arg should be string or array
+/// Parse and interpret the marks argument provided to `edge()`.
+/// Returns a dictionary of processed `edge()` arguments.
+///
+/// - arg (string, array):
+/// Can be a string, (e.g. `"->"`, `"<=>"`), etc, or an array of marks.
+/// A mark can be a string (e.g., `">"` or `"head"`, `"x"` or `"cross"`) or a dictionary containing the keys:
+///   - `kind` (required) the mark name, e.g. `"solidhead"` or `"bar"`
+///   - `pos` the position along the edge to place the mark, from 0 to 1
+///   - `rev` whether to reverse the direction
+///   - `tail-hang` the visual length of the mark's tail
+///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
+/// -> dictiony
 #let interpret-marks-arg(arg) = {
 	if type(arg) == array { return (marks: interpret-marks(arg)) }
 
