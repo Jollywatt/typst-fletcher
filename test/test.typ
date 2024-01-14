@@ -5,6 +5,35 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
+#[#set page(height: 10cm)
+= New marks
+#fletcher.diagram(
+	debug: 4,
+	spacing: 8mm,
+	for (i, m) in ("head", "triplehead", "bar", "twohead").enumerate() {
+		edge((0,-i), (1,-i), marks: (
+			(kind: m, pos: 0),
+			(kind: m, pos: 0.5),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2))
+		edge((2,-i), (3,-i), marks: (
+			(kind: m, pos: 0, rev: true),
+			(kind: m, pos: 0.5),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2), bend: 90deg)
+		edge((4,-i), (5,-i), marks: (
+			(kind: m, pos: 0, rev: true),
+			(kind: m, pos: 0.5, rev: false),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2), bend: -30deg)
+	}
+)
+]
+
+= Parse marks
+
+#fletcher.interpret-marks-arg("<->")
+
 = Arrow heads
 
 #fletcher.diagram(
@@ -16,10 +45,9 @@
 			(marks: ("head", "head")),
 			(marks: ("tail", "tail")),
 			(marks: ("twotail", "twohead")),
-			(marks: ("twohead", "twotail")),
-			(marks: ("hook", "head")),
-			(marks: ("hook", "hook'")),
-			(marks: ("bar", "bar")),
+			(marks: ((kind: "hook", rev: true), "head")),
+			(marks: ((kind: "hook", rev: true), "hook'")),
+			(marks: ("bar", "bar", "bar")),
 			(marks: ("twobar", "twobar")),
 			(marks: (none, none), extrude: (2.5,0,-2.5)),
 			(marks: ("head", "head"), extrude: (1.5,-1.5)),
@@ -28,7 +56,7 @@
 			// (marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
 			(marks: ("circle", "bigcircle")),
 			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
-			(marks: ("solidtail", "solidhead")),
+			(marks: ((kind: "solidhead", rev: true), "solidhead")),
 		).enumerate().map(((i, args)) => {
 			edge((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()
@@ -133,12 +161,11 @@ Red is our output; cyan is reference symbol in default math font.
 
 = Arrow head shorthands
 
-#import "/src/main.typ": parse-arrow-shorthand
-
 $
 #for i in (
 	"->",
 	"<-",
+	">-<",
 	"<->",
 	"<=>",
 	"<==>",
@@ -149,6 +176,7 @@ $
 	"hook->",
 	"hook'--hook",
 	"|=|",
+	"||-||",
 	"/--\\",
 	"\\=\\",
 	"x-X",
@@ -159,6 +187,7 @@ $
 	"|..|",
 	"hooks--hooks",
 	"o-O",
+	"O-o",
 	"*-@",
 	"o==O",
 	"||->>",
@@ -166,7 +195,7 @@ $
 	"|>-<|",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #fletcher.diagram(edge((0,0), (1,0), i)) \ $
+	&= #fletcher.diagram(edge((0,0), (1,0), i), debug: 4) \ $
 }
 $
 

@@ -1,6 +1,6 @@
 #import "@preview/tidy:0.1.0"
 #import "/src/exports.typ" as fletcher: node, edge
-#import "/src/main.typ": parse-arrow-shorthand
+// #import "/src/main.typ": interpret-marks-arg
 
 #set page(numbering: "1")
 #set par(justify: true)
@@ -13,7 +13,6 @@
 	diagram: fletcher.diagram,
 	node: node,
 	edge: edge,
-	parse-arrow-shorthand: parse-arrow-shorthand,
 	cetz: fletcher.cetz,
 )
 #let show-module(path) = {
@@ -535,9 +534,9 @@ See the `marks` argument of `edge()` for details.
 === Customised marks
 
 While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands like `"<->"` expand into specific `edge()` options.
-For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `parse-arrow-shorthand()`:
+For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `interpret-marks-arg()`:
 #code-example-row(```typ
-#fletcher.parse-arrow-shorthand("|=>")
+#fletcher.interpret-marks-arg("|=>")
 ```)
 
 Furthermore, a mark name such as `"bar"` or `"doublehead"` is itself shorthand for a dictionary defining the mark's parameters.
@@ -571,7 +570,7 @@ For example:
 ```))
 
 The specific mark kinds and parameters will likely change as this package is updated, so they not (yet) undocumented.
-However, if you want finer control, you are encouraged to use the functions `parse-arrow-shorthand()` and `interpret-mark()` to discover the parameters.
+However, if you want finer control, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover the parameters.
 
 === Hanging tail correction
 

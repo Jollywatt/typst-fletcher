@@ -11,79 +11,43 @@
 	"crossing": (crossing: true),
 )
 
-
-/// 
-#let parse-arrow-shorthand(str) = {
-	let caps = (
-		"": (none, none),
-		">": ("tail", "head"),
-		">>": ("twotail", "twohead"),
-		"<": ("head", "tail"),
-		"<<": ("twohead", "twotail"),
-		"|>": ("solidtail", "solidhead"),
-		"<|": ("solidhead", "solidtail"),
-		"|": "bar",
-		"||": "twobar",
-		"/": (kind: "bar", angle: -30deg),
-		"\\": (kind: "bar", angle: +30deg),
-		"x": "cross",
-		"X": (kind: "cross", size: 7),
-		"o": "circle",
-		"O": "bigcircle",
-		"*": (kind: "circle", fill: true),
-		"@": (kind: "bigcircle", fill: true),
-	)
-	let lines = (
-		"-": (:),
-		"=": EDGE_ARGUMENT_SHORTHANDS.double,
-		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
-	)
-
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|/|\\\\|x|X|o|O|\*|@|<\||\|>)"
-	let line-selector = "(-|=|--|==|::|\.\.)"
-	let match = str.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
-	if match == none {
-		panic("Failed to parse " + str + " as a edge style shorthand.")
-	}
-	let (from, line, to) = match.captures
-
-	let (from, to) = (from, to).enumerate().map(((i, symbol)) => {
-		if symbol in caps {
-			let cap = caps.at(symbol)
-			if type(cap) == array { cap.at(i) } else { cap }
-		} else { symbol }
-	})
-
-	if line == "=" {
-		// make arrows slightly larger, suited for double stroked line
-		if from == "head" { from = "doublehead" } 
-		if to == "head" { to = "doublehead" } 
-	} else if line == "==" {
-		if from == "head" { from = "triplehead" } 
-		if to == "head" { to = "triplehead" } 	
-	}
-
-	(
-		marks: (from, to),
-		..lines.at(line),
-	)
-}
+#let CAP_ALIASES = (
+	">": (kind: "head", rev: false),
+	">>": (kind: "twohead", rev: false),
+	"<": (kind: "head", rev: true),
+	"<<": (kind: "twohead", rev: true),
+	"|>": (kind: "solidhead", rev: false),
+	"<|": (kind: "solidhead", rev: true),
+	"|": (kind: "bar"),
+	"||": (kind: "twobar"),
+	"/": (kind: "bar", angle: -30deg),
+	"\\": (kind: "bar", angle: +30deg),
+	"x": (kind: "cross"),
+	"X": (kind: "cross", size: 7),
+	"o": (kind: "circle"),
+	"O": (kind: "bigcircle"),
+	"*": (kind: "circle", fill: true),
+	"@": (kind: "bigcircle", fill: true),
+)
 
 
 
 
 /// Take a string or dictionary specifying a mark and return a dictionary,
 /// adding defaults for any necessary missing parameters.
-#let interpret-mark(mark) = {
+///
+/// Ensures all required parameters except `rev` and `pos` are present.
+#let interpret-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
 
 	if type(mark) == str {
-		mark = (kind: mark)
+		mark = CAP_ALIASES.at(mark, default: (kind: mark))
 	}
 
+	assert(type(mark) == dictionary, message: repr(mark))
+	
 	mark.flip = mark.at("flip", default: +1)
+
 	if mark.kind.at(-1) == "'" {
 		mark.flip = -mark.flip
 		mark.kind = mark.kind.slice(0, -1)
@@ -95,11 +59,12 @@
 		delta: 54deg, // angle spanned by arc of curved arrow edge
 	)
 
+	mark = defaults + mark
 
 	if mark.kind in ("head", "harpoon") {
-		round-style + (tail-hang: 3) + mark
+		round-style + (tail-hang: 4) + mark
 	} else if mark.kind == "tail" {
-		round-style + (tail-hang: -3) + mark
+		interpret-mark(mark + (kind: "head", rev: true))
 	} else if mark.kind == "twohead" {
 		round-style + (extrude: (-3, 0), tail-hang: 4) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
@@ -108,40 +73,104 @@
 		(size: 4.5) + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
-		(
-			kind: "head",
+		mark + (
 			size: 9.6*1.1,
 			sharpness: 19deg,
 			delta: 43.7deg,
 			tail-hang: 4.5,
-		)
+		) + (kind: "head")
 	} else if mark.kind == "triplehead" {
 		// tuned to match sym.arrow.triple
-		(
-			kind: "head",
+		mark + (
 			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
-			tail-hang: 7.5,
-		)
+			tail-hang: 4,
+		) + (kind: "head")
 	} else if mark.kind == "bar" {
 		(size: 4.9, angle: 0deg) + mark
 	} else if mark.kind == "cross" {
 		(size: 4, angle: 45deg) + mark
 	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.88, rim: 0.85) + mark
+		(size: 2.88, rim: 0.85, tail-hang: 3) + mark
 	} else if mark.kind == "circle" {
-		(size: 2, fill: false) + mark
+		(size: 2, fill: false, tail-hang: 4) + mark
 	} else if mark.kind == "bigcircle" {
-		(size: 4) + mark + (kind: "circle")
+		(size: 4, tail-hang: 8) + mark + (kind: "circle")
 	} else if mark.kind == "solidhead" {
-		(size: 10, sharpness: 19deg, tail-hang: 0) + mark
+		(size: 10, sharpness: 19deg, tail-hang: 9) + mark
 	} else if mark.kind == "solidtail" {
-		(size: 10, sharpness: 19deg, tail-hang: 8) + mark
+		interpret-mark(mark + (kind: "solidhead", rev: true))
 	} else {
 		panic("Cannot interpret mark: " + mark.kind)
 	}
 }
+
+
+#let interpret-marks(marks) = {
+
+	marks = marks.enumerate().map(((i, mark)) => {
+		interpret-mark(mark, defaults: (
+			pos: i/calc.max(1, marks.len() - 1),
+			rev: i == 0,
+		))
+	}).filter(mark => mark != none) // drop empty marks
+
+	assert(type(marks) == array)
+	assert(marks.all(mark => type(mark) == dictionary), message: repr(marks))
+	marks
+}
+
+/// arg should be string or array
+#let interpret-marks-arg(arg) = {
+	if type(arg) == array { return (marks: interpret-marks(arg)) }
+
+	assert(type(arg) == str)
+	let text = arg
+
+	let lines = (
+		"-": (:),
+		"=": EDGE_ARGUMENT_SHORTHANDS.double,
+		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
+		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
+		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
+	)
+
+	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|/|\\\\|x|X|o|O|\*|@|<\||\|>)"
+	let line-selector = "(-|=|--|==|::|\.\.)"
+	let match = text.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
+	if match == none {
+		panic("Failed to parse " + text + " as a edge style shorthand.")
+	}
+	let (from, line, to) = match.captures
+	let marks = (from, to).map(mark => {
+		if mark == "" { none }
+		else { CAP_ALIASES.at(mark, default: (kind: mark)) }
+	})
+
+	if marks.at(0) != none and "rev" not in marks.at(0) { marks.at(0).rev = true }
+
+	if line == "=" {
+		// make arrows slightly larger, suited for double stroked line
+		marks = marks.map(mark => {
+			if mark != none and mark.kind == "head" { mark.kind = "doublehead" }
+			mark
+		})
+	} else if line == "==" {
+		marks = marks.map(mark => {
+			if mark != none and mark.kind == "head" { mark.kind = "triplehead" }
+			mark
+		})
+	}
+
+
+	(
+		marks: interpret-marks(marks),
+		..lines.at(line),
+	)
+}
+
+
 
 /// Calculate cap offset of round-style arrow cap,
 /// $r (sin θ - sqrt(1 - (cos θ - (|y|)/r)^2))$.
@@ -160,8 +189,8 @@
 
 	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
 
-	if mark.kind == "head" { offset() }
-	else if mark.kind in ("hook", "hook'", "hooks") { -2.65 }
+	offset = if mark.kind == "head" { offset() }
+	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail-hang }
 	else if mark.kind == "tail" { -3 - offset() }
 	else if mark.kind == "twohead" { offset() - 3 }
 	else if mark.kind == "twotail" { -3 - offset() - 3 }
@@ -169,18 +198,45 @@
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
 	} else if mark.kind == "solidhead" {
-		-mark.size*cos(mark.sharpness)
+		// -mark.size*cos(mark.sharpness)
+		-2
 	} else if mark.kind == "solidtail" {
 		-1
 	} else if mark.kind == "bar" {
 		 -calc.tan(mark.angle)*y
 	} else { 0 }
+
+	if mark.rev and "tail-hang" in mark {
+		offset = -offset - mark.tail-hang
+	}
+
+	offset
 }
 
 
-#let draw-arrow-cap(p, θ, stroke, mark) = {
+#let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
 	mark = interpret-mark(mark)
 
+	let tail = stroke.thickness*mark.at("tail-hang", default: 0)
+
+	if mark.at("rev", default: false) {
+		θ += 180deg
+		mark.rev = false
+		p = vector.add(p, vector-polar(tail, θ))
+	}
+
+	if debug {
+		cetz.draw.on-layer(1, cetz.draw.circle(
+			p,
+			radius: stroke.thickness,
+			stroke: none,
+			fill: rgb("0f0a"),
+		) + cetz.draw.line(
+			p,
+			vector.add(p, vector-polar(tail*(if mark.rev {1} else {-1}), θ)),
+			stroke: rgb("0f0a") + stroke.thickness,
+		))
+	}
 	let shift(p, x) = vector.add(p, vector-polar(stroke.thickness*x, θ))
 
 	// extrude draws multiple copies of the mark
@@ -215,7 +271,7 @@
 		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
 	} else if mark.kind == "hook" {
-		// p = shift(p, cap-offset(mark, 0))
+		p = shift(p, -mark.tail-hang)
 		cetz.draw.arc(
 			p,
 			radius: mark.size*stroke.thickness,
@@ -248,7 +304,7 @@
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "bar", angle: -mark.angle))
 
 	} else if mark.kind == "circle" {
-		p = shift(p, mark.size)
+		p = shift(p, -mark.size)
 		cetz.draw.circle(
 			p,
 			radius: mark.size*stroke.thickness,
@@ -257,7 +313,8 @@
 		)
 
 	} else if mark.kind == "solidhead" {
-		p = shift(p, -cap-offset(mark, 0))
+		// p = shift(p, -cap-offset(mark, mark))
+
 		cetz.draw.line(
 			p,
 			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),

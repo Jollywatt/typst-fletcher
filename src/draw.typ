@@ -43,6 +43,7 @@
 /// - nodes (pair of dictionaries): The start and end nodes of the connector.
 /// -> pair of points
 #let get-edge-anchors(edge, nodes) = {
+	assert(nodes.len() == 2)
 	let center-center-line = nodes.map(node => node.real-pos)
 
 	let v = vector.sub(..center-center-line)
@@ -94,8 +95,12 @@
 
 // Get the arrow head adjustment for a given extrusion distance
 #let cap-offsets(edge, y) = {
-	zip(edge.marks, (+1, -1)).map(((mark, dir)) => {
-		dir*cap-offset(mark, dir*y/edge.stroke.thickness)*edge.stroke.thickness
+	(0, 1).map(pos => {
+		let mark = edge.marks.find(mark => mark.pos == pos)
+		if mark == none { return 0pt }
+		let x = cap-offset(mark, y/edge.stroke.thickness)
+		if pos == 0 and "tail-hang" in mark { x += mark.tail-hang }
+		x*edge.stroke.thickness
 	})
 }
 
@@ -103,15 +108,13 @@
 #let draw-edge-line(edge, nodes, options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-edge-anchors(edge, nodes)
+	let (from, to) = get-edge-anchors(edge, nodes)
 
-	let θ = vector-angle(vector.sub(..cap-points))
-	let cap-angles = (θ, θ + 180deg)
+	let θ = vector-angle(vector.sub(to, from))
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
-		let shifted-line-points = cap-points
-			.zip(cap-offsets(edge, shift))
+		let shifted-line-points = (from, to).zip(cap-offsets(edge, shift))
 			.map(((point, offset)) => vector.add(
 				point,
 				vector.add(
@@ -128,15 +131,19 @@
 		)
 	}
 
-	// Apply cap offsets to the stroke end poins
-	cap-points = cap-points
-		.zip(cap-offsets(edge, 0pt))
-		.map(((point, offset)) => vector.add(point, vector-polar(offset, θ)))
+	// get the origin/anchor point for a mark at a given position along the line
+	let mark-origin(mark) = {
+		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let from = vector.add(from, vector-polar(tail, θ))
+		let origin = vector.lerp(from, to, mark.pos)
+		origin
+	}
+
 
 	// Draw marks
-	for (mark, pt, θ) in zip(edge.marks, cap-points, cap-angles) {
-		if mark == none { continue }
-		draw-arrow-cap(pt, θ, edge.stroke, mark)
+	for mark in edge.marks {
+		let pt = mark-origin(mark)
+		draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 	// Draw label
@@ -154,11 +161,12 @@
 	
 		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
 		let label-pos = vector.add(
-			vector.lerp(..cap-points, edge.label-pos),
+			vector.lerp(from, to, edge.label-pos),
 			vector-polar(edge.label-sep, θ + label-dir*90deg),
 		)
 		draw-edge-label(edge, label-pos, options)
 	}
+
 
 	
 }
@@ -166,22 +174,20 @@
 #let draw-edge-arc(edge, nodes, options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let cap-points = get-edge-anchors(edge, nodes)
-	let θ = vector-angle(vector.sub(..cap-points))
+	let (from, to) = get-edge-anchors(edge, nodes)
+	let θ = vector-angle(vector.sub(to, from))
 
 	// Determine the arc from the stroke end points and bend angle
-	let (center, radius, start, stop) = get-arc-connecting-points(..cap-points, edge.bend)
+	let (center, radius, start, stop) = get-arc-connecting-points(from, to, edge.bend)
 
 	let bend-dir = if edge.bend > 0deg { +1 } else { -1 }
-	let δ = bend-dir*90deg
-	let cap-angles = (start + δ, stop - δ)
 
 	// Draw arc(s), one for each extrusion shift
 	for shift in edge.extrude {
 
 		// Adjust arc angles to accomodate for cap offsets
 		let (δ-start, δ-stop) = cap-offsets(edge, shift)
-			.map(arclen => bend-dir*arclen/radius*1rad)
+			.map(arclen => -bend-dir*arclen/radius*1rad)
 
 		cetz.draw.arc(
 			center,
@@ -195,64 +201,24 @@
 
 
 
-
-	let offsets = cap-offsets(edge, 0pt)
-
-	// Apply cap offsets to the stroke end poins
-	cap-points = offsets
-		.map(arclen => bend-dir*arclen/radius*1rad) // convert arclength to angle
-		.zip((start, stop))
-		.map(((δ, θ)) => vector.add(center, vector-polar(radius, θ + δ)))
-
-
-	// First angle correction
-	// Rotate caps to account for how they were offset along the arc
-	cap-angles = cap-angles.zip(offsets)
-		.map(((θ, arclen)) => θ + bend-dir*calc.asin(arclen/radius))
-
 	// Draw marks
-	for (mark, pt, θ, dir) in zip(edge.marks, cap-points, cap-angles, (-1, +1)) {
-		if mark == none { continue }
+	for mark in edge.marks {
 
-		// Second angle correction
+		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let δθ = bend-dir*tail/radius*1rad
+		let θ = lerp(start - δθ, stop, mark.pos)
+		let φ = θ - bend-dir*90deg
+
+		// Tail hang correction
 		// Rotate caps with tail-hang so that they to not hang off the arc
-		if "tail-hang" in mark {
-			let d = mark.tail-hang*edge.stroke.thickness
-			θ += dir*bend-dir*calc.asin(d/radius/2)
+		φ += bend-dir*calc.asin(tail/radius/2)
 
-			if options.debug >= 3 {
-				cetz.draw.on-layer(1, cetz.draw.circle(
-					(to: pt, rel: vector-polar(-d, θ)),
-					radius: edge.stroke.thickness/2,
-					fill: DEBUG_COLOR,
-					stroke: none,
-				))
-			}
-		}
+		let pt = vector.add(center, vector-polar(radius, θ))
 
-		draw-arrow-cap(pt, θ, edge.stroke, mark)
-
-		if options.debug >= 3 {
-			cetz.draw.circle(
-				pt,
-				radius: edge.stroke.thickness/2,
-				fill: DEBUG_COLOR,
-				stroke: none,
-			)
-		}
+		draw-arrow-cap(pt, φ, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 
-	if options.debug >= 3 {
-		cetz.draw.arc(
-			center,
-			radius: radius,
-			start: start,
-			stop: stop,
-			anchor: "center",
-			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
-		)
-	}
 
 
 	// Draw label
@@ -281,15 +247,25 @@
 	}
 
 
-
+	// Draw debug stuff
 	if options.debug >= 3 {
-		for (cell, point) in zip(nodes, cap-points) {
+		for (cell, point) in zip(nodes, (from, to)) {
 			cetz.draw.line(
 				cell.real-pos,
 				point,
 				stroke: DEBUG_COLOR + 0.1pt,
 			)
 		}
+
+		cetz.draw.arc(
+			center,
+			radius: radius,
+			start: start,
+			stop: stop,
+			anchor: "center",
+			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
+		)
+
 	}
 
 
@@ -362,10 +338,10 @@
 
 	// Draw marks
 	let (pt-start, _, pt-end) = get-vertices(0pt)
-	for (mark, pt, θ) in zip(edge.marks, (pt-start, pt-end), cap-angles) {
-		if mark == none { continue }
-		draw-arrow-cap(pt, θ, edge.stroke, mark)
-	}
+	// for (mark, pt, θ) in zip(edge.marks, (pt-start, pt-end), cap-angles) {
+	// 	if mark == none { continue }
+	// 	draw-arrow-cap(pt, θ, edge.stroke, mark)
+	// }
 
 	// Draw label
 	if edge.label != none {
@@ -390,6 +366,7 @@
 }
 
 #let draw-edge(edge, nodes, options) = {
+	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-edge-line(edge, nodes, options) }
 	else if edge.kind == "arc" { draw-edge-arc(edge, nodes, options) }
 	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
@@ -462,7 +439,7 @@
 #let draw-diagram(
 	grid,
 	nodes,
-	arrows,
+	edges,
 	options,
 ) = {
 
@@ -470,14 +447,15 @@
 		draw-node(node, options)
 	}
 
-	for arrow in arrows {
-		let nodes = arrow.points.map(find-node-at.with(nodes))
+	for edge in edges {
+		let nodes = edge.points.map(find-node-at.with(nodes))
 
 		let intersection-stroke = if options.debug >= 2 {
 			(paint: DEBUG_COLOR, thickness: 0.25pt)
 		}
 
-		draw-edge(arrow, nodes, options)
+		// assert(edge.marks.all(mark => type(mark) == dictionary), message: repr(edge))
+		draw-edge(edge, nodes, options)
 	}
 
 	// draw axes

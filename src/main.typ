@@ -226,7 +226,7 @@
 /// 	).map(str => (
 ///  		fletcher.diagram(edge((0,0), (1,0), str)),
 ///  		raw(str, lang: none),
-///  		raw(repr(parse-arrow-shorthand(str))),
+///  		raw(repr(fletcher.interpret-marks-arg(str))),
 ///  	)).join()
 /// )
 ///
@@ -346,12 +346,8 @@
 	)
 	options += interpret-edge-args(args)
 
-	if type(options.marks) == str {
-		options += parse-arrow-shorthand(options.marks)
-	}
-
-	options.marks = options.marks.map(interpret-mark)
-
+	options += interpret-marks-arg(options.marks)
+	
 
 	let stroke = (
 		paint: options.paint,
@@ -389,6 +385,8 @@
 	// add empty nodes at terminal points
 	node(from, none)
 	node(to, none)
+
+	assert(type(obj.marks) == array, message: repr(obj))
 
 	if options.crossing {
 		((
