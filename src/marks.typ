@@ -60,22 +60,22 @@
 	mark = defaults + mark
 
 	if mark.kind in ("head", "harpoon") {
-		round-style + (tail-hang: 4) + mark
+		round-style + (tail: 4) + mark
 	} else if mark.kind == "tail" {
 		interpret-mark(mark + (kind: "head", rev: true))
 	} else if mark.kind == "twohead" {
-		round-style + (extrude: (-3, 0), tail-hang: 6, cap-offset: -3) + mark + (kind: "head")
+		round-style + (extrude: (-3, 0), tail: 6, cap-offset: -3) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
 		interpret-mark(mark + (kind: "twohead", rev: true))
 	} else if mark.kind == "twobar" {
-		(size: 4.5) + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "bar")
+		(size: 4.5) + (extrude: (-3, 0), tail: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
 		mark + (
 			size: 9.6*1.1,
 			sharpness: 19deg,
 			delta: 43.7deg,
-			tail-hang: 4.5,
+			tail: 4.5,
 		) + (kind: "head")
 	} else if mark.kind == "triplehead" {
 		// tuned to match sym.arrow.triple
@@ -83,20 +83,20 @@
 			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
-			tail-hang: 5,
+			tail: 5,
 		) + (kind: "head")
 	} else if mark.kind == "bar" {
 		(size: 4.9, angle: 0deg) + mark
 	} else if mark.kind == "cross" {
 		(size: 4, angle: 45deg) + mark
 	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.88, rim: 0.85, tail-hang: 3) + mark
+		(size: 2.88, rim: 0.85, tail: 3) + mark
 	} else if mark.kind == "circle" {
-		(size: 2, fill: false, tail-hang: 4) + mark
+		(size: 2, fill: false, tail: 4) + mark
 	} else if mark.kind == "bigcircle" {
-		(size: 4, tail-hang: 8) + mark + (kind: "circle")
+		(size: 4, tail: 8) + mark + (kind: "circle")
 	} else if mark.kind == "solidhead" {
-		(size: 10, sharpness: 19deg, tail-hang: 9) + mark
+		(size: 10, sharpness: 19deg, tail: 9) + mark
 	} else if mark.kind == "solidtail" {
 		interpret-mark(mark + (kind: "solidhead", rev: true))
 	} else {
@@ -128,7 +128,7 @@
 ///   - `kind` (required) the mark name, e.g. `"solidhead"` or `"bar"`
 ///   - `pos` the position along the edge to place the mark, from 0 to 1
 ///   - `rev` whether to reverse the direction
-///   - `tail-hang` the visual length of the mark's tail
+///   - `tail` the visual length of the mark's tail
 ///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
 /// -> dictiony
 #let interpret-marks-arg(arg) = {
@@ -216,7 +216,7 @@
 	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
 
 	offset = if mark.kind == "head" { offset() }
-	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail-hang }
+	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail }
 	else if mark.kind == "circle" {
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
@@ -226,8 +226,8 @@
 		 -calc.tan(mark.angle)*y
 	} else { 0 }
 
-	if mark.rev and "tail-hang" in mark {
-		offset = -offset - mark.tail-hang
+	if mark.rev and "tail" in mark {
+		offset = -offset - mark.tail
 	}
 
 	offset + mark.at("cap-offset", default: 0)
@@ -237,7 +237,7 @@
 #let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
 	mark = interpret-mark(mark)
 
-	let tail = stroke.thickness*mark.at("tail-hang", default: 0)
+	let tail = stroke.thickness*mark.at("tail", default: 0)
 
 	if mark.at("rev", default: false) {
 		θ += 180deg
@@ -293,7 +293,7 @@
 		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
 	} else if mark.kind == "hook" {
-		p = shift(p, -mark.tail-hang)
+		p = shift(p, -mark.tail)
 		cetz.draw.arc(
 			p,
 			radius: mark.size*stroke.thickness,

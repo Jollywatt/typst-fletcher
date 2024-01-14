@@ -99,7 +99,7 @@
 		let mark = edge.marks.find(mark => mark.pos == pos)
 		if mark == none { return 0pt }
 		let x = cap-offset(mark, y/edge.stroke.thickness)
-		if pos == 0 and "tail-hang" in mark { x += mark.tail-hang }
+		if pos == 0 and "tail" in mark { x += mark.tail }
 		x*edge.stroke.thickness
 	})
 }
@@ -133,7 +133,7 @@
 
 	// get the origin/anchor point for a mark at a given position along the line
 	let mark-origin(mark) = {
-		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
 		let from = vector.add(from, vector-polar(tail, θ))
 		let origin = vector.lerp(from, to, mark.pos)
 		origin
@@ -204,13 +204,13 @@
 	// Draw marks
 	for mark in edge.marks {
 
-		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
 		let δθ = bend-dir*tail/radius*1rad
 		let θ = lerp(start - δθ, stop, mark.pos)
 		let φ = θ - bend-dir*90deg
 
 		// Tail hang correction
-		// Rotate caps with tail-hang so that they to not hang off the arc
+		// Rotate caps with tail so that they to not hang off the arc
 		φ += bend-dir*calc.asin(tail/radius/2)
 
 		let pt = vector.add(center, vector-polar(radius, θ))
@@ -345,7 +345,7 @@
 	for mark in edge.marks {
 		let i = int(mark.pos > 0.5)
 		let (a, b) = (verts.at(i), verts.at(i + 1))
-		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
 		let θ = cap-angles.at(i)
 		if i == 0 { a = vector.add(a, vector-polar(tail, θ)) }
 		let pt = vector.lerp(a, b, 2*mark.pos - i)

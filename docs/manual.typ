@@ -561,7 +561,7 @@ The expanded form can be retrieved with `interpret-mark()`, for example:
 // - `size` controls the radius of the arc
 // - `sharpness` is (half) the angle of the tip
 // - `delta` is the angle spanned by the arcs
-// - `tail-hang` is approximately the distance from the cap's tip to
+// - `tail` is approximately the distance from the cap's tip to
 //    the end of its arms. This is used to calculate a "tail hang"
 //    correction to the arrowhead's bearing for tightly curved edges.
 // Distances are multiples of the stroke thickness.
@@ -587,7 +587,7 @@ However, for finer control, you are encouraged to use the functions `interpret-m
 
 === Hanging tail correction
 
-All marks accept a `tail-hang` parameter, the effect of which can be seen below:
+All marks accept a `tail` parameter, the effect of which can be seen below:
 #code-example-row(```typ
 #fletcher.diagram(
 	edge-thickness: 3pt,
@@ -595,7 +595,7 @@ All marks accept a `tail-hang` parameter, the effect of which can be seen below:
 	debug: 4,
 
 	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
-		marks: (none, (kind: "twohead", tail-hang: 0))),
+		marks: (none, (kind: "twohead", tail: 0))),
 	edge((0,0), (1,0), paint: gray, bend: 90deg, label-pos: 0.1, label: [with],
 		marks: (none, (kind: "twohead"))), // use default hang
 )
