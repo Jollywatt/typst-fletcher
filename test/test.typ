@@ -186,20 +186,21 @@ $
 	"hook-/->",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #fletcher.diagram(edge((0,0), (1,0), i)) \ $
+	&= #fletcher.diagram(edge((0,0), (1,0), i), debug: 4) \ $
 }
 $
 
 = Bending arrows
 
 #fletcher.diagram(
+	// debug: 4,
 	spacing: (10mm, 5mm),
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i
 		(
 			("<->",),
 			(marks: ("head", "head", "head")),
-			(marks: ("tail", "tail")),
+			(">>-<",),
 			(marks: ("twotail", "twohead")),
 			(marks: ((kind: "hook", rev: true), "head")),
 			(marks: ((kind: "hook", rev: true), "hook'")),

@@ -203,7 +203,11 @@
 ///  })
 ///
 /// - marks (pair of strings):
-/// The start and end marks or arrow heads of the connector. A shorthand such as
+/// The marks (arrow heads) drawn along an edge.
+/// This may be:
+///  - a string specifying a shorthand like `"->"` or `"hook'-/->>"`,
+///  - an array of 
+/// A shorthand such as
 /// `"->"` can used instead. For example,
 /// `edge(p1, p2, "->")` is short for `edge(p1, p2, marks: (none, "head"))`.
 ///

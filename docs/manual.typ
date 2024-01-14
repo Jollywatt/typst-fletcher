@@ -342,7 +342,6 @@
 
 	..code-example(```typ
 	#fletcher.diagram(
-	debug: 4,
 		spacing: (8mm, 3mm), // wide columns, narrow rows
 		node-stroke: 1pt,    // outline node shapes
 		edge-thickness: 1pt, // thickness of lines
@@ -419,9 +418,9 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 
 Diagrams are laid out on a flexible coordinate grid.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
-See the `diagram()` parameters for more control: `node-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns, respectively.
+See the `diagram()` parameters for more control: `cell-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns.
 
-Elastic coordinates can be demonstrated more clearly with a debug grid and no spacing.
+Elastic coordinates can be demonstrated more clearly with a debug grid and no `spacing` between cells:
 
 #code-example-row(```typ
 #let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
@@ -465,7 +464,7 @@ As a result, diagrams are responsive to node sizes (like tables) while also allo
 
 #link(label("edge()"))[`edge(node-1, node-2, label, marks, ..options)`]
 
-Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding circle or rectangle. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
+Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
 #code-example-row(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
@@ -511,18 +510,18 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 	}
 }))
 
-In addition, some other miscellaneous caps are supported:
+Some other miscellaneous caps are supported, and marks can be placed anywhere along the edge.
 
 #align(center, fletcher.diagram(
 	debug: 0,
 	spacing: (14mm, 12mm),
 {
 	for (i, str) in (
-		">>->",
-		"||--|>",
+		">>-->",
+		"||-/-|>",
 		"o..O",
-		"hook'-hook",
-		"o-harpoon'"
+		"hook'-x-hook",
+		"-*-harpoon'"
 	).enumerate() {
 		let label = raw("\""+str+"\"")
 		edge((2*i, 0), (2*i + 1, 0), str, thickness: 0.9pt,
@@ -530,6 +529,19 @@ In addition, some other miscellaneous caps are supported:
 	}
 }))
 
+Edge styles can be specified like `edge(a, b, "-->")`, or by passing a dictionary of mark parameters:
+#code-example-row(```typ
+#fletcher.diagram(
+	edge-thickness: 2pt,
+	spacing: 4cm,
+	edge((0,0), (1,0), marks: (
+		"x",
+		(kind: "head", rev: true, pos: 0.5),
+		(kind: "bar", size: 1, pos: 0.7),
+		(kind: "solidhead", rev: true),
+	))
+)
+```)
 See the `marks` argument of `edge()` for details.
 
 === Customised marks
@@ -559,28 +571,28 @@ You can customise these basic marks by adjusting these parameters.
 For example:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
-#let custom-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
-#let custom-bar = (kind: "bar", extrude: (0, -3, -6))
-#let custom-solidhead = (kind: "solidhead", sharpness: 45deg)
+#let my-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
+#let my-bar = (kind: "bar", extrude: (0, -3, -6))
+#let my-solidhead = (kind: "solidhead", sharpness: 45deg)
 #fletcher.diagram(
 	edge-thickness: 1.4pt,
 	spacing: (3cm, 1cm),
-	edge((0,1), (1,1), marks: (custom-head, custom-head + (sharpness: 20deg))),
-	edge((0,0), (1,0), marks: (custom-bar, custom-solidhead)),
+	edge((0,1), (1,1), marks: (my-head, my-head + (sharpness: 20deg))),
+	edge((0,0), (1,0), marks: (my-bar, my-solidhead + (pos: 0.8), my-solidhead)),
 )
 ```))
 
-The specific mark kinds and parameters will likely change as this package is updated, so they not (yet) undocumented.
-However, if you want finer control, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover the parameters.
+The particular marks and parameters are hard-wired and will likely change as this package is updated (so they are not documented).
+However, for finer control, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover the parameters.
 
 === Hanging tail correction
 
-All marks accept an `tail-hang` parameter, the effect of which can be seen below:
+All marks accept a `tail-hang` parameter, the effect of which can be seen below:
 #code-example-row(```typ
 #fletcher.diagram(
 	edge-thickness: 3pt,
 	spacing: 2cm,
-	debug: 3,
+	debug: 4,
 
 	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
 		marks: (none, (kind: "twohead", tail-hang: 0))),
@@ -588,9 +600,9 @@ All marks accept an `tail-hang` parameter, the effect of which can be seen below
 		marks: (none, (kind: "twohead"))), // use default hang
 )
 ```)
-The hang specifies the length (in multiples of the stroke thickness) that the arrow head visually extends backwards over the stroke.
-This is the distance between the two red dots on the second arrow head above.
-The mark is rotated so that both these points lie on the arc.
+The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head _visually_ extends backwards over the stroke.
+This is visualised by the green line shown above.
+The mark is rotated so that the ends of the line both lie on the arc.
 
 === CeTZ integration
 Currently, only straight, arc and right-angled connectors are supported.

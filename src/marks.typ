@@ -46,10 +46,8 @@
 
 	assert(type(mark) == dictionary, message: repr(mark))
 	
-	mark.flip = mark.at("flip", default: +1)
-
 	if mark.kind.at(-1) == "'" {
-		mark.flip = -mark.flip
+		mark.flip = -mark.at("flip", default: +1)
 		mark.kind = mark.kind.slice(0, -1)
 	}
 
@@ -66,9 +64,9 @@
 	} else if mark.kind == "tail" {
 		interpret-mark(mark + (kind: "head", rev: true))
 	} else if mark.kind == "twohead" {
-		round-style + (extrude: (-3, 0), tail-hang: 4) + mark + (kind: "head")
+		round-style + (extrude: (-3, 0), tail-hang: 6, cap-offset: -3) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
-		round-style + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "tail")
+		interpret-mark(mark + (kind: "twohead", rev: true))
 	} else if mark.kind == "twobar" {
 		(size: 4.5) + (extrude: (-3, 0), tail-hang: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
@@ -208,17 +206,11 @@
 
 	offset = if mark.kind == "head" { offset() }
 	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail-hang }
-	else if mark.kind == "tail" { -3 - offset() }
-	else if mark.kind == "twohead" { offset() - 3 }
-	else if mark.kind == "twotail" { -3 - offset() - 3 }
 	else if mark.kind == "circle" {
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
 	} else if mark.kind == "solidhead" {
-		// -mark.size*cos(mark.sharpness)
-		-2
-	} else if mark.kind == "solidtail" {
-		-1
+		1 - mark.size*cos(mark.sharpness)
 	} else if mark.kind == "bar" {
 		 -calc.tan(mark.angle)*y
 	} else { 0 }
@@ -227,7 +219,7 @@
 		offset = -offset - mark.tail-hang
 	}
 
-	offset
+	offset + mark.at("cap-offset", default: 0)
 }
 
 
@@ -241,6 +233,8 @@
 		mark.rev = false
 		p = vector.add(p, vector-polar(tail, θ))
 	}
+
+	mark.flip = mark.at("flip", default: +1)
 
 	if debug {
 		cetz.draw.on-layer(1, cetz.draw.circle(
