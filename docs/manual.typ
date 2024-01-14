@@ -47,7 +47,7 @@
 				spacing: 31mm,
 				node((0,1), $A$),
 				node((1,1), $B$),
-				edge((0,1), (1,1), $f$, ">>->"),
+				edge((0,1), (1,1), $f$, ">>-o->"),
 			)
 		},
 		text(2.7em, strong(`fletcher`)),
@@ -342,6 +342,7 @@
 
 	..code-example(```typ
 	#fletcher.diagram(
+	debug: 4,
 		spacing: (8mm, 3mm), // wide columns, narrow rows
 		node-stroke: 1pt,    // outline node shapes
 		edge-thickness: 1pt, // thickness of lines

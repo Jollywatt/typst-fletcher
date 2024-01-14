@@ -231,7 +231,7 @@
 
 		if edge.label-anchor == auto {
 			// Choose label anchor based on connector direction
-			edge.label-anchor = angle-to-anchor(θ + label-dir*90deg)
+			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 		
 		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
@@ -341,11 +341,15 @@
 	}
 
 	// Draw marks
-	let verts = get-vertices(0pt)
+	// let verts = get-vertices(0pt)
 	for mark in edge.marks {
-		let i = int(mark.pos >= 0.5)
-		let pt = vector.lerp(verts.at(i), verts.at(i + 1), 2*mark.pos - i)
-		draw-arrow-cap(pt, cap-angles.at(i), edge.stroke, mark, debug: options.debug >= 4)
+		let i = int(mark.pos > 0.5)
+		let (a, b) = (verts.at(i), verts.at(i + 1))
+		let tail = edge.stroke.thickness*mark.at("tail-hang", default: 0)
+		let θ = cap-angles.at(i)
+		if i == 0 { a = vector.add(a, vector-polar(tail, θ)) }
+		let pt = vector.lerp(a, b, 2*mark.pos - i)
+		draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 	// Draw label
@@ -380,7 +384,6 @@
 
 
 #let draw-node(node, options) = {
-	if node.label == none { return }
 
 	if node.stroke != none or node.fill != none {
 
@@ -406,12 +409,14 @@
 		}
 	}
 
-	cetz.draw.content(node.real-pos, node.label, anchor: "center")
+	if node.label != none {
+		cetz.draw.content(node.real-pos, node.label, anchor: "center")
+	}
 
 	if options.debug >= 1 {
 		cetz.draw.circle(
 			node.real-pos,
-			radius: 1pt,
+			radius: 0.5pt,
 			fill: DEBUG_COLOR,
 			stroke: none,
 		)

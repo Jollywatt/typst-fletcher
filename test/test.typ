@@ -222,12 +222,13 @@ $
 = Fine mark angle corrections
 #fletcher.diagram(
 	debug: 4,
-	spacing: 14mm,
-	edge-thickness: 1pt,
-	for (i, m) in ("head", "triplehead", "bar", "twohead").enumerate() {
-		edge((0,-i), (1,-i), "<-/->")
-		edge((2,-i), (3,-i), "<-/->", bend: 90deg)
-		edge((4,-i), (5,-i), "<-/->", bend: -30deg)
+	spacing: 10mm,
+	edge-thickness: 0.8pt,
+	for (i, m) in (">->->", "<<-->>", "<|-|>-|>", "O-x-O").enumerate() {
+		edge((0,-i), (1,-i), m)
+		edge((2,-i), (3,-i), m, bend: 90deg)
+		edge((4,-i), (5,-i), m, bend: -30deg)
+		edge((6,-i), (7,-i - 0.5), m, corner: left)
 	}
 )
 
