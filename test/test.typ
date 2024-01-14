@@ -39,7 +39,7 @@
 	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
-	edge((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
+	edge((0,0), (1,0), bend: 45deg, marks: ">->"),
 )
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
@@ -47,7 +47,7 @@
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
-		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ("tail", "head"))).join()
+		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ">->")).join()
 	})
 }
 
@@ -69,7 +69,8 @@ Red is our output; cyan is reference symbol in default math font.
 			text(rgb("0ff5"), $->$),
 			"->",
 			paint: rgb("f006"),
-			label-side: center,
+			label-anchor: "center",
+			label-sep: 0.0915em,
 		),
 	)
 	fletcher.diagram(
@@ -80,7 +81,8 @@ Red is our output; cyan is reference symbol in default math font.
 			text(rgb("0ff5"), $=>$),
 			"=>",
 			paint: rgb("f006"),
-			label-side: center,
+			label-anchor: "center",
+			label-sep: 0.0915em,
 		),
 	)
 	fletcher.diagram(
@@ -91,7 +93,8 @@ Red is our output; cyan is reference symbol in default math font.
 			text(rgb("0ff5"), $arrow.triple$),
 			"==>",
 			paint: rgb("f006"),
-			label-side: center,
+			label-anchor: "center",
+			label-sep: 0.0915em,
 		),
 	)
 	fletcher.diagram(
@@ -102,11 +105,12 @@ Red is our output; cyan is reference symbol in default math font.
 			text(rgb("0ff5"), $->>$),
 			"->>",
 			paint: rgb("f006"),
-			label-side: center,
+			label-anchor: "center",
+			label-sep: 0.0915em,
 		),
 	)
 	fletcher.diagram(
-		spacing: 0.815em,
+		spacing: 0.83em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
@@ -114,21 +118,22 @@ Red is our output; cyan is reference symbol in default math font.
 			"hook->",
 			paint: rgb("f006"),
 			label-side: right,
-			label-pos: 0.408,
-			label-sep: -0.0195em,
 			label-anchor: "center",
+			label-sep: 0.0915em,
+			label-pos: 0.51,
 		),
 	)
 	fletcher.diagram(
-		spacing: 0.815em,
+		spacing: 0.807em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
 			text(rgb("0ff5"), $|->$),
 			"|->",
 			paint: rgb("f006"),
-			label-side: center,
 			label-anchor: "center",
+			label-sep: 0.0915em,
+			label-pos: 0.506,
 		),
 	)
 
@@ -425,6 +430,11 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 
 = Example
 
+Make sure node or edge labels don't pick up equation numbers!
+#set math.equation(numbering: "(1)")
+
+$ a^2 $
+
 #{
 	set text(size: 0.65em)
 	fletcher.diagram(
@@ -444,3 +454,5 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 	  edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
 	)
 }
+
+$ b^2 $

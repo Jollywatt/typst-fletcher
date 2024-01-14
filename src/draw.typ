@@ -76,7 +76,7 @@
 			inset: .2em,
 			radius: .2em,
 			stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
-			$ #edge.label $,
+			[#edge.label],
 		),
 		anchor: if edge.label-anchor != auto { edge.label-anchor },
 	)
