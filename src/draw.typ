@@ -273,26 +273,30 @@
 
 
 #let draw-edge-corner(edge, nodes, options) = {
-
-	let θ = vector-angle(vector.sub(..edge.points))
+	
+	let θ = vector-angle(vector.sub(..edge.points.rev()))
 	let θ-floor = calc.floor(θ/90deg)*90deg
 	let θ-ceil = calc.ceil(θ/90deg)*90deg
 
-	// Angles at which arrow heads point
-	let cap-angles = if edge.corner == left {
-		(θ-ceil + 180deg, θ-floor + 180deg)
-	} else if edge.corner == right {
-		(θ-floor + 180deg, θ-ceil + 180deg)
-	}
+	let bend-dir = (
+		if edge.corner == left { true }
+		else if edge.corner == right { false }
+		else { panic("Edge corner option must be left or right.") }
+	)
 
-	let cap-points = zip(nodes, cap-angles, (0, 1)).map(((node, φ, dir)) => {
+	// Angles at which arrow heads point, going along the edge
+	let cap-angles = (
+		if bend-dir { (θ-ceil, θ-floor) }
+		else { (θ-floor, θ-ceil) }
+	)
+
+	let cap-points = zip(nodes, cap-angles, (0, 1)).map(((node, θ, dir)) => {
 		// todo: defocus?
-		get-node-anchor(node, φ + dir*180deg)
+		get-node-anchor(node, θ + 180deg*dir)
 	})
 
 
-	let i = if edge.corner == left { 1 } else { 0 }
-	let corner-point = if calc.even(calc.floor(θ/90deg) + i) {
+	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
 		(cap-points.at(1).at(0), cap-points.at(0).at(1))
 	} else {
 		(cap-points.at(0).at(0), cap-points.at(1).at(1))
@@ -304,19 +308,21 @@
 		cap-points.at(1),
 	)
 
+
 	// Compute the three points of the right angle,
 	// taking into account extrusions and mark offsets
 	let get-vertices(shift) = {
+		
 		// normal vectors to the (first, second) segment
 		let (a, b) = cap-angles.map(θ => vector-polar(shift, θ + 90deg))
-		
+
 		// apply extrusions
 		let verts = verts.zip((a, vector.add(a, b), b))
 			.map(((v, o)) => vector.add(v, o))
 
 		// apply mark offsets
-		let offsets = cap-offsets(edge, shift).zip(cap-angles, (180deg, 0deg))
-			.map(((offset, θ, dir)) => vector-polar(offset, θ+dir))
+		let offsets = cap-offsets(edge, shift).zip(cap-angles, (1, 0))
+			.map(((offset, θ, dir)) => vector-polar(offset, θ + 180deg*dir))
 
 		(
 			vector.sub(verts.at(0), offsets.at(0)),
@@ -336,7 +342,6 @@
 
 	// Draw marks
 	let verts = get-vertices(0pt)
-
 	for mark in edge.marks {
 		let i = int(mark.pos >= 0.5)
 		let pt = vector.lerp(verts.at(i), verts.at(i + 1), 2*mark.pos - i)
@@ -351,12 +356,12 @@
 
 		if edge.label-anchor == auto {
 			// Choose label anchor based on connector direction
-			edge.label-anchor = angle-to-anchor(θ + label-dir*90deg)
+			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 
 		let v = get-vertices(label-dir*edge.label-sep)
-		let label-pos = zip(..v).map(coords => {
-			lerp-at(coords, 2*edge.label-pos)
+		let label-pos = zip(..v).map(coord => {
+			lerp-at(coord, 2*edge.label-pos)
 		})
 
 		draw-edge-label(edge, label-pos, options)
