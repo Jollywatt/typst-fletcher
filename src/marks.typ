@@ -85,7 +85,7 @@
 			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
-			tail-hang: 4,
+			tail-hang: 5,
 		) + (kind: "head")
 	} else if mark.kind == "bar" {
 		(size: 4.9, angle: 0deg) + mark

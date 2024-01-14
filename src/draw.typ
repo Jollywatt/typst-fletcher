@@ -280,14 +280,14 @@
 
 	// Angles at which arrow heads point
 	let cap-angles = if edge.corner == left {
-		(θ-ceil, θ-floor + 180deg)
+		(θ-ceil + 180deg, θ-floor + 180deg)
 	} else if edge.corner == right {
-		(θ-floor, θ-ceil + 180deg)
+		(θ-floor + 180deg, θ-ceil + 180deg)
 	}
 
-	let cap-points = zip(nodes, cap-angles).map(((node, φ)) => {
+	let cap-points = zip(nodes, cap-angles, (0, 1)).map(((node, φ, dir)) => {
 		// todo: defocus?
-		get-node-anchor(node, lerp(φ, θ, 0) + 180deg)
+		get-node-anchor(node, φ + dir*180deg)
 	})
 
 
@@ -307,23 +307,21 @@
 	// Compute the three points of the right angle,
 	// taking into account extrusions and mark offsets
 	let get-vertices(shift) = {
-		let (a, b) = cap-angles.zip((-1, +1)).map(((θ, dir)) => {
-			vector-polar(shift, θ + dir*90deg)
-		})
+		// normal vectors to the (first, second) segment
+		let (a, b) = cap-angles.map(θ => vector-polar(shift, θ + 90deg))
 		
 		// apply extrusions
 		let verts = verts.zip((a, vector.add(a, b), b))
 			.map(((v, o)) => vector.add(v, o))
 
 		// apply mark offsets
-		let offsets = zip(cap-offsets(edge, shift), cap-angles).map(((o, θ)) => {
-			vector-polar(o, θ)
-		})
+		let offsets = cap-offsets(edge, shift).zip(cap-angles, (180deg, 0deg))
+			.map(((offset, θ, dir)) => vector-polar(offset, θ+dir))
 
 		(
-			vector.add(verts.at(0), offsets.at(0)),
+			vector.sub(verts.at(0), offsets.at(0)),
 			verts.at(1),
-			vector.sub(verts.at(2), offsets.at(1)),
+			vector.add(verts.at(2), offsets.at(1)),
 		)
 
 	}
@@ -337,11 +335,13 @@
 	}
 
 	// Draw marks
-	let (pt-start, _, pt-end) = get-vertices(0pt)
-	// for (mark, pt, θ) in zip(edge.marks, (pt-start, pt-end), cap-angles) {
-	// 	if mark == none { continue }
-	// 	draw-arrow-cap(pt, θ, edge.stroke, mark)
-	// }
+	let verts = get-vertices(0pt)
+
+	for mark in edge.marks {
+		let i = int(mark.pos >= 0.5)
+		let pt = vector.lerp(verts.at(i), verts.at(i + 1), 2*mark.pos - i)
+		draw-arrow-cap(pt, cap-angles.at(i), edge.stroke, mark, debug: options.debug >= 4)
+	}
 
 	// Draw label
 	if edge.label != none {
