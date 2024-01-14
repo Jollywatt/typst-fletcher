@@ -5,64 +5,53 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
-#[#set page(height: 10cm)
-= New marks
-#fletcher.diagram(
-	debug: 4,
-	spacing: 8mm,
-	for (i, m) in ("head", "triplehead", "bar", "twohead").enumerate() {
-		edge((0,-i), (1,-i), marks: (
-			(kind: m, pos: 0),
-			(kind: m, pos: 0.5),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2))
-		edge((2,-i), (3,-i), marks: (
-			(kind: m, pos: 0, rev: true),
-			(kind: m, pos: 0.5),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2), bend: 90deg)
-		edge((4,-i), (5,-i), marks: (
-			(kind: m, pos: 0, rev: true),
-			(kind: m, pos: 0.5, rev: false),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2), bend: -30deg)
-	}
-)
-]
 
-= Parse marks
 
-#fletcher.interpret-marks-arg("<->")
 
-= Arrow heads
+= Connectors
+
 
 #fletcher.diagram(
-	spacing: (10mm, 5mm),
-	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
-		let x = 2*i
-		(
-			(marks: ("harpoon", "harpoon'")),
-			(marks: ("head", "head")),
-			(marks: ("tail", "tail")),
-			(marks: ("twotail", "twohead")),
-			(marks: ((kind: "hook", rev: true), "head")),
-			(marks: ((kind: "hook", rev: true), "hook'")),
-			(marks: ("bar", "bar", "bar")),
-			(marks: ("twobar", "twobar")),
-			(marks: (none, none), extrude: (2.5,0,-2.5)),
-			(marks: ("head", "head"), extrude: (1.5,-1.5)),
-			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
-			(marks: ("bar", "head"), extrude: (2,0,-2)),
-			// (marks: ("twotail", "twohead"), extrude: (1.5,-1.5)),
-			(marks: ("circle", "bigcircle")),
-			(marks: ("circle", "bigcircle"), extrude: (1.5, -1.5)),
-			(marks: ((kind: "solidhead", rev: true), "solidhead")),
-		).enumerate().map(((i, args)) => {
-			edge((x, -i), (x + 1, -i), ..args, bend: bend)
-		}).join()
-
-	}
+	debug: 0,
+	cell-size: (10mm, 10mm),
+	node((0,1), $X$),
+	node((1,1), $Y$),
+	node((0,0), $Z$),
+	edge((0,1), (1,1), marks: (none, "head")),
+	edge((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
+	edge((0,1), (0,0), marks: (none, "twohead")),
+	edge((0,1), (0,1), marks: (none, "head"), bend: -120deg),
 )
+
+= Arc connectors
+
+#fletcher.diagram(
+	cell-size: 3cm,
+{
+	node((0,0), "from")
+	node((1,0), "to")
+	for θ in (0deg, 20deg, -50deg) {
+		edge((0,0), (1,0), $#θ$, bend: θ, marks: (none, "head"))
+	}
+})
+
+#fletcher.diagram(
+	debug: 3,
+	node((0,0), $X$),
+	node((1,0), $Y$),
+	edge((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
+)
+
+#for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
+	fletcher.diagram(debug: 0, {
+		node((0,0), $A$)
+		node(to, $B$)
+		let N = 6
+		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ("tail", "head"))).join()
+	})
+}
+
+
 
 = Matching math arrows
 
@@ -195,54 +184,65 @@ $
 	"|>-<|",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #fletcher.diagram(edge((0,0), (1,0), i), debug: 4) \ $
+	&= #fletcher.diagram(edge((0,0), (1,0), i)) \ $
 }
 $
 
-= Connectors
-
-
-#fletcher.diagram(
-	debug: 0,
-	cell-size: (10mm, 10mm),
-	node((0,1), $X$),
-	node((1,1), $Y$),
-	node((0,0), $Z$),
-	edge((0,1), (1,1), marks: (none, "head")),
-	edge((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
-	edge((0,1), (0,0), marks: (none, "twohead")),
-	edge((0,1), (0,1), marks: (none, "head"), bend: -120deg),
-)
-
-= Arc connectors
+= Bending arrows
 
 #fletcher.diagram(
-	cell-size: 3cm,
-{
-	node((0,0), "from")
-	node((1,0), "to")
-	for θ in (0deg, 20deg, -50deg) {
-		edge((0,0), (1,0), $#θ$, bend: θ, marks: (none, "head"))
+	spacing: (10mm, 5mm),
+	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
+		let x = 2*i
+		(
+			("<->",),
+			(marks: ("head", "head", "head")),
+			(marks: ("tail", "tail")),
+			(marks: ("twotail", "twohead")),
+			(marks: ((kind: "hook", rev: true), "head")),
+			(marks: ((kind: "hook", rev: true), "hook'")),
+			(marks: ("bar", "bar", "bar")),
+			(marks: ("twobar", "twobar")),
+			(marks: (none, none), extrude: (2.5,0,-2.5)),
+			(marks: ("head", "head"), extrude: (1.5,-1.5)),
+			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
+			(marks: ("bar", "head"), extrude: (2,0,-2)),
+			(marks: ("circle", "bigcircle")),
+			(marks: ((kind: "solidhead", rev: true), "solidhead")),
+		).enumerate().map(((i, args)) => {
+			edge((x, -i), (x + 1, -i), ..args, bend: bend)
+		}).join()
+
 	}
-})
-
-#fletcher.diagram(
-	debug: 3,
-	node((0,0), $X$),
-	node((1,0), $Y$),
-	edge((0,0), (1,0), bend: 45deg, marks: ("head", "head")),
 )
 
-#for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
-	fletcher.diagram(debug: 0, {
-		node((0,0), $A$)
-		node(to, $B$)
-		let N = 6
-		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ("tail", "head"))).join()
-	})
-}
+= Fine mark angle corrections
+#fletcher.diagram(
+	debug: 4,
+	spacing: 14mm,
+	edge-thickness: 1pt,
+	for (i, m) in ("head", "triplehead", "bar", "twohead").enumerate() {
+		edge((0,-i), (1,-i), marks: (
+			(kind: m, pos: 0),
+			(kind: m, pos: 0.5),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2))
+		edge((2,-i), (3,-i), marks: (
+			(kind: m, pos: 0, rev: true),
+			(kind: m, pos: 0.5),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2), bend: 90deg)
+		edge((4,-i), (5,-i), marks: (
+			(kind: m, pos: 0, rev: true),
+			(kind: m, pos: 0.5, rev: false),
+			(kind: m, pos: 1),
+		), extrude: (-2,0,2), bend: -30deg)
+	}
+)
 
-= Defocus
+
+
+= Defocus adjustment
 
 #let around = (
 	(-1,+1), ( 0,+1), (+1,+1),
