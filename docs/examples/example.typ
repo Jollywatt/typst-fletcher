@@ -1,11 +1,11 @@
 #import "/src/exports.typ" as fletcher: node, edge
 
-#for dark in (false, true) [
+#for dark-node in (false, true) [
 
-#let c = if dark { white } else { black }
+#let c = if dark-node { white } else { black }
 #set page(width: 22cm, height: 9cm, margin: 1cm)
 
-#set text(fill: white) if dark
+#set text(fill: white) if dark-node
 
 
 #show: scale.with(200%, origin: top + left)
@@ -21,7 +21,7 @@ fletcher.diagram(cell-size: 15mm, crossing-fill: none, {
 	node(src, $G$)
 	node(img, $im f$)
 	node(quo, $G slash ker(f)$)
-	edge(src, img, $f$, "->")
+	edge(src, img, $f$, "-->")
 	edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
 	edge(src, quo, $pi$, "->>")
 }),
@@ -32,13 +32,13 @@ fletcher.diagram(
 	node-outset: 2pt,
 	node((0,0), `typst`),
 	node((1,0), "A"),
-	node((2,0), "B", stroke: c + 2pt),
+	node((2.5,0), "B", stroke: c + 2pt),
 	node((2,1), "C", extrude: (+1, -1)),
 
-	edge((0,0), (1,0), "->", bend: 20deg),
-	edge((0,0), (1,0), "<-", bend: -20deg),
-	edge((1,0), (2,1), "=>", corner: left),
-	edge((1,0), (2,0), "..>", bend: -0deg),
+	edge((0,0), (1,0), "-|>", bend: 20deg),
+	edge((0,0), (1,0), "<|-", bend: -20deg),
+	edge((1,0), (2,1), "..|>", corner: left),
+	edge((1,0), (2.5,0), "-||-|>", bend: -0deg),
 ),
 
 )

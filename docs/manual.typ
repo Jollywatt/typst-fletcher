@@ -1,6 +1,5 @@
 #import "@preview/tidy:0.1.0"
 #import "/src/exports.typ" as fletcher: node, edge
-// #import "/src/main.typ": interpret-marks-arg
 
 #set page(numbering: "1")
 #set par(justify: true)

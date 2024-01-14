@@ -15,7 +15,9 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 </picture>
 
 ```typ
-#fletcher.diagram(cell-size: 15mm, crossing-fill: none, {
+#import "@preview/fletcher:0.4.0" as fletcher: node, edge
+
+#fletcher.diagram(cell-size: 15mm, {
 	let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
 	node(src, $G$)
 	node(img, $im f$)
@@ -23,23 +25,22 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 	edge(src, img, $f$, "->")
 	edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
 	edge(src, quo, $pi$, "->>")
-}),
+})
 
 #fletcher.diagram(
-	node-stroke: c,
 	node-fill: rgb("aafa"),
 	node-outset: 2pt,
+
 	node((0,0), `typst`),
 	node((1,0), "A"),
-	node((2,0), "B", stroke: c + 2pt),
+	node((2.5,0), "B", stroke: c + 2pt),
 	node((2,1), "C", extrude: (+1, -1)),
 
-	edge((0,0), (1,0), "->", bend: 20deg),
-	edge((0,0), (1,0), "<-", bend: -20deg),
-	edge((1,0), (2,1), "=>", corner: left),
-	edge((1,0), (2,0), "..>", bend: -0deg),
-),
-
+	edge((0,0), (1,0), "-|>", bend: 20deg),
+	edge((0,0), (1,0), "<|-", bend: -20deg),
+	edge((1,0), (2,1), "..|>", corner: left),
+	edge((1,0), (2.5,0), "-||-|>", bend: -0deg),
+)
 ```
 
 ## Todo
