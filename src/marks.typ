@@ -137,7 +137,7 @@
 	)
 
 	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|/|\\\\|x|X|o|O|\*|@|<\||\|>)"
-	let line-selector = "(-|=|--|==|::|\.\.)"
+	let line-selector = "(--?|==?|--|::|\.\.)" // must match longest first
 	let match = text.match(regex(
 		"^" +
 		cap-selector +
