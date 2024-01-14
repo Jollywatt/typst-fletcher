@@ -182,6 +182,8 @@ $
 	"||->>",
 	"<|-|>",
 	"|>-<|",
+	"-|-",
+	"hook-/->",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
 	&= #fletcher.diagram(edge((0,0), (1,0), i)) \ $
@@ -216,27 +218,16 @@ $
 	}
 )
 
+
 = Fine mark angle corrections
 #fletcher.diagram(
 	debug: 4,
 	spacing: 14mm,
 	edge-thickness: 1pt,
 	for (i, m) in ("head", "triplehead", "bar", "twohead").enumerate() {
-		edge((0,-i), (1,-i), marks: (
-			(kind: m, pos: 0),
-			(kind: m, pos: 0.5),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2))
-		edge((2,-i), (3,-i), marks: (
-			(kind: m, pos: 0, rev: true),
-			(kind: m, pos: 0.5),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2), bend: 90deg)
-		edge((4,-i), (5,-i), marks: (
-			(kind: m, pos: 0, rev: true),
-			(kind: m, pos: 0.5, rev: false),
-			(kind: m, pos: 1),
-		), extrude: (-2,0,2), bend: -30deg)
+		edge((0,-i), (1,-i), "<-/->")
+		edge((2,-i), (3,-i), "<-/->", bend: 90deg)
+		edge((4,-i), (5,-i), "<-/->", bend: -30deg)
 	}
 )
 

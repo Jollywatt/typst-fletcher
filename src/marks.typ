@@ -138,13 +138,30 @@
 
 	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|/|\\\\|x|X|o|O|\*|@|<\||\|>)"
 	let line-selector = "(-|=|--|==|::|\.\.)"
-	let match = text.match(regex("^" + cap-selector + line-selector + cap-selector + "$"))
+	let match = text.match(regex(
+		"^" +
+		cap-selector +
+		line-selector +
+		"(" +
+		cap-selector +
+		line-selector +
+		")?" +
+		cap-selector +
+		"$"
+	))
+
+
 	if match == none {
-		panic("Failed to parse " + text + " as a edge style shorthand.")
+		panic("Failed to parse " + text + " as edge style.")
 	}
-	let (from, line, to) = match.captures
-	let marks = (from, to).map(mark => {
-		if mark == "" { none }
+	let (from, line, _, mid, line2, to) = match.captures
+	if line2 != none and line2 != line {
+		let valid = from + line + mid + line + to
+		panic("Failed to parse " + text + " as edge style; try " + valid)
+	}
+
+	let marks = (from, mid, to).map(mark => {
+		if mark in ("", none) { none }
 		else { CAP_ALIASES.at(mark, default: (kind: mark)) }
 	})
 
