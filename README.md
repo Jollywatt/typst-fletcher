@@ -45,8 +45,8 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 ## Todo
 
 - [x] Mathematical arrow styles
-- [ ] Support CeTZ arrowheads
-- [ ] Allow referring to node coordinates by their content
+- [ ] Support CeTZ arrowheads (waiting on CeTZ)
+- [ ] Allow referring to node coordinates by their content?
 - [ ] Support loops connecting a node to itself
 - [ ] More ergonomic syntax to avoid repeating coordinates?
 
@@ -55,7 +55,9 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 ### 0.4.0
 
 - Add `width`, `height` and `radius` options to `node()` for explicit control over size.
-- Add `tail-hang` correction to marks/arrows on curved edges. Marks on curves now rotate a bit to fit more comfortably along the arc.
+- Add ability to place marks anywhere along an edge. Shorthands now accept an optional middle mark, for example `|->-|` and `hook-/->>`.
+- Add “hanging tail” correction to marks on curved edges. Marks now rotate a bit to fit more comfortably along tightly curving arcs.
+- Add more arrowheads for the sake of it: `/`, `\`, `x`, `X`, `*` (solid dot), `@` (solid circle).
 
 ### 0.3.0
 

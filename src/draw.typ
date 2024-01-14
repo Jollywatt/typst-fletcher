@@ -413,7 +413,9 @@
 		cetz.draw.content(node.real-pos, node.label, anchor: "center")
 	}
 
+	// Draw debug stuff
 	if options.debug >= 1 {
+		// dot at node anchor
 		cetz.draw.circle(
 			node.real-pos,
 			radius: 0.5pt,
@@ -422,20 +424,19 @@
 		)
 	}
 
-	if options.debug >= 2 {
-		if options.debug >= 3 or node.shape == "rect" {
-			cetz.draw.rect(
-				..node.rect,
-				stroke: DEBUG_COLOR + 0.25pt,
-			)
-		}
-		if options.debug >= 3 or node.shape == "circle" {
-			cetz.draw.circle(
-				node.real-pos,
-				radius: node.radius,
-				stroke: DEBUG_COLOR + 0.25pt,
-			)
-		}
+	// node bounding shapes
+	if options.debug >= 3 and node.shape == "rect" {
+		cetz.draw.rect(
+			..node.rect,
+			stroke: DEBUG_COLOR + 0.25pt,
+		)
+	}
+	if options.debug >= 3 and node.shape == "circle" {
+		cetz.draw.circle(
+			node.real-pos,
+			radius: node.radius,
+			stroke: DEBUG_COLOR + 0.25pt,
+		)
 	}
 }
 
