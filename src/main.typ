@@ -203,52 +203,69 @@
 ///  })
 ///
 /// - marks (pair of strings):
-/// The marks (arrow heads) drawn along an edge.
+/// The marks (arrowheads) to draw along an edge's stroke.
 /// This may be:
-///  - a string specifying a shorthand like `"->"` or `"hook'-/->>"`,
-///  - an array of 
-/// A shorthand such as
-/// `"->"` can used instead. For example,
-/// `edge(p1, p2, "->")` is short for `edge(p1, p2, marks: (none, "head"))`.
+///
+///  - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
+///   shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, where
+/// $
+/// M_i in {#fletcher.CAP_ALIASES.keys().map(raw.with(lang: none)).join($,$)} union N
+/// $
+/// is a mark icon and
+/// $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
+/// is the line style.
+/// The mark icon can also be a name, $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
+/// where a trailing `'` means to reflect the mark across the stroke.
+///
+///  - An array of marks, where each mark is specified by name or by a
+///   dictionary of parameters.
+///
+/// Shorthands are expanded into other arguments. For example,
+/// `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.
+///
 ///
 /// #table(
-/// 	columns: 3,
+/// 	columns: 2,
 /// 	align: horizon,
-///  	[Arrow], [Shorthand], [Arguments],
+///  	[Arrow], [`marks` shorthand],
 /// 	..(
-///  		"-",
-///  		"--",
-///  		"..",
 ///  		"->",
-///  		"<=>",
 ///  		">>-->",
+///  		"<=>",
+///  		"==>",
+///  		"x-/-@",
 ///  		"|..|",
 ///  		"hook->>",
 ///  		"hook'->>",
-///  		">-harpoon",
-///  		">-harpoon'",
+///  		"||-*-harpoon'",
 /// 	).map(str => (
-///  		fletcher.diagram(edge((0,0), (1,0), str)),
-///  		raw(str, lang: none),
-///  		raw(repr(fletcher.interpret-marks-arg(str))),
+///  		fletcher.diagram(edge((0,0), (1,0), marks: str)),
+///  		raw(repr(str)),
 ///  	)).join()
 /// )
 ///
 /// - mark-scale (percent):
-/// Scale factor for connector marks or arrow heads. This defaults to `100%` for
-/// single lines, `120%` for double lines and `150%` for triple lines. Does not
-/// affect the stroke thickness of the mark.
+/// Scale factor for marks or arrowheads.
 ///
-/// #{
-/// 	set raw(lang: none)
-/// 	fletcher.diagram(
-/// 		edge-thickness: 1pt,
-/// 		edge((0,0), (1,0), `->`, "->"),
-/// 		edge((2,0), (3,0), `=>`, "=>"),
-/// 		edge((4,0), (5,0), `==>`, "==>"),
-/// 	)
-/// }
+/// #fletcher.diagram(
+/// 	label-sep: 10pt,
+/// 	edge-thickness: 1pt,
+///		for i in range(3) {
+///			let s = (1 + i/2)*100%
+/// 		edge((2*i,0), (2*i + 1,0), label: s, "->", mark-scale: s)
+/// 	}
+///)
+/// 
+/// Note that the default arrowheads scale automatically with double and triple
+/// strokes:
 ///
+/// #fletcher.diagram(
+/// 	label-sep: 10pt,
+/// 	edge-thickness: 1pt,
+///		for (i, s) in ("->", "=>", "==>").enumerate() {
+/// 		edge((2*i,0), (2*i + 1,0), s, label: raw(s, lang: none))
+/// 	}
+/// )
 /// - extrude (array): Draw a separate stroke for each extrusion offset to
 ///  obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
 ///  of the stroke's thickness) or lengths.
@@ -258,8 +275,8 @@
 ///  		(0,),
 ///  		(-1.5,+1.5),
 ///  		(-2,0,+2),
-///  		(-4.5,),
-///  		(4.5,),
+///  		(-.5em,),
+///  		(0, 5pt,),
 ///  	).enumerate().map(((i, e)) => {
 ///  		edge(
 ///  			(2*i, 0), (2*i + 1, 0), [#e], "|->",
@@ -271,25 +288,28 @@
 ///  mark. For basic arrow heads, this offset is computed with
 ///  `round-arrow-cap-offset()`.
 ///
-/// - crossing (bool): If `true`, draws a white backdrop to give the illusion of
-///  lines crossing each other.
+/// - crossing (bool): If `true`, draws a backdrop of color `crossing-fill` to
+///  give the illusion of lines crossing each other.
 ///
-///  #fletcher.diagram({
+///  #fletcher.diagram(crossing-fill: luma(98%), {
 ///  	edge((0,1), (1,0), thickness: 1pt)
 ///  	edge((0,0), (1,1), thickness: 1pt)
 ///  	edge((2,1), (3,0), thickness: 1pt)
 ///  	edge((2,0), (3,1), thickness: 1pt, crossing: true)
 ///  })
+///
+/// You can also pass `"crossing"` as a positional argument as a shorthand for
+/// `crossing: true`.
 /// 
-/// - crossing-thickness (number): Thickness of the white "crossing" background
+/// - crossing-thickness (number): Thickness of the "crossing" background
 ///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
 ///  Defaults to the `crossing-thickness` option of `diagram()`.
 /// 
-///  #fletcher.diagram({
+///  #fletcher.diagram(crossing-fill: luma(98%), {
 ///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
 ///  		edge((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
 ///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
-///  		1em, crossing: true, crossing-thickness: x)
+///  		2pt, label-pos: 0.3, crossing: true, crossing-thickness: x)
 ///  	}).join()
 ///  })
 /// 
