@@ -64,7 +64,7 @@
 	} else if mark.kind == "tail" {
 		interpret-mark(mark + (kind: "head", rev: true))
 	} else if mark.kind == "twohead" {
-		round-style + (extrude: (-3, 0), tail: 6, cap-offset: -3) + mark + (kind: "head")
+		round-style + (extrude: (-3, 0), tail: 7, body: 0) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
 		interpret-mark(mark + (kind: "twohead", rev: true))
 	} else if mark.kind == "twobar" {
@@ -213,9 +213,9 @@
 	mark = interpret-mark(mark)
 	if mark == none { return 0 }
 
-	let offset() = round-arrow-cap-offset(mark.size, mark.sharpness, y)
-
-	offset = if mark.kind == "head" { offset() }
+	let offset = if mark.kind == "head" {
+		round-arrow-cap-offset(mark.size, mark.sharpness, y)
+	}
 	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail }
 	else if mark.kind == "circle" {
 		let r = mark.size
@@ -230,7 +230,10 @@
 		offset = -offset - mark.tail
 	}
 
-	offset + mark.at("cap-offset", default: 0)
+	// // todo: remove this
+	// if not mark.rev { offset += mark.at("cap-offset", default: 0) }
+
+	offset
 }
 
 
@@ -254,7 +257,7 @@
 			stroke: none,
 			fill: rgb("0f0a"),
 		) + cetz.draw.line(
-			p,
+			vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
 			vector.add(p, vector-polar(tail*(if mark.rev {1} else {-1}), θ)),
 			stroke: rgb("0f0a") + stroke.thickness,
 		))
@@ -354,4 +357,24 @@
 	} else {
 		panic("unknown mark kind:", mark)
 	}
+}
+
+
+#let place-arrow-cap(path, stroke, mark, ..args) = {
+	let ε = 1e-3
+
+	let pt = path(mark.pos)
+	let pt-plus-ε = path(mark.pos + ε)
+	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
+
+	let tail = (mark.at("tail", default: 0) + ε)*stroke.thickness
+	let δt = tail/grad
+
+	let t = lerp(δt, 1, mark.pos)
+	let origin-pt = path(t)
+	let tail-pt = path(t - δt)
+	let θ = vector-angle(vector.sub(origin-pt, tail-pt))
+
+	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)
+
 }

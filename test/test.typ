@@ -166,7 +166,8 @@ $
 	"|->",
 	"|=>",
 	">->",
-	"->>",
+	"<<->>",
+	">>-<<",
 	"hook->",
 	"hook'--hook",
 	"|=|",
@@ -191,7 +192,7 @@ $
 	"hook-/->",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #fletcher.diagram(edge((0,0), (1,0), i), debug: 4) \ $
+	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), i), debug: 0))) \ $
 }
 $
 
@@ -203,10 +204,9 @@ $
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i
 		(
-			("<->",),
-			(marks: ("head", "head", "head")),
-			(">>-<",),
-			(marks: ("twotail", "twohead")),
+			(">->->",),
+			("<<->>",),
+			(">>-<<",),
 			(marks: ((kind: "hook", rev: true), "head")),
 			(marks: ((kind: "hook", rev: true), "hook'")),
 			(marks: ("bar", "bar", "bar")),
@@ -230,7 +230,7 @@ $
 	debug: 4,
 	spacing: 10mm,
 	edge-thickness: 0.8pt,
-	for (i, m) in (">->->", "<<-->>", "<|-|>-|>", "O-x-O").enumerate() {
+	for (i, m) in (">->->", "<<-->>", ">>-<<", "<|-|>-|>", "O-|-O", "hook-hook'").enumerate() {
 		edge((0,-i), (1,-i), m)
 		edge((2,-i), (3,-i), m, bend: 90deg)
 		edge((4,-i), (5,-i), m, bend: -30deg)

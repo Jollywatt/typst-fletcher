@@ -132,18 +132,21 @@
 	}
 
 	// get the origin/anchor point for a mark at a given position along the line
-	let mark-origin(mark) = {
-		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
-		let from = vector.add(from, vector-polar(tail, θ))
-		let origin = vector.lerp(from, to, mark.pos)
-		origin
-	}
+	// let mark-origin(mark) = {
+	// 	let tail = edge.stroke.thickness*(
+	// 		mark.at("tail", default: 0) + mark.at("body", default: 0))
+	// 	let from = vector.add(from, vector-polar(tail, θ))
+	// 	let origin = vector.lerp(from, to, mark.pos)
+	// 	origin
+	// }
 
 
 	// Draw marks
+	let curve(t) = vector.lerp(from, to, t)
 	for mark in edge.marks {
-		let pt = mark-origin(mark)
-		draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
+		// let pt = mark-origin(mark)
+		// draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
+		place-arrow-cap(curve, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 	// Draw label
@@ -202,20 +205,25 @@
 
 
 	// Draw marks
+	// for mark in edge.marks {
+
+	// 	let tail = edge.stroke.thickness*mark.at("tail", default: 0)
+	// 	let δθ = bend-dir*tail/radius*1rad
+	// 	let θ = lerp(start - δθ, stop, mark.pos)
+	// 	let φ = θ - bend-dir*90deg
+
+	// 	// Tail hang correction
+	// 	// Rotate caps with tail so that they to not hang off the arc
+	// 	φ += bend-dir*calc.asin(tail/radius/2)
+
+	// 	let pt = vector.add(center, vector-polar(radius, θ))
+
+	// 	draw-arrow-cap(pt, φ, edge.stroke, mark, debug: options.debug >= 4)
+	// }
+
+	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
-
-		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
-		let δθ = bend-dir*tail/radius*1rad
-		let θ = lerp(start - δθ, stop, mark.pos)
-		let φ = θ - bend-dir*90deg
-
-		// Tail hang correction
-		// Rotate caps with tail so that they to not hang off the arc
-		φ += bend-dir*calc.asin(tail/radius/2)
-
-		let pt = vector.add(center, vector-polar(radius, θ))
-
-		draw-arrow-cap(pt, φ, edge.stroke, mark, debug: options.debug >= 4)
+		place-arrow-cap(curve, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 
@@ -341,15 +349,27 @@
 	}
 
 	// Draw marks
-	// let verts = get-vertices(0pt)
+	let verts = get-vertices(0pt)
+	// for mark in edge.marks {
+	// 	let i = int(mark.pos > 0.5)
+	// 	let (a, b) = (verts.at(i), verts.at(i + 1))
+	// 	let tail = edge.stroke.thickness*mark.at("tail", default: 0)
+	// 	let θ = cap-angles.at(i)
+	// 	if i == 0 { a = vector.add(a, vector-polar(tail, θ)) }
+	// 	let pt = vector.lerp(a, b, 2*mark.pos - i)
+	// 	draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
+	// }
+	let curve(t) = if t < 0.5 {
+		vector.lerp(cap-points.at(0), corner-point, 2*t)
+	} else {
+		vector.lerp(corner-point, cap-points.at(1), 2*t - 1)
+	}
+	let curve(t) = {
+		let i = int(t >= 0.5)
+		vector.lerp(verts.at(i), verts.at(i + 1), 2*t - i)
+	}
 	for mark in edge.marks {
-		let i = int(mark.pos > 0.5)
-		let (a, b) = (verts.at(i), verts.at(i + 1))
-		let tail = edge.stroke.thickness*mark.at("tail", default: 0)
-		let θ = cap-angles.at(i)
-		if i == 0 { a = vector.add(a, vector-polar(tail, θ)) }
-		let pt = vector.lerp(a, b, 2*mark.pos - i)
-		draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
+		place-arrow-cap(curve, edge.stroke, mark, debug: options.debug >= 4)
 	}
 
 	// Draw label
