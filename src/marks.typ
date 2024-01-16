@@ -96,13 +96,14 @@
 	} else if mark.kind in ("hook", "hooks") {
 		(size: 2.88, rim: 0.85, outer-len: 3) + mark
 	} else if mark.kind == "circle" {
-		(size: 2, fill: false, inner-len: 4, outer-len: 4) + mark
+		(size: 2, fill: false, outer-len: 4) + mark
 	} else if mark.kind == "bigcircle" {
-		(size: 4, inner-len: 8, outer-len: 8) + mark + (kind: "circle")
+		(size: 4, outer-len: 8) + mark + (kind: "circle")
 	} else if mark.kind == "solidhead" {
 		mark = (size: 10, sharpness: 19deg) + mark
-		let l = mark.size*calc.cos(mark.sharpness)
-		mark.outer-len = l
+		if "outer-len" not in mark {
+			mark.outer-len = mark.size*calc.cos(mark.sharpness)
+		}
 		mark
 
 	} else if mark.kind == "solidtail" {
@@ -229,7 +230,7 @@
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
 	} else if mark.kind == "solidhead" {
-		1 - mark.size*cos(mark.sharpness)
+		1 - mark.outer-len
 	} else if mark.kind == "bar" {
 		 -calc.tan(mark.angle)*y
 	} else { 0 }

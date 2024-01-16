@@ -594,9 +594,9 @@ All marks accept a `tail` parameter, the effect of which can be seen below:
 	debug: 4,
 
 	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
-		marks: (none, (kind: "twohead", tail: 0))),
+		marks: (none, (kind: "solidhead", outer-len: 0))),
 	edge((0,0), (1,0), paint: gray, bend: 90deg, label-pos: 0.1, label: [with],
-		marks: (none, (kind: "twohead"))), // use default hang
+		marks: (none, (kind: "solidhead"))), // use default hang
 )
 ```)
 The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head _visually_ extends backwards over the stroke.
@@ -635,7 +635,7 @@ Here is an example of how you might hack together a Bézier connector using the 
 
 			// place an arrow head at a given point and angle
 			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, "twohead")
-			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black, (kind: "hook'", tail: 0))
+			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black, (kind: "hook'", outer-len: 0))
 		})
 	}
 )
