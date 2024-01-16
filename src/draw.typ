@@ -99,7 +99,11 @@
 		let mark = edge.marks.find(mark => mark.pos == pos)
 		if mark == none { return 0pt }
 		let x = cap-offset(mark, y/edge.stroke.thickness)
-		if pos == 0 and "tail" in mark { x += mark.tail }
+
+		if pos == int(mark.rev) { x -= mark.at("inner-len", default: 0) }
+		if mark.rev { x = -x - mark.at("outer-len", default: 0) }
+		if pos == 0 { x += mark.at("outer-len", default: 0) }
+		
 		x*edge.stroke.thickness
 	})
 }
@@ -114,6 +118,7 @@
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
+		// let shifted-line-points = (from, to).zip((0pt, 0pt))
 		let shifted-line-points = (from, to).zip(cap-offsets(edge, shift))
 			.map(((point, offset)) => vector.add(
 				point,
@@ -359,11 +364,7 @@
 	// 	let pt = vector.lerp(a, b, 2*mark.pos - i)
 	// 	draw-arrow-cap(pt, θ, edge.stroke, mark, debug: options.debug >= 4)
 	// }
-	let curve(t) = if t < 0.5 {
-		vector.lerp(cap-points.at(0), corner-point, 2*t)
-	} else {
-		vector.lerp(corner-point, cap-points.at(1), 2*t - 1)
-	}
+
 	let curve(t) = {
 		let i = int(t >= 0.5)
 		vector.lerp(verts.at(i), verts.at(i + 1), 2*t - i)

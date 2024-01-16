@@ -230,7 +230,7 @@ $
 	debug: 4,
 	spacing: 10mm,
 	edge-thickness: 0.8pt,
-	for (i, m) in (">->->", "<<-->>", ">>-<<", "<|-|>-|>", "O-|-O", "hook-hook'").enumerate() {
+	for (i, m) in ("<=>", ">==<", ">>->>", "<<-<<", "|>-|>", "<|-<|", "O-|-O", "hook-hook'").enumerate() {
 		edge((0,-i), (1,-i), m)
 		edge((2,-i), (3,-i), m, bend: 90deg)
 		edge((4,-i), (5,-i), m, bend: -30deg)

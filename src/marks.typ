@@ -60,22 +60,26 @@
 	mark = defaults + mark
 
 	if mark.kind in ("head", "harpoon") {
-		round-style + (tail: 4) + mark
+		round-style + (outer-len: 4) + mark
 	} else if mark.kind == "tail" {
 		interpret-mark(mark + (kind: "head", rev: true))
 	} else if mark.kind == "twohead" {
-		round-style + (extrude: (-3, 0), tail: 7, body: 0) + mark + (kind: "head")
+		round-style + (
+			extrude: (-3, 0),
+			inner-len: 3,
+			outer-len: 7,
+		) + mark + (kind: "head")
 	} else if mark.kind == "twotail" {
 		interpret-mark(mark + (kind: "twohead", rev: true))
 	} else if mark.kind == "twobar" {
-		(size: 4.5) + (extrude: (-3, 0), tail: 3) + mark + (kind: "bar")
+		(size: 4.5) + (extrude: (-3, 0), inner-len: 3) + mark + (kind: "bar")
 	} else if mark.kind == "doublehead" {
 		// tuned to match sym.arrow.double
 		mark + (
 			size: 9.6*1.1,
 			sharpness: 19deg,
 			delta: 43.7deg,
-			tail: 4.5,
+			outer-len: 5.5,
 		) + (kind: "head")
 	} else if mark.kind == "triplehead" {
 		// tuned to match sym.arrow.triple
@@ -83,20 +87,24 @@
 			size: 9*1.5,
 			sharpness: 25deg,
 			delta: 43deg,
-			tail: 5,
+			outer-len: 6,
 		) + (kind: "head")
 	} else if mark.kind == "bar" {
 		(size: 4.9, angle: 0deg) + mark
 	} else if mark.kind == "cross" {
 		(size: 4, angle: 45deg) + mark
 	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.88, rim: 0.85, tail: 3) + mark
+		(size: 2.88, rim: 0.85, outer-len: 3) + mark
 	} else if mark.kind == "circle" {
-		(size: 2, fill: false, tail: 4) + mark
+		(size: 2, fill: false, inner-len: 4, outer-len: 4) + mark
 	} else if mark.kind == "bigcircle" {
-		(size: 4, tail: 8) + mark + (kind: "circle")
+		(size: 4, inner-len: 8, outer-len: 8) + mark + (kind: "circle")
 	} else if mark.kind == "solidhead" {
-		(size: 10, sharpness: 19deg, tail: 9) + mark
+		mark = (size: 10, sharpness: 19deg) + mark
+		let l = mark.size*calc.cos(mark.sharpness)
+		mark.outer-len = l
+		mark
+
 	} else if mark.kind == "solidtail" {
 		interpret-mark(mark + (kind: "solidhead", rev: true))
 	} else {
@@ -216,7 +224,7 @@
 	let offset = if mark.kind == "head" {
 		round-arrow-cap-offset(mark.size, mark.sharpness, y)
 	}
-	else if mark.kind in ("hook", "hook'", "hooks") { -mark.tail }
+	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
 	else if mark.kind == "circle" {
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
@@ -227,7 +235,7 @@
 	} else { 0 }
 
 	if mark.rev and "tail" in mark {
-		offset = -offset - mark.tail
+		// offset = -offset - mark.outer-len
 	}
 
 	// // todo: remove this
@@ -240,27 +248,39 @@
 #let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
 	mark = interpret-mark(mark)
 
-	let tail = stroke.thickness*mark.at("tail", default: 0)
+	let inner-len = stroke.thickness*mark.at("inner-len", default: 0)
+	let outer-len = stroke.thickness*mark.at("outer-len", default: 0)
 
 	if mark.at("rev", default: false) {
 		θ += 180deg
 		mark.rev = false
-		p = vector.add(p, vector-polar(tail, θ))
 	}
 
 	mark.flip = mark.at("flip", default: +1)
 
 	if debug {
-		cetz.draw.on-layer(1, cetz.draw.circle(
-			p,
-			radius: stroke.thickness,
-			stroke: none,
-			fill: rgb("0f0a"),
-		) + cetz.draw.line(
-			vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
-			vector.add(p, vector-polar(tail*(if mark.rev {1} else {-1}), θ)),
-			stroke: rgb("0f0a") + stroke.thickness,
-		))
+		let dir = if mark.rev {1} else {-1}
+
+		let normal = vector-polar(stroke.thickness, θ - 90deg)
+		cetz.draw.on-layer(1, (
+			cetz.draw.circle(
+				p,
+				radius: stroke.thickness,
+				stroke: none,
+				fill: rgb("0f0a"),
+			),
+			cetz.draw.circle(
+				vector.add(p, vector-polar(outer-len*dir, θ)),
+				radius: stroke.thickness/2,
+				stroke: none,
+				fill: rgb("0f0a"),
+			),
+			cetz.draw.line(
+				vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
+				vector.add(p, vector-polar(inner-len*dir, θ)),
+				stroke: rgb("0f0a") + stroke.thickness*2,
+			),
+		).join())
 	}
 	let shift(p, x) = vector.add(p, vector-polar(stroke.thickness*x, θ))
 
@@ -296,7 +316,7 @@
 		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
 
 	} else if mark.kind == "hook" {
-		p = shift(p, -mark.tail)
+		p = shift(p, -mark.outer-len)
 		cetz.draw.arc(
 			p,
 			radius: mark.size*stroke.thickness,
@@ -361,20 +381,25 @@
 
 
 #let place-arrow-cap(path, stroke, mark, ..args) = {
-	let ε = 1e-3
+	let ε = 1e-4
 
 	let pt = path(mark.pos)
 	let pt-plus-ε = path(mark.pos + ε)
-	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
+	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε/stroke.thickness
 
-	let tail = (mark.at("tail", default: 0) + ε)*stroke.thickness
-	let δt = tail/grad
+	let outer-len = mark.at("outer-len", default: 0)
+	let δt = (outer-len + ε)/grad
 
 	let t = lerp(δt, 1, mark.pos)
+	if mark.rev {
+		t -= δt
+		δt *= -1
+	}
+
 	let origin-pt = path(t)
-	let tail-pt = path(t - δt)
-	let θ = vector-angle(vector.sub(origin-pt, tail-pt))
+	let outer-pt = path(t - δt)
+	let θ = vector-angle(vector.sub(origin-pt, outer-pt))
+	if mark.rev { θ += 180deg }
 
 	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)
-
 }
