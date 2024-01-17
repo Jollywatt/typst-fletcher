@@ -3,6 +3,11 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
+#let as-stroke(obj) = {
+	if obj == none or obj == auto { obj }
+	else { stroke(obj) }
+}
+
 #let zip(a, ..others) = if others.pos().len() == 0 {
 	a.map(i => (i,))
 } else {

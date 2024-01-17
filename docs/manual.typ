@@ -225,7 +225,7 @@
 		{
 			let quad(a, b, label, paint, ..args) = {
 				paint = paint.darken(25%)
-				edge(a, b, text(paint, label), "-|>", paint: paint, label-side: center, ..args)
+				edge(a, b, text(paint, label), "-|>", stroke: paint, label-side: center, ..args)
 			}
 
 			quad((0,0), (-1,-1), "Assoc", blue)
@@ -503,7 +503,7 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 	).enumerate() {
 		for j in range(2) {
 			let label = if j == 0 { raw("\""+str+"\"") }
-			edge((2*i, -j), (2*i + 1, -j), str, bend: 50deg*j, thickness: 0.9pt,
+			edge((2*i, -j), (2*i + 1, -j), str, bend: 50deg*j, stroke: 0.9pt,
 			label: label, label-sep: 1em)
 		}
 	}
@@ -523,7 +523,7 @@ Some other miscellaneous caps are supported, and marks can be placed anywhere al
 		"-*-harpoon'"
 	).enumerate() {
 		let label = raw("\""+str+"\"")
-		edge((2*i, 0), (2*i + 1, 0), str, thickness: 0.9pt,
+		edge((2*i, 0), (2*i + 1, 0), str, stroke: 0.9pt,
 		label: label, label-sep: 1em)
 	}
 }))
@@ -593,9 +593,9 @@ All marks accept a `tail` parameter, the effect of which can be seen below:
 	spacing: 2cm,
 	debug: 4,
 
-	edge((0,1), (1,1), paint: gray, bend: 90deg, label-pos: 0.1, label: [without],
+	edge((0,1), (1,1), stroke: gray, bend: 90deg, label-pos: 0.1, label: [without],
 		marks: (none, (kind: "solidhead", outer-len: 0))),
-	edge((0,0), (1,0), paint: gray, bend: 90deg, label-pos: 0.1, label: [with],
+	edge((0,0), (1,0), stroke: gray, bend: 90deg, label-pos: 0.1, label: [with],
 		marks: (none, (kind: "solidhead"))), // use default hang
 )
 ```)

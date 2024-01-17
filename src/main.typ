@@ -22,7 +22,7 @@
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
-/// - stroke (stroke): Stroke of the node. Defaults to the `node-stroke` option
+/// - stroke (stroke): Stroke style to outline the node. Defaults to the `node-stroke` option
 ///  of `diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
 ///  `diagram()`.
@@ -185,9 +185,8 @@
 ///  `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
 ///  automatically chosen based on `label-side` and the angle of the connector.
 ///
-/// - paint (paint): Paint (color or gradient) of the connector stroke.
-/// - thickness (length): Thickness the connector stroke. Marks (arrow heads)
-///  scale with this thickness.
+/// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
+///  thickness.
 /// - dash (dash type): Dash style for the connector stroke.
 /// - bend (angle): Curvature of the connector. If `0deg`, the connector is a
 ///  straight line; positive angles bend clockwise.
@@ -280,7 +279,7 @@
 ///  	).enumerate().map(((i, e)) => {
 ///  		edge(
 ///  			(2*i, 0), (2*i + 1, 0), [#e], "|->",
-///  			extrude: e, thickness: 1pt, label-sep: 1em)
+///  			extrude: e, stroke: 1pt, label-sep: 1em)
 ///  	}).join()
 ///  })
 ///  
@@ -292,10 +291,10 @@
 ///  give the illusion of lines crossing each other.
 ///
 ///  #fletcher.diagram(crossing-fill: luma(98%), {
-///  	edge((0,1), (1,0), thickness: 1pt)
-///  	edge((0,0), (1,1), thickness: 1pt)
-///  	edge((2,1), (3,0), thickness: 1pt)
-///  	edge((2,0), (3,1), thickness: 1pt, crossing: true)
+///  	edge((0,1), (1,0), stroke: 1pt)
+///  	edge((0,0), (1,1), stroke: 1pt)
+///  	edge((2,1), (3,0), stroke: 1pt)
+///  	edge((2,0), (3,1), stroke: 1pt, crossing: true)
 ///  })
 ///
 /// You can also pass `"crossing"` as a positional argument as a shorthand for
@@ -307,8 +306,8 @@
 /// 
 ///  #fletcher.diagram(crossing-fill: luma(98%), {
 ///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
-///  		edge((2*i, 1), (2*i + 1, 0), thickness: 1pt, label-sep: 1em)
-///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), thickness: 1pt, label-sep:
+///  		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
+///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
 ///  		2pt, label-pos: 0.3, crossing: true, crossing-thickness: x)
 ///  	}).join()
 ///  })
@@ -317,8 +316,8 @@
 ///  `diagram()`.
 ///
 ///  #let cross(x, fill) = {
-///  	edge((2*x + 0,1), (2*x + 1,0), thickness: 1pt)
-///  	edge((2*x + 0,0), (2*x + 1,1), $f$, thickness: 1pt, crossing: true, crossing-fill: fill)
+///  	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
+///  	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill)
 ///  }
 ///  #fletcher.diagram(crossing-thickness: 5, {
 ///  	cross(0, white)
@@ -335,8 +334,7 @@
 	label-pos: 0.5,
 	label-sep: auto,
 	label-anchor: auto,
-	paint: black,
-	thickness: auto,
+	stroke: black,
 	dash: none,
 	kind: auto,
 	bend: 0deg,
@@ -355,8 +353,7 @@
 		label-sep: label-sep,
 		label-anchor: label-anchor,
 		label-side: label-side,
-		paint: paint,
-		thickness: thickness,
+		stroke: stroke,
 		dash: dash,
 		kind: kind,
 		bend: bend,
@@ -368,16 +365,16 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 	)
-	options += interpret-edge-args(args)
 
+	options += interpret-edge-args(args)
 	options += interpret-marks-arg(options.marks)
 	
-
+	let stroke = as-stroke(options.stroke)
 	let stroke = (
-		paint: options.paint,
-		cap: "round",
-		thickness: options.thickness,
-		dash: options.dash,
+		paint: stroke.paint,
+		cap: if stroke.cap == auto { "round" } else { stroke.cap },
+		thickness: stroke.thickness,
+		dash: dash,
 	)
 
 	if options.label-side == center {
@@ -393,7 +390,6 @@
 		label-sep: options.label-sep,
 		label-anchor: options.label-anchor,
 		label-side: options.label-side,
-		paint: options.paint,
 		kind: options.kind,
 		bend: options.bend,
 		corner: options.corner,
@@ -430,22 +426,32 @@
 		len
 	}
 
+	let default(x, y) = if x == auto { y } else { x }
+
 	(
 		nodes: nodes.map(node => {
-			if node.stroke == auto {node.stroke = options.node-stroke }
-			if node.fill == auto { node.fill = options.node-fill }
-			if node.inset == auto { node.inset = options.node-inset }
-			if node.outset == auto { node.outset = options.node-outset }
-			if node.defocus == auto { node.defocus = options.node-defocus }
+
+
+			node.stroke = as-stroke(node.stroke)
+
+			node.stroke = default(node.stroke, options.node-stroke)
+			// if node.stroke != none and node.stroke.thickness == auto {
+				// node.stroke.thickness = options.edge-thickness
+			// }
+
+			node.fill = default(node.fill, options.node-fill)
+			node.inset = default(node.inset, options.node-inset)
+			node.outset = default(node.outset, options.node-outset)
+			node.defocus = default(node.defocus, options.node-defocus)
 
 			node.size = node.size.map(to-pt)
 			node.radius = to-pt(node.radius)
 
 			let real-stroke-thickness = if type(node.stroke) == stroke {
-				node.stroke.thickness
-			} else if type(node.stroke) == length {
-				node.stroke
-			} else { 1pt }
+				default(node.stroke.thickness, 1pt)
+			} else  {
+				1pt
+			}
 
 			node.extrude = node.extrude.map(d => {
 				if type(d) == length { d }
