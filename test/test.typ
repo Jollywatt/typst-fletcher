@@ -440,10 +440,10 @@ $ a^2 $
 	set text(size: 0.65em)
 	fletcher.diagram(
 	  node-stroke: .1em,
+	  node-inset: .2em,
+	  node-fill: gradient.radial(white, blue.lighten(40%), center: (30%, 20%), radius: 130%),
 	  edge-thickness: .06em,
 	  spacing: 7em,
-	  node-inset: .2em,
-	  node-fill: gradient.radial(white, blue.lighten(10%), center: (50%, 50%), radius: 80%),
 	  mark-scale: 120%,
 	  node((0,0), `reading`, radius: 2em, shape: "circle"),
 	  node((1,0), `eof`, radius: 2em, shape: "circle"),

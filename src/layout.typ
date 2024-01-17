@@ -3,9 +3,21 @@
 
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
+	if auto not in node.size {
+		let (width, height) = node.size
+		node.radius = vector-len((width/2, height/2))
+		return node
+	}
+
+	if node.radius != auto {
+		node.size = (2*node.radius, 2*node.radius)
+		return node
+	}
+
 	// Determine physical size of node content
 	let (width, height) = measure(node.label, styles)
 	let radius = vector-len((width/2, height/2))
+
 	node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
 	if node.shape == auto {

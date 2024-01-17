@@ -377,7 +377,7 @@
 						height: node.size.at(1) + 2*offset,
 						stroke: node.stroke,
 						fill: fill,
-						// radius: node.corner-radius,
+						radius: node.corner-radius,
 					)
 				)
 			}

@@ -361,7 +361,7 @@
 	..code-example(```typ
 	#fletcher.diagram(
 		node-stroke: black + 0.5pt,
-		node-fill: blue.lighten(90%),
+		node-fill: gradient.radial(white, blue.lighten(50%)),
 		node-outset: 3pt,
 		spacing: (15mm, 8mm),
 		node((0,0), [1], extrude: (0, -4)), // double stroke effect 
@@ -406,10 +406,10 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 	{
 		let b = blue.lighten(70%)
 		node((0,-1), `xyz`, fill: b, )
-		let complex-stroke = (paint: blue, dash: "dashed")
-		node((1,-1), `xyz`, stroke: complex-stroke, inset: 2em)
+		let dash = (paint: blue, dash: "dashed")
+		node((1,-1), `xyz`, stroke: dash, inset: 2em)
 		node((2,-1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
-		node((3,-1), `xyz`, fill: b, height: 5em)
+		node((3,-1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
 	}
 )
 ```)
@@ -423,15 +423,15 @@ See the `diagram()` parameters for more control: `cell-size` is the minimum row 
 Elastic coordinates can be demonstrated more clearly with a debug grid and no `spacing` between cells:
 
 #code-example-row(```typ
-#let b(c, w, h) = box(fill: c.lighten(50%), width: w, height: h)
+#let c = (blue, green, red, orange).map(x => x.lighten(50%))
 #fletcher.diagram(
 	debug: 1,
 	spacing: 0pt,
-	node-inset: 0pt,
-	node((0,-1), b(blue,    5mm, 10mm)),
-	node((1, 0), b(green,  20mm,  5mm)),
-	node((1, 1), b(red,     5mm,  5mm)),
-	node((0, 1), b(orange, 10mm, 10mm)),
+	node-corner-radius: 3pt,
+	node((0,-1), [0], fill: c.at(0),   width:  5mm, height: 10mm),
+	node((1, 0), [1], fill: c.at(1),  width: 20mm, height:  5mm),
+	node((1, 1), [2], fill: c.at(2),    width:  5mm, height:  5mm),
+	node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
 )
 ```)
 
@@ -447,14 +447,15 @@ As a result, diagrams are responsive to node sizes (like tables) while also allo
 	dir: ltr,
 	spacing: 1fr,
 	..(0, .25, .5, .75, 1).map(t => {
+		let c = (blue, green, red, orange).map(x => x.lighten(50%))
 		fletcher.diagram(
 			debug: 1,
 			spacing: 0mm,
-			node-inset: 0pt,
-			node((0,-1), box(fill: blue.lighten(50%),   width: 5mm, height: 10mm)),
-			node((t, 0), box(fill: green.lighten(50%),  width: 20mm, height:  5mm, align(center + horizon, $(#t, 0)$))),
-			node((1, 1), box(fill: red.lighten(50%),    width:  5mm, height:  5mm)),
-			node((0, 1), box(fill: orange.lighten(50%), width: 10mm, height: 10mm)),
+			node-corner-radius: 3pt,
+			node((0,-1), [0], fill: c.at(0),   width:  5mm, height: 10mm),
+			node((t, 0), $(#t, 0)$, fill: c.at(1),  width: 20mm, height:  5mm),
+			node((1, 1), [2], fill: c.at(2),    width:  5mm, height:  5mm),
+			node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
 		)
 	}),
 )
@@ -566,8 +567,8 @@ Finally, the fully expanded version of a `marks` shorthand can be inspected by i
 #code-example-row(```typ
 #fletcher.interpret-marks-arg("|=>")
 
-// `edge(..args, marks: M)` is equivalent to
-// `edge(..args, ..fletcher.interpret-marks-arg(M))`
+// `edge(..args, marks: "|=>")` is equivalent to
+// `edge(..args, ..fletcher.interpret-marks-arg("|=>"))`
 ```)
 
 

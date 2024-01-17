@@ -19,6 +19,8 @@
 ///  `diagram()`.
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///  points for connecting edges.
+///
+///  This does not affect node layout, only how edges connect to the node.
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
@@ -57,6 +59,7 @@
 	radius: auto,
 	stroke: auto,
 	fill: auto,
+	corner-radius: auto,
 	defocus: auto,
 	extrude: (0,),
 ) = {
@@ -74,6 +77,7 @@
 		shape: shape,
 		stroke: stroke,
 		fill: fill,
+		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
 	),)
@@ -433,21 +437,22 @@
 	(
 		nodes: nodes.map(node => {
 
-
 			node.stroke = as-stroke(node.stroke)
-
 			node.stroke = default(node.stroke, options.node-stroke)
-			// if node.stroke != none and node.stroke.thickness == auto {
-				// node.stroke.thickness = options.edge-thickness
-			// }
 
 			node.fill = default(node.fill, options.node-fill)
+			node.corner-radius = default(node.corner-radius, options.node-corner-radius)
 			node.inset = default(node.inset, options.node-inset)
 			node.outset = default(node.outset, options.node-outset)
 			node.defocus = default(node.defocus, options.node-defocus)
 
 			node.size = node.size.map(to-pt)
 			node.radius = to-pt(node.radius)
+
+			if node.shape == auto {
+				if node.radius != auto { node.shape = "circle" }
+				if node.size != (auto, auto) { node.shape = "rect" }
+			}
 
 			let real-stroke-thickness = if type(node.stroke) == stroke {
 				default(node.stroke.thickness, 1pt)
@@ -620,6 +625,7 @@
 	node-outset: 0pt,
 	node-stroke: none,
 	node-fill: none,
+	node-corner-radius: 0pt,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
 	edge-thickness: 0.048em,
@@ -646,6 +652,7 @@
 		node-outset: node-outset,
 		node-stroke: node-stroke,
 		node-fill: node-fill,
+		node-corner-radius: node-corner-radius,
 		node-defocus: node-defocus,
 		label-sep: label-sep,
 		cell-size: cell-size,
