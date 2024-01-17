@@ -261,11 +261,10 @@
 				stroke: none,
 				fill: rgb("0f0a"),
 			),
-			cetz.draw.circle(
+			cetz.draw.line(
+				vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
 				vector.add(p, vector-polar(outer-len*dir, θ)),
-				radius: stroke.thickness/2,
-				stroke: none,
-				fill: rgb("0f0a"),
+				stroke: rgb("0f0a") + stroke.thickness,
 			),
 			cetz.draw.line(
 				vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),

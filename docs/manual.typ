@@ -44,6 +44,7 @@
 			fletcher.diagram(
 				edge-thickness: 1pt,
 				spacing: 31mm,
+				label-sep: 6pt,
 				node((0,1), $A$),
 				node((1,1), $B$),
 				edge((0,1), (1,1), $f$, ">>-o->"),
@@ -546,13 +547,9 @@ See the `marks` argument of `edge()` for details.
 === Customised marks
 
 While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands like `"<->"` expand into specific `edge()` options.
-For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`. The expanded options can be seen by invoking `interpret-marks-arg()`:
-#code-example-row(```typ
-#fletcher.interpret-marks-arg("|=>")
-```)
-
-Furthermore, a mark name such as `"bar"` or `"doublehead"` is itself shorthand for a dictionary defining the mark's parameters.
-The expanded form can be retrieved with `interpret-mark()`, for example:
+For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`.
+Mark names such as `"bar"` or `"doublehead"` are in turn shorthand for a dictionary defining the mark's parameters.
+These parameters can be retrieved from the mark name as follows:
 #code-example-row(```typ
 #fletcher.interpret-mark("doublehead")
 // In this particular example:
@@ -565,6 +562,14 @@ The expanded form can be retrieved with `interpret-mark()`, for example:
 //    correction to the arrowhead's bearing for tightly curved edges.
 // Distances are multiples of the stroke thickness.
 ```)
+Finally, the fully expanded version of a `marks` shorthand can be inspected by invoking `interpret-marks-arg()`:
+#code-example-row(```typ
+#fletcher.interpret-marks-arg("|=>")
+
+// `edge(..args, marks: M)` is equivalent to
+// `edge(..args, ..fletcher.interpret-marks-arg(M))`
+```)
+
 
 You can customise these basic marks by adjusting these parameters.
 For example:
@@ -586,10 +591,10 @@ However, for finer control, you are encouraged to use the functions `interpret-m
 
 === Hanging tail correction
 
-All marks accept a `tail` parameter, the effect of which can be seen below:
+All marks accept an `outer-len` parameter, the effect of which can be seen below:
 #code-example-row(```typ
 #fletcher.diagram(
-	edge-thickness: 3pt,
+	edge-thickness: 2pt,
 	spacing: 2cm,
 	debug: 4,
 
@@ -599,7 +604,7 @@ All marks accept a `tail` parameter, the effect of which can be seen below:
 		marks: (none, (kind: "solidhead"))), // use default hang
 )
 ```)
-The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head _visually_ extends backwards over the stroke.
+The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head visually extends backwards over the stroke.
 This is visualised by the green line shown above.
 The mark is rotated so that the ends of the line both lie on the arc.
 

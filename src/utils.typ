@@ -3,6 +3,8 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
+#let default(x, y) = if x == auto { y } else { x }
+
 #let as-stroke(obj) = {
 	if obj == none or obj == auto { obj }
 	else { stroke(obj) }

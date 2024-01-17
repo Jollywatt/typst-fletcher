@@ -430,6 +430,7 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 
 = Example
 
+#[
 Make sure node or edge labels don't pick up equation numbers!
 #set math.equation(numbering: "(1)")
 
@@ -456,3 +457,4 @@ $ a^2 $
 }
 
 $ b^2 $
+]

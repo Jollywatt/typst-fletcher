@@ -4,7 +4,7 @@
 #import "draw.typ": *
 #import "marks.typ": *
 
-/// Draw a labelled node in an arrow diagram.
+/// Draw a labelled node in an diagram which can connect to edges.
 ///
 /// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node,
 ///  where `x` is the column and `y` is the row (increasing upwards). The
@@ -22,7 +22,7 @@
 /// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
 /// `auto`, shape is automatically chosen depending on the aspect ratio of the
 /// node's label.
-/// - stroke (stroke): Stroke style to outline the node. Defaults to the `node-stroke` option
+/// - stroke (stroke): Stroke style for the node outline. Defaults to the `node-stroke` option
 ///  of `diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
 ///  `diagram()`.
@@ -210,10 +210,10 @@
 /// $
 /// M_i in {#fletcher.CAP_ALIASES.keys().map(raw.with(lang: none)).join($,$)} union N
 /// $
-/// is a mark icon and
+/// is a mark symbol and
 /// $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
 /// is the line style.
-/// The mark icon can also be a name, $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
+/// The mark symbol can also be a name, $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
 /// where a trailing `'` means to reflect the mark across the stroke.
 ///
 ///  - An array of marks, where each mark is specified by name or by a
@@ -224,22 +224,25 @@
 ///
 ///
 /// #table(
-/// 	columns: 2,
-/// 	align: horizon,
-///  	[Arrow], [`marks` shorthand],
+/// 	columns: (1fr, 4fr),
+/// 	align: (center + horizon, horizon),
+///  	[Arrow], [`marks`],
 /// 	..(
 ///  		"->",
 ///  		">>-->",
 ///  		"<=>",
 ///  		"==>",
+///         "->>-",
 ///  		"x-/-@",
 ///  		"|..|",
 ///  		"hook->>",
 ///  		"hook'->>",
 ///  		"||-*-harpoon'",
-/// 	).map(str => (
-///  		fletcher.diagram(edge((0,0), (1,0), marks: str)),
-///  		raw(repr(str)),
+///         ("X", (kind: "head", size: 15, sharpness: 40deg),),
+///         ((kind: "circle", pos: 0.5, fill: true),),
+/// 	).map(arg => (
+///  		fletcher.diagram(edge((0,0), (1,0), marks: arg, stroke: 0.8pt)),
+///  		raw(repr(arg)),
 ///  	)).join()
 /// )
 ///
@@ -370,12 +373,12 @@
 	options += interpret-marks-arg(options.marks)
 	
 	let stroke = as-stroke(options.stroke)
-	let stroke = (
+	stroke = as-stroke((
 		paint: stroke.paint,
-		cap: if stroke.cap == auto { "round" } else { stroke.cap },
+		cap: default(stroke.cap, "round"),
 		thickness: stroke.thickness,
-		dash: dash,
-	)
+		dash: default(stroke.dash, options.dash),
+	))
 
 	if options.label-side == center {
 		options.label-anchor = "center"
@@ -426,7 +429,6 @@
 		len
 	}
 
-	let default(x, y) = if x == auto { y } else { x }
 
 	(
 		nodes: nodes.map(node => {
@@ -465,10 +467,21 @@
 		}),
 
 		edges: edges.map(edge => {
-			if edge.stroke.thickness == auto { edge.stroke.thickness = options.edge-thickness }
-			if edge.crossing-fill == auto { edge.crossing-fill = options.crossing-fill }
-			if edge.crossing-thickness == auto { edge.crossing-thickness = options.crossing-thickness }
-			if edge.label-sep == auto { edge.label-sep = options.label-sep }
+
+			edge.stroke = as-stroke(edge.stroke)
+
+			edge.stroke = stroke(
+				paint: edge.stroke.paint,
+				thickness: to-pt(default(edge.stroke.thickness, options.edge-thickness)),
+				cap: edge.stroke.cap,
+				join: edge.stroke.join,
+				dash: edge.stroke.dash,
+				miter-limit: edge.stroke.miter-limit,
+			)
+
+			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
+			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
+			edge.label-sep = default(edge.label-sep, options.label-sep)
 
 			if edge.is-crossing-background {
 				edge.stroke = (
@@ -487,16 +500,17 @@
 			}
 
 
+			// Scale marks
 			edge.mark-scale *= options.mark-scale
-
+			let scale = edge.mark-scale/100%
 			edge.marks = edge.marks.map(mark => {
-				if mark != none {
-					mark.size *= edge.mark-scale/100%
+				if mark == none { return }
+				for k in ("size", "inner-len", "outer-len") {
+					if k in mark { mark.at(k) *= scale }
 				}
 				mark
 			})
 
-			edge.stroke.thickness = to-pt(edge.stroke.thickness)
 			edge.label-sep = to-pt(edge.label-sep)
 
 			edge.extrude = edge.extrude.map(d => {
