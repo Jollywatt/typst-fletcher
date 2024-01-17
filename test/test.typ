@@ -443,11 +443,12 @@ $ a^2 $
 	  edge-thickness: .06em,
 	  spacing: 7em,
 	  node-inset: .2em,
+	  node-fill: gradient.radial(white, blue.lighten(10%), center: (50%, 50%), radius: 80%),
 	  mark-scale: 120%,
 	  node((0,0), `reading`, radius: 2em, shape: "circle"),
 	  node((1,0), `eof`, radius: 2em, shape: "circle"),
 	  node((2,0), `closed`, radius: 2em, shape: "circle", extrude: (-2, 0)),
-	  node((-.7,0), `open(path)`, stroke: none),
+	  node((-.7,0), `open(path)`, stroke: none, fill: none),
 	  edge((-.7,0), (0,0), "-|>"),
 	  edge((0,0), (1,0), `read()`, "-|>"),
 	  edge((0,0), (0,0), `read()`, "<|-", bend: -130deg),
@@ -458,3 +459,4 @@ $ a^2 $
 
 $ b^2 $
 ]
+

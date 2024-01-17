@@ -370,19 +370,25 @@
 			let fill = if i == 0 { node.fill } else { none }
 
 			if node.shape == "rect" {
-				let radii = vector.scale(node.size, 0.5).map(x => x + offset)
-				cetz.draw.rect(
-					..rect-at(node.real-pos, radii),
-					stroke: node.stroke,
-					fill: fill,
+				cetz.draw.content(
+					node.real-pos,
+					rect(
+						width: node.size.at(0) + 2*offset,
+						height: node.size.at(1) + 2*offset,
+						stroke: node.stroke,
+						fill: fill,
+						// radius: node.corner-radius,
+					)
 				)
 			}
 			if node.shape == "circle" {
-				cetz.draw.circle(
+				cetz.draw.content(
 					node.real-pos,
-					radius: node.radius + offset,
-					stroke: node.stroke,
-					fill: fill,
+					circle(
+						radius: node.radius + offset,
+						stroke: node.stroke,
+						fill: fill,
+					)
 				)
 			}
 		}
