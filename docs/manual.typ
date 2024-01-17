@@ -255,8 +255,9 @@
 		let colors = (maroon, olive, eastern)
 		fletcher.diagram(
 			edge-thickness: 1pt,
+			node-corner-radius: 5pt,
 			node((0,0), [input], fill: colors.at(0)),
-			edge((0,0), (1,0)),
+			edge((0,0), (1,0), "-"),
 			edge((1,0), (2,+1), "-|>", corner: left),
 			edge((1,0), (2,-1), corner: right),
 			node((2,+1), [control unit (CU)], fill: colors.at(1)),
@@ -279,7 +280,7 @@
 
 #show heading.where(level: 1): it => pagebreak(weak: true) + it + v(0.5em)
 
-= Examples
+= Getting started
 
 #raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
 
@@ -304,7 +305,11 @@
 #table(
 	columns: (2fr, 1fr),
 	align: (horizon, left),
-	inset: 10pt,
+	// inset: 10pt,
+
+	// stroke: gray + 0.2pt,
+	stroke: none,
+	inset: (x: 0pt, y: 10pt),
 
 	..code-example(```typ
 	#fletcher.diagram({
@@ -361,14 +366,14 @@
 	..code-example(```typ
 	#fletcher.diagram(
 		node-stroke: black + 0.5pt,
-		node-fill: gradient.radial(white, blue.lighten(50%)),
-		node-outset: 3pt,
+		node-fill: gradient.radial(white, blue, center: (40%, 20%),
+		                           radius: 150%),
 		spacing: (15mm, 8mm),
 		node((0,0), [1], extrude: (0, -4)), // double stroke effect 
 		node((1,0), [2]),
 		node((2,1), [3a]),
 		node((2,-1), [3b]),
-		edge((0,0), (1,0), "->"),
+		edge((0,0), (1,0), [go], "->"),
 		edge((1,0), (2,+1), "->", bend: -15deg),
 		edge((1,0), (2,-1), "->", bend: +15deg),
 		edge((2,-1), (2,-1), "->", bend: +130deg, label: [loop!]),
@@ -428,9 +433,9 @@ Elastic coordinates can be demonstrated more clearly with a debug grid and no `s
 	debug: 1,
 	spacing: 0pt,
 	node-corner-radius: 3pt,
-	node((0,-1), [0], fill: c.at(0),   width:  5mm, height: 10mm),
-	node((1, 0), [1], fill: c.at(1),  width: 20mm, height:  5mm),
-	node((1, 1), [2], fill: c.at(2),    width:  5mm, height:  5mm),
+	node((0,-1), [0], fill: c.at(0), width:  5mm, height: 10mm),
+	node((1, 0), [1], fill: c.at(1), width: 20mm, height:  5mm),
+	node((1, 1), [2], fill: c.at(2), width:  5mm, height:  5mm),
 	node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
 )
 ```)
@@ -452,9 +457,9 @@ As a result, diagrams are responsive to node sizes (like tables) while also allo
 			debug: 1,
 			spacing: 0mm,
 			node-corner-radius: 3pt,
-			node((0,-1), [0], fill: c.at(0),   width:  5mm, height: 10mm),
-			node((t, 0), $(#t, 0)$, fill: c.at(1),  width: 20mm, height:  5mm),
-			node((1, 1), [2], fill: c.at(2),    width:  5mm, height:  5mm),
+			node((0,-1), [0], fill: c.at(0), width: 5mm, height: 10mm),
+			node((t, 0), $(#t, 0)$, fill: c.at(1), width: 20mm, height: 5mm),
+			node((1, 1), [2], fill: c.at(2), width: 5mm, height: 5mm),
 			node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
 		)
 	}),
