@@ -222,7 +222,7 @@
 	mark = interpret-mark(mark)
 	if mark == none { return 0 }
 
-	let offset = if mark.kind == "head" {
+	if mark.kind == "head" {
 		round-arrow-cap-offset(mark.size, mark.sharpness, y)
 	}
 	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
@@ -234,15 +234,6 @@
 	} else if mark.kind == "bar" {
 		 -calc.tan(mark.angle)*y
 	} else { 0 }
-
-	if mark.rev and "tail" in mark {
-		// offset = -offset - mark.outer-len
-	}
-
-	// // todo: remove this
-	// if not mark.rev { offset += mark.at("cap-offset", default: 0) }
-
-	offset
 }
 
 
@@ -312,10 +303,6 @@
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon"))
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
 
-	} else if mark.kind == "tail" {
-		// p = shift(p, cap-offset(mark, 0))
-		draw-arrow-cap(p, θ + 180deg, stroke, mark + (kind: "head"))
-
 	} else if mark.kind == "hook" {
 		p = shift(p, -mark.outer-len)
 		cetz.draw.arc(
@@ -359,8 +346,6 @@
 		)
 
 	} else if mark.kind == "solidhead" {
-		// p = shift(p, -cap-offset(mark, mark))
-
 		cetz.draw.line(
 			p,
 			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),
@@ -368,12 +353,6 @@
 			fill: stroke.paint,
 			stroke: none,
 		)
-
-	} else if mark.kind == "solidtail" {
-		mark +=  (kind: "solidhead")
-		p = shift(p, 1)
-		draw-arrow-cap(p, θ + 180deg, stroke, mark)
-
 
 	} else {
 		panic("unknown mark kind:", mark)
