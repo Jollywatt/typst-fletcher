@@ -404,20 +404,24 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 #fletcher.diagram(
 	debug: 1,
 	spacing: (1em, 3em), // (x, y)
-	node((0, 0), $f$),
-	node((1, 0), $f$, stroke: 1pt, radius: 8mm),
-	node((2, 0), $f$, stroke: 1pt, shape: "rect"),
-	node((3, 0), $f$, stroke: 1pt, extrude: (0, 2)),
+	axes: (ltr, ttb),    // make y axis increase downwards
+	node((0,0), $f$),
+	node((1,0), $f$, stroke: 1pt, radius: 8mm),
+	node((2,0), $f$, stroke: 1pt, shape: "rect"),
+	node((3,0), $f$, stroke: 1pt, extrude: (0, 2)),
 	{
 		let b = blue.lighten(70%)
-		node((0,-1), `xyz`, fill: b, )
+		node((0,1), `xyz`, fill: b, )
 		let dash = (paint: blue, dash: "dashed")
-		node((1,-1), `xyz`, stroke: dash, inset: 2em)
-		node((2,-1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
-		node((3,-1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
+		node((1,1), `xyz`, stroke: dash, inset: 2em)
+		node((2,1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
+		node((3,1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
 	}
 )
 ```)
+
+By default, the coorinates $(x, y)$ are $x$ going right and $y$ going up.
+This can be changed with the `axis` option of `diagram()`.
 
 === Elastic coordinates
 

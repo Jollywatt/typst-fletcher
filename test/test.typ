@@ -460,3 +460,18 @@ $ a^2 $
 $ b^2 $
 ]
 
+= Funky axes
+
+#for axes in ((ltr, btt), (ltr, ttb), (rtl, btt), (rtl, ttb)) {	
+	for axes in (axes, axes.rev()) {
+		fletcher.diagram(
+			axes: axes,
+			debug: 1,
+			node((0,0), $(0,0)$),
+			edge((0,0), (1,0), "->", bend: 20deg),
+			node((1,0), $(1,0)$),
+			node((1,1), $(1,1)$),
+			node((0.5,0.5), repr(axes)),
+		)
+	}
+}

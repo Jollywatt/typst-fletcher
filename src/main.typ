@@ -605,6 +605,34 @@
 /// - crossing-thickness (number): Default thickness of the occlusion made by
 ///  crossing connectors. See the `crossing-thickness` option of `edge()`.
 /// 
+/// - axes (pair of directions): The directions of the diagram's axes.
+///
+///  This defines the orientation of the coordinate system used by nodes and
+///  edges. To make the $y$ coordinate increase down the page, use `(ltr, ttb)`.
+///  For the matrix convention `(row, column)`, use `(ttb, ltr)`.
+///
+///  #stack(
+///  	dir: ltr,
+///  	spacing: 1fr,
+///  	fletcher.diagram(
+///  		axes: (ttb, ltr),
+///  		debug: 1,
+///  		node((0,0), $(0,0)$),
+///  		edge((0,0), (1,0), "->", bend: 20deg),
+///  		node((1,0), $(1,0)$),
+///  		node((1,1), $(1,1)$),
+///  		node((0.5,0.5), `axes: (ttb, ltr)`),
+///  	),
+///  	fletcher.diagram(
+///  		axes: (ltr, ttb),
+///  		debug: 1,
+///  		node((0,0), $(0,0)$),
+///  		edge((0,0), (1,0), "->"),
+///  		node((1,0), $(1,0)$),
+///  		node((1,1), $(1,1)$),
+///  		node((0.5,0.5), `axes: (ltr, ttb)`),
+///  	),
+///  )
 ///
 /// - render (function): After the node sizes and grid layout have been
 ///  determined, the `render` function is called with the following arguments:
@@ -619,6 +647,7 @@
 #let diagram(
 	..objects,
 	debug: false,
+	axes: (ltr, btt),
 	spacing: 3em,
 	cell-size: 0pt,
 	node-inset: 12pt,
@@ -633,7 +662,9 @@
 	crossing-fill: white,
 	crossing-thickness: 5,
 	render: (grid, nodes, edges, options) => {
-		cetz.canvas(draw-diagram(grid, nodes, edges, options))
+		cetz.canvas(
+			draw-diagram(grid, nodes, edges, options)
+		)
 	},
 ) = {
 
@@ -660,7 +691,10 @@
 		mark-scale: mark-scale,
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,
+		axes: axes,
 	)
+
+	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
 
 	let positional-args = objects.pos().join()
 	let nodes = positional-args.filter(e => e.class == "node")
@@ -673,7 +707,26 @@
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
 
+		let (nodes, edges) = (nodes, edges)
+
+
+		// Swap or flip axes
+
+		// Swap axes
+		if options.axes.map(a => a.axis()) == ("vertical", "horizontal") {
+			nodes = nodes.map(node => {
+				node.pos = node.pos.rev()
+				node
+			})
+			edges = edges.map(edge => {
+				edge.points = edge.points.map(array.rev)
+				edge
+			})
+			options.axes = options.axes.rev()
+		}
+
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
+
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, options)

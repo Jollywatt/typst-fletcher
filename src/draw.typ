@@ -439,6 +439,13 @@
 	options,
 ) = {
 
+
+	cetz.draw.scale((
+		x: if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
+		y: if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
+	))
+
+
 	for node in nodes {
 		draw-node(node, options)
 	}
