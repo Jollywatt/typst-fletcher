@@ -11,23 +11,80 @@
 	"crossing": (crossing: true),
 )
 
+#let CAP_PARAMETERS = (
+	head: (
+		size: 7, // radius of curvature, multiples of stroke thickness
+		sharpness: 24deg, // angle at vertex between central line and arrow's edge
+		delta: 54deg, // angle spanned by arc of curved arrow edge
+		outer-len: 4,
+	),
+	solidhead: (
+		size: 10,
+		sharpness: 19deg,
+		outer-len: mark => mark.size*calc.cos(mark.sharpness),
+	),
+
+	bar: (size: 4.9, angle: 0deg),
+	circle: (size: 2, fill: false, outer-len: mark => 2*mark.size),
+	cross: (size: 2, angle: 45deg),
+
+	hook: (size: 2.88, rim: 0.85, outer-len: 3),
+	
+)
+#{CAP_PARAMETERS.harpoon = CAP_PARAMETERS.head}
+
+
 #let CAP_ALIASES = (
 	">": (kind: "head", rev: false),
-	">>": (kind: "twohead", rev: false),
 	"<": (kind: "head", rev: true),
+	">>": (kind: "twohead", rev: false),
 	"<<": (kind: "twohead", rev: true),
 	"|>": (kind: "solidhead", rev: false),
 	"<|": (kind: "solidhead", rev: true),
 	"|": (kind: "bar"),
-	"||": (kind: "twobar"),
+	"||": (kind: "bar", extrude: (-3, 0), inner-len: 3),
+	"|||": (kind: "bar", extrude: (-4, -2, 0), inner-len: 4),
 	"/": (kind: "bar", angle: -30deg),
 	"\\": (kind: "bar", angle: +30deg),
 	"x": (kind: "cross"),
 	"X": (kind: "cross", size: 7),
 	"o": (kind: "circle"),
-	"O": (kind: "bigcircle"),
+	"O": (kind: "circle", size: 4),
 	"*": (kind: "circle", fill: true),
-	"@": (kind: "bigcircle", fill: true),
+	"@": (kind: "circle", size: 4, fill: true),
+
+	twohead: (
+		kind: "head",
+		extrude: (-3, 0),
+		inner-len: 3,
+		outer-len: 7,
+	),
+	// twobar: (
+	// 	kind: "bar",
+	// 	extrude: (-3, 0),
+	// 	inner-len: 3,
+	// ),
+
+	doublehead: (
+		kind: "head",
+		size: 9.6*1.1,
+		sharpness: 19deg,
+		delta: 43.7deg,
+		outer-len: 5.5,
+	),
+	triplehead: (
+		kind: "head",
+		size: 9*1.5,
+		sharpness: 25deg,
+		delta: 43deg,
+		outer-len: 6,
+	),
+
+
+
+	hooks: (kind: "hook", double: true),
+
+
 )
 
 
@@ -40,77 +97,35 @@
 #let interpret-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
 
-	if type(mark) == str {
-		mark = CAP_ALIASES.at(mark, default: (kind: mark))
-	}
+	if type(mark) == str { mark = (kind: mark) }
 
-	assert(type(mark) == dictionary, message: repr(mark))
+	mark = defaults + mark
 	
 	if mark.kind.at(-1) == "'" {
 		mark.flip = -mark.at("flip", default: +1)
 		mark.kind = mark.kind.slice(0, -1)
 	}
 
-	let round-style = (
-		size: 7, // radius of curvature, multiples of stroke thickness
-		sharpness: 24deg, // angle at vertex between central line and arrow's edge
-		delta: 54deg, // angle spanned by arc of curved arrow edge
-	)
-
-	mark = defaults + mark
-
-	if mark.kind in ("head", "harpoon") {
-		round-style + (outer-len: 4) + mark
-	} else if mark.kind == "tail" {
-		interpret-mark(mark + (kind: "head", rev: true))
-	} else if mark.kind == "twohead" {
-		round-style + (
-			extrude: (-3, 0),
-			inner-len: 3,
-			outer-len: 7,
-		) + mark + (kind: "head")
-	} else if mark.kind == "twotail" {
-		interpret-mark(mark + (kind: "twohead", rev: true))
-	} else if mark.kind == "twobar" {
-		(size: 4.5) + (extrude: (-3, 0), inner-len: 3) + mark + (kind: "bar")
-	} else if mark.kind == "doublehead" {
-		// tuned to match sym.arrow.double
-		mark + (
-			size: 9.6*1.1,
-			sharpness: 19deg,
-			delta: 43.7deg,
-			outer-len: 5.5,
-		) + (kind: "head")
-	} else if mark.kind == "triplehead" {
-		// tuned to match sym.arrow.triple
-		mark + (
-			size: 9*1.5,
-			sharpness: 25deg,
-			delta: 43deg,
-			outer-len: 6,
-		) + (kind: "head")
-	} else if mark.kind == "bar" {
-		(size: 4.9, angle: 0deg) + mark
-	} else if mark.kind == "cross" {
-		(size: 4, angle: 45deg) + mark
-	} else if mark.kind in ("hook", "hooks") {
-		(size: 2.88, rim: 0.85, outer-len: 3) + mark
-	} else if mark.kind == "circle" {
-		(size: 2, fill: false, outer-len: 4) + mark
-	} else if mark.kind == "bigcircle" {
-		(size: 4, outer-len: 8) + mark + (kind: "circle")
-	} else if mark.kind == "solidhead" {
-		mark = (size: 10, sharpness: 19deg) + mark
-		if "outer-len" not in mark {
-			mark.outer-len = mark.size*calc.cos(mark.sharpness)
-		}
-		mark
-
-	} else if mark.kind == "solidtail" {
-		interpret-mark(mark + (kind: "solidhead", rev: true))
-	} else {
-		panic("Cannot interpret mark: " + mark.kind)
+	if mark.kind in CAP_ALIASES {
+		let new = CAP_ALIASES.at(mark.kind)
+		mark = new + mark
+		mark.kind = new.kind
 	}
+
+	if mark.kind in CAP_PARAMETERS {
+		mark = CAP_PARAMETERS.at(mark.kind) + mark
+	}
+
+	// evaluate "lazy parameters" which are functions of the mark
+	for (key, val) in mark {
+		if type(val) == function {
+			mark.at(key) = val(mark)
+		}
+	}
+
+	assert(mark.kind in CAP_PARAMETERS, message: "Didn't work: " + repr(mark))
+
+	return mark
 }
 
 
@@ -303,6 +318,10 @@
 		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
 
 	} else if mark.kind == "hook" {
+		if mark.at("double", default: false) {
+			draw-arrow-cap(p, θ, stroke, mark + (double: false, flip: -1))
+		}
+
 		p = shift(p, -mark.outer-len)
 		cetz.draw.arc(
 			p,
@@ -319,9 +338,6 @@
 			stroke: stroke
 		)
 
-	} else if mark.kind == "hooks" {
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "hook"))
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "hook'"))
 
 	} else if mark.kind == "bar" {
 		let v = vector-polar(mark.size*stroke.thickness, θ + 90deg + mark.angle)
@@ -341,7 +357,7 @@
 			p,
 			radius: mark.size*stroke.thickness,
 			stroke: stroke,
-			fill: if mark.fill { stroke.paint }
+			fill: if mark.fill { default(stroke.paint, black) }
 		)
 
 	} else if mark.kind == "solidhead" {
@@ -349,7 +365,7 @@
 			p,
 			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),
 			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ - mark.sharpness)),
-			fill: stroke.paint,
+			fill: default(stroke.paint, black),
 			stroke: none,
 		)
 

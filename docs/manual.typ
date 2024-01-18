@@ -539,6 +539,12 @@ Some other miscellaneous caps are supported, and marks can be placed anywhere al
 	}
 }))
 
+The basic mark types are defined 
+
+All of the mark shorthands are defined in `fletcher.CAP_ALIASES`:
+
+#(fletcher.CAP_ALIASES.keys() + fletcher.CAP_PARAMETERS.keys()).sorted().map(raw.with(lang: "none")).join([, ])
+
 Edge styles can be specified like `edge(a, b, "-->")`, or by passing a dictionary of mark parameters:
 #code-example-row(```typ
 #fletcher.diagram(
@@ -556,7 +562,7 @@ See the `marks` argument of `edge()` for details.
 
 === Customised marks
 
-While convenient shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands like `"<->"` expand into specific `edge()` options.
+While shorthands exist for specifying marks and stroke styles, finer control is possible. Shorthands like `"<->"` expand into specific `edge()` options.
 For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`.
 Mark names such as `"bar"` or `"doublehead"` are in turn shorthand for a dictionary defining the mark's parameters.
 These parameters can be retrieved from the mark name as follows:
@@ -579,6 +585,7 @@ Finally, the fully expanded version of a `marks` shorthand can be inspected by i
 // `edge(..args, marks: "|=>")` is equivalent to
 // `edge(..args, ..fletcher.interpret-marks-arg("|=>"))`
 ```)
+
 
 
 You can customise these basic marks by adjusting these parameters.

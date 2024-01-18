@@ -210,12 +210,12 @@ $
 			(marks: ((kind: "hook", rev: true), "head")),
 			(marks: ((kind: "hook", rev: true), "hook'")),
 			(marks: ("bar", "bar", "bar")),
-			(marks: ("twobar", "twobar")),
+			(marks: ("||", "||")),
 			(marks: (none, none), extrude: (2.5,0,-2.5)),
 			(marks: ("head", "head"), extrude: (1.5,-1.5)),
-			(marks: ("tail", "tail"), extrude: (1.5,-1.5)),
+			(marks: (">", "<"), extrude: (1.5,-1.5)),
 			(marks: ("bar", "head"), extrude: (2,0,-2)),
-			(marks: ("circle", "bigcircle")),
+			(marks: ("o", "O")),
 			(marks: ((kind: "solidhead", rev: true), "solidhead")),
 		).enumerate().map(((i, args)) => {
 			edge((x, -i), (x + 1, -i), ..args, bend: bend)
@@ -475,3 +475,10 @@ $ b^2 $
 		)
 	}
 }
+
+
+= ?
+
+#fletcher.interpret-mark("*")
+
+#fletcher.diagram(edge((0,0), (1,0), marks: "-*-*"))
