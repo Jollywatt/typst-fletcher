@@ -212,7 +212,7 @@
 ///  - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///   shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, where
 /// $
-/// M_i in {#fletcher.CAP_ALIASES.keys().map(raw.with(lang: none)).join($,$)} union N
+/// M_i in {#fletcher.MARK_ALIASES.keys().map(raw.with(lang: none)).join($,$)} union N
 /// $
 /// is a mark symbol and
 /// $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$

@@ -11,7 +11,7 @@
 	"crossing": (crossing: true),
 )
 
-#let CAP_PARAMETERS = (
+#let MARK_DEFAULTS = (
 	head: (
 		size: 7, // radius of curvature, multiples of stroke thickness
 		sharpness: 24deg, // angle at vertex between central line and arrow's edge
@@ -31,10 +31,10 @@
 	hook: (size: 2.88, rim: 0.85, outer-len: 3),
 	
 )
-#{CAP_PARAMETERS.harpoon = CAP_PARAMETERS.head}
+#{MARK_DEFAULTS.harpoon = MARK_DEFAULTS.head}
 
 
-#let CAP_ALIASES = (
+#let MARK_ALIASES = (
 	">": (kind: "head", rev: false),
 	"<": (kind: "head", rev: true),
 	">>": (kind: "head", rev: false, extrude: (-3, 0), inner-len: 3, outer-len: 7),
@@ -103,14 +103,14 @@
 		mark.kind = mark.kind.slice(0, -1)
 	}
 
-	if mark.kind in CAP_ALIASES {
-		let new = CAP_ALIASES.at(mark.kind)
+	if mark.kind in MARK_ALIASES {
+		let new = MARK_ALIASES.at(mark.kind)
 		mark = new + mark
 		mark.kind = new.kind
 	}
 
-	if mark.kind in CAP_PARAMETERS {
-		mark = CAP_PARAMETERS.at(mark.kind) + mark
+	if mark.kind in MARK_DEFAULTS {
+		mark = MARK_DEFAULTS.at(mark.kind) + mark
 	} else {
 		panic("Couldn't interpret mark:", mark)
 	}
@@ -122,7 +122,7 @@
 		}
 	}
 
-	assert(mark.kind in CAP_PARAMETERS, message: "Didn't work: " + repr(mark))
+	assert(mark.kind in MARK_DEFAULTS, message: "Didn't work: " + repr(mark))
 
 	return mark
 }
@@ -160,7 +160,7 @@
 	assert(type(arg) == str)
 	let text = arg
 
-	let CAPS = (CAP_ALIASES.keys() + CAP_PARAMETERS.keys()).sorted(key: i => -i.len())
+	let MARKS = (MARK_ALIASES.keys() + MARK_DEFAULTS.keys()).sorted(key: i => -i.len())
 	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
 
 	let eat(arg, options) = {
@@ -179,7 +179,7 @@
 	let line
 
 	// first mark, [<]-x->>
-	(text, mark) = eat(text, CAPS)
+	(text, mark) = eat(text, MARKS)
 	marks.push(mark)
 
 	let parse-error(suggestion) = panic(
@@ -196,7 +196,7 @@
 		lines.push(line)
 
 		// subsequent mark, <-[x]->>
-		(text, mark) = eat(text, CAPS)
+		(text, mark) = eat(text, MARKS)
 		marks.push(mark)
 
 		if text == "" { break }
@@ -223,14 +223,14 @@
 	if line == "=" {
 		marks = marks.map(mark => {
 			if mark != none and mark.kind == "head" {
-				mark += CAP_ALIASES.doublehead
+				mark += MARK_ALIASES.doublehead
 			}
 			mark
 		})
 	} else if line == "==" {
 		marks = marks.map(mark => {
 			if mark != none and mark.kind == "head" {
-				mark += CAP_ALIASES.triplehead
+				mark += MARK_ALIASES.triplehead
 			}
 			mark
 		})
@@ -289,7 +289,6 @@
 
 	if debug {
 		let dir = if mark.rev {1} else {-1}
-
 		let normal = vector-polar(stroke.thickness, θ - 90deg)
 		cetz.draw.on-layer(1, (
 			cetz.draw.circle(
@@ -310,6 +309,7 @@
 			),
 		).join())
 	}
+
 	let shift(p, x) = vector.add(p, vector-polar(stroke.thickness*x, θ))
 
 	// extrude draws multiple copies of the mark
@@ -400,23 +400,21 @@
 #let place-arrow-cap(path, stroke, mark, ..args) = {
 	let ε = 1e-4
 
+	// calculate velocity of parametrised path at point
 	let pt = path(mark.pos)
 	let pt-plus-ε = path(mark.pos + ε)
-	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε/stroke.thickness
+	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
 
 	let outer-len = mark.at("outer-len", default: 0)
-	let δt = (outer-len + ε)/grad
+	let δt = outer-len*stroke.thickness/grad
+	if δt == 0 { δt = ε } // avoid δt = 0 so the two points are distinct
 
 	let t = lerp(δt, 1, mark.pos)
-	if mark.rev {
-		t -= δt
-		δt *= -1
-	}
+	if mark.rev { t -= δt }
 
 	let origin-pt = path(t)
 	let outer-pt = path(t - δt)
 	let θ = vector-angle(vector.sub(origin-pt, outer-pt))
-	if mark.rev { θ += 180deg }
 
 	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)
 }

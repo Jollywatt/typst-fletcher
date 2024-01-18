@@ -541,9 +541,13 @@ Some other miscellaneous caps are supported, and marks can be placed anywhere al
 
 The basic mark types are defined 
 
-All of the mark shorthands are defined in `fletcher.CAP_ALIASES`:
+All of the mark shorthands are defined in `fletcher.MARK_ALIASES` and `fletcher.MARK_DEFAULTS`:
 
-#(fletcher.CAP_ALIASES.keys() + fletcher.CAP_PARAMETERS.keys()).sorted().map(raw.with(lang: "none")).join([, ])
+#{(fletcher.MARK_ALIASES.keys() + fletcher.MARK_DEFAULTS.keys())
+	.sorted(key: i => i.len())
+	.map(raw.with(lang: "none"))
+	.join([, ])
+}
 
 Edge styles can be specified like `edge(a, b, "-->")`, or by passing a dictionary of mark parameters:
 #code-example-row(```typ
