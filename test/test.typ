@@ -19,7 +19,7 @@
 	node((0,0), $Z$),
 	edge((0,1), (1,1), marks: (none, "head")),
 	edge((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
-	edge((0,1), (0,0), marks: (none, "twohead")),
+	edge((0,1), (0,0), marks: (none, ">>")),
 	edge((0,1), (0,1), marks: (none, "head"), bend: -120deg),
 )
 

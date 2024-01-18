@@ -37,8 +37,8 @@
 #let CAP_ALIASES = (
 	">": (kind: "head", rev: false),
 	"<": (kind: "head", rev: true),
-	">>": (kind: "twohead", rev: false),
-	"<<": (kind: "twohead", rev: true),
+	">>": (kind: "head", rev: false, extrude: (-3, 0), inner-len: 3, outer-len: 7),
+	"<<": (kind: "head", rev: true,  extrude: (-3, 0), inner-len: 3, outer-len: 7),
 	"|>": (kind: "solidhead", rev: false),
 	"<|": (kind: "solidhead", rev: true),
 	"|": (kind: "bar"),
@@ -53,17 +53,6 @@
 	"*": (kind: "circle", fill: true),
 	"@": (kind: "circle", size: 4, fill: true),
 
-	twohead: (
-		kind: "head",
-		extrude: (-3, 0),
-		inner-len: 3,
-		outer-len: 7,
-	),
-	// twobar: (
-	// 	kind: "bar",
-	// 	extrude: (-3, 0),
-	// 	inner-len: 3,
-	// ),
 
 	doublehead: (
 		kind: "head",
@@ -81,13 +70,21 @@
 	),
 
 
-
+	"hook'": (kind: "hook", flip: -1),
+	"harpoon'": (kind: "harpoon", flip: -1),
 	hooks: (kind: "hook", double: true),
 
 
 )
 
 
+#let LINE_ALIASES = (
+	"-": (:),
+	"=": EDGE_ARGUMENT_SHORTHANDS.double,
+	"==": EDGE_ARGUMENT_SHORTHANDS.triple,
+	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
+	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
+)
 
 
 /// Take a string or dictionary specifying a mark and return a dictionary,
@@ -114,6 +111,8 @@
 
 	if mark.kind in CAP_PARAMETERS {
 		mark = CAP_PARAMETERS.at(mark.kind) + mark
+	} else {
+		panic("Couldn't interpret mark:", mark)
 	}
 
 	// evaluate "lazy parameters" which are functions of the mark
@@ -161,62 +160,85 @@
 	assert(type(arg) == str)
 	let text = arg
 
-	let lines = (
-		"-": (:),
-		"=": EDGE_ARGUMENT_SHORTHANDS.double,
-		"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-		"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-		"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
+	let CAPS = (CAP_ALIASES.keys() + CAP_PARAMETERS.keys()).sorted(key: i => -i.len())
+	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
+
+	let eat(arg, options) = {
+		for option in options {
+			if arg.starts-with(option) {
+				return (arg.slice(option.len()), option)
+			}
+		}
+		return (arg, none)
+	}
+
+	let marks = ()
+	let lines = ()
+
+	let mark
+	let line
+
+	// first mark, [<]-x->>
+	(text, mark) = eat(text, CAPS)
+	marks.push(mark)
+
+	let parse-error(suggestion) = panic(
+		"Invalid marks shorthand '" + text + "'. Try '" + suggestion + "'."
 	)
 
-	let cap-selector = "(|<|>|<<|>>|hook[s']?|harpoon'?|\|\|?|/|\\\\|x|X|o|O|\*|@|<\||\|>)"
-	let line-selector = "(--?|==?|--|\.\.)" // must match longest first
-	let match = text.match(regex(
-		"^" +
-		cap-selector +
-		line-selector +
-		"(" +
-		cap-selector +
-		line-selector +
-		")?" +
-		cap-selector +
-		"$"
-	))
+	while true {
+		// line, <[-]x->>
+		(text, line) = eat(text, LINES)
+		if line == none {
+			let suggestion = arg.slice(0, -text.len()) + "-" + text
+			parse-error(suggestion)
+		}
+		lines.push(line)
 
+		// subsequent mark, <-[x]->>
+		(text, mark) = eat(text, CAPS)
+		marks.push(mark)
 
-	if match == none {
-		panic("Failed to parse " + text + " as edge style.")
-	}
-	let (from, line, _, mid, line2, to) = match.captures
-	if line2 != none and line2 != line {
-		let valid = from + line + mid + line + to
-		panic("Failed to parse " + text + " as edge style; try " + valid)
+		if text == "" { break }
+		if mark == none {
+			// text remains that was not recognised as mark
+			let suggestion = marks.intersperse(lines.at(0)).join()
+			parse-error(suggestion)
+		}
 	}
 
-	let marks = (from, mid, to).map(mark => {
-		if mark in ("", none) { none }
-		else { CAP_ALIASES.at(mark, default: (kind: mark)) }
-	})
 
-	if marks.at(0) != none and "rev" not in marks.at(0) { marks.at(0).rev = true }
+	if lines.dedup().len() > 1 {
+		// different line styles were mixed
+		let suggestion = marks.intersperse(lines.at(0)).join()
+		parse-error(suggestion)
+	}
+	let line = lines.at(0)
 
+
+
+	marks = marks.map(interpret-mark)
+
+	// make classic math arrows slightly larger on double/triple stroked lines
 	if line == "=" {
-		// make arrows slightly larger, suited for double stroked line
 		marks = marks.map(mark => {
-			if mark != none and mark.kind == "head" { mark.kind = "doublehead" }
+			if mark != none and mark.kind == "head" {
+				mark += CAP_ALIASES.doublehead
+			}
 			mark
 		})
 	} else if line == "==" {
 		marks = marks.map(mark => {
-			if mark != none and mark.kind == "head" { mark.kind = "triplehead" }
+			if mark != none and mark.kind == "head" {
+				mark += CAP_ALIASES.triplehead
+			}
 			mark
 		})
 	}
 
-
-	(
+	return (
 		marks: interpret-marks(marks),
-		..lines.at(line),
+		..LINE_ALIASES.at(lines.at(0))
 	)
 }
 

@@ -656,7 +656,7 @@ Here is an example of how you might hack together a Bézier connector using the 
 			cetz.draw.bezier(p1, p2, c1, c2)
 
 			// place an arrow head at a given point and angle
-			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, "twohead")
+			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
 			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black, (kind: "hook'", outer-len: 0))
 		})
 	}
