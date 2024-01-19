@@ -47,10 +47,10 @@
 				label-sep: 6pt,
 				node((0,1), $A$),
 				node((1,1), $B$),
-				edge((0,1), (1,1), $f$, ">>-o->"),
+				edge((0,1), (1,1), $f$, ">>->", bend: 15deg),
 			)
 		},
-		text(2.7em, strong(`fletcher`)),
+		text(2.7em, `fletcher`),
 		[_(noun) a maker of arrows_],
 	)
 
@@ -62,12 +62,12 @@
 	#emph[
 	Commutative diagrams,
 	finite state machines,
-	control systems block diagrams...
+	block diagrams...
 	]
 
 	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-	Version #VERSION *(not yet stable)*
+	Version #VERSION
 ]
 
 #v(1fr)
@@ -83,67 +83,6 @@
 #pagebreak()
 
 #align(center)[
-
-/*
-	#fletcher.diagram(
-		// node-stroke: 1pt ,
-		node-fill: luma(90%),
-		node((0,0), "edge types"),
-		edge((0,0), (1,1), [arc], "..>", bend: +60deg),
-		edge((0,0), (1,0), [line], "-->"),
-		edge((0,0), (1,-1), [corner], "->", corner: right),
-	)
-
-	#v(1fr)
-
-	#fletcher.diagram(
-		cell-size: 1cm,
-		node-inset: 1.5em,
-		spacing: 20mm,
-		debug: 0,
-		node-defocus: 0.1,
-		node((0,2), $pi_1(X sect Y)$),
-		node((0,1), $pi_1(X)$),
-		node((1,2), $pi_1(Y)$),
-		node((1,1), $pi_1(X) ast.op_(pi_1(X sect Y)) pi_1(X)$),
-		edge((0,2), (0,1), $i_2$, "->", extrude: (-1.5,1.5)),
-		edge((0,2), (1,2), $i_1$, "hook->"),
-		edge((1,2), (2,0), $j_2$, "<->", bend: 20deg, extrude: (-1.5,1.5)),
-		edge((0,1), (2,0), $j_1$, "->>", bend: -15deg, dash: "dotted"),
-		edge((0,1), (1,1), "hook->>", dash: "dashed"),
-		edge((1,2), (1,1), "|->"),
-		node((2,0), $pi_1(X union Y)$),
-		edge((1,1), (2,0), $k$, "<-->", label-sep: 0pt, paint: green, thickness: 1pt),
-	)
-
-	#v(1fr)
-
-	// #fletcher.diagram(
-	// 	cell-size: 3cm,
-	// 	node-defocus: 0,
-	// 	node-inset: 10pt,
-	// {
-	// 	let cube-vertices = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
-	// 	let proj((x, y, z)) = (x + z*(0.4 - 0.1*x), y + z*(0.4 - 0.1*y))
-	// 	for i in range(8) {
-	// 		let to = cube-vertices.at(i)
-	// 		node(proj(to), [#to])
-	// 		for j in range(i) {
-	// 			let from = cube-vertices.at(j)
-	// 			// test for adjancency
-	// 			if from.zip(to).map(((i, j) ) => int(i == j)).sum() == 2 {
-	// 				edge(proj(from), proj(to), "->", crossing: to.at(2) == 0)
-	// 			}
-	// 		}
-	// 	}
-	// 	edge(proj((1,1,1)), (2, 0.8), dash: "dotted")
-	// 	edge(proj((1,0,1)), (2, 0.8), dash: "dotted")
-	// 	node((2, 0.8), "fractional coords")
-	// })
-
-	// #v(1fr)
-	*/
-
 
 	#let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
 	#fletcher.diagram(
@@ -406,9 +345,9 @@ Nodes are content placed in the diagram at a particular coordinate. They fit to 
 	spacing: (1em, 3em), // (x, y)
 	axes: (ltr, ttb),    // make y axis increase downwards
 	node((0,0), $f$),
-	node((1,0), $f$, stroke: 1pt, radius: 8mm),
+	node((1,0), $f$, stroke: 1pt),
 	node((2,0), $f$, stroke: 1pt, shape: "rect"),
-	node((3,0), $f$, stroke: 1pt, extrude: (0, 2)),
+	node((3,0), $f$, stroke: 1pt, radius: 6mm, extrude: (0, 3)),
 	{
 		let b = blue.lighten(70%)
 		node((0,1), `xyz`, fill: b, )

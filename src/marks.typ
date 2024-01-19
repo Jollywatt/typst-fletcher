@@ -183,7 +183,7 @@
 	marks.push(mark)
 
 	let parse-error(suggestion) = panic(
-		"Invalid marks shorthand '" + text + "'. Try '" + suggestion + "'."
+		"Invalid marks shorthand '" + arg + "'. Try '" + suggestion + "'."
 	)
 
 	while true {
