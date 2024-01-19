@@ -98,7 +98,7 @@
 	(0, 1).map(pos => {
 		let mark = edge.marks.find(mark => mark.pos == pos)
 		if mark == none { return 0pt }
-		let x = cap-offset(mark, y/edge.stroke.thickness)
+		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
 
 		if pos == int(mark.rev) { x -= mark.at("inner-len", default: 0) }
 		if mark.rev { x = -x - mark.at("outer-len", default: 0) }
