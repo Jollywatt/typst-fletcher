@@ -168,10 +168,12 @@ $
 	">->",
 	"<<->>",
 	">>-<<",
+	">>>-stealth",
 	"hook->",
 	"hook'--hook",
 	"|=|",
 	"||-||",
+	"|||-|||",
 	"/--\\",
 	"\\=\\",
 	"/=/",
@@ -192,7 +194,6 @@ $
 	"-|-",
 	"hook-/->",
 	"stealth-stealth",
-	((kind: "stealth", rev: false), (kind: "stealth", rev: true)),
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(repr(i)))
 	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), marks: i), debug: 0))) \ $
@@ -202,7 +203,7 @@ $
 = Bending arrows
 
 #fletcher.diagram(
-	// debug: 4,
+	debug: 4,
 	spacing: (10mm, 5mm),
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i

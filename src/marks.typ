@@ -24,9 +24,7 @@
 		fill: true,
 		stealth: 0,
 		outer-len: mark => mark.size*calc.cos(mark.sharpness)*(1 - mark.stealth),
-		// outer-len: 10,
-		// inner-len: 20,
-		inner-len: mark => mark.outer-len,
+		// inner-len: mark => mark.outer-len,
 	),
 
 	bar: (size: 4.9, angle: 0deg),
@@ -44,11 +42,13 @@
 	"<": (kind: "head", rev: true),
 	">>": (kind: "head", rev: false, extrude: (-3, 0), inner-len: 3, outer-len: 7),
 	"<<": (kind: "head", rev: true,  extrude: (-3, 0), inner-len: 3, outer-len: 7),
+	">>>": (kind: "head", rev: false, extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
+	"<<<": (kind: "head", rev: true,  extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
 	"|>": (kind: "solidhead", rev: false),
 	"<|": (kind: "solidhead", rev: true),
 	"|": (kind: "bar"),
 	"||": (kind: "bar", extrude: (-3, 0), inner-len: 3),
-	"|||": (kind: "bar", extrude: (-4, -2, 0), inner-len: 4),
+	"|||": (kind: "bar", extrude: (-6, -3, 0), inner-len: 4),
 	"/": (kind: "bar", angle: -30deg),
 	"\\": (kind: "bar", angle: +30deg),
 	"x": (kind: "cross"),
@@ -420,15 +420,15 @@
 	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
 
 	let outer-len = mark.at("outer-len", default: 0)
-	let δt = outer-len*stroke.thickness/grad
-	if δt == 0 { δt = ε } // avoid δt = 0 so the two points are distinct
+	let Δt = outer-len*stroke.thickness/grad
+	if Δt == 0 { Δt = ε } // avoid Δt = 0 so the two points are distinct
 
-	let t = lerp(δt, 1, mark.pos)
-	if mark.rev { t -= δt }
+	let t = lerp(Δt, 1, mark.pos)
+	let head-pt = path(t)
+	let tail-pt = path(t - Δt)
 
-	let origin-pt = path(t)
-	let outer-pt = path(t - δt)
-	let θ = vector-angle(vector.sub(origin-pt, outer-pt))
+	let origin-pt = if mark.rev { tail-pt } else { head-pt }
+	let θ = vector-angle(vector.sub(head-pt, tail-pt))
 
 	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)
 }
