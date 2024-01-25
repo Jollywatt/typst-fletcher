@@ -168,7 +168,7 @@ $
 	">->",
 	"<<->>",
 	">>-<<",
-	">>>-stealth",
+	">>>-}>",
 	"hook->",
 	"hook'--hook",
 	"|=|",
@@ -193,7 +193,7 @@ $
 	"|>-<|",
 	"-|-",
 	"hook-/->",
-	"stealth-stealth",
+	"<{-}>",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(repr(i)))
 	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), marks: i), debug: 0))) \ $
@@ -220,7 +220,7 @@ $
 			(marks: (">", "<"), extrude: (1.5,-1.5)),
 			(marks: ("bar", "head"), extrude: (2,0,-2)),
 			(marks: ("o", "O")),
-			(marks: ((kind: "solidhead", rev: true), "solidhead")),
+			(marks: ((kind: "solid", rev: true), "solid")),
 		).enumerate().map(((i, args)) => {
 			edge((x, -i), (x + 1, -i), ..args, bend: bend)
 		}).join()

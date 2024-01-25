@@ -497,7 +497,7 @@ Edge styles can be specified like `edge(a, b, "-->")`, or by passing a dictionar
 		"x",
 		(kind: "head", rev: true, pos: 0.5),
 		(kind: "bar", size: 1, pos: 0.7),
-		(kind: "solidhead", rev: true),
+		(kind: "solid", rev: true),
 	))
 )
 ```)
@@ -537,12 +537,12 @@ For example:
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 #let my-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
 #let my-bar = (kind: "bar", extrude: (0, -3, -6))
-#let my-solidhead = (kind: "solidhead", sharpness: 45deg)
+#let my-solid = (kind: "solid", sharpness: 45deg)
 #fletcher.diagram(
 	edge-thickness: 1.4pt,
 	spacing: (3cm, 1cm),
 	edge((0,1), (1,1), marks: (my-head, my-head + (sharpness: 20deg))),
-	edge((0,0), (1,0), marks: (my-bar, my-solidhead + (pos: 0.8), my-solidhead)),
+	edge((0,0), (1,0), marks: (my-bar, my-solid + (pos: 0.8), my-solid)),
 )
 ```))
 
@@ -559,9 +559,9 @@ All marks accept an `outer-len` parameter, the effect of which can be seen below
 	debug: 4,
 
 	edge((0,1), (1,1), stroke: gray, bend: 90deg, label-pos: 0.1, label: [without],
-		marks: (none, (kind: "solidhead", outer-len: 0))),
+		marks: (none, (kind: "solid", outer-len: 0))),
 	edge((0,0), (1,0), stroke: gray, bend: 90deg, label-pos: 0.1, label: [with],
-		marks: (none, (kind: "solidhead"))), // use default hang
+		marks: (none, (kind: "solid"))), // use default hang
 )
 ```)
 The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head visually extends backwards over the stroke.

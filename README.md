@@ -60,7 +60,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 - Add `corner-radius` option to `node()`.
 - Add ability to place marks anywhere along an edge. Shorthands now accept an optional middle mark, for example `|->-|` and `hook-/->>`.
 - Add “hanging tail” correction to marks on curved edges. Marks now rotate a bit to fit more comfortably along tightly curving arcs.
-- Add more arrowheads for the sake of it: `/`, `\`, `x`, `X`, `*` (solid dot), `@` (solid circle).
+- Add more arrowheads for the sake of it: `}>`, `<{`, `/`, `\`, `x`, `X`, `*` (solid dot), `@` (solid circle).
 - Add `axes` option to `diagram()` to control the direction of each axis in the diagram's coordinate system.
 
 ### 0.3.0

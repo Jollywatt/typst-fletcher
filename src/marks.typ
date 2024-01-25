@@ -18,7 +18,7 @@
 		delta: 54deg, // angle spanned by arc of curved arrow edge
 		outer-len: 4,
 	),
-	solidhead: (
+	solid: (
 		size: 10,
 		sharpness: 19deg,
 		fill: true,
@@ -29,7 +29,7 @@
 
 	bar: (size: 4.9, angle: 0deg),
 	circle: (size: 2, fill: false, outer-len: mark => 2*mark.size),
-	cross: (size: 2, angle: 45deg),
+	cross: (size: 4, angle: 45deg),
 
 	hook: (size: 2.88, rim: 0.85, outer-len: 3),
 	
@@ -44,8 +44,8 @@
 	"<<": (kind: "head", rev: true,  extrude: (-3, 0), inner-len: 3, outer-len: 7),
 	">>>": (kind: "head", rev: false, extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
 	"<<<": (kind: "head", rev: true,  extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
-	"|>": (kind: "solidhead", rev: false),
-	"<|": (kind: "solidhead", rev: true),
+	"|>": (kind: "solid", rev: false),
+	"<|": (kind: "solid", rev: true),
 	"|": (kind: "bar"),
 	"||": (kind: "bar", extrude: (-3, 0), inner-len: 3),
 	"|||": (kind: "bar", extrude: (-6, -3, 0), inner-len: 4),
@@ -57,7 +57,8 @@
 	"O": (kind: "circle", size: 4),
 	"*": (kind: "circle", fill: true),
 	"@": (kind: "circle", size: 4, fill: true),
-
+	"}>": (kind: "solid", stealth: 0.25, rev: false),
+	"<{": (kind: "solid", stealth: 0.25, rev: true),
 
 	doublehead: (
 		kind: "head",
@@ -74,13 +75,9 @@
 		outer-len: 6,
 	),
 
-
 	"hook'": (kind: "hook", flip: -1),
 	"harpoon'": (kind: "harpoon", flip: -1),
 	hooks: (kind: "hook", double: true),
-
-	stealth: (kind: "solidhead", stealth: 0.25)
-
 
 )
 
@@ -106,7 +103,7 @@
 	else if mark.kind == "circle" {
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
-	} else if mark.kind == "solidhead" {
+	} else if mark.kind == "solid" {
 		// -mark.inner-len*0
 		// mark.outer-len
 		0
@@ -188,7 +185,7 @@
 /// - arg (string, array):
 /// Can be a string, (e.g. `"->"`, `"<=>"`), etc, or an array of marks.
 /// A mark can be a string (e.g., `">"` or `"head"`, `"x"` or `"cross"`) or a dictionary containing the keys:
-///   - `kind` (required) the mark name, e.g. `"solidhead"` or `"bar"`
+///   - `kind` (required) the mark name, e.g. `"solid"` or `"bar"`
 ///   - `pos` the position along the edge to place the mark, from 0 to 1
 ///   - `rev` whether to reverse the direction
 ///   - `tail` the visual length of the mark's tail
@@ -393,7 +390,7 @@
 			fill: if mark.fill { default(stroke.paint, black) }
 		)
 
-	} else if mark.kind == "solidhead" {
+	} else if mark.kind == "solid" {
 		let d = mark.size*stroke.thickness
 		cetz.draw.line(
 			(to: p, rel: vector-polar(-d, θ + mark.sharpness)),
