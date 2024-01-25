@@ -21,7 +21,12 @@
 	solidhead: (
 		size: 10,
 		sharpness: 19deg,
-		outer-len: mark => mark.size*calc.cos(mark.sharpness),
+		fill: true,
+		stealth: 0,
+		outer-len: mark => mark.size*calc.cos(mark.sharpness)*(1 - mark.stealth),
+		// outer-len: 10,
+		// inner-len: 20,
+		inner-len: mark => mark.outer-len,
 	),
 
 	bar: (size: 4.9, angle: 0deg),
@@ -74,8 +79,42 @@
 	"harpoon'": (kind: "harpoon", flip: -1),
 	hooks: (kind: "hook", double: true),
 
+	stealth: (kind: "solidhead", stealth: 0.25)
+
 
 )
+
+
+/// Calculate cap offset of round-style arrow cap,
+/// $r (sin θ - sqrt(1 - (cos θ - (|y|)/r)^2))$.
+///
+/// - r (length): Radius of curvature of arrow cap.
+/// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
+///  line to the arrow's edge.
+/// - y (length): Lateral offset from the central stroke line.
+#let round-arrow-cap-offset(r, θ, y) = {
+	r*(sin(θ) - sqrt(1 - pow(cos(θ) - abs(y)/r, 2)))
+}
+
+#let cap-offset(mark, y) = {
+	if mark == none { return 0 }
+
+	if mark.kind == "head" {
+		round-arrow-cap-offset(mark.size, mark.sharpness, y)
+	}
+	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
+	else if mark.kind == "circle" {
+		let r = mark.size
+		-sqrt(max(0, r*r - y*y)) - r
+	} else if mark.kind == "solidhead" {
+		// -mark.inner-len*0
+		// mark.outer-len
+		0
+
+	} else if mark.kind == "bar" {
+		 -calc.tan(mark.angle)*y
+	} else { 0 }
+}
 
 
 #let LINE_ALIASES = (
@@ -85,6 +124,7 @@
 	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
 	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
 )
+
 
 
 /// Take a string or dictionary specifying a mark and return a dictionary,
@@ -244,35 +284,6 @@
 
 
 
-/// Calculate cap offset of round-style arrow cap,
-/// $r (sin θ - sqrt(1 - (cos θ - (|y|)/r)^2))$.
-///
-/// - r (length): Radius of curvature of arrow cap.
-/// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
-///  line to the arrow's edge.
-/// - y (length): Lateral offset from the central stroke line.
-#let round-arrow-cap-offset(r, θ, y) = {
-	r*(sin(θ) - sqrt(1 - pow(cos(θ) - abs(y)/r, 2)))
-}
-
-#let cap-offset(mark, y) = {
-	mark = interpret-mark(mark)
-	if mark == none { return 0 }
-
-	if mark.kind == "head" {
-		round-arrow-cap-offset(mark.size, mark.sharpness, y)
-	}
-	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
-	else if mark.kind == "circle" {
-		let r = mark.size
-		-sqrt(max(0, r*r - y*y)) - r
-	} else if mark.kind == "solidhead" {
-		1 - mark.outer-len
-	} else if mark.kind == "bar" {
-		 -calc.tan(mark.angle)*y
-	} else { 0 }
-}
-
 
 #let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
 	mark = interpret-mark(mark)
@@ -383,12 +394,15 @@
 		)
 
 	} else if mark.kind == "solidhead" {
+		let d = mark.size*stroke.thickness
 		cetz.draw.line(
+			(to: p, rel: vector-polar(-d, θ + mark.sharpness)),
 			p,
-			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ + mark.sharpness)),
-			(to: p, rel: vector-polar(-mark.size*stroke.thickness, θ - mark.sharpness)),
-			fill: default(stroke.paint, black),
-			stroke: none,
+			(to: p, rel: vector-polar(-d, θ - mark.sharpness)),
+			(to: p, rel: vector-polar(-d*calc.cos(mark.sharpness)*(1 - mark.stealth), θ)),
+			fill: if mark.fill { default(stroke.paint, black) },
+			close: true,
+			stroke: stroke,
 		)
 
 	} else {

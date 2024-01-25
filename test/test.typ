@@ -191,9 +191,11 @@ $
 	"|>-<|",
 	"-|-",
 	"hook-/->",
+	"stealth-stealth",
+	((kind: "stealth", rev: false), (kind: "stealth", rev: true)),
 ) {
-	$ #block(inset: 2pt, fill: white.darken(5%), raw(i))
-	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), i), debug: 0))) \ $
+	$ #block(inset: 2pt, fill: white.darken(5%), raw(repr(i)))
+	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), marks: i), debug: 0))) \ $
 }
 $
 
@@ -483,3 +485,12 @@ $ b^2 $
 #fletcher.interpret-mark("*")
 
 #fletcher.diagram(edge((0,0), (1,0), marks: "-*-*"))
+
+#let edge(..options) = metadata((kind: "edge", options: options))
+
+#let eq = $
+G edge("r", ->, f) edge("d", ->>, pi) & im(f) \
+G slash ker(f) edge("ur", ->, tilde(f))
+$
+
+#eq.body.children
