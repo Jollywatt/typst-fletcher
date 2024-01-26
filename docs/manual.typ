@@ -42,7 +42,7 @@
 		{
 			set text(1.3em)
 			fletcher.diagram(
-				edge-thickness: 1pt,
+				edge-stroke: 1pt,
 				spacing: 31mm,
 				label-sep: 6pt,
 				node((0,1), $A$),
@@ -145,7 +145,7 @@
 	#fletcher.diagram(
 		node-defocus: 0,
 		spacing: (1cm, 2cm),
-		edge-thickness: 1pt,
+		edge-stroke: 1pt,
 		crossing-thickness: 5,
 		mark-scale: 70%,
 		node-fill: luma(97%),
@@ -193,7 +193,7 @@
 		set text(white, font: "Fira Sans")
 		let colors = (maroon, olive, eastern)
 		fletcher.diagram(
-			edge-thickness: 1pt,
+			edge-stroke: 1pt,
 			node-corner-radius: 5pt,
 			node((0,0), [input], fill: colors.at(0)),
 			edge((0,0), (1,0), "-"),
@@ -288,7 +288,7 @@
 	#fletcher.diagram(
 		spacing: (8mm, 3mm), // wide columns, narrow rows
 		node-stroke: 1pt,    // outline node shapes
-		edge-thickness: 1pt, // thickness of lines
+		edge-stroke: 1pt, // thickness of lines
 		mark-scale: 60%,     // make arrowheads smaller
 		edge((-2,0), (-1,0)),
 		edge((-1,0), (0,+1), $f$, "..|>", corner: left),
@@ -491,7 +491,7 @@ All of the mark shorthands are defined in `fletcher.MARK_ALIASES` and `fletcher.
 Edge styles can be specified like `edge(a, b, "-->")`, or by passing a dictionary of mark parameters:
 #code-example-row(```typ
 #fletcher.diagram(
-	edge-thickness: 2pt,
+	edge-stroke: 2pt,
 	spacing: 4cm,
 	edge((0,0), (1,0), marks: (
 		"x",
@@ -539,7 +539,7 @@ For example:
 #let my-bar = (kind: "bar", extrude: (0, -3, -6))
 #let my-solid = (kind: "solid", sharpness: 45deg)
 #fletcher.diagram(
-	edge-thickness: 1.4pt,
+	edge-stroke: 1.4pt,
 	spacing: (3cm, 1cm),
 	edge((0,1), (1,1), marks: (my-head, my-head + (sharpness: 20deg))),
 	edge((0,0), (1,0), marks: (my-bar, my-solid + (pos: 0.8), my-solid)),
@@ -554,7 +554,7 @@ However, for finer control, you are encouraged to use the functions `interpret-m
 All marks accept an `outer-len` parameter, the effect of which can be seen below:
 #code-example-row(```typ
 #fletcher.diagram(
-	edge-thickness: 2pt,
+	edge-stroke: 2pt,
 	spacing: 2cm,
 	debug: 4,
 

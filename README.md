@@ -57,13 +57,14 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 ### 0.4.0
 
-- Add `stroke` option to `edge()` replacing `thickness` and `paint` options.
 - Add `width`, `height` and `radius` options to `node()` for explicit control over size.
 - Add `corner-radius` option to `node()`.
 - Add ability to place marks anywhere along an edge. Shorthands now accept an optional middle mark, for example `|->-|` and `hook-/->>`.
 - Add “hanging tail” correction to marks on curved edges. Marks now rotate a bit to fit more comfortably along tightly curving arcs.
 - Add more arrowheads for the sake of it: `}>`, `<{`, `/`, `\`, `x`, `X`, `*` (solid dot), `@` (solid circle).
 - Add `axes` option to `diagram()` to control the direction of each axis in the diagram's coordinate system.
+- Add `stroke` option to `edge()` replacing `thickness` and `paint` options.
+- Add `edge-stroke` option to `diagram()` replacing `edge-thickness`.
 
 ### 0.3.0
 

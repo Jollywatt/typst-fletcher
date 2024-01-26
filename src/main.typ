@@ -255,7 +255,7 @@
 ///
 /// #fletcher.diagram(
 /// 	label-sep: 10pt,
-/// 	edge-thickness: 1pt,
+/// 	edge-stroke: 1pt,
 ///		for i in range(3) {
 ///			let s = (1 + i/2)*100%
 /// 		edge((2*i,0), (2*i + 1,0), label: s, "->", mark-scale: s)
@@ -267,7 +267,7 @@
 ///
 /// #fletcher.diagram(
 /// 	label-sep: 10pt,
-/// 	edge-thickness: 1pt,
+/// 	edge-stroke: 1pt,
 ///		for (i, s) in ("->", "=>", "==>").enumerate() {
 /// 		edge((2*i,0), (2*i + 1,0), s, label: raw(s, lang: none))
 /// 	}
@@ -341,7 +341,7 @@
 	label-pos: 0.5,
 	label-sep: auto,
 	label-anchor: auto,
-	stroke: black,
+	stroke: auto,
 	dash: none,
 	kind: auto,
 	bend: 0deg,
@@ -376,7 +376,7 @@
 	options += interpret-edge-args(args)
 	options += interpret-marks-arg(options.marks)
 	
-	let stroke = as-stroke(options.stroke)
+	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
 	stroke = as-stroke((
 		paint: stroke.paint,
 		cap: default(stroke.cap, "round"),
@@ -476,12 +476,12 @@
 			edge.stroke = as-stroke(edge.stroke)
 
 			edge.stroke = stroke(
-				paint: edge.stroke.paint,
-				thickness: to-pt(default(edge.stroke.thickness, options.edge-thickness)),
-				cap: edge.stroke.cap,
-				join: edge.stroke.join,
-				dash: edge.stroke.dash,
-				miter-limit: edge.stroke.miter-limit,
+				paint: default(edge.stroke.paint, options.edge-stroke.paint),
+				thickness: to-pt(default(edge.stroke.thickness, options.edge-stroke.thickness)),
+				cap: default(edge.stroke.cap, options.edge-stroke.cap),
+				join: default(edge.stroke.join, options.edge-stroke.join),
+				dash: default(edge.stroke.dash, options.edge-stroke.dash),
+				miter-limit: default(edge.stroke.miter-limit, options.edge-stroke.miter-limit),
 			)
 
 			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
@@ -659,7 +659,7 @@
 	node-corner-radius: 0pt,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
-	edge-thickness: 0.048em,
+	edge-stroke: 0.048em,
 	mark-scale: 100%,
 	crossing-fill: white,
 	crossing-thickness: 5,
@@ -689,7 +689,7 @@
 		node-defocus: node-defocus,
 		label-sep: label-sep,
 		cell-size: cell-size,
-		edge-thickness: edge-thickness,
+		edge-stroke: as-stroke(edge-stroke),
 		mark-scale: mark-scale,
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,

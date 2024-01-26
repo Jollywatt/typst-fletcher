@@ -233,7 +233,7 @@ $
 #fletcher.diagram(
 	debug: 4,
 	spacing: 10mm,
-	edge-thickness: 0.8pt,
+	edge-stroke: 0.8pt,
 	for (i, m) in ("<=>", ">==<", ">>->>", "<<-<<", "|>-|>", "<|-<|", "O-|-O", "hook-hook'").enumerate() {
 		edge((0,-i), (1,-i), m)
 		edge((2,-i), (3,-i), m, bend: 90deg)
@@ -314,15 +314,17 @@ Default placement above the line.
 = Diagram-level options
 
 #fletcher.diagram(
-	node-stroke: black,
+	node-stroke: gray.darken(50%) + 1pt,
+	edge-stroke: green.darken(40%) + .6pt,
 	node-fill: green.lighten(80%),
+	node-outset: 2pt,
 	label-sep: 0pt,
 	node((0,0), $A$),
 	node((1,1), $sin compose cos compose tan$, fill: none),
 	node((2,0), $C$),
 	node((3,0), $D$, shape: "rect"),
-	edge((0,0), (1,1), $sigma$, "-|>", bend: -45deg),
-	edge((2,0), (1,1), $f$, "<|-"),
+	edge((0,0), (1,1), $sigma$, "-}>", bend: -45deg),
+	edge((2,0), (1,1), $f$, "<{-"),
 )
 
 = CeTZ integration
@@ -446,7 +448,7 @@ $ a^2 $
 	  node-stroke: .1em,
 	  node-inset: .2em,
 	  node-fill: gradient.radial(white, blue.lighten(40%), center: (30%, 20%), radius: 130%),
-	  edge-thickness: .06em,
+	  edge-stroke: .06em,
 	  spacing: 7em,
 	  mark-scale: 120%,
 	  node((0,0), `reading`, radius: 2em, shape: "circle"),

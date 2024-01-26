@@ -3,7 +3,12 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
-#let default(x, y) = if x == auto { y } else { x }
+#let default(..args) = {
+	for arg in args.pos() {
+		if arg != auto { return arg }
+	}
+	auto
+}
 
 #let as-stroke(obj) = {
 	if obj == none or obj == auto { obj }
