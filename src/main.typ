@@ -597,7 +597,9 @@
 ///   		})
 ///   	})
 ///   )
-///
+/// 
+/// - label-sep (length): Default value of `label-sep` option for `edge()`.
+/// - mark-scale (length): Default value of `mark-scale` option for `edge()`.
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///  the illusion of crossing over other objects. See the `crossing-fill` option
 ///  of `edge()`.

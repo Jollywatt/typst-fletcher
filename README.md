@@ -46,7 +46,9 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 ## Todo
 
 - [x] Mathematical arrow styles
-- [ ] Support CeTZ arrowheads (waiting on CeTZ)
+- [ ] Also allow `&`-delimited equations for specifying nodes
+- [ ] Support CeTZ arrowheads
+- [ ] Support arbitrary node shapes drawn with CeTZ
 - [ ] Allow referring to node coordinates by their content?
 - [ ] Support loops connecting a node to itself
 - [ ] More ergonomic syntax to avoid repeating coordinates?

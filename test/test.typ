@@ -480,18 +480,3 @@ $ b^2 $
 	}
 }
 
-
-= ?
-
-#fletcher.interpret-mark("*")
-
-#fletcher.diagram(edge((0,0), (1,0), marks: "-*-*"))
-
-#let edge(..options) = metadata((kind: "edge", options: options))
-
-#let eq = $
-G edge("r", ->, f) edge("d", ->>, pi) & im(f) \
-G slash ker(f) edge("ur", ->, tilde(f))
-$
-
-#eq.body.children
