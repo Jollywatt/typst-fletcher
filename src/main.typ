@@ -66,7 +66,7 @@
 	assert(type(pos) == array and pos.len() == 2)
 
 	if type(label) == content and label.func() == circle { panic(label) }
-	((
+	(metadata((
 		class: "node",
 		pos: pos,
 		label: label,
@@ -80,7 +80,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
-	),)
+	)),)
 }
 
 
@@ -416,13 +416,13 @@
 	assert(type(obj.marks) == array, message: repr(obj))
 
 	if options.crossing {
-		((
+		(metadata((
 			..obj,
 			is-crossing-background: true
-		),)
+		)),)
 	}
 
-	(obj,)
+	(metadata(obj),)
 }
 
 
@@ -699,8 +699,11 @@
 	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
 
 	let positional-args = objects.pos().join()
-	let nodes = positional-args.filter(e => e.class == "node")
-	let edges = positional-args.filter(e => e.class == "edge")
+	let metadata-args = positional-args.filter(arg => {
+		type(arg) == content and arg.func() == metadata
+	})
+	let nodes = metadata-args.map(e => e.value).filter(e => e.class == "node")
+	let edges = metadata-args.map(e => e.value).filter(e => e.class == "edge")
 
 	box(style(styles => {
 
