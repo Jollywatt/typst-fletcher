@@ -85,7 +85,6 @@
 }
 
 
-
 #let interpret-edge-args(args) = {
 	let named-args = (:)
 
@@ -94,6 +93,15 @@
 	}
 
 	let pos = args.pos()
+
+	if pos.len() >= 1 and type(pos.at(0)) == array {
+	 	if pos.len() >= 2 and type(pos.at(1)) == array {
+			named-args.from = pos.remove(0)
+			named-args.to = pos.remove(0)
+	 	} else {
+			named-args.to = pos.remove(0)
+	 	}
+	}
 
 	// interpret first non-string argument as the label
 	if pos.len() >= 1 and type(pos.at(0)) != str {
@@ -108,6 +116,7 @@
 	}
 
 	for arg in pos {
+		if type(arg) == symbol { arg = str(arg) }
 		if type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS {
 			named-args += EDGE_ARGUMENT_SHORTHANDS.at(arg)
 		} else {
@@ -334,9 +343,9 @@
 ///  })
 ///
 #let edge(
-	from,
-	to,
 	..args,
+	from: auto,
+	to: auto,
 	label: none,
 	label-side: auto,
 	label-pos: 0.5,
@@ -356,6 +365,8 @@
 ) = {
 
 	let options = (
+		from: from,
+		to: to,
 		label: label,
 		label-pos: label-pos,
 		label-sep: label-sep,
@@ -392,7 +403,7 @@
 
 	let obj = ( 
 		class: "edge",
-		points: (from, to),
+		points: (options.from, options.to),
 		label: options.label,
 		label-pos: options.label-pos,
 		label-sep: options.label-sep,
@@ -409,10 +420,6 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 	)
-
-	// add empty nodes at terminal points
-	// node(from, none)
-	// node(to, none)
 
 	assert(type(obj.marks) == array, message: repr(obj))
 
@@ -742,24 +749,58 @@
 
 	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
 
-	let positional-args = objects.pos().join() + [] // ensure type is content
+
+	// Interpret objects at a sequence of nodes and edges
+	let positional-args = objects.pos().join() + [] // join to ensure sequence
 	assert(repr(positional-args.func()) == "sequence")
-	positional-args = positional-args.children
-	let metadata-args = positional-args.filter(arg => {
-		type(arg) == content and arg.func() == metadata
-	})
-	let nodes = metadata-args.map(e => e.value).filter(e => e.class == "node")
-	let edges = metadata-args.map(e => e.value).filter(e => e.class == "edge")
 
-	let equation-args = positional-args.filter(arg => arg.func() == math.equation)
+	let nodes = ()
+	let edges = ()
 
-	for eq in equation-args {
-		let objects = extract-nodes-and-edges-from-equation(eq)
-		nodes += objects.nodes
-		edges += objects.edges
+	let last-coord = (0,0)
+	let should-set-last-edge-point = false
+	for arg in positional-args.children {
+		if arg.func() == metadata {
+			let value = arg.value
+			if value.class == "node" {
+				let node = value
+				nodes.push(node)
+				last-coord = node.pos
+
+				if should-set-last-edge-point {
+					edges.at(-1).points.at(1) = node.pos
+				}
+				should-set-last-edge-point = false
+			} else if value.class == "edge" {
+				let edge = value
+				if edge.points.at(0) == auto {
+					edge.points.at(0) = last-coord
+				}
+				if edge.points.at(1) == auto {
+					should-set-last-edge-point = true
+				}
+				edges.push(edge)
+			}
+		} else if arg.func() == math.equation {
+			let result = extract-nodes-and-edges-from-equation(arg)
+			nodes += result.nodes
+			edges += result.edges
+		} else {
+			panic("Unrecognised value passed to diagram", arg)
+		}
 	}
 
+	// Resolve automatic edge coordinates
+	edges = edges.map(edge => {
+		if edge.points.at(0) == auto {
+			edge.points.at(0) = last-coord
+		}
 
+		assert(edge.points.at(0) != auto and edge.points.at(1) != auto, message: repr(edge))
+		edge
+	})
+
+	
 	box(style(styles => {
 
 		let options = options

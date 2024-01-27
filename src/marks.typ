@@ -9,6 +9,20 @@
 	"double": (extrude: (-2, +2)),
 	"triple": (extrude: (-4, 0, +4)),
 	"crossing": (crossing: true),
+
+	(sym.arrow.r): (marks: "->"),
+	(sym.arrow.l): (marks: "<-"),
+	(sym.arrow.l.r): (marks: "<->"),
+	(sym.arrow.r.double): (marks: "=>"),
+	(sym.arrow.l.double): (marks: "<="),
+	(sym.arrow.l.r.double): (marks: "<=>"),
+	(sym.arrow.r.double.long): (marks: "=>"),
+	(sym.arrow.l.double.long): (marks: "<="),
+	(sym.arrow.l.r.double.long): (marks: "<=>"),
+	(sym.arrow.twohead): (marks: "->>"),
+	(sym.arrow.r.twohead): (marks: "->>"),
+	(sym.arrow.l.twohead): (marks: "<<-"),
+	(sym.arrow.bar): (marks: "|->"),
 )
 
 #let MARK_DEFAULTS = (
