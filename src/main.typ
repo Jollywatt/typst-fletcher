@@ -4,6 +4,7 @@
 #import "draw.typ": *
 #import "marks.typ": *
 
+
 /// Draw a labelled node in an diagram which can connect to edges.
 ///
 /// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node,
@@ -63,10 +64,10 @@
 	defocus: auto,
 	extrude: (0,),
 ) = {
-	assert(type(pos) == array and pos.len() == 2)
+	// assert(type(pos) == array and pos.len() == 2)
 
 	if type(label) == content and label.func() == circle { panic(label) }
-	(metadata((
+	metadata((
 		class: "node",
 		pos: pos,
 		label: label,
@@ -80,7 +81,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
-	)),)
+	))
 }
 
 
@@ -410,19 +411,19 @@
 	)
 
 	// add empty nodes at terminal points
-	node(from, none)
-	node(to, none)
+	// node(from, none)
+	// node(to, none)
 
 	assert(type(obj.marks) == array, message: repr(obj))
 
 	if options.crossing {
-		(metadata((
+		metadata((
 			..obj,
 			is-crossing-background: true
-		)),)
+		))
 	}
 
-	(metadata(obj),)
+	metadata(obj)
 }
 
 
@@ -533,6 +534,49 @@
 	)
 }
 
+
+#let extract-nodes-and-edges-from-equation(eq) = {
+	assert(eq.func() == math.equation)
+
+	let edges = ()
+	let nodes = ()
+
+	let matrix = ((none,),)
+	let (x, y) = (0, 0)
+	for child in eq.body.children {
+		if child.func() == metadata {
+			let edge = child.value
+			edge.points.at(0) = default(edge.points.at(0), (x, y))
+			edge.points.at(1) = default(edge.points.at(1), (x + 1, y))
+			edge.label = $edge.label$ // why is this needed?
+			edges.push(edge)
+		} else if repr(child.func()) == "linebreak" {
+			y += 1
+			x = 0
+			matrix.push((none,))
+		} else if repr(child.func()) == "align-point" {
+			x += 1
+			matrix.at(-1).push(none)
+		} else {
+			// nodes.push(node((x, y), child).value)
+			matrix.at(-1).at(-1) += child
+		}
+	}
+
+	for (y, row) in matrix.enumerate() {
+		for (x, item) in row.enumerate() {
+			nodes.push(node((x, y), $item$).value)
+		}
+	}
+
+	// panic(edges)
+
+	(
+		nodes: nodes,
+		edges: edges,
+	)
+
+}
 
 /// Draw an arrow diagram.
 ///
@@ -698,12 +742,23 @@
 
 	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
 
-	let positional-args = objects.pos().join()
+	let positional-args = objects.pos().join() + [] // ensure type is content
+	assert(repr(positional-args.func()) == "sequence")
+	positional-args = positional-args.children
 	let metadata-args = positional-args.filter(arg => {
 		type(arg) == content and arg.func() == metadata
 	})
 	let nodes = metadata-args.map(e => e.value).filter(e => e.class == "node")
 	let edges = metadata-args.map(e => e.value).filter(e => e.class == "edge")
+
+	let equation-args = positional-args.filter(arg => arg.func() == math.equation)
+
+	for eq in equation-args {
+		let objects = extract-nodes-and-edges-from-equation(eq)
+		nodes += objects.nodes
+		edges += objects.edges
+	}
+
 
 	box(style(styles => {
 
@@ -714,8 +769,11 @@
 
 		let (nodes, edges) = (nodes, edges)
 
-
-		// Swap or flip axes
+		// Add dummy nodes at edge terminals
+		for edge in edges {
+			nodes.push(node(edge.points.at(0), none).value)
+			nodes.push(node(edge.points.at(1), none).value)
+		}
 
 		// Swap axes
 		if options.axes.map(a => a.axis()) == ("vertical", "horizontal") {

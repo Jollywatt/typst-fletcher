@@ -17,4 +17,4 @@ keywords = [
 	"graph",
 	"finite state",
 ]
-exclude = ["docs/", "test/"]
+exclude = ["docs/", "test/", "ideas/"]

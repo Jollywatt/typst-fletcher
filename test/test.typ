@@ -494,3 +494,9 @@ $ b^2 $
 	}
 }
 
+= Math-mode diagrams
+
+#fletcher.diagram($
+G edge(#auto, #auto, "->>") & im(f) \
+G slash ker(f) edge(#auto, #(1,0), ">>>-o")
+$)
