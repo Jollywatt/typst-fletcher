@@ -273,7 +273,6 @@ $
 Default placement above the line.
 
 #fletcher.diagram(
-	// cell-size: (2.2cm, 2cm),
 	spacing: 2cm,
 	debug: 3,
 {
@@ -281,6 +280,19 @@ Default placement above the line.
 		edge(p, (0,0), $f$)
 	}
 })
+
+Reversed $y$-axis:
+
+#fletcher.diagram(
+	spacing: 2cm,
+	debug: 3,
+	axes: (ltr, ttb),
+{
+	for p in around {
+		edge(p, (0,0), $f$)
+	}
+})
+
 
 #fletcher.diagram(spacing: 1.5cm, {
 	for (i, a) in (left, center, right).enumerate() {
