@@ -85,55 +85,99 @@
 }
 
 
+/// Interpret the positional arguments given to an `edge()`
+///
+/// Tries to intelligently distinguish the `from`, `to`, `marks`, and `label`
+/// arguments based on the types.
+///
+/// Generally, the following combinations are allowed:
+/// ```
+/// edge(..<coords>, ..<marklabel>, ..<options>)
+/// <coords> = (from, to) or (to) or ()
+/// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
+/// <options> = any number of options specified as strings
+/// ```
 #let interpret-edge-args(args) = {
-	let named-args = (:)
-
 	if args.named().len() > 0 {
 		panic("Unexpected named argument(s):", args)
 	}
 
+
+	let is-coord(arg) = type(arg) == array and arg.len() == 2
+	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
+	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
+	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
+	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg)
+
+
 	let pos = args.pos()
+	let new-args = (:)
 
-	if pos.len() >= 1 and type(pos.at(0)) == array {
-	 	if pos.len() >= 2 and type(pos.at(1)) == array {
-			named-args.from = pos.remove(0)
-			named-args.to = pos.remove(0)
-	 	} else {
-			named-args.to = pos.remove(0)
-	 	}
+	let peek(x, ..predicates) = {
+		let preds = predicates.pos()
+		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
 	}
 
-
-	if pos.len() >= 1 and type(pos.at(0)) == symbol and str(pos.at(0)) in MARK_SYMBOL_ALIASES {
-		// panic(type(pos.at(0)) == symbol)
-		named-args.marks = MARK_SYMBOL_ALIASES.at(pos.remove(0))
+	// Up to the first two arguments may be coordinates
+ 	if peek(pos, is-coord, is-coord) {
+		new-args.from = pos.remove(0)
+		new-args.to = pos.remove(0)
+	} else if peek(pos, is-coord) {
+		new-args.to = pos.remove(0)
 	}
 
-	// interpret first non-string argument as the label
-	if pos.len() >= 1 and type(pos.at(0)) != str {
-		named-args.label = pos.remove(0)
+	// if peek(pos, is-arrow) {
+	// 	new-args.marks = MARK_SYMBOL_ALIASES.at(pos.remove(0))
+	// }
+
+	// accept (mark, label), (label, mark) or just either one
+	if peek(pos, maybe-marks, maybe-label) {
+		new-args.marks = pos.remove(0)
+		new-args.label = pos.remove(0)
+	} else if peek(pos, maybe-label, maybe-marks) {
+		new-args.label = pos.remove(0)
+		new-args.marks = pos.remove(0)
+	} else if peek(pos, maybe-label) {
+		new-args.label = pos.remove(0)
+	} else if peek(pos, maybe-marks) {
+		new-args.marks = pos.remove(0)
 	}
 
-	// interpret a string that's not an argument shorthand as
-	// a marks/arrowhead shorthand
-	if (pos.len() >= 1 and type(pos.at(0)) in (str, symbol) and
-		str(pos.at(0)) not in EDGE_ARGUMENT_SHORTHANDS) {
-		named-args.marks = pos.remove(0)
+	// If label hasn't already been found, broaden search to accept strings as labels
+	if "label" not in new-args and peek(pos, x => type(x) == str) {
+		new-args.label = pos.remove(0)	
 	}
 
-	for arg in pos {
-		if type(arg) == symbol { arg = str(arg) }
-		if type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS {
-			named-args += EDGE_ARGUMENT_SHORTHANDS.at(arg)
-		} else {
-			panic(
-				"Unrecognised argument " + repr(arg) + ". Must be one of:",
-				EDGE_ARGUMENT_SHORTHANDS.keys(),
-			)
-		}
+	while peek(pos, is-edge-option) {
+		new-args += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
 	}
 
-	named-args
+	if pos.len() > 0 {
+		panic("Could not interpret `edge()` argument(s):", pos, args)
+	}
+
+	// // interpret a string that's not an argument shorthand as
+	// // a marks/arrowhead shorthand
+	// if (pos.len() >= 1 and type(pos.at(0)) in (str, symbol) and
+	// 	str(pos.at(0)) not in EDGE_ARGUMENT_SHORTHANDS) {
+	// 	new-args.marks = pos.remove(0)
+	// }
+
+	// for arg in pos {
+	// 	if type(arg) == symbol { arg = str(arg) }
+	// 	if type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS {
+	// 		new-args += EDGE_ARGUMENT_SHORTHANDS.at(arg)
+	// 	} else {
+	// 		panic(
+	// 			"Unrecognised argument " + repr(arg) + ". Must be one of:",
+	// 			EDGE_ARGUMENT_SHORTHANDS.keys(),
+	// 		)
+	// 	}
+	// }
+	// panic(peek(pos, maybe-label))
+	// panic(((pred, index) => peek(pred, index: index))(maybe-label, 0))
+	new-args
+	// panic(args, new-args)
 
 }
 
@@ -561,7 +605,7 @@
 			let edge = child.value
 			edge.points.at(0) = default(edge.points.at(0), (x, y))
 			edge.points.at(1) = default(edge.points.at(1), (x + 1, y))
-			edge.label = $edge.label$ // why is this needed?
+			if edge.label != none { edge.label = $edge.label$ } // why is this needed?
 			edges.push(edge)
 		} else if repr(child.func()) == "linebreak" {
 			y += 1

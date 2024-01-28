@@ -69,3 +69,26 @@ $)
 	$A edge(->, bend: #40deg) edge(->, bend: #(-40deg)) & B$,
 	edge((0.5, .2), (0.5, -.2), "=>"),
 )
+
+= Edge positional arguments
+
+#let ab = node((0,0), $A$) + node((1,0), $B$)
+#grid(
+	columns: (1fr,)*3,
+
+	diagram(ab, edge((0,0), (1,0), marks: "->")),
+	diagram(ab, edge((0,0), (1,0), "->")),
+	diagram($A edge(->) & B$),
+
+	diagram(ab, edge((0,0), (1,0), label: $pi$)),
+	diagram(ab, edge((0,0), (1,0), $pi$)),
+	diagram($A edge(pi) & B$),
+
+	diagram(ab, edge((0,0), (1,0), marks: "|->", label: $tau$)),
+	diagram(ab, edge((0,0), (1,0), "|->", $tau$)),
+	diagram($A edge(tau, |->) & B$),
+
+	diagram(ab, edge((0,0), (1,0), marks: "->>", label: $+$)),
+	diagram(ab, edge((0,0), (1,0), "->>", $+$)),
+	diagram($A edge(->>, +) & B$),
+)

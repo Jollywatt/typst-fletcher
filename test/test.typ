@@ -203,7 +203,7 @@ $
 = Bending arrows
 
 #fletcher.diagram(
-	debug: 4,
+	debug: 1,
 	spacing: (10mm, 5mm),
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i
@@ -461,7 +461,7 @@ $ a^2 $
 	  node-inset: .2em,
 	  node-fill: gradient.radial(white, blue.lighten(40%), center: (30%, 20%), radius: 130%),
 	  edge-stroke: .06em,
-	  spacing: 7em,
+	  spacing: 5em,
 	  mark-scale: 120%,
 	  node((0,0), `reading`, radius: 2em, shape: "circle"),
 	  node((1,0), `eof`, radius: 2em, shape: "circle"),
@@ -478,7 +478,7 @@ $ a^2 $
 $ b^2 $
 ]
 
-= Funky axes
+= Axes configuration
 
 #for axes in ((ltr, btt), (ltr, ttb), (rtl, btt), (rtl, ttb)) {	
 	for axes in (axes, axes.rev()) {
@@ -497,6 +497,6 @@ $ b^2 $
 = Math-mode diagrams
 
 #fletcher.diagram($
-G edge(#auto, #auto, "->>") & im(f) \
-G slash ker(f) edge(#auto, #(1,0), ">>>-o")
-$)
+G edge(->, f) edge(#(0,1), ->>, pi) & im(f) \
+G slash ker(f) edge(#(1,0), "hook'-->", f)
+$, axes: (ltr, ttb))
