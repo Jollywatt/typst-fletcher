@@ -5,15 +5,7 @@
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 
-= Wishlist
-
-```typc
-
-edge(->) == edge(auto, auto, "->")
-```
-
-
-= Automatic edge positions
+= Automatic edge and end points
 
 #diagram(edge((0,0), (1,0), [label], "->"))
 
@@ -42,8 +34,8 @@ edge(->) == edge(auto, auto, "->")
 	).map(x => {
 		let unicode = x.body.text
 		(x, unicode)
-		if unicode in EDGE_ARGUMENT_SHORTHANDS {
-			let marks = EDGE_ARGUMENT_SHORTHANDS.at(unicode).marks
+		if unicode in MARK_SYMBOL_ALIASES {
+			let marks = MARK_SYMBOL_ALIASES.at(unicode)
 			(raw(marks), diagram(edge((0,0), (1,0), marks: marks)))
 		} else {
 			(text(red)[none!],) * 2
@@ -70,4 +62,10 @@ $)
 	node((1,0), $im(f)$),
 	node((0,1), $G slash ker(f)$),
 	edge((0,1), (1,0), $tilde(f)$, "hook'-->")
+)
+
+#diagram(
+	spacing: 2cm,
+	$A edge(->, bend: #40deg) edge(->, bend: #(-40deg)) & B$,
+	edge((0.5, .2), (0.5, -.2), "=>"),
 )

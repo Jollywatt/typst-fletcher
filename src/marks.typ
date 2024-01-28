@@ -9,20 +9,22 @@
 	"double": (extrude: (-2, +2)),
 	"triple": (extrude: (-4, 0, +4)),
 	"crossing": (crossing: true),
+)
 
-	(sym.arrow.r): (marks: "->"),
-	(sym.arrow.l): (marks: "<-"),
-	(sym.arrow.l.r): (marks: "<->"),
-	(sym.arrow.r.double): (marks: "=>"),
-	(sym.arrow.l.double): (marks: "<="),
-	(sym.arrow.l.r.double): (marks: "<=>"),
-	(sym.arrow.r.double.long): (marks: "=>"),
-	(sym.arrow.l.double.long): (marks: "<="),
-	(sym.arrow.l.r.double.long): (marks: "<=>"),
-	(sym.arrow.twohead): (marks: "->>"),
-	(sym.arrow.r.twohead): (marks: "->>"),
-	(sym.arrow.l.twohead): (marks: "<<-"),
-	(sym.arrow.bar): (marks: "|->"),
+#let MARK_SYMBOL_ALIASES = (
+	(sym.arrow.r): "->",
+	(sym.arrow.l): "<-",
+	(sym.arrow.l.r): "<->",
+	(sym.arrow.r.double): "=>",
+	(sym.arrow.l.double): "<=",
+	(sym.arrow.l.r.double): "<=>",
+	(sym.arrow.r.double.long): "=>",
+	(sym.arrow.l.double.long): "<=",
+	(sym.arrow.l.r.double.long): "<=>",
+	(sym.arrow.twohead): "->>",
+	(sym.arrow.r.twohead): "->>",
+	(sym.arrow.l.twohead): "<<-",
+	(sym.arrow.bar): "|->",
 )
 
 #let MARK_DEFAULTS = (
@@ -207,6 +209,11 @@
 /// -> dictiony
 #let interpret-marks-arg(arg) = {
 	if type(arg) == array { return (marks: interpret-marks(arg)) }
+
+	if type(arg) == symbol {
+		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
+		else { panic("Unrecognised marks symbol '" + arg + "'.") }
+	}
 
 	assert(type(arg) == str)
 	let text = arg

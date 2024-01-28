@@ -103,6 +103,12 @@
 	 	}
 	}
 
+
+	if pos.len() >= 1 and type(pos.at(0)) == symbol and str(pos.at(0)) in MARK_SYMBOL_ALIASES {
+		// panic(type(pos.at(0)) == symbol)
+		named-args.marks = MARK_SYMBOL_ALIASES.at(pos.remove(0))
+	}
+
 	// interpret first non-string argument as the label
 	if pos.len() >= 1 and type(pos.at(0)) != str {
 		named-args.label = pos.remove(0)
@@ -110,8 +116,8 @@
 
 	// interpret a string that's not an argument shorthand as
 	// a marks/arrowhead shorthand
-	if (pos.len() >= 1 and type(pos.at(0)) == str and
-		pos.at(0) not in EDGE_ARGUMENT_SHORTHANDS) {
+	if (pos.len() >= 1 and type(pos.at(0)) in (str, symbol) and
+		str(pos.at(0)) not in EDGE_ARGUMENT_SHORTHANDS) {
 		named-args.marks = pos.remove(0)
 	}
 
