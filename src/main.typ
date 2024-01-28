@@ -143,13 +143,13 @@
 		new-args.marks = pos.remove(0)
 	}
 
+	while peek(pos, is-edge-option) {
+		new-args += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
+	}
+
 	// If label hasn't already been found, broaden search to accept strings as labels
 	if "label" not in new-args and peek(pos, x => type(x) == str) {
 		new-args.label = pos.remove(0)	
-	}
-
-	while peek(pos, is-edge-option) {
-		new-args += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
 	}
 
 	if pos.len() > 0 {
