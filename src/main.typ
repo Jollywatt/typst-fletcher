@@ -615,7 +615,6 @@
 			x += 1
 			matrix.at(-1).push(none)
 		} else {
-			// nodes.push(node((x, y), child).value)
 			matrix.at(-1).at(-1) += child
 		}
 	}
@@ -626,7 +625,6 @@
 		}
 	}
 
-	// panic(edges)
 
 	(
 		nodes: nodes,
@@ -840,13 +838,11 @@
 		}
 	}
 
-	// Resolve automatic edge coordinates
 	edges = edges.map(edge => {
-		if edge.points.at(0) == auto {
-			edge.points.at(0) = last-coord
+		if edge.points.at(1) == auto {
+			edge.points.at(1) = vector.add(edge.points.at(0), (1, 0))
 		}
-
-		assert(edge.points.at(0) != auto and edge.points.at(1) != auto, message: repr(edge))
+		assert(edge.points.at(0) != auto and edge.points.at(1) != auto)
 		edge
 	})
 

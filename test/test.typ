@@ -1,17 +1,14 @@
 #import "@preview/cetz:0.1.2"
-#import "/src/exports.typ" as fletcher: node, edge
-
+#import "/src/exports.typ" as fletcher: diagram, node, edge
 
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 
 
-
 = Connectors
 
-
-#fletcher.diagram(
+#diagram(
 	debug: 0,
 	cell-size: (10mm, 10mm),
 	node((0,1), $X$),
@@ -25,7 +22,7 @@
 
 = Arc connectors
 
-#fletcher.diagram(
+#diagram(
 	cell-size: 3cm,
 {
 	node((0,0), "from")
@@ -35,7 +32,7 @@
 	}
 })
 
-#fletcher.diagram(
+#diagram(
 	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
@@ -43,7 +40,7 @@
 )
 
 #for (i, to) in ((0,1), (1,0), (calc.sqrt(1/2),-calc.sqrt(1/2))).enumerate() {
-	fletcher.diagram(debug: 0, {
+	diagram(debug: 0, {
 		node((0,0), $A$)
 		node(to, $B$)
 		let N = 6
@@ -57,86 +54,86 @@
 
 Compare to $->$, $=>$ $arrow.triple$ $arrow.twohead$, $arrow.hook$, $|->$.
 
-Red is our output; cyan is reference symbol in default math font.
+#let (result-color, target-color) = (rgb("f066"), rgb("0bf5"))
+
+Compare #text(result-color)[our output] to the #text(target-color)[reference symbol] in default math font. \
 #{
 	set text(10em)
-
-	fletcher.diagram(
+	diagram(
 		spacing: 0.815em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $->$),
+			text(target-color, $->$),
 			"->",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 		),
 	)
-	fletcher.diagram(
+	diagram(
 		spacing: 0.8em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $=>$),
+			text(target-color, $=>$),
 			"=>",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 		),
 	)
-	fletcher.diagram(
+	diagram(
 		spacing: 0.83em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $arrow.triple$),
+			text(target-color, $arrow.triple$),
 			"==>",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 		),
 	)
-	fletcher.diagram(
+	diagram(
 		spacing: 0.835em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $->>$),
+			text(target-color, $->>$),
 			"->>",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 		),
 	)
-	fletcher.diagram(
+	diagram(
 		spacing: 0.83em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $arrow.hook$),
+			text(target-color, $arrow.hook$),
 			"hook->",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-side: right,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 			label-pos: 0.51,
 		),
 	)
-	fletcher.diagram(
+	diagram(
 		spacing: 0.807em,
 		crossing-fill: none,
 		edge(
 			(0,0), (1,0),
-			text(rgb("0ff5"), $|->$),
+			text(target-color, $|->$),
 			"|->",
-			stroke: rgb("f006"),
+			stroke: result-color,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 			label-pos: 0.506,
 		),
 	)
-
 }
 
 
@@ -144,7 +141,7 @@ Red is our output; cyan is reference symbol in default math font.
 = Double and triple lines
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [
-	Diagram #fletcher.diagram(
+	Diagram #diagram(
 		// node-inset: 5pt,
 		label-sep: 1pt + i*1pt,
 		node((0, -i), $A$),
@@ -196,13 +193,13 @@ $
 	"<{-}>",
 ) {
 	$ #block(inset: 2pt, fill: white.darken(5%), raw(repr(i)))
-	&= #align(center, box(width: 15mm, fletcher.diagram(edge((0,0), (1,0), marks: i), debug: 0))) \ $
+	&= #align(center, box(width: 15mm, diagram(edge((0,0), (1,0), marks: i), debug: 0))) \ $
 }
 $
 
 = Bending arrows
 
-#fletcher.diagram(
+#diagram(
 	debug: 1,
 	spacing: (10mm, 5mm),
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
@@ -230,7 +227,7 @@ $
 
 
 = Fine mark angle corrections
-#fletcher.diagram(
+#diagram(
 	debug: 4,
 	spacing: 10mm,
 	edge-stroke: 0.8pt,
@@ -256,7 +253,7 @@ $
 	columns: 2,
 	..(-10, -1, -.25, 0, +.25, +1, +10).map(defocus => {
 		((7em, 3em), (3em, 7em)).map(((w, h)) => {
-			align(center + horizon, fletcher.diagram(
+			align(center + horizon, diagram(
 				node-defocus: defocus,
 				node-inset: 0pt,
 			{
@@ -269,10 +266,10 @@ $
 	}).join()
 )
 
-= Label placement
+= Automatic label placement
 Default placement above the line.
 
-#fletcher.diagram(
+#diagram(
 	spacing: 2cm,
 	debug: 3,
 {
@@ -283,7 +280,7 @@ Default placement above the line.
 
 Reversed $y$-axis:
 
-#fletcher.diagram(
+#diagram(
 	spacing: 2cm,
 	debug: 3,
 	axes: (ltr, ttb),
@@ -294,7 +291,7 @@ Reversed $y$-axis:
 })
 
 
-#fletcher.diagram(spacing: 1.5cm, {
+#diagram(spacing: 1.5cm, {
 	for (i, a) in (left, center, right).enumerate() {
 		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
 			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
@@ -305,7 +302,7 @@ Reversed $y$-axis:
 
 = Crossing connectors
 
-#fletcher.diagram({
+#diagram({
 	edge((0,1), (1,0))
 	edge((0,0), (1,1), "crossing")
 	edge((2,1), (3,0), "|-|", bend: -20deg)
@@ -315,7 +312,7 @@ Reversed $y$-axis:
 
 = `edge()` argument shorthands
 
-#fletcher.diagram(
+#diagram(
 	edge((0,0), (1,1), "->", "double", bend: 45deg),
 	edge((1,0), (0,1), "->>", "crossing"),
 	edge((1,1), (2,1), $f$, "|->"),
@@ -325,7 +322,7 @@ Reversed $y$-axis:
 
 = Diagram-level options
 
-#fletcher.diagram(
+#diagram(
 	node-stroke: gray.darken(50%) + 1pt,
 	edge-stroke: green.darken(40%) + .6pt,
 	node-fill: green.lighten(80%),
@@ -342,7 +339,7 @@ Reversed $y$-axis:
 = CeTZ integration
 
 #import "/src/utils.typ": vector-polar
-#fletcher.diagram(
+#diagram(
 	node((0,0), $A$, stroke: 1pt),
 	node((2,1), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
@@ -365,9 +362,9 @@ Reversed $y$-axis:
 	}
 )
 
-= Node bounds
+= Node bounds, inset, and outset
 
-#fletcher.diagram(
+#diagram(
 	debug: 2,
 	node-outset: 5pt,
 	node-inset: 5pt,
@@ -385,7 +382,7 @@ Reversed $y$-axis:
 )
 
 #for dir in (left, right) {
-	pad(1mm, fletcher.diagram(
+	pad(1mm, diagram(
 		// debug: 4,
 		spacing: 1cm,
 		node((0,0), [#dir]),
@@ -405,7 +402,7 @@ Reversed $y$-axis:
 
 = Double node strokes
 
-#fletcher.diagram(
+#diagram(
   node-outset: 4pt,
   spacing: (15mm, 8mm),
   node-stroke: black + 0.5pt,
@@ -419,7 +416,7 @@ Reversed $y$-axis:
   node((2,0), $s_3$, extrude: (+1, -1), stroke: 1pt, fill: red.lighten(70%)),
 )
 
-#fletcher.diagram(
+#diagram(
 	node((0,0), `outer`, stroke: 1pt, extrude: (-1, +1), fill: green),
 	node((1,0), `inner`, stroke: 1pt, extrude: (+1, -1), fill: green),
 	node((2,0), `middle`, stroke: 1pt, extrude: (0, +2, -2), fill: green),
@@ -427,7 +424,7 @@ Reversed $y$-axis:
 
 Relative and absolute extrusion lengths
 
-#fletcher.diagram(
+#diagram(
 	node((0,0), `outer`, stroke: 1pt, extrude: (-1mm, 0pt), fill: green),
 	node((1,0), `inner`, stroke: 1pt, extrude: (0, +.5em, -2pt), fill: green),
 )
@@ -438,7 +435,7 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 
 #circle(radius: 1cm, align(center + horizon, `1cm`))
 
-#fletcher.diagram(
+#diagram(
 	node((0,1), `1cm`, stroke: 1pt, radius: 1cm, inset: 1cm, shape: "circle"),
 	node((0,0), [width], stroke: 1pt, width: 2cm),
 	node((1,0), [height], stroke: 1pt, height: 4em, inset: 0pt),
@@ -456,7 +453,7 @@ $ a^2 $
 
 #{
 	set text(size: 0.65em)
-	fletcher.diagram(
+	diagram(
 	  node-stroke: .1em,
 	  node-inset: .2em,
 	  node-fill: gradient.radial(white, blue.lighten(40%), center: (30%, 20%), radius: 130%),
@@ -482,21 +479,105 @@ $ b^2 $
 
 #for axes in ((ltr, btt), (ltr, ttb), (rtl, btt), (rtl, ttb)) {	
 	for axes in (axes, axes.rev()) {
-		fletcher.diagram(
+		diagram(
 			axes: axes,
 			debug: 1,
 			node((0,0), $(0,0)$),
 			edge((0,0), (1,0), "->", bend: 20deg),
 			node((1,0), $(1,0)$),
 			node((1,1), $(1,1)$),
-			node((0.5,0.5), repr(axes)),
+			node((0.5,0.5), raw(repr(axes))),
 		)
 	}
 }
 
+= Implicit `from` and `to` points
+
+#diagram(edge((0,0), (1,0), [label], "->"))
+#diagram(edge((1,0), [label], "->"))
+#diagram(edge([label], "->"))
+
+#diagram(
+	node((1,2), [prev]),
+	edge("->", bend: 45deg),
+	node((2,1), [next]),
+	edge((1,2), ".."),
+)
+
+
+= Edge positional arguments
+
+Explicit named arguments versus implicit positional arguments.
+
+Each row should be the same thing repeated.
+
+#let ab = node((0,0), $A$) + node((1,0), $B$)
+#grid(
+	columns: (1fr,)*3,
+
+	diagram(ab, edge((0,0), (1,0), marks: "->")),
+	diagram(ab, edge((0,0), (1,0), "->")),
+	diagram($A edge(->) & B$),
+
+	diagram(ab, edge((0,0), (1,0), label: $pi$)),
+	diagram(ab, edge((0,0), (1,0), $pi$)),
+	diagram($A edge(pi) & B$),
+
+	diagram(ab, edge((0,0), (1,0), marks: "|->", label: $tau$)),
+	diagram(ab, edge((0,0), (1,0), "|->", $tau$)),
+	diagram($A edge(tau, |->) & B$),
+
+	diagram(ab, edge((0,0), (1,0), marks: "->>", label: $+$)),
+	diagram(ab, edge((0,0), (1,0), "->>", $+$)),
+	diagram($A edge(->>, +) & B$),
+)
+
+
+= Symbol arrow aliases
+
+
+#table(
+	columns: 4,
+	align: horizon,
+	[Math], [Unicode], [Mark], [Diagram],
+	..(
+		$->$, $-->$, $<-$, $<->$, $<-->$,
+		$->>$, $<<-$,
+		$>->$, $<-<$,
+		$=>$, $==>$, $<==$, $<=>$, $<==>$,
+		$|->$, $|=>$,
+		$~>$, $<~$,
+		$arrow.hook$, $arrow.hook.l$,
+	).map(x => {
+		let unicode = x.body.text
+		(x, unicode)
+		if unicode in fletcher.MARK_SYMBOL_ALIASES {
+			let marks = fletcher.MARK_SYMBOL_ALIASES.at(unicode)
+			(raw(marks), diagram(edge((0,0), (1,0), marks: marks)))
+		} else {
+			(text(red)[none!],) * 2
+		}
+	}).flatten()
+)
+
+
 = Math-mode diagrams
 
-#fletcher.diagram($
-G edge(->, f) edge(#(0,1), ->>, pi) & im(f) \
-G slash ker(f) edge(#(1,0), "hook'-->", f)
-$, axes: (ltr, ttb))
+The following diagrams should be identical:
+
+#diagram(axes: (ltr, ttb), $
+	G edge(f, ->) edge(#(0,1), pi, ->>) & im(f) \
+	G slash ker(f) edge(#(1,0), tilde(f), "hook'-->")
+$)
+
+#diagram(
+	axes: (ltr, ttb),
+	node((0,0), $G$),
+	edge((0,0), (1,0), $f$, "->"),
+	edge((0,0), (0,1), $pi$, "->>"),
+	node((1,0), $im(f)$),
+	node((0,1), $G slash ker(f)$),
+	edge((0,1), (1,0), $tilde(f)$, "hook'-->")
+)
+
+
