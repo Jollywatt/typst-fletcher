@@ -249,14 +249,15 @@
 ///
 ///  - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///   shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, where
-/// $
-/// M_i in {#fletcher.MARK_ALIASES.keys().map(raw.with(lang: none)).join($,$)} union N
-/// $
-/// is a mark symbol and
-/// $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
-/// is the line style.
-/// The mark symbol can also be a name, $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
-/// where a trailing `'` means to reflect the mark across the stroke.
+///   $
+///   M_i in {#fletcher.MARK_ALIASES.keys().filter(x => x.len() < 4).map(raw.with(lang: none)).join($,$)} union N
+///   $
+///   is a mark symbol and
+///   $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
+///   is the line style.
+///   The mark symbol can also be a name,
+///   $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
+///   where a trailing `'` means to reflect the mark across the stroke.
 ///
 ///  - An array of marks, where each mark is specified by name or by a
 ///   dictionary of parameters.
