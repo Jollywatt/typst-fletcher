@@ -156,29 +156,7 @@
 		panic("Could not interpret `edge()` argument(s):", pos, args)
 	}
 
-	// // interpret a string that's not an argument shorthand as
-	// // a marks/arrowhead shorthand
-	// if (pos.len() >= 1 and type(pos.at(0)) in (str, symbol) and
-	// 	str(pos.at(0)) not in EDGE_ARGUMENT_SHORTHANDS) {
-	// 	new-args.marks = pos.remove(0)
-	// }
-
-	// for arg in pos {
-	// 	if type(arg) == symbol { arg = str(arg) }
-	// 	if type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS {
-	// 		new-args += EDGE_ARGUMENT_SHORTHANDS.at(arg)
-	// 	} else {
-	// 		panic(
-	// 			"Unrecognised argument " + repr(arg) + ". Must be one of:",
-	// 			EDGE_ARGUMENT_SHORTHANDS.keys(),
-	// 		)
-	// 	}
-	// }
-	// panic(peek(pos, maybe-label))
-	// panic(((pred, index) => peek(pred, index: index))(maybe-label, 0))
 	new-args
-	// panic(args, new-args)
-
 }
 
 /// Draw a connecting line or arc in an arrow diagram.

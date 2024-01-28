@@ -360,7 +360,11 @@
 		return
 	}
 
-	let stroke = (thickness: stroke.thickness, paint: stroke.paint, cap: "round")
+	let stroke = (
+		thickness: if "thickness" in mark { mark.thickness} else { stroke.thickness },
+		paint: if "paint" in mark { mark.paint } else { stroke.paint },
+		cap: "round",
+	)
 
 
 	if mark.kind == "harpoon" {

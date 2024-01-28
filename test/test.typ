@@ -581,3 +581,6 @@ $)
 )
 
 
+= ?
+
+#fletcher.extract-nodes-and-edges-from-equation($A edge(->) & B$)
