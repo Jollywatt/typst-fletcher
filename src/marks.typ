@@ -48,7 +48,7 @@
 		fill: true,
 		stealth: 0,
 		outer-len: mark => mark.size*calc.cos(mark.sharpness)*(1 - mark.stealth),
-		// inner-len: mark => mark.outer-len,
+		inner-len: mark => mark.outer-len/2,
 	),
 
 	bar: (size: 4.9, angle: 0deg),
@@ -128,9 +128,7 @@
 		let r = mark.size
 		-sqrt(max(0, r*r - y*y)) - r
 	} else if mark.kind == "solid" {
-		// -mark.inner-len*0
-		// mark.outer-len
-		0
+	-mark.outer-len/4
 
 	} else if mark.kind == "bar" {
 		 -calc.tan(mark.angle)*y
@@ -432,7 +430,7 @@
 			(to: p, rel: vector-polar(-d*calc.cos(mark.sharpness)*(1 - mark.stealth), θ)),
 			fill: if mark.fill { default(stroke.paint, black) },
 			close: true,
-			stroke: stroke,
+			stroke: if not mark.fill { stroke }
 		)
 
 	} else {

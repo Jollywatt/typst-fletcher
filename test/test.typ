@@ -600,8 +600,3 @@ $)
 	node((0,1), $G slash ker(f)$),
 	edge((0,1), (1,0), $tilde(f)$, "hook-->")
 )
-
-
-= ?
-
-#fletcher.extract-nodes-and-edges-from-equation($A edge(->) & B$)
