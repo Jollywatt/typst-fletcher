@@ -688,21 +688,12 @@
 /// - axes (pair of directions): The directions of the diagram's axes.
 ///
 ///  This defines the orientation of the coordinate system used by nodes and
-///  edges. To make the $y$ coordinate increase down the page, use `(ltr, ttb)`.
+///  edges. To make the $y$ coordinate increase up the page, use `(ltr, btt)`.
 ///  For the matrix convention `(row, column)`, use `(ttb, ltr)`.
 ///
 ///  #stack(
 ///  	dir: ltr,
 ///  	spacing: 1fr,
-///  	fletcher.diagram(
-///  		axes: (ttb, ltr),
-///  		debug: 1,
-///  		node((0,0), $(0,0)$),
-///  		edge((0,0), (1,0), "->", bend: 20deg),
-///  		node((1,0), $(1,0)$),
-///  		node((1,1), $(1,1)$),
-///  		node((0.5,0.5), `axes: (ttb, ltr)`),
-///  	),
 ///  	fletcher.diagram(
 ///  		axes: (ltr, ttb),
 ///  		debug: 1,
@@ -711,6 +702,24 @@
 ///  		node((1,0), $(1,0)$),
 ///  		node((1,1), $(1,1)$),
 ///  		node((0.5,0.5), `axes: (ltr, ttb)`),
+///  	),
+///  	move(dy: 0.87em, fletcher.diagram(
+///  		axes: (ltr, btt),
+///  		debug: 1,
+///  		node((0,0), $(0,0)$),
+///  		edge((0,0), (1,0), "->"),
+///  		node((1,0), $(1,0)$),
+///  		node((1,1), $(1,1)$),
+///  		node((0.5,0.5), `axes: (ttb, ltr)`),
+///  	)),
+///  	fletcher.diagram(
+///  		axes: (ttb, ltr),
+///  		debug: 1,
+///  		node((0,0), $(0,0)$),
+///  		edge((0,0), (1,0), "->", bend: -20deg),
+///  		node((1,0), $(1,0)$),
+///  		node((1,1), $(1,1)$),
+///  		node((0.5,0.5), `axes: (ttb, ltr)`),
 ///  	),
 ///  )
 ///

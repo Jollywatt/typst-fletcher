@@ -88,6 +88,7 @@
 	#fletcher.diagram(
 	  spacing: 4cm,
 	  node-defocus: 0,
+	  axes: (ltr, btt),
 	  {
 
 	  let v000 = c(0, 0, 0)
@@ -152,15 +153,15 @@
 		node-outset: 3pt,
 		node((0,0), "magma"),
 
-		node((-1,-1), "semigroup"),
-		node(( 0,-1), "unital magma"),
-		node((+1,-1), "quasigroup"),
+		node((-1,1), "semigroup"),
+		node(( 0,1), "unital magma"),
+		node((+1,1), "quasigroup"),
 
-		node((-1,-2), "monoid"),
-		node(( 0,-2), "inverse semigroup"),
-		node((+1,-2), "loop"),
+		node((-1,2), "monoid"),
+		node(( 0,2), "inverse semigroup"),
+		node((+1,2), "loop"),
 
-		node(( 0,-3), "group"),
+		node(( 0,3), "group"),
 
 		{
 			let quad(a, b, label, paint, ..args) = {
@@ -168,22 +169,22 @@
 				edge(a, b, text(paint, label), "-|>", stroke: paint, label-side: center, ..args)
 			}
 
-			quad((0,0), (-1,-1), "Assoc", blue)
-			quad((0,-1), (-1,-2), "Assoc", blue, label-pos: 0.3)
-			quad((1,-2), (0,-3), "Assoc", blue)
+			quad((0,0), (-1,1), "Assoc", blue)
+			quad((0,1), (-1,2), "Assoc", blue, label-pos: 0.3)
+			quad((1,2), (0,3), "Assoc", blue)
 
-			quad((0,0), (0,-1), "Id", red)
-			quad((-1,-1), (-1,-2), "Id", red, label-pos: 0.3)
-			quad((+1,-1), (+1,-2), "Id", red, label-pos: 0.3)
-			quad((0,-2), (0,-3), "Id", red)
+			quad((0,0), (0,1), "Id", red)
+			quad((-1,1), (-1,2), "Id", red, label-pos: 0.3)
+			quad((+1,1), (+1,2), "Id", red, label-pos: 0.3)
+			quad((0,2), (0,3), "Id", red)
 
-			quad((0,0), (1,-1), "Div", yellow)
-			quad((-1,-1), (0,-2), "Div", yellow, label-pos: 0.3, "crossing")
+			quad((0,0), (1,1), "Div", yellow)
+			quad((-1,1), (0,2), "Div", yellow, label-pos: 0.3, "crossing")
 
-			quad((-1,-2), (0,-3), "Inv", green)
-			quad((0,-1), (+1,-2), "Inv", green, label-pos: 0.3)
+			quad((-1,2), (0,3), "Inv", green)
+			quad((0,1), (+1,2), "Inv", green, label-pos: 0.3)
 
-			quad((1,-1), (0,-2), "Assoc", blue, label-pos: 0.3, "crossing")
+			quad((1,1), (0,2), "Assoc", blue, label-pos: 0.3, "crossing")
 		},
 	)
 
@@ -195,17 +196,18 @@
 		fletcher.diagram(
 			edge-stroke: 1pt,
 			node-corner-radius: 5pt,
+			axes: (ltr, btt),
 			node((0,0), [input], fill: colors.at(0)),
 			edge((0,0), (1,0), "-"),
-			edge((1,0), (2,+1), "-|>", corner: left),
-			edge((1,0), (2,-1), corner: right),
+			edge((1,0), (2,+1), "-|>", corner: right),
+			edge((1,0), (2,-1), corner: left),
 			node((2,+1), [control unit (CU)], fill: colors.at(1)),
 			edge((2,+1), (2,0), "<|-|>"),
 			node((2, 0), align(center)[arithmetic & logic \ unit (ALU)], fill: colors.at(1)),
 			edge((2, 0), (2,-1), "<|-|>"),
 			node((2,-1), [memory unit (MU)], fill: colors.at(1)),
-			edge((2,+1), (3,0), corner: left),
-			edge((2,-1), (3,0), "<|-", corner: right),
+			edge((2,+1), (3,0), corner: right),
+			edge((2,-1), (3,0), "<|-", corner: left),
 			edge((3,0), (4,0), "-|>"),
 			node((4,0), [output], fill: colors.at(2))
 		)
@@ -266,26 +268,27 @@
 		node(B, $cal(B)$)
 		edge(A, B, $F$, "->", bend: +35deg)
 		edge(A, B, $G$, "->", bend: -35deg)
-		let h = 0.21
-		edge((.5,+h), (.5,-h), $alpha$, "=>")
+		let h = 0.2
+		edge((.5,-h), (.5,+h), $alpha$, "=>")
 	})
 	```),
 
 	..code-example(```typ
 	#fletcher.diagram(
-		debug: true,         // show a coordinate grid!
+		debug: true,         // show a coordinate grid
+		axes: (ltr, btt),    // make y-axis go ↑
 		spacing: (8mm, 3mm), // wide columns, narrow rows
 		node-stroke: 1pt,    // outline node shapes
 		edge-stroke: 1pt,    // make lines thicker
 		mark-scale: 60%,     // make arrowheads smaller
 		edge((-2,0), (-1,0)),
-		edge((-1,0), (0,+1), $f$, "..|>", corner: left),
-		edge((-1,0), (0,-1), $g$, "-|>", corner: right),
+		edge((-1,0), (0,+1), $f$, "..|>", corner: right),
+		edge((-1,0), (0,-1), $g$, "-|>", corner: left),
 		node((0,+1), $F(s)$),
 		node((0,-1), $G(s)$),
-		edge((0,+1), (1,0), "..|>", corner: left),
-		edge((0,-1), (1,0), "-|>", corner: right),
-		node((1,0), text(white, $ + $), inset: 1pt, fill: black),
+		edge((0,+1), (1,0), "..|>", corner: right),
+		edge((0,-1), (1,0), "-|>", corner: left),
+		node((1,0), text(white, $ plus.circle $), inset: 1pt, fill: black),
 		edge((1,0), (2,0), "-|>"),
 	)
 	```),
@@ -308,12 +311,12 @@
 		spacing: (15mm, 8mm),
 		node((0,0), [1], extrude: (0, -4)), // double stroke effect 
 		node((1,0), [2]),
-		node((2,1), [3a]),
-		node((2,-1), [3b]),
+		node((2,-1), [3a]),
+		node((2,+1), [3b]),
 		edge((0,0), (1,0), [go], "->"),
-		edge((1,0), (2,+1), "->", bend: -15deg),
-		edge((1,0), (2,-1), "->", bend: +15deg),
-		edge((2,-1), (2,-1), "->", bend: +130deg, label: [loop!]),
+		edge((1,0), (2,-1), "->", bend: -15deg),
+		edge((1,0), (2,+1), "->", bend: +15deg),
+		edge((2,+1), (2,+1), "->", bend: +130deg, label: [loop!]),
 	)
 	```)
 )
@@ -344,7 +347,6 @@ This can be changed with the `axis` option of `diagram()`.
 #fletcher.diagram(
 	debug: 1,
 	spacing: (1em, 4em), // (x, y)
-	axes: (ltr, ttb),    // make y axis increase downwards
 	node((0,0), $f$),
 	node((1,0), $f$, stroke: 1pt),
 	node((2,0), $f$, stroke: 1pt, shape: "rect"),
@@ -370,15 +372,15 @@ See the `diagram()` parameters for more control: `cell-size` is the minimum row 
 Elastic coordinates can be demonstrated more clearly with a debug grid and no `spacing` between cells:
 
 #code-example-row(```typ
-#let c = (blue, green, red, orange).map(x => x.lighten(50%))
+#let c = (orange, red, green, blue).map(x => x.lighten(50%))
 #fletcher.diagram(
 	debug: 1,
 	spacing: 0pt,
 	node-corner-radius: 3pt,
-	node((0,-1), [0], fill: c.at(0), width:  5mm, height: 10mm),
-	node((1, 0), [1], fill: c.at(1), width: 20mm, height:  5mm),
-	node((1, 1), [2], fill: c.at(2), width:  5mm, height:  5mm),
-	node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
+	node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
+	node((1,0), [b], fill: c.at(1), width:  5mm, height:  5mm),
+	node((1,1), [c], fill: c.at(2), width: 20mm, height:  5mm),
+	node((0,2), [d], fill: c.at(3), width:  5mm, height: 10mm),
 )
 ```)
 
@@ -396,15 +398,15 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	dir: ltr,
 	spacing: 1fr,
 	..(0, .25, .5, .75, 1).map(t => {
-		let c = (blue, green, red, orange).map(x => x.lighten(50%))
+		let c = (orange, red, green, blue).map(x => x.lighten(50%))
 		fletcher.diagram(
 			debug: 1,
 			spacing: 0mm,
 			node-corner-radius: 3pt,
-			node((0,-1), [0], fill: c.at(0), width: 5mm, height: 10mm),
-			node((t, 0), $(#t, 0)$, fill: c.at(1), width: 20mm, height: 5mm),
-			node((1, 1), [2], fill: c.at(2), width: 5mm, height: 5mm),
-			node((0, 1), [3], fill: c.at(3), width: 10mm, height: 10mm),
+			node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
+			node((1,0), [b], fill: c.at(1), width: 5mm, height: 5mm),
+			node((t,1), $(#t, 1)$, fill: c.at(2), width: 20mm, height: 5mm),
+			node((0,2), [d], fill: c.at(3), width: 5mm, height: 10mm),
 		)
 	}),
 )
@@ -418,7 +420,7 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 
 #code-example-row(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
-	let (a, b, c, abc) = ((-1,0), (0,-1), (1,0), (0,1))
+	let (a, b, c, abc) = ((-1,0), (0,1), (1,0), (0,-1))
 	node(abc, $A times B times C$)
 	node(a, $A$)
 	node(b, $B$)
@@ -430,8 +432,8 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 	edge(b, abc, "<=>")
 	edge(c, abc, $c$)
 
-	node((0.6, -3), [_just a thought..._])
-	edge(b, (0.6, -3), "<|..", corner: right)
+	node((0.6, 3), [_just a thought..._])
+	edge((0.6, 3), b, "..|>", corner: right)
 })
 ```))
 
@@ -442,9 +444,9 @@ When `from` is implicit, it becomes the coordinate of the last `node`, and `to` 
 
 #code-example-row(```typ
 #fletcher.diagram(
-	node((0,1), [London]),
+	node((0,0), [London]),
 	edge("..|>", bend: 20deg),
-	node((1,0), [Paris]),
+	node((1,1), [Paris]),
 )
 ```)
 
@@ -459,7 +461,7 @@ However, don't forget you can also use variables in code-mode to avoid repeating
 
 #code-example-row(```typ
 #fletcher.diagram(node-fill: blue, {
-	let (dep, arv) = ((0,1), (1,0))
+	let (dep, arv) = ((0,0), (1,1))
 	node(dep, text(white)[London])
 	node(arv, text(white)[Paris])
 	edge(dep, arv, "==>", bend: 40deg)
@@ -481,10 +483,10 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 			fletcher.diagram(
 				spacing: (10mm, 9mm),
 				node-defocus: d,
-				node((0,1), $A times B times C$),
-				edge((-1,0), (0,1)),
-				edge((+1,0), (0,1)),
-				edge((0,-1), (0,1)),
+				node((0,0), $A times B times C$),
+				edge((-1,1)),
+				edge(( 0,2)),
+				edge((+1,1)),
 			)
 		)
 	})
@@ -510,7 +512,7 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 	).enumerate() {
 		for j in range(2) {
 			let label = if j == 0 { raw("\""+str+"\"") }
-			edge((2*i, -j), (2*i + 1, -j), str, bend: 50deg*j, stroke: 0.9pt,
+			edge((2*i, j), (2*i + 1, j), str, bend: 50deg*j, stroke: 0.9pt,
 			label: label, label-sep: 1em)
 		}
 	}
@@ -556,7 +558,7 @@ While shorthands exist for specifying marks and stroke styles, finer control is 
 #fletcher.diagram(
 	edge-stroke: 1.5pt,
 	spacing: 3cm,
-	edge((0,0), (-0.1,1), bend: -10deg, marks: (
+	edge((0,0), (-0.1,-1), bend: -10deg, marks: (
 		(kind: ">>", size: 6, delta: 70deg, sharpness: 45deg),
 		(kind: "bar", size: 1, pos: 0.5),
 		(kind: "head", rev: true),
@@ -602,8 +604,8 @@ For example:
 #fletcher.diagram(
 	edge-stroke: 1.4pt,
 	spacing: (3cm, 1cm),
-	edge((0,1), (1,1), marks: (my-head, my-head + (sharpness: 20deg))),
-	edge((0,0), (1,0), marks: (my-bar, my-solid + (pos: 0.8), my-solid)),
+	edge((0,0), (1,0), marks: (my-head, my-head + (sharpness: 20deg))),
+	edge((0,1), (1,1), marks: (my-bar, my-solid + (pos: 0.8), my-solid)),
 )
 ```))
 
@@ -620,9 +622,9 @@ All marks accept an `outer-len` parameter, the effect of which can be seen below
 	spacing: 2cm,
 	debug: 4,
 
-	edge((0,1), (1,1), stroke: gray, bend: 90deg, label-pos: 0.1, label: [without],
+	edge((0,0), (1,0), stroke: gray, bend: 90deg, label-pos: 0.1, label: [without],
 		marks: (none, (kind: "solid", outer-len: 0))),
-	edge((0,0), (1,0), stroke: gray, bend: 90deg, label-pos: 0.1, label: [with],
+	edge((0,1), (1,1), stroke: gray, bend: 90deg, label-pos: 0.1, label: [with],
 		marks: (none, (kind: "solid"))), // use default hang
 )
 ```)
@@ -639,8 +641,8 @@ Here is an example of how you might hack together a Bézier connector using the 
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 #fletcher.diagram(
-	node((0,0), $A$),
-	node((2,1), [Bézier], fill: purple.lighten(80%)),
+	node((0,1), $A$),
+	node((2,0), [Bézier], fill: purple.lighten(80%)),
 	render: (grid, nodes, edges, options) => {
 		// cetz is also exported as fletcher.cetz
 		cetz.canvas({
@@ -648,8 +650,8 @@ Here is an example of how you might hack together a Bézier connector using the 
 			fletcher.draw-diagram(grid, nodes, edges, options)
 
 			// retrieve node data by coordinates
-			let n1 = fletcher.find-node-at(nodes, (0,0))
-			let n2 = fletcher.find-node-at(nodes, (2,1))
+			let n1 = fletcher.find-node-at(nodes, (0,1))
+			let n2 = fletcher.find-node-at(nodes, (2,0))
 
 			// get anchor points for the connector
 			let p1 = fletcher.get-node-anchor(n1, 0deg)
