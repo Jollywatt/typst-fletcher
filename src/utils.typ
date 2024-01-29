@@ -41,6 +41,8 @@
 #let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
 #let vector-angle(v) = calc.atan2(..vector-unitless(v))
 #let vector-2d((x, y, ..z)) = (x, y)
+#let element-wise-mul(a, b) = a.zip(b).map(((i, j)) => i*j)
+
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 #let lerp-at(a, t) = {

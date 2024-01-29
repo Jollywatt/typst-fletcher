@@ -11,13 +11,13 @@
 #diagram(
 	debug: 0,
 	cell-size: (10mm, 10mm),
-	node((0,1), $X$),
-	node((1,1), $Y$),
-	node((0,0), $Z$),
-	edge((0,1), (1,1), marks: (none, "head")),
-	edge((0,0), (1,1), $f$, marks: ("hook", "head"), dash: "dashed"),
-	edge((0,1), (0,0), marks: (none, ">>")),
-	edge((0,1), (0,1), marks: (none, "head"), bend: -120deg),
+	node((0,0), $X$),
+	node((1,0), $Y$),
+	node((0,1), $Z$),
+	edge((0,0), (1,0), marks: (none, "head")),
+	edge((0,1), (1,0), $f$, marks: ("hook", "head"), dash: "dashed"),
+	edge((0,0), (0,1), marks: (none, ">>")),
+	edge((0,0), (0,0), marks: (none, "head"), bend: -120deg),
 )
 
 = Arc connectors
@@ -219,7 +219,7 @@ $
 			(marks: ("o", "O")),
 			(marks: ((kind: "solid", rev: true), "solid")),
 		).enumerate().map(((i, args)) => {
-			edge((x, -i), (x + 1, -i), ..args, bend: bend)
+			edge((x, i), (x + 1, i), ..args, bend: bend)
 		}).join()
 
 	}
@@ -232,10 +232,10 @@ $
 	spacing: 10mm,
 	edge-stroke: 0.8pt,
 	for (i, m) in ("<=>", ">==<", ">>->>", "<<-<<", "|>-|>", "<|-<|", "O-|-O", "hook-hook'").enumerate() {
-		edge((0,-i), (1,-i), m)
-		edge((2,-i), (3,-i), m, bend: 90deg)
-		edge((4,-i), (5,-i), m, bend: -30deg)
-		edge((6,-i), (7,-i - 0.5), m, corner: left)
+		edge((0,i), (1,i), m)
+		edge((2,i), (3,i), m, bend: 90deg)
+		edge((4,i), (5,i), m, bend: -30deg)
+		edge((6,i), (7,i + 0.5), m, corner: right)
 	}
 )
 
@@ -272,6 +272,7 @@ Default placement above the line.
 #diagram(
 	spacing: 2cm,
 	debug: 3,
+	axes: (ltr, ttb),
 {
 	for p in around {
 		edge(p, (0,0), $f$)
@@ -283,7 +284,7 @@ Reversed $y$-axis:
 #diagram(
 	spacing: 2cm,
 	debug: 3,
-	axes: (ltr, ttb),
+	axes: (ltr, btt),
 {
 	for p in around {
 		edge(p, (0,0), $f$)
@@ -313,6 +314,7 @@ Reversed $y$-axis:
 = `edge()` argument shorthands
 
 #diagram(
+	axes: (ltr, btt),
 	edge((0,0), (1,1), "->", "double", bend: 45deg),
 	edge((1,0), (0,1), "->>", "crossing"),
 	edge((1,1), (2,1), $f$, "|->"),
@@ -328,28 +330,28 @@ Reversed $y$-axis:
 	node-fill: green.lighten(80%),
 	node-outset: 2pt,
 	label-sep: 0pt,
-	node((0,0), $A$),
-	node((1,1), $sin compose cos compose tan$, fill: none),
-	node((2,0), $C$),
-	node((3,0), $D$, shape: "rect"),
-	edge((0,0), (1,1), $sigma$, "-}>", bend: -45deg),
-	edge((2,0), (1,1), $f$, "<{-"),
+	node((0,1), $A$),
+	node((1,0), $sin compose cos compose tan$, fill: none),
+	node((2,1), $C$),
+	node((3,1), $D$, shape: "rect"),
+	edge((0,1), (1,0), $sigma$, "-}>", bend: -45deg),
+	edge((2,1), (1,0), $f$, "<{-"),
 )
 
 = CeTZ integration
 
 #import "/src/utils.typ": vector-polar
 #diagram(
-	node((0,0), $A$, stroke: 1pt),
-	node((2,1), [Bézier], stroke: 1pt),
+	node((0,1), $A$, stroke: 1pt),
+	node((2,0), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
 		cetz.canvas({
 			fletcher.draw-diagram(grid, nodes, edges, options)
 
-			let n1 = fletcher.find-node-at(nodes, (0,0))
+			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let p1 = fletcher.get-node-anchor(n1, 0deg)
 
-			let n2 = fletcher.find-node-at(nodes, (2,1))
+			let n2 = fletcher.find-node-at(nodes, (2,0))
 			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
 			let c1 = cetz.vector.add(p1, vector-polar(20pt, 0deg))
@@ -385,6 +387,26 @@ Reversed $y$-axis:
 	pad(1mm, diagram(
 		// debug: 4,
 		spacing: 1cm,
+		node((0,0), [#dir]),
+		{
+			for c in around {
+				node(c, $#c$)
+				edge((0,0), c, $f$, marks: (
+					(kind: "head", rev: false, pos: 0),
+					(kind: "head", rev: false, pos: 0.33),
+					(kind: "head", rev: false, pos: 0.66),
+					(kind: "head", rev: false, pos: 1),
+				), "double", corner: dir)
+			}
+		}
+	))
+}
+
+#for dir in (left, right) {
+	pad(1mm, diagram(
+		// debug: 4,
+		spacing: 1cm,
+		axes: (ltr, btt),
 		node((0,0), [#dir]),
 		{
 			for c in around {
@@ -483,7 +505,7 @@ $ b^2 $
 			axes: axes,
 			debug: 1,
 			node((0,0), $(0,0)$),
-			edge((0,0), (1,0), "->", bend: 20deg),
+			edge((0,0), (1,0), "hook->", bend: 20deg),
 			node((1,0), $(1,0)$),
 			node((1,1), $(1,1)$),
 			node((0.5,0.5), raw(repr(axes))),
@@ -565,19 +587,18 @@ Each row should be the same thing repeated.
 
 The following diagrams should be identical:
 
-#diagram(axes: (ltr, ttb), $
+#diagram($
 	G edge(f, ->) edge(#(0,1), pi, ->>) & im(f) \
-	G slash ker(f) edge(#(1,0), tilde(f), "hook'-->")
+	G slash ker(f) edge(#(1,0), tilde(f), "hook-->")
 $)
 
 #diagram(
-	axes: (ltr, ttb),
 	node((0,0), $G$),
 	edge((0,0), (1,0), $f$, "->"),
 	edge((0,0), (0,1), $pi$, "->>"),
 	node((1,0), $im(f)$),
 	node((0,1), $G slash ker(f)$),
-	edge((0,1), (1,0), $tilde(f)$, "hook'-->")
+	edge((0,1), (1,0), $tilde(f)$, "hook-->")
 )
 
 

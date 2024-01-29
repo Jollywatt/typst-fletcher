@@ -727,7 +727,7 @@
 #let diagram(
 	..objects,
 	debug: false,
-	axes: (ltr, btt),
+	axes: (ltr, ttb),
 	spacing: 3em,
 	cell-size: 0pt,
 	node-inset: 12pt,

@@ -152,8 +152,6 @@
 		}
 
 		let label-dir = if edge.label-side == right { +1 } else { -1 }
-		// If y-axis goes up, not down, flip it so the label is above
-		if options.axes.at(1) == ttb { label-dir *= -1 }
 
 		if edge.label-anchor == auto {
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
@@ -260,13 +258,13 @@
 
 #let draw-edge-corner(edge, nodes, options) = {
 	
-	let θ = vector-angle(vector.sub(..edge.points.rev()))
+	let θ = vector-angle(vector.sub(nodes.at(1).real-pos, nodes.at(0).real-pos))
 	let θ-floor = calc.floor(θ/90deg)*90deg
 	let θ-ceil = calc.ceil(θ/90deg)*90deg
 
 	let bend-dir = (
-		if edge.corner == left { true }
-		else if edge.corner == right { false }
+		if edge.corner == right { true }
+		else if edge.corner == left { false }
 		else { panic("Edge corner option must be left or right.") }
 	)
 
@@ -339,7 +337,7 @@
 	if edge.label != none {
 
 		if edge.label-side == auto { edge.label-side = edge.corner }
-		let label-dir = if edge.label-side == left { +1 } else { -1 }
+		let label-dir = if edge.label-side == right { +1 } else { -1 }
 
 		if edge.label-anchor == auto {
 			// Choose label anchor based on connector direction
@@ -444,10 +442,10 @@
 ) = {
 
 
-	cetz.draw.scale((
-		x: if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
-		y: if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
-	))
+	// cetz.draw.scale((
+	// 	x: if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
+	// 	y: if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
+	// ))
 
 
 	for node in nodes {
@@ -468,43 +466,56 @@
 	// draw axes
 	if options.debug >= 1 {
 
-		cetz.draw.rect(
-			(0,0),
-			grid.bounding-size,
-			stroke: DEBUG_COLOR + 0.25pt
+		cetz.draw.scale(
+			(
+				x: grid.scale.at(0),
+				y: grid.scale.at(1),
+			),
 		)
-
-		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
-
-			for (i, x) in grid.centers.at(axis).enumerate() {
-				let size = grid.sizes.at(axis).at(i)
-
-				// coordinate label
-				cetz.draw.content(
-					coord(x, -.4em),
-					text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-					anchor: if axis == 0 { "top" } else { "right" }
+		(
+			{
+				cetz.draw.rect(
+					(0,0),
+					grid.bounding-size,
+					stroke: DEBUG_COLOR + 0.25pt
 				)
 
-				// size bracket
-				cetz.draw.line(
-					..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-					stroke: DEBUG_COLOR + .75pt,
-					mark: (start: "|", end: "|")
-				)
+				for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
 
-				// gridline
-				cetz.draw.line(
-					coord(x, 0),
-					coord(x, grid.bounding-size.at(1 - axis)),
-					stroke: (
-						paint: DEBUG_COLOR,
-						thickness: .3pt,
-						dash: "densely-dotted",
-					),
-				)
+					for (i, x) in grid.centers.at(axis).enumerate() {
+						let size = grid.sizes.at(axis).at(i)
+
+						// coord = (x, y) => coord(..(x, y).zip(grid.scale).map(((a, b)) => a*b))
+						// coord = (x, y) => element-wise-mul((x, y), grid.scale)
+
+						// coordinate label
+						cetz.draw.content(
+							coord(x, -0.4em),
+							text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
+							anchor: if axis == 0 { "top" } else { "right" }
+						)
+
+						// size bracket
+						cetz.draw.line(
+							..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
+							stroke: DEBUG_COLOR + .75pt,
+							mark: (start: "|", end: "|")
+						)
+
+						// gridline
+						cetz.draw.line(
+							coord(x, 0),
+							coord(x, grid.bounding-size.at(1 - axis)),
+							stroke: (
+								paint: DEBUG_COLOR,
+								thickness: .3pt,
+								dash: "densely-dotted",
+							),
+						)
+					}
+				}
 			}
-		}
+		)
 	}
 }
 

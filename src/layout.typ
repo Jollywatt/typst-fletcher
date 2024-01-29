@@ -52,13 +52,15 @@
 })
 
 #let to-physical-coords(grid, coord) = {
-	zip(grid.centers, coord, grid.origin)
-		.map(((c, x, o)) => lerp-at(c, x - o))
+	zip(coord, grid.centers, grid.origin, grid.scale)
+		.map(((x, c, o, s)) => s*lerp-at(c, x - o))
 }
 
 #let compute-node-positions(nodes, grid, options) = nodes.map(node => {
 
-	node.real-pos = to-physical-coords(grid, node.pos)
+	let (x, y) = to-physical-coords(grid, node.pos)
+	node.real-pos = (x, y)
+
 
 	node.rect = (-1, +1).map(dir => vector.add(
 		node.real-pos,
@@ -152,11 +154,22 @@
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
+
+	let scale = (
+		if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
+		if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
+	)
+
 	(
 		centers: cell-centers,
 		sizes: cell-sizes,
 		origin: origin,
-		bounding-size: total-size
+		bounding-size: total-size,
+		scale: scale,
+		get-coord: coord => {
+			zip(coord, cell-centers, origin, scale)
+				.map(((x, c, o, s)) => s*lerp-at(c, x - o))
+		}
 	)
 }	
 
