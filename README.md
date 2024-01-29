@@ -9,38 +9,40 @@ _**Fletcher** (noun) a maker of arrows_
 A [Typst]("https://typst.app/") package for drawing diagrams with arrows,
 built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/examples/example-2.svg">
   <img alt="logo" width="600" src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/examples/example-1.svg">
 </picture>
 
+
+
 ```typ
 #import "@preview/fletcher:0.4.0" as fletcher: node, edge
 
-#fletcher.diagram(cell-size: 15mm, {
-	let (src, img, quo) = ((0, 1), (1, 1), (0, 0))
-	node(src, $G$)
-	node(img, $im f$)
-	node(quo, $G slash ker(f)$)
-	edge(src, img, $f$, "->")
-	edge(quo, img, $tilde(f)$, "hook-->", label-side: right)
-	edge(src, quo, $pi$, "->>")
-})
+
+#fletcher.diagram(cell-size: 15mm, $
+	G edge(f, ->) edge("d", pi, ->>) & im(f) \
+	G slash ker(f) edge("ur", tilde(f), "hook-->")
+$)
+
 
 #fletcher.diagram(
 	node-fill: rgb("aafa"),
 	node-outset: 2pt,
+	axes: (ltr, btt),
 
 	node((0,0), `typst`),
 	node((1,0), "A"),
 	node((2.5,0), "B", stroke: c + 2pt),
 	node((2,1), "C", extrude: (+1, -1)),
 
-	edge((0,0), (1,0), "-|>", bend: 20deg),
-	edge((0,0), (1,0), "<|-", bend: -20deg),
-	edge((1,0), (2,1), "..|>", corner: left),
+	for i in range(3) {
+		edge((0,0), (1,0), bend: (i - 1)*25deg)
+	},
+	edge((1,0), (2,1), "..}>", corner: right),
 	edge((1,0), (2.5,0), "-||-|>", bend: -0deg),
-)
+),
 ```
 
 ## Todo
