@@ -46,23 +46,25 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 ## Todo
 
 - [x] Mathematical arrow styles
-- [ ] Also allow `&`-delimited equations for specifying nodes
+- [x] Also allow `&`-delimited equations for specifying nodes
 - [ ] Support CeTZ arrowheads
 - [ ] Support arbitrary node shapes drawn with CeTZ
 - [ ] Allow referring to node coordinates by their content?
 - [ ] Support loops connecting a node to itself
-- [ ] More ergonomic syntax to avoid repeating coordinates?
+- [x] More ergonomic syntax to avoid repeating coordinates?
 
 ## Change log
 
 ### 0.4.0
 
-- Add `width`, `height` and `radius` options to `node()` for explicit control over size.
-- Add `corner-radius` option to `node()`.
+- Add ability to specify diagrams in math-mode, using `&` to separate nodes.
+- Allow implicit and relative edge coordinates, e.g., `edge("d")` becomes `edge(prev-node, (0, 1))`.
 - Add ability to place marks anywhere along an edge. Shorthands now accept an optional middle mark, for example `|->-|` and `hook-/->>`.
 - Add “hanging tail” correction to marks on curved edges. Marks now rotate a bit to fit more comfortably along tightly curving arcs.
 - Add more arrowheads for the sake of it: `}>`, `<{`, `/`, `\`, `x`, `X`, `*` (solid dot), `@` (solid circle).
 - Add `axes` option to `diagram()` to control the direction of each axis in the diagram's coordinate system.
+- Add `width`, `height` and `radius` options to `node()` for explicit control over size.
+- Add `corner-radius` option to `node()`.
 - Add `stroke` option to `edge()` replacing `thickness` and `paint` options.
 - Add `edge-stroke` option to `diagram()` replacing `edge-thickness`.
 
