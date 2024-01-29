@@ -28,6 +28,8 @@
 	)
 }
 
+#show heading.where(level: 1): it => it + v(0.5em)
+
 #show raw.where(block: false): it => {
 	if it.text.ends-with("()") {
 		link(label(it.text), it.text)
@@ -219,11 +221,15 @@
 
 
 
-#show heading.where(level: 1): it => pagebreak(weak: true) + it + v(0.5em)
+#pagebreak()
+
 
 = Getting started
 
 #raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
+
+Avoid importing everything `*` as many internal functions are exported.
+
 
 #let code-example(src) = (
 	{
@@ -250,13 +256,13 @@
 
 	// stroke: gray + 0.2pt,
 	stroke: none,
-	inset: (x: 0pt, y: 10pt),
+	inset: (x: 0pt, y: 7pt),
 
 	..code-example(```typ
 	// You can specify nodes in math-mode, separated by `&`:
-	#fletcher.diagram(axes: (ltr, ttb), $
-		G edge(f, ->) edge(#(0,1), pi, ->>) & im(f) \
-		G slash ker(f) edge(#(1,0), tilde(f), "hook'-->")
+	#fletcher.diagram($
+		G edge(f, ->) edge("d", pi, ->>) & im(f) \
+		G slash ker(f) edge("ur", tilde(f), "hook-->")
 	$)
 	```),
 
@@ -328,13 +334,13 @@
 #set raw(lang: "typc")
 #let fn-link(name) = link(label(name), raw(name))
 
-= Details
+// = Details
 
-The recommended way to load the package is:
-#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge", block: true)
-Other functions (including internal functions) are exported, so avoid importing everything with #raw(lang: none, "*") and access them as needed with, e.g., `fletcher.diagram`.
+// The recommended way to load the package is:
+// #raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge", block: true)
+// Other functions (including internal functions) are exported, so avoid importing everything with #raw(lang: none, "*") and access them as needed with, e.g., `fletcher.diagram`.
 
-== Nodes
+= Nodes
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
@@ -363,7 +369,7 @@ This can be changed with the `axis` option of `diagram()`.
 ```)
 
 
-=== Elastic coordinates
+== Elastic coordinates
 
 Diagrams are laid out on a flexible coordinate grid.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
@@ -386,7 +392,7 @@ Elastic coordinates can be demonstrated more clearly with a debug grid and no `s
 
 So far, this is just like a table. However, coordinates can also be fractional.
 
-=== Fractional coordinates
+== Fractional coordinates
 
 Rows and columns are at integer coordinates, but nodes may have fractional coordinates.
 These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down. Both the node's position and its influence on row/column sizes are interpolated.
@@ -412,9 +418,9 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 )
 
 
-== Edges
+= Edges
 
-#link(label("edge()"))[`edge(node-1, node-2, label, marks, ..options)`]
+#link(label("edge()"))[`edge(from, to, label, marks, ..options)`]
 
 Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
@@ -437,9 +443,9 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 })
 ```))
 
-=== Edge coordinates
+== Implicit coordinates
 
-To specify the start and end points of an edge, you may provide both explicitly, `edge(from, to)`; leave `from` implicit, `edge(to)`; or leave both implicit.
+To specify the start and end points of an edge, you may provide both explicitly (`edge(from, to)`); leave `from` implicit (`edge(to)`); or leave both implicit.
 When `from` is implicit, it becomes the coordinate of the last `node`, and `to` becomes the next `node`.
 
 #code-example-row(```typ
@@ -469,7 +475,16 @@ However, don't forget you can also use variables in code-mode to avoid repeating
 ```)
 
 
-=== The `defocus` adjustment
+== Relative coordinates
+
+It can also be handy to specify the direction of an edge, instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`. For convenience, you can also specify a relative coordinate with string of _directions_, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
+#strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you do to things like:
+
+#code-example-row(```typ
+#fletcher.diagram($ A edge("rr", ->, bend: #30deg) & B & C $)
+```)
+
+== The `defocus` adjustment
 
 For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.
 Notice the difference the figures below. "Defocusing" the connecting lines can make the diagram look more comfortable.
@@ -494,8 +509,7 @@ Notice the difference the figures below. "Defocusing" the connecting lines can m
 
 See the `node-defocus` argument of #link(label("diagram()"))[`diagram()`] for details.
 
-#box[ // prevent pagebreak
-== Marks and arrows
+= Marks and arrows
 
 A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, $arrow.hook$, etc.
 #align(center, fletcher.diagram(
@@ -550,7 +564,7 @@ Edge styles can be specified with a shorthand like `edge(a, b, "-->")`. See the 
 
 
 
-=== Customised marks
+== Adjusting marks
 
 While shorthands exist for specifying marks and stroke styles, finer control is possible.
 
@@ -613,7 +627,7 @@ The particular marks and parameters are hard-wired and will likely change as thi
 However, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover the parameters for finer control.
 
 #box[
-=== Hanging tail correction
+== Hanging tail correction
 
 All marks accept an `outer-len` parameter, the effect of which can be seen below:
 #code-example-row(```typ
@@ -633,7 +647,7 @@ The tail length (specified in multiples of the stroke thickness) is the distance
 This is visualised by the green line shown above.
 The mark is rotated so that the ends of the line both lie on the arc.
 
-== CeTZ integration
+= CeTZ integration
 Currently, only straight, arc and right-angled connectors are supported.
 However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
 
@@ -665,13 +679,14 @@ Here is an example of how you might hack together a Bézier connector using the 
 
 			// place an arrow head at a given point and angle
 			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
-			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black, (kind: "hook'", outer-len: 0))
+			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
+				(kind: "hook'", outer-len: 0))
 		})
 	}
 )
 ```))
 
-
+#pagebreak()
 
 = Function reference
 #show-module("/src/main.typ")

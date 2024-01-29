@@ -104,6 +104,11 @@
 
 
 	let is-coord(arg) = type(arg) == array and arg.len() == 2
+	let is-rel-coord(arg) = is-coord(arg) or (
+		type(arg) == str and arg.match(regex("^[utdblrnsew]+$")) != none or
+		type(arg) == dictionary and "rel" in arg
+	)
+
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
 	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
@@ -119,10 +124,10 @@
 	}
 
 	// Up to the first two arguments may be coordinates
- 	if peek(pos, is-coord, is-coord) {
+ 	if peek(pos, is-coord, is-rel-coord) {
 		new-args.from = pos.remove(0)
 		new-args.to = pos.remove(0)
-	} else if peek(pos, is-coord) {
+	} else if peek(pos, is-rel-coord) {
 		new-args.to = pos.remove(0)
 	}
 
@@ -153,7 +158,7 @@
 	}
 
 	if pos.len() > 0 {
-		panic("Could not interpret `edge()` argument(s):", pos, args)
+		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", new-args)
 	}
 
 	new-args
@@ -416,6 +421,21 @@
 
 	options += interpret-edge-args(args)
 	options += interpret-marks-arg(options.marks)
+
+	// relative coordinate shorthands
+	if type(options.to) == str {
+		let rel = (0, 0)
+		let dirs = (
+			"t": ( 0,-1), "n": ( 0,-1), "u": ( 0,-1),
+			"b": ( 0,+1), "s": ( 0,+1), "d": ( 0,+1),
+			"l": (-1, 0), "w": (-1, 0),
+			"r": (+1, 0), "e": (+1, 0),
+		)
+		for char in options.to.clusters() {
+			rel = vector.add(rel, dirs.at(char))
+		}
+		options.to = (rel: rel)
+	}
 	
 	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
 	stroke = as-stroke((
@@ -511,7 +531,6 @@
 		edges: edges.map(edge => {
 
 			edge.stroke = as-stroke(edge.stroke)
-
 			edge.stroke = stroke(
 				paint: default(edge.stroke.paint, options.edge-stroke.paint),
 				thickness: to-pt(default(edge.stroke.thickness, options.edge-stroke.thickness)),
@@ -560,11 +579,6 @@
 				else { d*edge.stroke.thickness }
 			})
 
-			for d in edge.extrude {
-				if type(d) != length { panic(edge) }
-				if d == -2 { panic(edge) }
-			}
-
 			edge
 		}),
 	)
@@ -573,19 +587,23 @@
 
 #let extract-nodes-and-edges-from-equation(eq) = {
 	assert(eq.func() == math.equation)
+	let terms = eq.body + []
+	assert(repr(terms.func()) == "sequence")
 
 	let edges = ()
 	let nodes = ()
 
 	let matrix = ((none,),)
 	let (x, y) = (0, 0)
-	for child in eq.body.children {
+	for child in terms.children {
 		if child.func() == metadata {
-			let edge = child.value
-			edge.points.at(0) = default(edge.points.at(0), (x, y))
-			edge.points.at(1) = default(edge.points.at(1), (x + 1, y))
-			if edge.label != none { edge.label = $edge.label$ } // why is this needed?
-			edges.push(edge)
+			if child.value.class == "edge" {
+				let edge = child.value
+				edge.points.at(0) = default(edge.points.at(0), (x, y))
+				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
+				edges.push(edge)
+
+			} else { panic(child) }
 		} else if repr(child.func()) == "linebreak" {
 			y += 1
 			x = 0
@@ -603,6 +621,74 @@
 			nodes.push(node((x, y), $item$).value)
 		}
 	}
+
+
+	(
+		nodes: nodes,
+		edges: edges,
+	)
+
+}
+
+#let interpret-diagram-args(args) = {
+	let nodes = ()
+	let edges = ()
+
+	let prev-coord = (0,0)
+	let should-set-last-edge-point = false
+
+	for arg in args {
+		if arg.func() == metadata {
+			if arg.value.class == "node" {
+				let node = arg.value
+
+				nodes.push(node)
+
+				prev-coord = node.pos
+				if should-set-last-edge-point {
+					// the `to` point of the previous edge is waiting to be set
+					edges.at(-1).points.at(1) = node.pos
+					should-set-last-edge-point = false
+				}
+
+			} else if arg.value.class == "edge" {
+				let edge = arg.value
+
+				if edge.points.at(0) == auto {
+					edge.points.at(0) = prev-coord
+				}
+				if edge.points.at(1) == auto {
+					if should-set-last-edge-point { panic("Cannot infer edge end point. Please specify explicitly.") }
+					should-set-last-edge-point = true
+				}
+				edges.push(edge)
+			}
+
+		} else if arg.func() == math.equation {
+			let result = extract-nodes-and-edges-from-equation(arg)
+			nodes += result.nodes
+			edges += result.edges
+
+		} else {
+			panic("Unrecognised value passed to diagram", arg)
+		}
+	}
+
+	edges = edges.map(edge => {
+		let to = edge.points.at(1)
+		if to == auto {
+			edge.points.at(1) = vector.add(edge.points.at(0), (1, 0))
+		} else if type(to) == dictionary and "rel" in to {
+			// Resolve relative coordinates
+			// panic(edge)
+			edge.points.at(1) = vector.add(edge.points.at(0), to.rel)
+		}
+
+		assert(edge.points.at(0) != auto and edge.points.at(1) != auto, message: repr(edge))
+		assert(type(edge.points.at(1)) != dictionary, message: repr(edge))
+		edge
+	})
+
 
 
 	(
@@ -790,50 +876,7 @@
 	let positional-args = objects.pos().join() + [] // join to ensure sequence
 	assert(repr(positional-args.func()) == "sequence")
 
-	let nodes = ()
-	let edges = ()
-
-	let last-coord = (0,0)
-	let should-set-last-edge-point = false
-	for arg in positional-args.children {
-		if arg.func() == metadata {
-			let value = arg.value
-			if value.class == "node" {
-				let node = value
-				nodes.push(node)
-				last-coord = node.pos
-
-				if should-set-last-edge-point {
-					edges.at(-1).points.at(1) = node.pos
-				}
-				should-set-last-edge-point = false
-			} else if value.class == "edge" {
-				let edge = value
-				if edge.points.at(0) == auto {
-					edge.points.at(0) = last-coord
-				}
-				if edge.points.at(1) == auto {
-					should-set-last-edge-point = true
-				}
-				edges.push(edge)
-			}
-		} else if arg.func() == math.equation {
-			let result = extract-nodes-and-edges-from-equation(arg)
-			nodes += result.nodes
-			edges += result.edges
-		} else {
-			panic("Unrecognised value passed to diagram", arg)
-		}
-	}
-
-	edges = edges.map(edge => {
-		if edge.points.at(1) == auto {
-			edge.points.at(1) = vector.add(edge.points.at(0), (1, 0))
-		}
-		assert(edge.points.at(0) != auto and edge.points.at(1) != auto)
-		edge
-	})
-
+	let (nodes, edges) = interpret-diagram-args(positional-args.children)
 	
 	box(style(styles => {
 

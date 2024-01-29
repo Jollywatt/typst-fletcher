@@ -600,3 +600,10 @@ $)
 	node((0,1), $G slash ker(f)$),
 	edge((0,1), (1,0), $tilde(f)$, "hook-->")
 )
+
+= Relative node coordinates
+
+#diagram($
+	G edge(->, f) edge("d", ->>, pi) & im(f) \
+	G slash ker(f) edge("ne", "hook-->", tilde(f))
+$)

@@ -446,6 +446,7 @@
 	let pt = path(mark.pos)
 	let pt-plus-ε = path(mark.pos + ε)
 	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
+	if grad == 0pt { grad = ε*1pt }
 
 	let outer-len = mark.at("outer-len", default: 0)
 	let Δt = outer-len*stroke.thickness/grad
