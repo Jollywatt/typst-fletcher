@@ -406,6 +406,7 @@
 	kind: auto,
 	bend: 0deg,
 	corner: none,
+	corner-radius: none,
 	marks: (none, none),
 	mark-scale: 100%,
 	extrude: (0,),
@@ -428,6 +429,7 @@
 		kind: kind,
 		bend: bend,
 		corner: corner,
+		corner-radius: corner-radius,
 		marks: marks,
 		mark-scale: mark-scale,
 		extrude: extrude,
@@ -455,7 +457,7 @@
 	}
 	
 	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
-	stroke = as-stroke((
+	options.stroke = as-stroke((
 		paint: stroke.paint,
 		cap: default(stroke.cap, "round"),
 		thickness: stroke.thickness,
@@ -469,24 +471,8 @@
 
 	let obj = ( 
 		class: "edge",
-		from: options.from,
-		to: options.to,
-		vertices: options.vertices,
-		label: options.label,
-		label-pos: options.label-pos,
-		label-sep: options.label-sep,
-		label-anchor: options.label-anchor,
-		label-side: options.label-side,
-		kind: options.kind,
-		bend: options.bend,
-		corner: options.corner,
-		stroke: stroke,
-		marks: options.marks,
-		mark-scale: options.mark-scale,
-		extrude: options.extrude,
+		..options,
 		is-crossing-background: false,
-		crossing-thickness: crossing-thickness,
-		crossing-fill: crossing-fill,
 	)
 
 	assert(type(obj.marks) == array, message: repr(obj))

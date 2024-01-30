@@ -25,6 +25,8 @@
 	len.abs + len.em*em-size
 }
 
+#let sign(x) = x/calc.abs(x)
+
 #let min-max(array) = (calc.min(..array), calc.max(..array))
 #let cumsum(array) = {
 	let sum = array.at(0)
@@ -54,6 +56,7 @@
 	)
 }
 
+#let wrap-angle(θ) = calc.rem-euclid(θ/360deg, 1)*360deg
 
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)

@@ -96,7 +96,7 @@
 // Get the arrow head adjustment for a given extrusion distance
 #let cap-offsets(edge, y) = {
 	(0, 1).map(pos => {
-		let mark = edge.marks.find(mark => mark.pos == pos)
+		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
 		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
 
@@ -356,9 +356,7 @@
 }
 
 #let draw-edge-poly(edge, nodes, options) = {
-	
 
-	// let (from, to) = get-edge-anchors(edge + (kind: "line"), nodes)
 	let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(0)), nodes.at(0).real-pos))
 	let θ-to = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
 	let from = get-node-anchor(nodes.at(0), θ-from)
@@ -369,111 +367,134 @@
 		..edge.vertices.map(options.get-coord),
 		to,
 	)
+	let n-segments = verts.len() - 1
 
-	let θs = range(verts.len() - 1).map(i => {
-		let (vert, vert-next) = (verts.at(i), verts.at(i + 1))
+	let θs = range(1, verts.len()).map(i => {
+		let (vert, vert-next) = (verts.at(i - 1), verts.at(i))
 		vector-angle(vector.sub(vert-next, vert))
 	})
 
-	let n-segments = verts.len() - 1
+
+	// round corners
+
+	// i literally don't know how this works
+	let calculate-rounded-corner(i) = {
+		let pt = verts.at(i)
+		let Δθ = (θs.at(i) - θs.at(i - 1))
+		let θ-normal = θs.at(i - 1) + (180deg + Δθ)/2  // direction to center of curvature
+		let r = edge.corner-radius*calc.abs(90deg/Δθ)
+		let ccw = wrap-angle(θs.at(i) - θs.at(i - 1)) > 180deg
+		r = if ccw {
+			r - calc.min(..edge.extrude)
+		} else {
+			-r - calc.max(..edge.extrude)
+		}
+
+		let dist = -r/calc.cos(Δθ/2)
+		let arc-center = vector.add(pt, vector-polar(dist, θ-normal))
+
+		let (start, stop) = (
+			wrap-angle(θs.at(i - 1) + 90deg),
+			wrap-angle(θs.at(i) + 90deg),
+		)
+
+		// (start, stop) = (stop, start) // does nothing
+		// start += 360deg
+		assert(0deg <= start and start < 360deg)
+		assert(0deg <= stop and stop < 360deg)
+
+		let τ = 360deg
+		(
+			arc-center: arc-center,
+			arc-radius: r,
+			start: start,
+			stop: stop,
+			delta: wrap-angle(stop - start) + if ccw {-360deg} else {0deg},
+			line-shift: -r*calc.tan(Δθ/2), // distance from vertex to point where rounded corner starts
+		)
+	}
+	let spookies = if edge.corner-radius != none {
+		range(1, θs.len()).map(calculate-rounded-corner)
+	}
+	
+
 
 
 	let edge-line = edge + (kind: "line")
+
+	cetz.draw.on-layer(1, cetz.draw.line(
+		..verts,
+		stroke: 0.1pt + green
+	))
+
 	for i in range(verts.len() - 1) {
 		let (from, to) = (verts.at(i), verts.at(i + 1))
-
 		let marks = ()
 
+		if edge.corner-radius == none {
+			// add phantom marks to ensure segment joins are clean
+			if i > 0 {
+				let Δθ = θs.at(i) - θs.at(i - 1) 
+				marks.push((
+					kind: "bar",
+					pos: 0,
+					angle: Δθ/2,
+					hide: true,
+				))
+			}
+			if i < θs.len() - 1 {
+				let Δθ = θs.at(i + 1) - θs.at(i)
+				marks.push((
+					kind: "bar",
+					pos: 1,
+					angle: Δθ/2,
+					hide: true,
+				))
+			}
+		} else { // rounded corners
 
-		// // add phantom marks to ensure segment joins are clean
-		// if i > 0 {
-		// 	let Δθ = θs.at(i) - θs.at(i - 1) 
-		// 	marks.push((
-		// 		kind: "bar",
-		// 		pos: 0,
-		// 		angle: Δθ/2,
-		// 		hide: true,
-		// 	))
-		// }
-		// if i < θs.len() - 1 {
-		// 	let Δθ = θs.at(i + 1) - θs.at(i)
-		// 	marks.push((
-		// 		kind: "bar",
-		// 		pos: 1,
-		// 		angle: Δθ/2,
-		// 		hide: true,
-		// 	))
-		// }
+			if i > 0 {
+				let (line-shift,) = spookies.at(i - 1)
+				from = vector.add(from, vector-polar(line-shift, θs.at(i)))
+			}
+
+			if i < θs.len() - 1 {
+				let (arc-center, arc-radius, start, stop, delta, line-shift) = spookies.at(i)
+				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
+
+				for d in edge.extrude {
+					cetz.draw.arc(
+						arc-center,
+						radius: arc-radius + d,
+						start: start,
+						delta: delta,
+						anchor: "center",
+						stroke: edge.stroke,
+					)
+
+
+					if options.debug >= -4 {
+						cetz.draw.on-layer(1, cetz.draw.circle(
+							arc-center,
+							radius: arc-radius + d,
+							stroke: 0.1pt + green,
+						))
+
+					}
+				}
+
+			}
+
+		}
 
 		// distribute original marks across segments
 		marks += edge.marks.map(mark => {
 			mark.pos = (mark.pos - i/n-segments)*n-segments
 			mark
-		}).filter(mark => 0 < mark.pos and mark.pos <= 1 or i == 0 and mark.pos == 0)
-
-
-
-		// round corners
-
-		let corner-radius = 2pt
-
-		if i > 0 {
-			let Δθ = θs.at(i) - θs.at(i - 1) 
-
-
-			let θ-normal = θs.at(i) - Δθ/2 + 90deg
-			let dist = if Δθ > 0deg {
-				calc.max(..edge.extrude)
-			} else {
-				calc.min(..edge.extrude)
-			}
-			dist += if Δθ > 0deg { corner-radius } else { -corner-radius }
-			let len = dist/calc.cos(Δθ/2)
-			let arc-center = vector.add(from, vector-polar(len, θ-normal))
-
-			for d in edge.extrude {
-				cetz.draw.arc(
-					arc-center,
-					radius: dist + d,
-					start: θs.at(i - 1) - 90deg,
-					stop: θs.at(i) - 90deg,
-					anchor: "center",
-					stroke: edge.stroke,
-				)
-				// cetz.draw.circle(
-				// 	arc-center,
-				// 	radius: dist + d,
-				// 	stroke: 0.1pt + green,
-				// )
-			}
-
-			let r = dist*calc.tan(Δθ/2)
-			// cetz.draw.circle(
-			// 	from,
-			// 	radius: r,
-			// 	stroke: 0.1pt + red,
-			// )
-			from = vector.add(from, vector-polar(r, θs.at(i)))
-		}
-		if i < θs.len() - 1 {
-			let Δθ = θs.at(i + 1) - θs.at(i) 
-
-
-			let θ-normal = θs.at(i) - Δθ/2 + 90deg
-			let dist = if Δθ > 0deg {
-				calc.max(..edge.extrude)
-			} else {
-				calc.min(..edge.extrude)
-			}
-			dist += if Δθ > 0deg { corner-radius } else { -corner-radius }
-			let len = dist/calc.cos(Δθ/2)
-			let arc-center = vector.add(to, vector-polar(len, θ-normal))
-
-			let r = dist*calc.tan(Δθ/2)
-			to = vector.add(to, vector-polar(-r, θs.at(i)))
-		}
+		}).filter(mark => i == 0 and mark.pos == 0 or 0 < mark.pos and mark.pos <= 1)
 
 		draw-edge-line(edge-line + (marks: marks), (from, to), options)
+
 	}
 }
 
