@@ -428,6 +428,55 @@
 }
 
 
+#let draw-debug-axes(grid, options) = {
+	
+	// draw axes
+	if options.debug >= 1 {
+
+		cetz.draw.scale((
+			x: grid.scale.at(0),
+			y: grid.scale.at(1),
+		))
+
+		cetz.draw.rect(
+			(0,0),
+			grid.bounding-size,
+			stroke: DEBUG_COLOR + 0.25pt
+		)
+
+		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
+
+			for (i, x) in grid.centers.at(axis).enumerate() {
+				let size = grid.sizes.at(axis).at(i)
+
+				// coordinate label
+				cetz.draw.content(
+					coord(x, -0.4em),
+					text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
+					anchor: if axis == 0 { "top" } else { "right" }
+				)
+
+				// size bracket
+				cetz.draw.line(
+					..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
+					stroke: DEBUG_COLOR + .75pt,
+					mark: (start: "|", end: "|")
+				)
+
+				// gridline
+				cetz.draw.line(
+					coord(x, 0),
+					coord(x, grid.bounding-size.at(1 - axis)),
+					stroke: (
+						paint: DEBUG_COLOR,
+						thickness: .3pt,
+						dash: "densely-dotted",
+					),
+				)
+			}
+		}
+	}
+}
 
 #let find-node-at(nodes, pos) = {
 	nodes.filter(node => node.pos == pos)
@@ -442,81 +491,17 @@
 ) = {
 
 
-	// cetz.draw.scale((
-	// 	x: if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
-	// 	y: if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
-	// ))
-
-
 	for node in nodes {
 		draw-node(node, options)
 	}
 
 	for edge in edges {
-		let nodes = edge.points.map(find-node-at.with(nodes))
-
-		let intersection-stroke = if options.debug >= 2 {
-			(paint: DEBUG_COLOR, thickness: 0.25pt)
-		}
-
-		// assert(edge.marks.all(mark => type(mark) == dictionary), message: repr(edge))
+		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, options)
 	}
 
-	// draw axes
-	if options.debug >= 1 {
+	draw-debug-axes(grid, options)
 
-		cetz.draw.scale(
-			(
-				x: grid.scale.at(0),
-				y: grid.scale.at(1),
-			),
-		)
-		(
-			{
-				cetz.draw.rect(
-					(0,0),
-					grid.bounding-size,
-					stroke: DEBUG_COLOR + 0.25pt
-				)
-
-				for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
-
-					for (i, x) in grid.centers.at(axis).enumerate() {
-						let size = grid.sizes.at(axis).at(i)
-
-						// coord = (x, y) => coord(..(x, y).zip(grid.scale).map(((a, b)) => a*b))
-						// coord = (x, y) => element-wise-mul((x, y), grid.scale)
-
-						// coordinate label
-						cetz.draw.content(
-							coord(x, -0.4em),
-							text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-							anchor: if axis == 0 { "top" } else { "right" }
-						)
-
-						// size bracket
-						cetz.draw.line(
-							..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-							stroke: DEBUG_COLOR + .75pt,
-							mark: (start: "|", end: "|")
-						)
-
-						// gridline
-						cetz.draw.line(
-							coord(x, 0),
-							coord(x, grid.bounding-size.at(1 - axis)),
-							stroke: (
-								paint: DEBUG_COLOR,
-								thickness: .3pt,
-								dash: "densely-dotted",
-							),
-						)
-					}
-				}
-			}
-		)
-	}
 }
 
 

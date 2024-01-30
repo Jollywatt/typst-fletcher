@@ -467,7 +467,8 @@
 
 	let obj = ( 
 		class: "edge",
-		points: (options.from, options.to),
+		from: options.from,
+		to: options.to,
 		label: options.label,
 		label-pos: options.label-pos,
 		label-sep: options.label-sep,
@@ -614,7 +615,7 @@
 		if child.func() == metadata {
 			if child.value.class == "edge" {
 				let edge = child.value
-				edge.points.at(0) = default(edge.points.at(0), (x, y))
+				edge.from = default(edge.from, (x, y))
 				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
 				edges.push(edge)
 
@@ -666,17 +667,17 @@
 				prev-coord = node.pos
 				if should-set-last-edge-point {
 					// the `to` point of the previous edge is waiting to be set
-					edges.at(-1).points.at(1) = node.pos
+					edges.at(-1).to = node.pos
 					should-set-last-edge-point = false
 				}
 
 			} else if arg.value.class == "edge" {
 				let edge = arg.value
 
-				if edge.points.at(0) == auto {
-					edge.points.at(0) = prev-coord
+				if edge.from == auto {
+					edge.from = prev-coord
 				}
-				if edge.points.at(1) == auto {
+				if edge.to == auto {
 					if should-set-last-edge-point { panic("Cannot infer edge end point. Please specify explicitly.") }
 					should-set-last-edge-point = true
 				}
@@ -694,17 +695,16 @@
 	}
 
 	edges = edges.map(edge => {
-		let to = edge.points.at(1)
-		if to == auto {
-			edge.points.at(1) = vector.add(edge.points.at(0), (1, 0))
-		} else if type(to) == dictionary and "rel" in to {
+		if edge.to == auto {
+			edge.to = vector.add(edge.from, (1, 0))
+		} else if type(edge.to) == dictionary and "rel" in edge.to {
 			// Resolve relative coordinates
 			// panic(edge)
-			edge.points.at(1) = vector.add(edge.points.at(0), to.rel)
+			edge.to = vector.add(edge.from, edge.to.rel)
 		}
 
-		assert(edge.points.at(0) != auto and edge.points.at(1) != auto, message: repr(edge))
-		assert(type(edge.points.at(1)) != dictionary, message: repr(edge))
+		assert(edge.from != auto and edge.to != auto, message: repr(edge))
+		assert(type(edge.to) != dictionary, message: repr(edge))
 		edge
 	})
 
@@ -871,8 +871,10 @@
 	}
 
 	let options = (
-		spacing: spacing,
 		debug: int(debug),
+		axes: axes,
+		spacing: spacing,
+		cell-size: cell-size,
 		node-inset: node-inset,
 		node-outset: node-outset,
 		node-stroke: node-stroke,
@@ -880,12 +882,10 @@
 		node-corner-radius: node-corner-radius,
 		node-defocus: node-defocus,
 		label-sep: label-sep,
-		cell-size: cell-size,
 		edge-stroke: as-stroke(edge-stroke),
 		mark-scale: mark-scale,
 		crossing-fill: crossing-fill,
 		crossing-thickness: crossing-thickness,
-		axes: axes,
 	)
 
 	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
@@ -898,8 +898,8 @@
 	let (nodes, edges) = interpret-diagram-args(positional-args.children)
 	
 	box(style(styles => {
-
 		let options = options
+
 		options.em-size = measure(h(1em), styles).width
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
@@ -908,8 +908,8 @@
 
 		// Add dummy nodes at edge terminals
 		for edge in edges {
-			nodes.push(node(edge.points.at(0), none).value)
-			nodes.push(node(edge.points.at(1), none).value)
+			nodes.push(node(edge.from, none).value)
+			nodes.push(node(edge.to, none).value)
 		}
 
 		// Swap axes
@@ -919,7 +919,8 @@
 				node
 			})
 			edges = edges.map(edge => {
-				edge.points = edge.points.map(array.rev)
+				edge.from = edge.from.rev()
+				edge.to = edge.to.rev()
 				edge
 			})
 			options.axes = options.axes.rev()
