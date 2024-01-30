@@ -50,8 +50,9 @@
 ///
 ///  See also the `extrude` option of `edge()`.
 #let node(
-	pos,
-	label,
+	..args,
+	pos: auto,
+	label: auto,
 	inset: auto,
 	outset: auto,
 	shape: auto,
@@ -64,7 +65,21 @@
 	defocus: auto,
 	extrude: (0,),
 ) = {
-	// assert(type(pos) == array and pos.len() == 2)
+	if args.named().len() > 0 {
+		panic("Unexpected named argument(s):", args)
+	}
+	if args.pos().len() == 2 {
+		(pos, label) = args.pos()
+	} else if args.pos().len() == 1 {
+		let arg = args.pos().at(0)
+		if type(arg) == array {
+			pos = arg
+			label = none
+		} else {
+			pos = auto
+			label = arg
+		}
+	}
 
 	if type(label) == content and label.func() == circle { panic(label) }
 	metadata((
@@ -603,7 +618,11 @@
 				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
 				edges.push(edge)
 
-			} else { panic(child) }
+			} else if child.value.class == "node" {
+				let node = child.value
+				node.pos = (x, y)
+				nodes.push(node)
+			}
 		} else if repr(child.func()) == "linebreak" {
 			y += 1
 			x = 0

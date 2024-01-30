@@ -607,3 +607,14 @@ $)
 	G edge(->, f) edge("d", ->>, pi) & im(f) \
 	G slash ker(f) edge("ne", "hook-->", tilde(f))
 $)
+
+= Nodes in math-mode
+
+#diagram(
+	node-outset: 2pt,
+	node-inset: 5pt,
+	$
+		A edge(->) & node(B, fill: #blue.lighten(50%)) \
+		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
+	$,
+)
