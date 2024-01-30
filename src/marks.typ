@@ -310,7 +310,9 @@
 
 
 #let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
+
 	mark = interpret-mark(mark)
+	if mark.at("hide", default: false) { return }
 
 	let inner-len = stroke.thickness*mark.at("inner-len", default: 0)
 	let outer-len = stroke.thickness*mark.at("outer-len", default: 0)
@@ -456,7 +458,7 @@
 	let head-pt = path(t)
 	let tail-pt = path(t - Δt)
 
-	let origin-pt = if mark.rev { tail-pt } else { head-pt }
+	let origin-pt = if mark.at("rev", default: false) { tail-pt } else { head-pt }
 	let θ = vector-angle(vector.sub(head-pt, tail-pt))
 
 	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)

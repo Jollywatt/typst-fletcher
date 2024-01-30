@@ -618,3 +618,14 @@ $)
 		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
 	$,
 )
+
+= Edge paths
+
+#diagram(
+	debug: 1,
+	node((0,0), $A$),
+	node((2,1), $B$),
+	edge((0,0), (2,1), "<==>", vertices: ((1,0),(1,1)), kind: "poly",
+		extrude: (0, 5),
+	),
+)

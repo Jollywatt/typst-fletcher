@@ -395,6 +395,7 @@
 	..args,
 	from: auto,
 	to: auto,
+	vertices: (),
 	label: none,
 	label-side: auto,
 	label-pos: 0.5,
@@ -416,6 +417,7 @@
 	let options = (
 		from: from,
 		to: to,
+		vertices: vertices,
 		label: label,
 		label-pos: label-pos,
 		label-sep: label-sep,
@@ -469,6 +471,7 @@
 		class: "edge",
 		from: options.from,
 		to: options.to,
+		vertices: options.vertices,
 		label: options.label,
 		label-pos: options.label-pos,
 		label-sep: options.label-sep,
@@ -910,6 +913,7 @@
 		for edge in edges {
 			nodes.push(node(edge.from, none).value)
 			nodes.push(node(edge.to, none).value)
+			for vertex in edge.vertices { nodes.push(node(vertex, none).value) }
 		}
 
 		// Swap axes
@@ -931,6 +935,7 @@
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, options)
+		options.get-coord = grid.get-coord
 		let nodes = compute-node-positions(nodes, grid, options)
 
 		render(grid, nodes, edges, options)

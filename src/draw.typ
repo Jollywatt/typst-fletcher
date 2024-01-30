@@ -63,7 +63,7 @@
 		zip(nodes, (θ + 180deg, θ)).map(((node, θ)) => {
 			get-node-anchor(node, θ)
 		})
-	}
+	} else { panic(edge) }
 
 }
 
@@ -100,8 +100,9 @@
 		if mark == none { return 0pt }
 		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
 
-		if pos == int(mark.rev) { x -= mark.at("inner-len", default: 0) }
-		if mark.rev { x = -x - mark.at("outer-len", default: 0) }
+		let rev = mark.at("rev", default: false)
+		if pos == int(rev) { x -= mark.at("inner-len", default: 0) }
+		if rev { x = -x - mark.at("outer-len", default: 0) }
 		if pos == 0 { x += mark.at("outer-len", default: 0) }
 
 		x*edge.stroke.thickness
@@ -109,10 +110,9 @@
 }
 
 
-#let draw-edge-line(edge, nodes, options) = {
+#let draw-edge-line(edge, (from, to), options) = {
 
-	// Stroke end points, before adjusting for the arrow heads
-	let (from, to) = get-edge-anchors(edge, nodes)
+	// Stroke end points, before adjusting for the arrow head
 
 	let θ = vector-angle(vector.sub(to, from))
 
@@ -355,11 +355,134 @@
 
 }
 
+#let draw-edge-poly(edge, nodes, options) = {
+	
+
+	// let (from, to) = get-edge-anchors(edge + (kind: "line"), nodes)
+	let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(0)), nodes.at(0).real-pos))
+	let θ-to = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
+	let from = get-node-anchor(nodes.at(0), θ-from)
+	let to = get-node-anchor(nodes.at(1), θ-to)
+
+	let verts = (
+		from,
+		..edge.vertices.map(options.get-coord),
+		to,
+	)
+
+	let θs = range(verts.len() - 1).map(i => {
+		let (vert, vert-next) = (verts.at(i), verts.at(i + 1))
+		vector-angle(vector.sub(vert-next, vert))
+	})
+
+	let n-segments = verts.len() - 1
+
+
+	let edge-line = edge + (kind: "line")
+	for i in range(verts.len() - 1) {
+		let (from, to) = (verts.at(i), verts.at(i + 1))
+
+		let marks = ()
+
+
+		// // add phantom marks to ensure segment joins are clean
+		// if i > 0 {
+		// 	let Δθ = θs.at(i) - θs.at(i - 1) 
+		// 	marks.push((
+		// 		kind: "bar",
+		// 		pos: 0,
+		// 		angle: Δθ/2,
+		// 		hide: true,
+		// 	))
+		// }
+		// if i < θs.len() - 1 {
+		// 	let Δθ = θs.at(i + 1) - θs.at(i)
+		// 	marks.push((
+		// 		kind: "bar",
+		// 		pos: 1,
+		// 		angle: Δθ/2,
+		// 		hide: true,
+		// 	))
+		// }
+
+		// distribute original marks across segments
+		marks += edge.marks.map(mark => {
+			mark.pos = (mark.pos - i/n-segments)*n-segments
+			mark
+		}).filter(mark => 0 < mark.pos and mark.pos <= 1 or i == 0 and mark.pos == 0)
+
+
+
+		// round corners
+
+		let corner-radius = 2pt
+
+		if i > 0 {
+			let Δθ = θs.at(i) - θs.at(i - 1) 
+
+
+			let θ-normal = θs.at(i) - Δθ/2 + 90deg
+			let dist = if Δθ > 0deg {
+				calc.max(..edge.extrude)
+			} else {
+				calc.min(..edge.extrude)
+			}
+			dist += if Δθ > 0deg { corner-radius } else { -corner-radius }
+			let len = dist/calc.cos(Δθ/2)
+			let arc-center = vector.add(from, vector-polar(len, θ-normal))
+
+			for d in edge.extrude {
+				cetz.draw.arc(
+					arc-center,
+					radius: dist + d,
+					start: θs.at(i - 1) - 90deg,
+					stop: θs.at(i) - 90deg,
+					anchor: "center",
+					stroke: edge.stroke,
+				)
+				// cetz.draw.circle(
+				// 	arc-center,
+				// 	radius: dist + d,
+				// 	stroke: 0.1pt + green,
+				// )
+			}
+
+			let r = dist*calc.tan(Δθ/2)
+			// cetz.draw.circle(
+			// 	from,
+			// 	radius: r,
+			// 	stroke: 0.1pt + red,
+			// )
+			from = vector.add(from, vector-polar(r, θs.at(i)))
+		}
+		if i < θs.len() - 1 {
+			let Δθ = θs.at(i + 1) - θs.at(i) 
+
+
+			let θ-normal = θs.at(i) - Δθ/2 + 90deg
+			let dist = if Δθ > 0deg {
+				calc.max(..edge.extrude)
+			} else {
+				calc.min(..edge.extrude)
+			}
+			dist += if Δθ > 0deg { corner-radius } else { -corner-radius }
+			let len = dist/calc.cos(Δθ/2)
+			let arc-center = vector.add(to, vector-polar(len, θ-normal))
+
+			let r = dist*calc.tan(Δθ/2)
+			to = vector.add(to, vector-polar(-r, θs.at(i)))
+		}
+
+		draw-edge-line(edge-line + (marks: marks), (from, to), options)
+	}
+}
+
 #let draw-edge(edge, nodes, options) = {
 	edge.marks = interpret-marks(edge.marks)
-	if edge.kind == "line" { draw-edge-line(edge, nodes, options) }
+	if edge.kind == "line" { draw-edge-line(edge, get-edge-anchors(edge, nodes), options) }
 	else if edge.kind == "arc" { draw-edge-arc(edge, nodes, options) }
 	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
+	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
 	else { panic(edge.kind) }
 }
 
