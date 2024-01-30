@@ -16,5 +16,8 @@ keywords = [
 	"DAG",
 	"graph",
 	"finite state",
+	"network",
+	"node",
+	"arrow",
 ]
-exclude = ["docs/", "test/", "ideas/"]
+exclude = ["docs/", "test/"]
