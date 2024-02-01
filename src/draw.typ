@@ -380,37 +380,24 @@
 	// i literally don't know how this works
 	let calculate-rounded-corner(i) = {
 		let pt = verts.at(i)
-		let Δθ = (θs.at(i) - θs.at(i - 1))
-		let θ-normal = θs.at(i - 1) + (180deg + Δθ)/2  // direction to center of curvature
-		let r = edge.corner-radius*calc.abs(90deg/Δθ)
-		let ccw = wrap-angle(θs.at(i) - θs.at(i - 1)) > 180deg
-		r = if ccw {
-			r - calc.min(..edge.extrude)
-		} else {
-			-r - calc.max(..edge.extrude)
-		}
+		let Δθ = θs.at(i) - θs.at(i - 1)
+		let dir = sign(wrap-angle-180(Δθ)) // +1 if ccw, -1 if cw
 
-		let dist = -r/calc.cos(Δθ/2)
-		let arc-center = vector.add(pt, vector-polar(dist, θ-normal))
+		let θ-normal = θs.at(i - 1) + Δθ/2 + 90deg  // direction to center of curvature
 
-		let (start, stop) = (
-			wrap-angle(θs.at(i - 1) + 90deg),
-			wrap-angle(θs.at(i) + 90deg),
-		)
+		let radius = edge.corner-radius
+		radius *= calc.abs(90deg/Δθ) // visual adjustment so that tighter bends have smaller radii
+		radius += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) }
+		radius *= dir // ??? makes math easier or something
 
-		// (start, stop) = (stop, start) // does nothing
-		// start += 360deg
-		assert(0deg <= start and start < 360deg)
-		assert(0deg <= stop and stop < 360deg)
+		let dist = radius/calc.cos(Δθ/2)
 
-		let τ = 360deg
 		(
-			arc-center: arc-center,
-			arc-radius: r,
-			start: start,
-			stop: stop,
-			delta: wrap-angle(stop - start) + if ccw {-360deg} else {0deg},
-			line-shift: -r*calc.tan(Δθ/2), // distance from vertex to point where rounded corner starts
+			arc-center: vector.add(pt, vector-polar(dist, θ-normal)),
+			arc-radius: radius,
+			start: θs.at(i - 1) - 90deg,
+			delta: wrap-angle-180(Δθ),
+			line-shift: radius*calc.tan(Δθ/2), // distance from vertex to point where rounded corner starts
 		)
 	}
 	let spookies = if edge.corner-radius != none {
@@ -422,10 +409,12 @@
 
 	let edge-line = edge + (kind: "line")
 
-	cetz.draw.on-layer(1, cetz.draw.line(
-		..verts,
-		stroke: 0.1pt + green
-	))
+	if options.debug >= 4 {
+		cetz.draw.on-layer(1, cetz.draw.line(
+			..verts,
+			stroke: 0.1pt + green
+		))
+	}
 
 	for i in range(verts.len() - 1) {
 		let (from, to) = (verts.at(i), verts.at(i + 1))
@@ -459,13 +448,13 @@
 			}
 
 			if i < θs.len() - 1 {
-				let (arc-center, arc-radius, start, stop, delta, line-shift) = spookies.at(i)
+				let (arc-center, arc-radius, start, delta, line-shift) = spookies.at(i)
 				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
 
 				for d in edge.extrude {
 					cetz.draw.arc(
 						arc-center,
-						radius: arc-radius + d,
+						radius: arc-radius - d,
 						start: start,
 						delta: delta,
 						anchor: "center",
@@ -473,10 +462,10 @@
 					)
 
 
-					if options.debug >= -4 {
+					if options.debug >= 4 {
 						cetz.draw.on-layer(1, cetz.draw.circle(
 							arc-center,
-							radius: arc-radius + d,
+							radius: arc-radius - d,
 							stroke: 0.1pt + green,
 						))
 

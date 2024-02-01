@@ -56,7 +56,11 @@
 	)
 }
 
-#let wrap-angle(θ) = calc.rem-euclid(θ/360deg, 1)*360deg
+// Ensure angle is in range 0deg <= θ < 360deg
+#let wrap-angle-360(θ) = calc.rem-euclid(θ/360deg, 1)*360deg
+
+// Ensure angle is in range -180deg <= θ <= 180deg
+#let wrap-angle-180(θ) = (θ/360deg - calc.round(θ/360deg))*360deg
 
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)
