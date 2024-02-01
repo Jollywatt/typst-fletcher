@@ -80,6 +80,16 @@
 	vector.add(origin, vector.scale(size, dir))
 })
 
+#let bounding-rect(points) = {
+  let (xs, ys) = array.zip(..points)
+  let p1 = (calc.min(..xs), calc.min(..ys))
+  let p2 = (calc.max(..xs), calc.max(..ys))
+  (
+    center: vector.scale(vector.add(p1, p2), 0.5),
+    size: vector.sub(p2, p1)
+  )
+}
+
 #let rect-edges((x0, y0), (x1, y1)) = (
   ((x0, y0), (x1, y0)),
   ((x1, y0), (x1, y1)),
