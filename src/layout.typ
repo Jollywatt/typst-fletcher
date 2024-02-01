@@ -6,11 +6,13 @@
 	if auto not in node.size {
 		let (width, height) = node.size
 		node.radius = vector-len((width/2, height/2))
+		node.aspect = width/height
 		return node
 	}
 
 	if node.radius != auto {
 		node.size = (2*node.radius, 2*node.radius)
+		node.aspect = 1
 		return node
 	}
 
