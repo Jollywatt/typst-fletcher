@@ -621,29 +621,24 @@ $)
 
 = Edge paths
 
-// #diagram(
-// 	// debug: 4,
-// 	node((0,0), $A$),
-// 	node((2,1), $B$),
-// 	edge((0,0), (2,1), "<=|=|=>", vertices: ((1,0),(1,1),(2,2)), kind: "poly",
-// 		// corner-radius: 5pt,
-// 	),
-// )
-#diagram(
-	debug: 0,
-	mark-scale: 150%,
-	node((0,0), $A$),
-	edge(">->", vertices: (
-		(1.1,0),
-		(1,1),
-		(3,2),
-		(4,1),
-		(1.7,2),
-		(2,0),
-		(3,0),
-	), kind: "poly",
-		corner-radius: 10pt,
-		extrude: (4, 0, -2)
-	),
-	node((2,1), $B$),
-)
+
+#for radius in (none, 0pt, 10pt) {
+	diagram(
+		// debug: 4,
+		mark-scale: 150%,
+		node((0,0), $A$),
+		edge(">->", vertices: (
+			(1.1,0),
+			(1,1),
+			(3,2),
+			(4,1),
+			(1.3,2),
+			(2,0),
+			(3,0),
+		), kind: "poly",
+			corner-radius: radius,
+			extrude: (4, 0, -2)
+		),
+		node((2,1), $B$),
+	)
+}

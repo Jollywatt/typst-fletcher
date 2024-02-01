@@ -357,10 +357,10 @@
 
 #let draw-edge-poly(edge, nodes, options) = {
 
-	let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(0)), nodes.at(0).real-pos))
-	let θ-to = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
+	let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at( 0)), nodes.at(0).real-pos))
+	let θ-to   = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
 	let from = get-node-anchor(nodes.at(0), θ-from)
-	let to = get-node-anchor(nodes.at(1), θ-to)
+	let to   = get-node-anchor(nodes.at(1), θ-to)
 
 	let verts = (
 		from,
@@ -369,6 +369,7 @@
 	)
 	let n-segments = verts.len() - 1
 
+	// angles of each segment
 	let θs = range(1, verts.len()).map(i => {
 		let (vert, vert-next) = (verts.at(i - 1), verts.at(i))
 		vector-angle(vector.sub(vert-next, vert))
@@ -390,24 +391,24 @@
 		radius += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) }
 		radius *= dir // ??? makes math easier or something
 
-		let dist = radius/calc.cos(Δθ/2)
+		let dist = radius/calc.cos(Δθ/2) // distance from vertex to center of curvature
 
 		(
 			arc-center: vector.add(pt, vector-polar(dist, θ-normal)),
 			arc-radius: radius,
 			start: θs.at(i - 1) - 90deg,
 			delta: wrap-angle-180(Δθ),
-			line-shift: radius*calc.tan(Δθ/2), // distance from vertex to point where rounded corner starts
+			line-shift: radius*calc.tan(Δθ/2), // distance from vertex to beginning of arc
 		)
 	}
-	let spookies = if edge.corner-radius != none {
-		range(1, θs.len()).map(calculate-rounded-corner)
+
+	let rounded-corners
+	if edge.corner-radius != none {
+		rounded-corners = if edge.corner-radius != none {
+			range(1, θs.len()).map(calculate-rounded-corner)
+		}
 	}
 	
-
-
-
-	let edge-line = edge + (kind: "line")
 
 	if options.debug >= 4 {
 		cetz.draw.on-layer(1, cetz.draw.line(
@@ -421,6 +422,7 @@
 		let marks = ()
 
 		if edge.corner-radius == none {
+
 			// add phantom marks to ensure segment joins are clean
 			if i > 0 {
 				let Δθ = θs.at(i) - θs.at(i - 1) 
@@ -443,12 +445,12 @@
 		} else { // rounded corners
 
 			if i > 0 {
-				let (line-shift,) = spookies.at(i - 1)
+				let (line-shift,) = rounded-corners.at(i - 1)
 				from = vector.add(from, vector-polar(line-shift, θs.at(i)))
 			}
 
 			if i < θs.len() - 1 {
-				let (arc-center, arc-radius, start, delta, line-shift) = spookies.at(i)
+				let (arc-center, arc-radius, start, delta, line-shift) = rounded-corners.at(i)
 				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
 
 				for d in edge.extrude {
@@ -482,7 +484,7 @@
 			mark
 		}).filter(mark => i == 0 and mark.pos == 0 or 0 < mark.pos and mark.pos <= 1)
 
-		draw-edge-line(edge-line + (marks: marks), (from, to), options)
+		draw-edge-line(edge + (kind: "line", marks: marks), (from, to), options)
 
 	}
 }
