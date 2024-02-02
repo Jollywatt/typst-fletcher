@@ -601,6 +601,19 @@ $)
 	edge((0,1), (1,0), $tilde(f)$, "hook-->")
 )
 
+= Nodes in math-mode
+
+#diagram(
+	node-outset: 2pt,
+	node-inset: 5pt,
+	node-corner-radius: 2pt,
+	$
+		A edge(->) & node(sqrt(B), fill: #blue.lighten(70%), inset: #10pt) \
+		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
+		edge(#(1,0), "..||..")
+	$,
+)
+
 = Relative node coordinates
 
 #diagram($
@@ -608,16 +621,26 @@ $)
 	G slash ker(f) edge("ne", "hook-->", tilde(f))
 $)
 
-= Nodes in math-mode
+$
+#block(diagram($
+	(0,0) edge(#(0,1), #(rel: (0, -1)), ->) & // first non-relative coordinate becomes `from`...
+	(1,0) edge(#(0,1), "=>") \ // ...unless it is the only coordinate, in which case it becomes `to`
+	(0,1) edge(#(0,0), "dr", "..>") &
+	(1,1) edge("u", "-->") // if a single relative coordinate is given, set `from: auto`
+$))
+equiv
+#block(diagram(
+	node((0,0), $(0,0)$),
+	node((1,0), $(1,0)$),
+	node((0,1), $(0,1)$),
+	node((1,1), $(1,1)$),
 
-#diagram(
-	node-outset: 2pt,
-	node-inset: 5pt,
-	$
-		A edge(->) & node(B, fill: #blue.lighten(50%)) \
-		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
-	$,
-)
+	edge((0,1), (0,0), "->"),
+	edge((1,0), (0,1), "=>"),
+	edge((0,0), (1,1), "..>"),
+	edge((1,1), (1,0), "-->"),
+))
+$
 
 = Edge paths
 
@@ -642,3 +665,7 @@ $)
 		node((2,1), $B$),
 	)
 }
+
+#diagram(debug: 4, $
+	A edge("u,rr,dd,l,u", ->>) & B edge("dl,r,ul", "=")
+$)

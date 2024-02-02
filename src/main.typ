@@ -120,7 +120,7 @@
 
 	let is-coord(arg) = type(arg) == array and arg.len() == 2
 	let is-rel-coord(arg) = is-coord(arg) or (
-		type(arg) == str and arg.match(regex("^[utdblrnsew]+$")) != none or
+		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
 		type(arg) == dictionary and "rel" in arg
 	)
 
@@ -139,11 +139,27 @@
 	}
 
 	// Up to the first two arguments may be coordinates
- 	if peek(pos, is-coord, is-rel-coord) {
-		new-args.from = pos.remove(0)
-		new-args.to = pos.remove(0)
-	} else if peek(pos, is-rel-coord) {
-		new-args.to = pos.remove(0)
+	let anchor = auto
+	let tail-points = ()
+
+	if peek(pos, is-coord) or pos.at(0) == auto {
+		anchor = pos.remove(0)
+	}
+	while peek(pos, is-rel-coord) {
+		if type(pos.at(0)) == str {
+			tail-points += pos.remove(0).split(",")
+		} else {
+			tail-points.push(pos.remove(0))
+		}
+	}
+
+	if tail-points.len() == 0 {
+		new-args.from = auto
+		new-args.to = anchor
+	} else {
+		new-args.from = anchor
+		new-args.vertices = tail-points.slice(0, -1)
+		new-args.to = tail-points.at(-1, default: auto)
 	}
 
 	// if peek(pos, is-arrow) {
@@ -406,7 +422,7 @@
 	kind: auto,
 	bend: 0deg,
 	corner: none,
-	corner-radius: none,
+	corner-radius: 4pt,
 	marks: (none, none),
 	mark-scale: 100%,
 	extrude: (0,),
@@ -442,7 +458,8 @@
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
-	if type(options.to) == str {
+	let interpret-coord-str(coord) = {
+		if type(coord) != str { return coord }
 		let rel = (0, 0)
 		let dirs = (
 			"t": ( 0,-1), "n": ( 0,-1), "u": ( 0,-1),
@@ -450,11 +467,13 @@
 			"l": (-1, 0), "w": (-1, 0),
 			"r": (+1, 0), "e": (+1, 0),
 		)
-		for char in options.to.clusters() {
+		for char in coord.clusters() {
 			rel = vector.add(rel, dirs.at(char))
 		}
-		options.to = (rel: rel)
+		(rel: rel)
 	}
+	options.to = interpret-coord-str(options.to)
+	options.vertices = options.vertices.map(interpret-coord-str)
 	
 	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
 	options.stroke = as-stroke((
@@ -562,7 +581,8 @@
 			}
 
 			if edge.kind == auto {
-				if edge.corner != none { edge.kind = "corner" }
+				if edge.vertices.len() > 0 { edge.kind = "poly" }
+				else if edge.corner != none { edge.kind = "corner" }
 				else if edge.bend != 0deg { edge.kind = "arc" }
 				else { edge.kind = "line" }
 			}
@@ -686,12 +706,22 @@
 	}
 
 	edges = edges.map(edge => {
+
+		for i in range(edge.vertices.len()) {
+			let prev = if i == 0 { edge.from } else { edge.vertices.at(i - 1) }
+			if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
+				edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
+			}
+		}
+
+		let prev = edge.vertices.at(-1, default: edge.from)
 		if edge.to == auto {
-			edge.to = vector.add(edge.from, (1, 0))
+			edge.to = vector.add(prev, (1, 0))
 		} else if type(edge.to) == dictionary and "rel" in edge.to {
 			// Resolve relative coordinates
-			edge.to = vector.add(edge.from, edge.to.rel)
+			edge.to = vector.add(prev, edge.to.rel)
 		}
+
 
 		assert(edge.from != auto and edge.to != auto, message: repr(edge))
 		assert(type(edge.to) != dictionary, message: repr(edge))
