@@ -115,7 +115,6 @@ Compare #text(result-color)[our output] to the #text(target-color)[reference sym
 			text(target-color, $arrow.hook$),
 			"hook->",
 			stroke: result-color,
-			label-side: right,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 			label-pos: 0.51,
@@ -266,6 +265,27 @@ $
 	}).join()
 )
 
+
+= Label side
+
+#diagram(spacing: 1.5cm, {
+	for (i, a) in (left, center, right).enumerate() {
+		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
+		}
+	}
+})
+
+
+#diagram(spacing: (3cm, 1cm), {
+	for (i, a) in (left, center, right).enumerate() {
+		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+			edge((j, 2*i), (j, 2*i - 1), label: a, "->", label-side: a, bend: θ)
+		}
+	}
+})
+
+
 = Automatic label placement
 Default placement above the line.
 
@@ -291,14 +311,6 @@ Reversed $y$-axis:
 	}
 })
 
-
-#diagram(spacing: 1.5cm, {
-	for (i, a) in (left, center, right).enumerate() {
-		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
-			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
-		}
-	}
-})
 
 
 = Crossing connectors
@@ -505,7 +517,7 @@ $ b^2 $
 			axes: axes,
 			debug: 1,
 			node((0,0), $(0,0)$),
-			edge((0,0), (1,0), "hook->", bend: 20deg),
+			edge((0,0), (1,0), "hook->"),
 			node((1,0), $(1,0)$),
 			node((1,1), $(1,1)$),
 			node((0.5,0.5), raw(repr(axes))),

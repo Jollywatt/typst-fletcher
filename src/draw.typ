@@ -153,10 +153,10 @@
 		// Choose label anchor based on connector direction,
 		// preferring to place labels above the edge
 		if edge.label-side == auto {
-			edge.label-side = if calc.abs(θ) > 90deg { left } else { right }
+			edge.label-side = if calc.abs(θ) < 90deg { left } else { right }
 		}
 
-		let label-dir = if edge.label-side == right { +1 } else { -1 }
+		let label-dir = if edge.label-side == left { +1 } else { -1 }
 
 		if edge.label-anchor == auto {
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
