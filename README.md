@@ -46,7 +46,7 @@ $)
 )
 ```
 
-## Todo
+## Todo/wishlist
 
 - [x] Mathematical arrow styles
 - [x] Also allow `&`-delimited equations for specifying nodes
@@ -55,6 +55,9 @@ $)
 - [ ] Allow referring to node coordinates by their content?
 - [ ] Support loops connecting a node to itself
 - [x] More ergonomic syntax to avoid repeating coordinates?
+- [ ] Poly-edges with multiple segments
+- [ ] Add way to adjust edge connection points whil still having them snap to node edges
+- [ ] Zig-zags and waves
 
 ## Change log
 
