@@ -48,8 +48,6 @@
 		node.radius = radius
 	}
 
-
-
 	node
 })
 

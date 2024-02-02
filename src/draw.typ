@@ -21,6 +21,11 @@
 
 	} else if node.shape == "rect" {
 		let origin = node.real-pos
+
+		// this is for the "defocus adjustment"
+		// basically, for very long/wide nodes, don't make edges coming in from
+		// all angles go to the exact node center, but "spread them out" a bit.
+		// https://www.desmos.com/calculator/irt0mvixky
 		let μ = calc.pow(node.aspect, node.defocus)
 		let origin-δ = (
 			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),

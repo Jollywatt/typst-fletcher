@@ -477,6 +477,7 @@
 
 	assert(type(obj.marks) == array, message: repr(obj))
 
+	// for the crossing effect, add another edge underneath
 	if options.crossing {
 		metadata((
 			..obj,
@@ -487,7 +488,8 @@
 	metadata(obj)
 }
 
-
+// Ensure all node and edge attributes are complete and consistent,
+// resolving relative lengths and so on.
 #let apply-defaults(nodes, edges, options) = {
 	let to-pt(len) = if type(len) == length {
 		len.abs + len.em*options.em-size
@@ -688,7 +690,6 @@
 			edge.to = vector.add(edge.from, (1, 0))
 		} else if type(edge.to) == dictionary and "rel" in edge.to {
 			// Resolve relative coordinates
-			// panic(edge)
 			edge.to = vector.add(edge.from, edge.to.rel)
 		}
 
