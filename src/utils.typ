@@ -110,12 +110,39 @@
 	panic("didn't intersect", rect, line)
 }
 
+#let intersect-diamond-with-crossing-line(rect, line) = {
+	rect = rect.map(vector-unitless)
+	line = line.map(vector-unitless)
+
+   let x0 = rect.at(0).at(0)
+   let x1 = rect.at(1).at(0)
+   let dx = (x1 - x0)/2
+
+   let y0 = rect.at(0).at(1)
+   let y1 = rect.at(1).at(1)
+   let dy = (y1 - y0)/2
+
+   let diamond = (
+     ((x0, y0 + dy), (x0 + dx, y1)),
+     ((x0 + dx, y1), (x1, y0 + dy)),
+     ((x1, y0 + dy), (x0 + dx, y0)),
+     ((x0 + dx, y0), (x0, y0 + dy)),
+   )
+
+	for (p1, p2) in diamond {
+		let meet = draw.intersection.line-line(p1, p2, ..line)
+		if meet != none {
+			return vector-2d(vector.scale(meet, 1pt))
+		}
+	}
+	panic("didn't intersect", rect, line)
+}
 
 /// Determine arc between two points with a given bend angle
 ///
 /// The bend angle is the angle between chord of the arc (line connecting the
 /// points) and the tangent to the arc and the first point.
-/// 
+///
 /// Returns a dictionary containing:
 /// - `center`: the center of the arc's curvature
 /// - `radius`

@@ -33,6 +33,20 @@
 
 		intersect-rect-with-crossing-line(node.outer-rect, crossing-line)
 
+	} else if node.shape == "diamond" {
+		let origin = node.real-pos
+		let μ = calc.pow(node.aspect, node.defocus)
+		let origin-δ = (
+			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
+			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
+		)
+		let crossing-line = (
+			vector.add(origin, origin-δ),
+			vector.add(origin, vector-polar(1e3*node.radius, θ)),
+		)
+
+		intersect-diamond-with-crossing-line(node.outer-rect, crossing-line)
+
 	} else { panic(node.shape) }
 }
 
@@ -59,7 +73,7 @@
 
 		return points
 	} else if edge.kind == "corner" {
-		
+
 		zip(nodes, (θ + 180deg, θ)).map(((node, θ)) => {
 			get-node-anchor(node, θ)
 		})
@@ -125,7 +139,7 @@
 				vector.add(
 					// Shift end points lengthways depending on markers
 					vector-polar(offset, θ),
-					// Shift line sideways (for double line effects, etc) 
+					// Shift line sideways (for double line effects, etc)
 					vector-polar(shift, θ + 90deg),
 				)
 			))
@@ -156,7 +170,7 @@
 		if edge.label-anchor == auto {
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
-	
+
 		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
 		let label-pos = vector.add(
 			vector.lerp(from, to, edge.label-pos),
@@ -166,7 +180,7 @@
 	}
 
 
-	
+
 }
 
 #let draw-edge-arc(edge, nodes, options) = {
@@ -217,7 +231,7 @@
 			// Choose label anchor based on connector direction
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
-		
+
 		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
 		let label-pos = vector.add(
 			center,
@@ -257,7 +271,7 @@
 
 
 #let draw-edge-corner(edge, nodes, options) = {
-	
+
 	let θ = vector-angle(vector.sub(nodes.at(1).real-pos, nodes.at(0).real-pos))
 	let θ-floor = calc.floor(θ/90deg)*90deg
 	let θ-ceil = calc.ceil(θ/90deg)*90deg
@@ -296,7 +310,7 @@
 	// Compute the three points of the right angle,
 	// taking into account extrusions and mark offsets
 	let get-vertices(shift) = {
-		
+
 		// normal vectors to the (first, second) segment
 		let (a, b) = cap-angles.map(θ => vector-polar(shift, θ + 90deg))
 
@@ -518,6 +532,25 @@
 					)
 				)
 			}
+			if node.shape == "diamond" {
+				let x0 = node.real-pos.at(0)
+				let x1 = node.real-pos.at(0) - (node.size.at(0) / 2)
+				let x2 = node.real-pos.at(0) + (node.size.at(0) / 2)
+
+				let y0 = node.real-pos.at(1)
+				let y1 = node.real-pos.at(1) + (node.size.at(1) / 2)
+				let y2 = node.real-pos.at(1) - (node.size.at(1) / 2)
+
+				cetz.draw.line(
+          (x1, y0),
+          (x0, y1),
+          (x2, y0),
+          (x0, y2),
+          close: true,
+          stroke: node.stroke,
+          fill: fill,
+				)
+			}
 			if node.shape == "circle" {
 				cetz.draw.content(
 					node.real-pos,
@@ -548,6 +581,12 @@
 
 	// node bounding shapes
 	if options.debug >= 3 and node.shape == "rect" {
+		cetz.draw.rect(
+			..node.rect,
+			stroke: DEBUG_COLOR + 0.25pt,
+		)
+	}
+	if options.debug >= 3 and node.shape == "diamond" {
 		cetz.draw.rect(
 			..node.rect,
 			stroke: DEBUG_COLOR + 0.25pt,
@@ -638,5 +677,3 @@
 	draw-debug-axes(grid, options)
 
 }
-
-
