@@ -487,18 +487,26 @@ It can also be handy to specify the direction of an edge, instead of its end coo
 == Edge types
 
 Currently, there are three different `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
-If a `bend: <angle>` is specified, the `kind` defaults to `"arc"`.
-All nodes have a start and end point (`from` and `to`), they can also have an array of additional `vertices`.
-
-
+All nodes have a start and end point (`from` and `to`), and `"poly"` edges can also have an array of additional `vertices`.
+The `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if any `vertices` are given.
 
 #code-example-row(```typ
 #fletcher.diagram(
+	debug: 1,
 	edge((0,0), (1,1), "->", `line`),
-	edge((2,0), (3,1), "->", bend: 20deg, `arc`),
+	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
 	edge((0,2), (3,3), vertices: ((1,2), (2,3)), "->", `poly`),
 )
 ```)
+
+An alternative way to specify `vertices` is by providing multiple coordinates: `edge(A, B, C, D)` is the same as `edge(from: A, to: D, vertices: (B, C))` if the arguments are all coordinates.
+An edge's `vertices` and `to` coordinates can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
+
+```typc
+edge((0,2), (rel: (1,0)), (rel: (1,1)), (rel: (1,0)), "->", `poly`)
+edge((0,2), "r", "rd", "r", "->", `poly`) // use relative coordinate names
+edge((0,2), "r,rd,r", "->", `poly`) // shorthand
+```
 
 == The `defocus` adjustment
 
