@@ -531,7 +531,6 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 		}
 	}
 }))
-]
 
 Some other marks are supported, and can be placed anywhere along the edge.
 

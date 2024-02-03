@@ -386,8 +386,8 @@
 	// i literally don't know how this works
 	let calculate-rounded-corner(i) = {
 		let pt = verts.at(i)
-		let Δθ = θs.at(i) - θs.at(i - 1)
-		let dir = sign(wrap-angle-180(Δθ)) // +1 if ccw, -1 if cw
+		let Δθ = wrap-angle-180(θs.at(i) - θs.at(i - 1))
+		let dir = sign(Δθ) // +1 if ccw, -1 if cw
 
 		let θ-normal = θs.at(i - 1) + Δθ/2 + 90deg  // direction to center of curvature
 

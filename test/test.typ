@@ -678,6 +678,6 @@ $
 	)
 }
 
-#diagram(debug: 4, $
-	A edge("u,rr,dd,l,u", ->>) & B edge("dl,r,ul", "=")
+#diagram(debug: 4, spacing: (2cm, 1cm), $
+	A edge("u,r,rdd,l,u", ->>) & B edge("dl,r,ul", "=")
 $)
