@@ -1,4 +1,3 @@
-#import calc: floor, ceil, min, max
 #import "utils.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
@@ -65,9 +64,8 @@
 	defocus: auto,
 	extrude: (0,),
 ) = {
-	if args.named().len() > 0 {
-		panic("Unexpected named argument(s):", args)
-	}
+	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+
 	if args.pos().len() == 2 {
 		(pos, label) = args.pos()
 	} else if args.pos().len() == 1 {
@@ -112,26 +110,20 @@
 /// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
 /// <options> = any number of options specified as strings
 /// ```
-#let interpret-edge-args(args) = {
-	if args.named().len() > 0 {
-		panic("Unexpected named argument(s):", args)
-	}
+#let interpret-edge-args(args, options) = {
+	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+	let pos = args.pos()
 
-
+	// predicates to detect the kind of a positional argument
 	let is-coord(arg) = type(arg) == array and arg.len() == 2
 	let is-rel-coord(arg) = is-coord(arg) or (
 		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
 		type(arg) == dictionary and "rel" in arg
 	)
-
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
 	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
-	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg)
-
-
-	let pos = args.pos()
-	let new-args = (:)
+	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
 
 	let peek(x, ..predicates) = {
 		let preds = predicates.pos()
@@ -154,51 +146,61 @@
 	}
 
 	if other-coords.len() == 0 {
-		new-args.from = auto
-		new-args.to = first-coord
+		options.from = auto
+		options.to = first-coord
 	} else {
-		new-args.from = first-coord
-		new-args.vertices = other-coords.slice(0, -1)
-		new-args.to = other-coords.at(-1, default: auto)
+		options.from = first-coord
+		let (..verts, to) = other-coords
+		if options.vertices == () {
+			options.vertices = verts
+		} else if verts != () { panic("Vertices cannot be specified by both positional and named arguments.") }
+		options.to = to
 	}
 
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
-		new-args.marks = pos.remove(0)
-		new-args.label = pos.remove(0)
+		options.marks = pos.remove(0)
+		options.label = pos.remove(0)
 	} else if peek(pos, maybe-label, maybe-marks) {
-		new-args.label = pos.remove(0)
-		new-args.marks = pos.remove(0)
+		options.label = pos.remove(0)
+		options.marks = pos.remove(0)
 	} else if peek(pos, maybe-label) {
-		new-args.label = pos.remove(0)
+		options.label = pos.remove(0)
 	} else if peek(pos, maybe-marks) {
-		new-args.marks = pos.remove(0)
+		options.marks = pos.remove(0)
 	}
 
 	while peek(pos, is-edge-option) {
-		new-args += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
+		options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
 	}
 
 	// If label hasn't already been found, broaden search to accept strings as labels
-	if "label" not in new-args and peek(pos, x => type(x) == str) {
-		new-args.label = pos.remove(0)	
+	if "label" not in options and peek(pos, x => type(x) == str) {
+		options.label = pos.remove(0)
 	}
 
 	if pos.len() > 0 {
-		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", new-args)
+		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", options)
 	}
 
-	new-args
+	options
+
+
+	// let unset-values = (to: auto, from: auto, vertices: (), label: none, marks: (none, none))
+	// for (key, value) in interpreted-options {
+	// 	if key in unset-values {
+	// 		let unset = unset-values.at(key)
+	// 		if value == unset { continue }
+	// 		else if options.at(key) != unset {
+	// 			panic("Positional argument " + repr(value) + " is interpreted as '" + key + "' which is already given.")
+	// 		}
+	// 	}
+	// 	options.at(key) = value
+	// }
 }
 
 /// Draw a connecting line or arc in an arrow diagram.
 ///
-/// - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
-///  a node at that point, the connector is adjusted to begin at the node's
-///  bounding rectangle/circle.
-/// - to (elastic coord): End coordinate `(x, y)` of connector. If there is a 
-///  node at that point, the connector is adjusted to end at the node's bounding
-///  rectangle/circle.
 ///
 /// - ..args (any): The connector's `label` and `marks` named arguments can also
 ///  be specified as positional arguments. For example, the following are equivalent:
@@ -208,6 +210,13 @@
 ///  edge((0,0), (1,0), "->", label: $f$)
 ///  edge((0,0), (1,0), label: $f$, marks: "->")
 ///  ```
+///   TODO
+///   - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
+///    a node at that point, the connector is adjusted to begin at the node's
+///    bounding rectangle/circle.
+///   - to (elastic coord): End coordinate `(x, y)` of connector. If there is a 
+///    node at that point, the connector is adjusted to end at the node's bounding
+///    rectangle/circle.
 /// 
 /// - label-pos (number): Position of the label along the connector, from the
 ///  start to end (from `0` to `1`).
@@ -405,8 +414,6 @@
 ///
 #let edge(
 	..args,
-	from: auto,
-	to: auto,
 	vertices: (),
 	label: none,
 	label-side: auto,
@@ -428,8 +435,8 @@
 ) = {
 
 	let options = (
-		from: from,
-		to: to,
+		from: auto, // set with positional args
+		to: auto,
 		vertices: vertices,
 		label: label,
 		label-pos: label-pos,
@@ -450,20 +457,7 @@
 		crossing-fill: crossing-fill,
 	)
 
-	let interpreted-options = interpret-edge-args(args)
-
-	let unset-values = (to: auto, from: auto, vertices: (), label: none, marks: (none, none))
-	for (key, value) in interpreted-options {
-		if key in unset-values {
-			let unset = unset-values.at(key)
-			if value == unset { continue }
-			else if options.at(key) != unset {
-				panic("Positional argument " + repr(value) + " is interpreted as '" + key + "' which is already given.")
-			}
-		}
-		options.at(key) = value
-	}
-	// options += interpreted-options
+	options = interpret-edge-args(args, options)
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
