@@ -451,15 +451,19 @@
 	)
 
 	let interpreted-options = interpret-edge-args(args)
-	// options = interpreted-options + options // named arguments take precedence
-	// options += interpreted-options
-	for (key, unset) in (to: auto, from: auto, vertices: (), label: none, marks: (none, none)) {
-		if options.at(key) == unset {
-			options.at(key) = interpreted-options.at(key, default: unset)
-		} else if interpreted-options.at(key, default: unset) != unset {
-			panic("Edge argument '" + key + "' spcified both as positional and named argument. Please specify once.")
+
+	let unset-values = (to: auto, from: auto, vertices: (), label: none, marks: (none, none))
+	for (key, value) in interpreted-options {
+		if key in unset-values {
+			let unset = unset-values.at(key)
+			if value == unset { continue }
+			else if options.at(key) != unset {
+				panic("Positional argument " + repr(value) + " is interpreted as '" + key + "' which is already given.")
+			}
 		}
+		options.at(key) = value
 	}
+	// options += interpreted-options
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands

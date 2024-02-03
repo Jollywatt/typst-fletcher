@@ -670,10 +670,17 @@ The tail length (specified in multiples of the stroke thickness) is the distance
 This is visualised by the green line shown above.
 The mark is rotated so that the ends of the line both lie on the arc.
 
+#pagebreak()
+
 = CeTZ integration
-Currently, only straight, arc and right-angled connectors are supported.
+
+
+Fletcher's drawing cababilities are deliberately restricted to a few simple building blocks.
 However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
 
+== Bézier edges
+
+Currently, only straight, arc and right-angled connectors are supported.
 Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes and draw arrow heads:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
@@ -708,6 +715,8 @@ Here is an example of how you might hack together a Bézier connector using the 
 	}
 )
 ```))
+
+== Node groups
 
 Here is another example of how you could automatically draw "node groups" around selected nodes.
 First, we find all nodes of a certain fill, get their actual coordinates, and then draw a rectangle around their bounding box.
