@@ -484,6 +484,22 @@ It can also be handy to specify the direction of an edge, instead of its end coo
 #fletcher.diagram($ A edge("rr", ->, bend: #30deg) & B & C $)
 ```)
 
+== Edge types
+
+Currently, there are three different `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
+If a `bend: <angle>` is specified, the `kind` defaults to `"arc"`.
+All nodes have a start and end point (`from` and `to`), they can also have an array of additional `vertices`.
+
+
+
+#code-example-row(```typ
+#fletcher.diagram(
+	edge((0,0), (1,1), "->", `line`),
+	edge((2,0), (3,1), "->", bend: 20deg, `arc`),
+	edge((0,2), (3,3), vertices: ((1,2), (2,3)), "->", `poly`),
+)
+```)
+
 == The `defocus` adjustment
 
 For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.

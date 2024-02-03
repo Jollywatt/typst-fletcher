@@ -5,6 +5,8 @@
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 
+// #panic(edge((0,0), (1,0), vertices: ((2,3),), marks: (none, "head")).value)
+
 
 = Connectors
 

@@ -422,6 +422,13 @@
 		))
 	}
 
+	let scaled-label-pos = edge.label-pos*n-segments
+
+	let lerp-scale(t, i) = {
+		let τ = t*n-segments - i
+		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
+	}
+
 	for i in range(verts.len() - 1) {
 		let (from, to) = (verts.at(i), verts.at(i + 1))
 		let marks = ()
@@ -485,11 +492,16 @@
 
 		// distribute original marks across segments
 		marks += edge.marks.map(mark => {
-			mark.pos = (mark.pos - i/n-segments)*n-segments
+			mark.pos = lerp-scale(mark.pos, i)
 			mark
-		}).filter(mark => i == 0 and mark.pos == 0 or 0 < mark.pos and mark.pos <= 1)
+		}).filter(mark => mark.pos != none)
 
-		draw-edge-line(edge + (kind: "line", marks: marks), (from, to), options)
+		let label-pos = lerp-scale(edge.label-pos, i)
+		if label-pos == none {
+			draw-edge-line(edge + (kind: "line", marks: marks, label: none), (from, to), options)
+		} else {
+			draw-edge-line(edge + (kind: "line", marks: marks, label-pos: label-pos, label: edge.label), (from, to), options)
+		}
 
 	}
 }

@@ -139,32 +139,28 @@
 	}
 
 	// Up to the first two arguments may be coordinates
-	let anchor = auto
-	let tail-points = ()
+	let first-coord = auto
+	let other-coords = ()
 
 	if peek(pos, is-coord) or pos.at(0) == auto {
-		anchor = pos.remove(0)
+		first-coord = pos.remove(0)
 	}
 	while peek(pos, is-rel-coord) {
 		if type(pos.at(0)) == str {
-			tail-points += pos.remove(0).split(",")
+			other-coords += pos.remove(0).split(",")
 		} else {
-			tail-points.push(pos.remove(0))
+			other-coords.push(pos.remove(0))
 		}
 	}
 
-	if tail-points.len() == 0 {
+	if other-coords.len() == 0 {
 		new-args.from = auto
-		new-args.to = anchor
+		new-args.to = first-coord
 	} else {
-		new-args.from = anchor
-		new-args.vertices = tail-points.slice(0, -1)
-		new-args.to = tail-points.at(-1, default: auto)
+		new-args.from = first-coord
+		new-args.vertices = other-coords.slice(0, -1)
+		new-args.to = other-coords.at(-1, default: auto)
 	}
-
-	// if peek(pos, is-arrow) {
-	// 	new-args.marks = MARK_SYMBOL_ALIASES.at(pos.remove(0))
-	// }
 
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
@@ -422,7 +418,7 @@
 	kind: auto,
 	bend: 0deg,
 	corner: none,
-	corner-radius: 4pt,
+	corner-radius: 2.5pt,
 	marks: (none, none),
 	mark-scale: 100%,
 	extrude: (0,),
@@ -454,7 +450,16 @@
 		crossing-fill: crossing-fill,
 	)
 
-	options += interpret-edge-args(args)
+	let interpreted-options = interpret-edge-args(args)
+	// options = interpreted-options + options // named arguments take precedence
+	// options += interpreted-options
+	for (key, unset) in (to: auto, from: auto, vertices: (), label: none, marks: (none, none)) {
+		if options.at(key) == unset {
+			options.at(key) = interpreted-options.at(key, default: unset)
+		} else if interpreted-options.at(key, default: unset) != unset {
+			panic("Edge argument '" + key + "' spcified both as positional and named argument. Please specify once.")
+		}
+	}
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
