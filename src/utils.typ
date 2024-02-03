@@ -65,15 +65,24 @@
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)
 	(
-		"right",
-		"top-right",
-		"top",
-		"top-left",
-		"left",
-		"bottom-left",
-		"bottom",
-		"bottom-right",
+		// "right",
+		// "top-right",
+		// "top",
+		// "top-left",
+		// "left",
+		// "bottom-left",
+		// "bottom",
+		// "bottom-right",
+	  "east",
+	  "north-east",
+	  "north",
+	  "north-west",
+	  "west",
+	  "south-west",
+	  "south",
+	  "south-east",
 	).at(int(calc.round(i)))
+
 }
 
 #let rect-at(origin, size) = (-1, +1).map(dir => {

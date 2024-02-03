@@ -1,4 +1,3 @@
-#import "@preview/cetz:0.1.2"
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 
 #set page(width: 10cm, height: auto)
@@ -6,7 +5,6 @@
 
 
 // #panic(edge((0,0), (1,0), vertices: ((2,3),), marks: (none, "head")).value)
-
 
 = Connectors
 
@@ -35,7 +33,6 @@
 })
 
 #diagram(
-	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
 	edge((0,0), (1,0), bend: 45deg, marks: ">->"),
@@ -359,7 +356,7 @@ Reversed $y$-axis:
 	node((0,1), $A$, stroke: 1pt),
 	node((2,0), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
-		cetz.canvas({
+		fletcher.cetz.canvas({
 			fletcher.draw-diagram(grid, nodes, edges, options)
 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
@@ -368,12 +365,12 @@ Reversed $y$-axis:
 			let n2 = fletcher.find-node-at(nodes, (2,0))
 			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
-			let c1 = cetz.vector.add(p1, vector-polar(20pt, 0deg))
-			let c2 = cetz.vector.add(p2, vector-polar(70pt, -90deg))
+			let c1 = fletcher.cetz.vector.add(p1, vector-polar(20pt, 0deg))
+			let c2 = fletcher.cetz.vector.add(p2, vector-polar(70pt, -90deg))
 
 			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
 
-			cetz.draw.bezier(p1, p2, c1, c2)
+			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
 		})
 	}
 )
@@ -435,6 +432,7 @@ Reversed $y$-axis:
 		}
 	))
 }
+
 
 = Double node strokes
 
@@ -683,3 +681,4 @@ $
 #diagram(debug: 4, spacing: (2cm, 1cm), $
 	A edge("u,r,rdd,l,u", ->>) & B edge("dl,r,ul", "=")
 $)
+

@@ -1,4 +1,3 @@
-#import "@preview/cetz:0.1.2" as cetz: vector
 #import "utils.typ": *
 #import "marks.typ": *
 
@@ -197,7 +196,7 @@
 			radius: radius + shift,
 			start: start + δ-start,
 			stop: stop + δ-stop,
-			anchor: "center",
+			anchor: "origin",
 			stroke: edge.stroke,
 		)
 	}
@@ -251,7 +250,7 @@
 			radius: radius,
 			start: start,
 			stop: stop,
-			anchor: "center",
+			anchor: "origin",
 			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
 		)
 
@@ -471,7 +470,7 @@
 						radius: arc-radius - d,
 						start: start,
 						delta: delta,
-						anchor: "center",
+						anchor: "origin",
 						stroke: edge.stroke,
 					)
 
@@ -585,16 +584,18 @@
 	// draw axes
 	if options.debug >= 1 {
 
-		cetz.draw.scale((
+		cetz.draw.scale(
 			x: grid.scale.at(0),
 			y: grid.scale.at(1),
-		))
-
-		cetz.draw.rect(
-			(0,0),
-			grid.bounding-size,
-			stroke: DEBUG_COLOR + 0.25pt
 		)
+		// cetz panics if rect is zero area
+		if grid.bounding-size.all(x => x != 0pt) {
+			cetz.draw.rect(
+				(0,0),
+				grid.bounding-size,
+				stroke: DEBUG_COLOR + 0.25pt
+			)
+		}
 
 		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
 
@@ -605,7 +606,7 @@
 				cetz.draw.content(
 					coord(x, -0.4em),
 					text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-					anchor: if axis == 0 { "top" } else { "right" }
+					anchor: if axis == 0 { "north" } else { "east" }
 				)
 
 				// size bracket

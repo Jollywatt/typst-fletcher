@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.1.2"
+#import "@preview/cetz:0.2.0"
 #import "utils.typ": *
 #import calc: sqrt, abs, sin, cos, max, pow
 

@@ -56,7 +56,7 @@ $)
 - [ ] Support loops connecting a node to itself
 - [x] More ergonomic syntax to avoid repeating coordinates?
 - [ ] Poly-edges with multiple segments
-- [ ] Add way to adjust edge connection points whil still having them snap to node edges
+- [ ] Add way to adjust edge connection points while still having them snap to node edges
 - [ ] Zig-zags and waves
 
 ## Change log
