@@ -202,21 +202,35 @@
 /// Draw a connecting line or arc in an arrow diagram.
 ///
 ///
-/// - ..args (any): The connector's `label` and `marks` named arguments can also
-///  be specified as positional arguments. For example, the following are equivalent:
+/// - ..args (any): Positional arguments specify the edge's start and end points
+///  of a node, and any additional vertices.
+///
+///  ```typc 
+///  edge(from, to, ..)
+///  edge(to, ..) // start position automatically chosen based on last node specified
+///  edge(..) // both positions automatically chosen depending on adjacent nodes
+///  edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
+///  ```
+///
+///  All coordinates except the start point can be relative (a dictionary of the
+///  form `(rel: (Δx, Δy))` or a string containing the characters
+///  ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
+/// 
+///  Some named arguments, including `marks`, `label`, and `vertices` can be
+///  also be specified as positional arguments. For example, the following are
+///  equivalent:
+///
 ///  ```typc
 ///  edge((0,0), (1,0), $f$, "->")
 ///  edge((0,0), (1,0), $f$, marks: "->")
 ///  edge((0,0), (1,0), "->", label: $f$)
 ///  edge((0,0), (1,0), label: $f$, marks: "->")
 ///  ```
-///   TODO
-///   - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
-///    a node at that point, the connector is adjusted to begin at the node's
-///    bounding rectangle/circle.
-///   - to (elastic coord): End coordinate `(x, y)` of connector. If there is a 
-///    node at that point, the connector is adjusted to end at the node's bounding
-///    rectangle/circle.
+///
+///  Additionally, some common options are given flags that may be given as
+///  string positional arguments. These are
+///  #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
+///   last: [, and ]).
 /// 
 /// - label-pos (number): Position of the label along the connector, from the
 ///  start to end (from `0` to `1`).
