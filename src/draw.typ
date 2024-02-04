@@ -578,9 +578,13 @@
 		(nodes.at(0).pos.at(0), nodes.at(1).pos.at(1))
 	}
 
+	let edge-options = (
+		vertices: (corner-point,),
+		label-side: if bend-dir { left } else { right },
+	)
 
 	draw-edge-connecting-nodes(
-		edge + (vertices: (corner-point,)),
+		edge + edge-options,
 		nodes,
 		angles,
 		draw-edge-polyline,

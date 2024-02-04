@@ -395,7 +395,6 @@ TODO!
 
 #for dir in (left, right) {
 	pad(1mm, diagram(
-		// debug: 4,
 		spacing: 1cm,
 		node((0,0), [#dir]),
 		{
