@@ -3,74 +3,6 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
-= The CeTZ Way
-
-
-#let house(node, e) = {
-	let (w, h) = node.size
-	let α = 10deg
-	let (x, y) = (w/2 + e, h/2 + e)
-	let σ = calc.tan(45deg - α/2)
-  fletcher.cetz.draw.line(
-	  ..(
-		  (-x, -y),
-		  (-x, h/2 + e*σ),
-		  (0pt, h/2 + w/2*calc.tan(α) + e/calc.cos(α)),
-		  (+x, h/2 + e*σ),
-		  (+x, -y),
-		 ).map(p => fletcher.vector.add(p, node.real-pos)),
-    close: true,
-  )
-}
-#let diamond(node, extrude) = {
-	let (w, h) = node.size
-
-	let α = calc.atan2(w/1pt, h/1pt)
-	let x = w/2 + extrude/calc.sin(α)
-	let y = h/2 + extrude/calc.cos(α)
-	fletcher.cetz.draw.line(
-		..(
-			(-x, 0pt),
-			(0pt, -y),
-			(+x, 0pt),
-			(0pt, +y),
-		).map(x => fletcher.vector.add(x, node.real-pos)),
-		close: true
-	)
-}
-
-#diagram(
-	debug: 3,
-	node-stroke: 1pt,
-	node-outset: 5pt,
-	axes: (ltr, ttb),
-	node((0,0), `a1`, radius: 5mm),
-	edge("->"),
-	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
-	edge("..>", bend: 30deg),
-	node((0,2), `a3`, draw: diamond),
-	edge((0,0), "d,ru,d", "=>"),
-
-)
-
-
-#diagram(
-	debug: 3,
-	edge((0,0), (1,0), "->", bend: 0deg),
-	edge((0,1), (1,1), "->", bend: 10deg),
-	edge((0,2), (0,2), "->", bend: 0deg),
-	edge((0,3), (0,3), "->", bend: 20deg),
-	node((1,2), $A$),
-	edge((1,2), (1,2), "-->", bend: 0deg),
-	node((1,3), $B$),
-	edge((1,3), (1,3), "->", bend: 120deg),
-)
-
-
-
-
-
-// #panic(edge((0,0), (1,0), vertices: ((2,3),), marks: (none, "head")).value)
 
 = Connectors
 
@@ -417,29 +349,30 @@ Reversed $y$-axis:
 
 = CeTZ integration
 
-#import "/src/utils.typ": vector-polar
-#diagram(
-	node((0,1), $A$, stroke: 1pt),
-	node((2,0), [Bézier], stroke: 1pt),
-	render: (grid, nodes, edges, options) => {
-		fletcher.cetz.canvas({
-			fletcher.draw-diagram(grid, nodes, edges, options)
+TODO!
+// #import "/src/utils.typ": vector-polar
+// #diagram(
+// 	node((0,1), $A$, stroke: 1pt),
+// 	node((2,0), [Bézier], stroke: 1pt),
+// 	render: (grid, nodes, edges, options) => {
+// 		fletcher.cetz.canvas({
+// 			fletcher.draw-diagram(grid, nodes, edges, options)
 
-			let n1 = fletcher.find-node-at(nodes, (0,1))
-			let p1 = fletcher.get-node-anchor(n1, 0deg)
+// 			let n1 = fletcher.find-node-at(nodes, (0,1))
+// 			let p1 = fletcher.get-node-anchor(n1, 0deg)
 
-			let n2 = fletcher.find-node-at(nodes, (2,0))
-			let p2 = fletcher.get-node-anchor(n2, -90deg)
+// 			let n2 = fletcher.find-node-at(nodes, (2,0))
+// 			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
-			let c1 = fletcher.cetz.vector.add(p1, vector-polar(20pt, 0deg))
-			let c2 = fletcher.cetz.vector.add(p2, vector-polar(70pt, -90deg))
+// 			let c1 = fletcher.cetz.vector.add(p1, vector-polar(20pt, 0deg))
+// 			let c2 = fletcher.cetz.vector.add(p2, vector-polar(70pt, -90deg))
 
-			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+// 			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
 
-			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
-		})
-	}
-)
+// 			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+// 		})
+// 	}
+// )
 
 = Node bounds, inset, and outset
 
@@ -748,3 +681,52 @@ $
 	A edge("u,r,rdd,l,u", ->>) & B edge("dl,r,ul", "=")
 $)
 
+= Custom node shapes
+
+
+#let house(node, e) = {
+	let (w, h) = node.size
+	let α = 10deg
+	let (x, y) = (w/2 + e, h/2 + e)
+	let σ = calc.tan(45deg - α/2)
+  fletcher.cetz.draw.line(
+	  ..(
+		  (-x, -y),
+		  (-x, h/2 + e*σ),
+		  (0pt, h/2 + w/2*calc.tan(α) + e/calc.cos(α)),
+		  (+x, h/2 + e*σ),
+		  (+x, -y),
+		 ).map(p => fletcher.vector.add(p, node.real-pos)),
+    close: true,
+  )
+}
+#let diamond(node, extrude) = {
+	let (w, h) = node.size
+
+	let α = calc.atan2(w/1pt, h/1pt)
+	let x = w/2 + extrude/calc.sin(α)
+	let y = h/2 + extrude/calc.cos(α)
+	fletcher.cetz.draw.line(
+		..(
+			(-x, 0pt),
+			(0pt, -y),
+			(+x, 0pt),
+			(0pt, +y),
+		).map(x => fletcher.vector.add(x, node.real-pos)),
+		close: true
+	)
+}
+
+#diagram(
+	debug: 3,
+	node-stroke: 1pt,
+	node-outset: 5pt,
+	axes: (ltr, ttb),
+	node((0,0), `a1`, radius: 5mm),
+	edge("->"),
+	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
+	edge("..>", bend: 30deg),
+	node((0,2), `a3`, draw: diamond, inset: 20pt),
+	edge((0,0), "d,ru,d", "=>"),
+
+)

@@ -322,7 +322,7 @@ Avoid importing everything `*` as many internal functions are exported.
 		edge((0,0), (1,0), [go], "->"),
 		edge((1,0), (2,-1), "->", bend: -15deg),
 		edge((1,0), (2,+1), "->", bend: +15deg),
-		edge((2,+1), (2,+1), "->", bend: +130deg, label: [loop!]),
+		edge((2,+1), (2,+1), "->", bend: -130deg, label: [loop!]),
 	)
 	```)
 )
@@ -683,7 +683,40 @@ However, an escape hatch is provided with the `render` argument of `diagram()` s
 Currently, only straight, arc and right-angled connectors are supported.
 Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes and draw arrow heads:
 
-#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+// #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+// #fletcher.diagram(
+// 	node((0,1), $A$),
+// 	node((2,0), [Bézier], fill: purple.lighten(80%)),
+// 	render: (grid, nodes, edges, options) => {
+// 		// cetz is also exported as fletcher.cetz
+// 		cetz.canvas({
+// 			// this is the default code to render the diagram
+// 			fletcher.draw-diagram(grid, nodes, edges, options)
+
+// 			// retrieve node data by coordinates
+// 			let n1 = fletcher.find-node-at(nodes, (0,1))
+// 			let n2 = fletcher.find-node-at(nodes, (2,0))
+
+// 			// get anchor points for the connector
+// 			let p1 = fletcher.get-node-anchor(n1, 0deg)
+// 			let p2 = fletcher.get-node-anchor(n2, -90deg)
+
+// 			// make some control points
+// 			let c1 = cetz.vector.add(p1, (20pt, 0pt))
+// 			let c2 = cetz.vector.add(p2, (0pt, -80pt))
+
+// 			cetz.draw.bezier(p1, p2, c1, c2)
+
+// 			// place an arrow head at a given point and angle
+// 			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
+// 			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
+// 				(kind: "hook'", outer-len: 0))
+// 		})
+// 	}
+// )
+// ```))
+
+#code-example-row(```typ
 #fletcher.diagram(
 	node((0,1), $A$),
 	node((2,0), [Bézier], fill: purple.lighten(80%)),
@@ -697,24 +730,25 @@ Here is an example of how you might hack together a Bézier connector using the 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let n2 = fletcher.find-node-at(nodes, (2,0))
 
-			// get anchor points for the connector
-			let p1 = fletcher.get-node-anchor(n1, 0deg)
-			let p2 = fletcher.get-node-anchor(n2, -90deg)
+			let out-angle = 0deg
+			let in-angle = -90deg
 
-			// make some control points
-			let c1 = cetz.vector.add(p1, (20pt, 0pt))
-			let c2 = cetz.vector.add(p2, (0pt, -80pt))
+			fletcher.get-node-anchor(n1, out-angle, p1 => {
+				fletcher.get-node-anchor(n2, in-angle, p2 => {
+					// make some control points
+					let c1 = (to: p1, rel: (out-angle, 15mm))
+					let c2 = (to: p2, rel: (in-angle, 30mm))
+					cetz.draw.bezier(
+						p1, p2, c1, c2,
+						mark: (end: ">") // cetz-style mark
+					)
+				})
+			})
 
-			cetz.draw.bezier(p1, p2, c1, c2)
-
-			// place an arrow head at a given point and angle
-			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
-			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
-				(kind: "hook'", outer-len: 0))
 		})
 	}
 )
-```))
+```)
 
 == Node groups
 

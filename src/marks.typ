@@ -310,6 +310,7 @@
 
 
 #let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
+	let stroke = as-stroke(stroke)
 
 	mark = interpret-mark(mark)
 	if mark.at("hide", default: false) { return }
