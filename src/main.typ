@@ -202,8 +202,8 @@
 /// Draw a connecting line or arc in an arrow diagram.
 ///
 ///
-/// - ..args (any): Positional arguments specify the edge's start and end points
-///  of a node, and any additional vertices.
+/// - ..args (any): Positional arguments specify the edge's start and end points 
+///  and any additional vertices.
 ///
 ///  ```typc 
 ///  edge(from, to, ..)
@@ -573,7 +573,18 @@
 
 		edges: edges.map(edge => {
 
+
 			edge.stroke = as-stroke(edge.stroke)
+
+			if edge.stroke == none {
+				// hack: for no stroke, it's easier to do the following.
+				// then we have the guarantee that edge.stroke is actually
+				// a stroke, not possibly none
+				edge.extrude = ()
+				edge.marks = ()
+				edge.stroke = as-stroke((:))
+			}
+
 			edge.stroke = stroke(
 				paint: default(edge.stroke.paint, options.edge-stroke.paint),
 				thickness: to-pt(default(edge.stroke.thickness, options.edge-stroke.thickness)),
@@ -582,6 +593,11 @@
 				dash: default(edge.stroke.dash, options.edge-stroke.dash),
 				miter-limit: default(edge.stroke.miter-limit, options.edge-stroke.miter-limit),
 			)
+
+			edge.extrude = edge.extrude.map(d => {
+				if type(d) == length { to-pt(d) }
+				else { d*edge.stroke.thickness }
+			})
 
 			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
 			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
@@ -618,10 +634,7 @@
 
 			edge.label-sep = to-pt(edge.label-sep)
 
-			edge.extrude = edge.extrude.map(d => {
-				if type(d) == length { to-pt(d) }
-				else { d*edge.stroke.thickness }
-			})
+
 
 			edge
 		}),
