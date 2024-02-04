@@ -217,6 +217,32 @@
 
 	#v(1fr)
 
+	#{
+
+		set text(font: "Cascadia Mono")
+		fletcher.diagram(
+			spacing: (1cm, 0mm),
+			cell-size: (0mm, 1cm),
+			node-inset: 20pt,
+			edge-corner-radius: 5pt,
+		{
+			node((0,0), [START], fill: green.lighten(40%), draw: fletcher.shapes.pill, inset: 20pt)
+			edge("-|>")
+			node((1,0), [DECISION], fill: blue.mix(luma(80%)), draw: fletcher.shapes.diamond, inset: 35pt)
+
+			node((3,-1), [PROCESS], fill: luma(70%))
+			node((3,+1), [PROCESS], fill: luma(70%))
+
+			edge((1,0), "r,u,r", "-|>", label-side: center, [YES])
+			edge((1,0), "r,d,r", "-|>", label-side: center, [NO])
+
+			node((3,3), [END], fill: red.lighten(50%), draw: fletcher.shapes.hexagon)
+			edge((3,+1), "dd", "-|>")
+			edge((3,-1), "r,dddd,l", "-|>")
+
+		})
+	}
+
 ]
 
 

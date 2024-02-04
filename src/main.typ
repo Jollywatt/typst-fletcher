@@ -442,7 +442,7 @@
 	kind: auto,
 	bend: 0deg,
 	corner: none,
-	corner-radius: 2.5pt,
+	corner-radius: auto,
 	marks: (none, none),
 	mark-scale: 100%,
 	extrude: (0,),
@@ -605,6 +605,7 @@
 			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
 			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
 			edge.label-sep = default(edge.label-sep, options.label-sep)
+			edge.corner-radius = default(edge.corner-radius, options.edge-corner-radius)
 
 			if edge.is-crossing-background {
 				edge.stroke = (
@@ -902,6 +903,7 @@
 	node-stroke: none,
 	node-fill: none,
 	node-corner-radius: 0pt,
+	edge-corner-radius: 2.5pt,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
 	edge-stroke: 0.048em,
@@ -933,6 +935,7 @@
 		node-stroke: node-stroke,
 		node-fill: node-fill,
 		node-corner-radius: node-corner-radius,
+		edge-corner-radius: edge-corner-radius,
 		node-defocus: node-defocus,
 		label-sep: label-sep,
 		edge-stroke: as-stroke(edge-stroke),

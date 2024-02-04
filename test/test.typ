@@ -685,38 +685,6 @@ $)
 = Custom node shapes
 
 
-#let house(node, e) = {
-	let (w, h) = node.size
-	let α = 10deg
-	let (x, y) = (w/2 + e, h/2 + e)
-	let σ = calc.tan(45deg - α/2)
-  fletcher.cetz.draw.line(
-	  ..(
-		  (-x, -y),
-		  (-x, h/2 + e*σ),
-		  (0pt, h/2 + w/2*calc.tan(α) + e/calc.cos(α)),
-		  (+x, h/2 + e*σ),
-		  (+x, -y),
-		 ).map(p => fletcher.vector.add(p, node.real-pos)),
-    close: true,
-  )
-}
-#let diamond(node, extrude) = {
-	let (w, h) = node.size
-
-	let α = calc.atan2(w/1pt, h/1pt)
-	let x = w/2 + extrude/calc.sin(α)
-	let y = h/2 + extrude/calc.cos(α)
-	fletcher.cetz.draw.line(
-		..(
-			(-x, 0pt),
-			(0pt, -y),
-			(+x, 0pt),
-			(0pt, +y),
-		).map(x => fletcher.vector.add(x, node.real-pos)),
-		close: true
-	)
-}
 
 #diagram(
 	debug: 3,
@@ -725,9 +693,15 @@ $)
 	axes: (ltr, ttb),
 	node((0,0), `a1`, radius: 5mm),
 	edge("->"),
-	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
+	node((1,1), [crowded], draw: fletcher.shapes.house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
-	node((0,2), `a3`, draw: diamond, inset: 20pt),
+	node((0,2), `a3`, draw: fletcher.shapes.diamond, inset: 20pt),
 	edge((0,0), "d,ru,d", "=>"),
+
+	edge((1,1), "rd", bend: -40deg),
+	node((2,2), `cool`, draw: fletcher.shapes.pill),
+	edge("->"),
+	node((1,3), [_amazing_], draw: fletcher.shapes.parallelogram),
+
 
 )
