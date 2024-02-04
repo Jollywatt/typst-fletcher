@@ -226,17 +226,22 @@
 			node-inset: 20pt,
 			edge-corner-radius: 5pt,
 		{
-			node((0,0), [START], fill: green.lighten(40%), draw: fletcher.shapes.pill, inset: 20pt)
+			let c = green.lighten(40%)
+			node((0,0), [START], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.pill, inset: 20pt)
 			edge("-|>")
-			node((1,0), [DECISION], fill: blue.mix(luma(80%)), draw: fletcher.shapes.diamond, inset: 35pt)
 
-			node((3,-1), [PROCESS], fill: luma(70%))
-			node((3,+1), [PROCESS], fill: luma(70%))
+			let c = blue.mix(luma(80%))
+			node((1,0), [DECISION], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.diamond, inset: 35pt)
+
+			let c = luma(80%)
+			node((3,-1), [PROCESS], fill: c, stroke: 1.5pt + c.darken(10%))
+			node((3,+1), [PROCESS], fill: c, stroke: 1.5pt + c.darken(10%))
 
 			edge((1,0), "r,u,r", "-|>", label-side: center, [YES])
 			edge((1,0), "r,d,r", "-|>", label-side: center, [NO])
 
-			node((3,3), [END], fill: red.lighten(50%), draw: fletcher.shapes.hexagon)
+			let c = red.lighten(50%)
+			node((3,3), [END], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.hexagon)
 			edge((3,+1), "dd", "-|>")
 			edge((3,-1), "r,dddd,l", "-|>")
 
