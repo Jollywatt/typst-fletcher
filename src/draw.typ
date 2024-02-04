@@ -174,10 +174,10 @@
 	
 }
 
-#let draw-edge-arc(edge, nodes, options) = {
+#let draw-edge-arc(edge, (from, to), options) = {
 
 	// Stroke end points, before adjusting for the arrow heads
-	let (from, to) = get-edge-anchors(edge, nodes)
+	// let (from, to) = get-edge-anchors(edge, nodes)
 	let θ = vector-angle(vector.sub(to, from))
 
 	// Determine the arc from the stroke end points and bend angle
@@ -506,40 +506,18 @@
 	}
 }
 
-#let draw-edge(edge, nodes, options) = {
-	edge.marks = interpret-marks(edge.marks)
-	if edge.kind == "line" { draw-edge-line(edge, get-edge-anchors(edge, nodes), options) }
-	else if edge.kind == "arc" { draw-edge-arc(edge, nodes, options) }
-	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
-	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
-	else { panic(edge.kind) }
-}
 
 
 
-#let draw-edge(edge, nodes, options) = {
+#let draw-anchored-line(edge, nodes, options) = {
 	let center-center-line = cetz.draw.line(
 		nodes.at(0).real-pos,
 		nodes.at(1).real-pos,
 	)
-	nodes = nodes.map(node => {
-		node.boundary-rect = rect-at(
-			node.real-pos,
-			node.size.map(i => calc.max(i/2, 1e-4pt) + node.outset)
-		)
-		node
-	})
-	let node-shapes = nodes.map(node => {
-		if "drawn" in node {
-			node.drawn
-		} else {
-			cetz.draw.rect(..node.boundary-rect)
-		}
-	})
 
 	cetz.draw.hide(cetz.draw.intersections("a", {
-		node-shapes.at(0)
-		node-shapes.at(1)
+		nodes.at(0).anchoring-shape
+		nodes.at(1).anchoring-shape
 		center-center-line
 	}))
 
@@ -550,41 +528,96 @@
 			vector-2d(vector.scale(p, 1cm))
 		})
 
+		let θ = vector-angle(vector.sub(..ps))
+
 		draw-edge-line(edge, ps, options)
 	})
 }
 
+#let draw-anchored-arc(edge, nodes, options) = {
+	let points = nodes.map(n => n.real-pos)
+	let (center, radius, start, stop) = get-arc-connecting-points(..points, edge.bend)
+
+	let center-center-arc = cetz.draw.arc(
+		center,
+		radius: radius,
+		start: start,
+		stop: stop,
+		anchor: "origin",
+	)
+
+	cetz.draw.hide(cetz.draw.intersections("a", {
+		nodes.at(0).anchoring-shape
+		nodes.at(1).anchoring-shape
+		center-center-arc
+	}))
+
+	cetz.draw.get-ctx(ctx => {
+		let pts = ("0", "1").map(ctx.nodes.a.anchors)
+			.map(p => {
+				p.at(1) *= -1
+				vector-2d(vector.scale(p, 1cm))
+			})
+
+
+		draw-edge-arc(edge, pts, options)
+	})
+
+}
+
+#let draw-edge(edge, nodes, options) = {
+	edge.marks = interpret-marks(edge.marks)
+	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
+	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
+	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
+	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
+	else { panic(edge.kind) }
+}
+
+
 
 #let draw-node(node, options) = {
 
-	if "drawn" in node { return node.drawn }
+
 
 	if node.stroke != none or node.fill != none {
 
-		for (i, offset) in node.extrude.enumerate() {
-			let fill = if i == 0 { node.fill } else { none }
+		if "drawn" in node {
+			node.drawn
 
-			if node.shape == "rect" {
-				cetz.draw.content(
-					node.real-pos,
-					rect(
-						width: node.size.at(0) + 2*offset,
-						height: node.size.at(1) + 2*offset,
-						stroke: node.stroke,
-						fill: fill,
-						radius: node.corner-radius,
-					)
-				)
+			if options.debug >= 2 {
+				cetz.draw.group({
+					cetz.draw.set-style(stroke: DEBUG_COLOR + .1pt)
+					node.anchoring-shape
+				})
 			}
-			if node.shape == "circle" {
-				cetz.draw.content(
-					node.real-pos,
-					circle(
-						radius: node.radius + offset,
-						stroke: node.stroke,
-						fill: fill,
+
+		} else {
+			for (i, offset) in node.extrude.enumerate() {
+				let fill = if i == 0 { node.fill } else { none }
+
+				if node.shape == "rect" {
+					cetz.draw.content(
+						node.real-pos,
+						rect(
+							width: node.size.at(0) + 2*offset,
+							height: node.size.at(1) + 2*offset,
+							stroke: node.stroke,
+							fill: fill,
+							radius: node.corner-radius,
+						)
 					)
-				)
+				}
+				if node.shape == "circle" {
+					cetz.draw.content(
+						node.real-pos,
+						circle(
+							radius: node.radius + offset,
+							stroke: node.stroke,
+							fill: fill,
+						)
+					)
+				}
 			}
 		}
 	}

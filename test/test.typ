@@ -6,28 +6,49 @@
 = The CeTZ Way
 
 
-#let house(node) = {
+#let house(node, e) = {
 	let (w, h) = node.size
+	let α = 10deg
+	let (x, y) = (w/2 + e, h/2 + e)
+	let σ = calc.tan(45deg - α/2)
   fletcher.cetz.draw.line(
 	  ..(
-		  (-w/2, -h/2),
-		  (-w/2, h/2),
-		  (0pt, h),
-		  (w/2, h/2),
-		  (w/2, -h/2),
+		  (-x, -y),
+		  (-x, h/2 + e*σ),
+		  (0pt, h/2 + w/2*calc.tan(α) + e/calc.cos(α)),
+		  (+x, h/2 + e*σ),
+		  (+x, -y),
 		 ).map(p => fletcher.vector.add(p, node.real-pos)),
     close: true
   )
 }
+#let diamond(node, extrude) = {
+	let (w, h) = node.size
+
+	let α = calc.atan2(w/1pt, h/1pt)
+	let x = w/2 + extrude/calc.sin(α)
+	let y = h/2 + extrude/calc.cos(α)
+	fletcher.cetz.draw.line(
+		..(
+			(-x, 0pt),
+			(0pt, -y),
+			(+x, 0pt),
+			(0pt, +y),
+		).map(x => fletcher.vector.add(x, node.real-pos)),
+		close: true
+	)
+}
+
 #diagram(
+	debug: 2,
 	node-stroke: 1pt,
-	// node-outset: 5pt,
+	node-outset: 5pt,
 	axes: (ltr, ttb),
 	node((0,0), `a1`),
 	edge("->"),
-	node((0.5,1), `a2`, draw: house),
-	edge("=>"),
-	node((0,2), `a3`),
+	node((1,1), [crowded], draw: house),
+	edge("..>", bend: 30deg),
+	node((0,2), `a3`, draw: diamond),
 
 )
 

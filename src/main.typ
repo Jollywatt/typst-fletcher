@@ -989,8 +989,19 @@
 
 		nodes = nodes.map(node => {
 			if node.draw != none {
-				node.drawn = (node.draw)(node)
+				node.drawn = (node.draw)(node, 0pt)
+				node.anchoring-shape = (node.draw)(node, node.outset)
+			} else {
+				node.drwawn = cetz.draw.rect(..rect-at(
+					node.real-pos,
+					node.size.map(i => calc.max(i/2, 1e-4pt))
+				))
+				node.anchoring-shape = cetz.draw.rect(..rect-at(
+					node.real-pos,
+					node.size.map(i => calc.max(i/2 + node.outset, 1e-4pt))
+				))
 			}
+
 			node
 		})
 
