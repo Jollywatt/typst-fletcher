@@ -40,7 +40,7 @@
 }
 
 #diagram(
-	debug: 2,
+	debug: 3,
 	node-stroke: 1pt,
 	node-outset: 5pt,
 	axes: (ltr, ttb),
@@ -61,7 +61,7 @@
 	edge((0,2), (0,2), "->", bend: 0deg),
 	edge((0,3), (0,3), "->", bend: 20deg),
 	node((1,2), $A$),
-	edge((1,2), (1,2), bend: 0deg),
+	edge((1,2), (1,2), "-->", bend: 0deg),
 	node((1,3), $B$),
 	edge((1,3), (1,3), "->", bend: 120deg),
 )
@@ -112,7 +112,6 @@
 		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ">->")).join()
 	})
 }
-
 
 = Matching math arrows
 
