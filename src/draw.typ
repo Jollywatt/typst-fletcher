@@ -238,13 +238,13 @@
 
 	// Draw debug stuff
 	if options.debug >= 3 {
-		for (cell, point) in zip(nodes, (from, to)) {
-			cetz.draw.line(
-				cell.real-pos,
-				point,
-				stroke: DEBUG_COLOR + 0.1pt,
-			)
-		}
+		// for (cell, point) in zip(nodes, (from, to)) {
+		// 	cetz.draw.line(
+		// 		cell.real-pos,
+		// 		point,
+		// 		stroke: DEBUG_COLOR + 0.1pt,
+		// 	)
+		// }
 
 		cetz.draw.arc(
 			center,
@@ -509,63 +509,145 @@
 
 
 
+
 #let draw-anchored-line(edge, nodes, options) = {
-	let center-center-line = cetz.draw.line(
-		nodes.at(0).real-pos,
-		nodes.at(1).real-pos,
-	)
+	let (from, to) = nodes.map(node => node.real-pos)
 
-	let anchoring-shapes = nodes.map(node => (node.draw)(node, node.outset))
+	// edge case: trivial line
+	if from == to {
+		return draw-edge-line(edge, (from, to), options)
+	}
 
-	cetz.draw.hide(cetz.draw.intersections("a", {
-		anchoring-shapes.at(0)
-		anchoring-shapes.at(1)
-		center-center-line
-	}))
+	let center-center-line = cetz.draw.line(from, to)
+
+	let anchors = (none, none)
+
+	for i in range(2) {
+		if nodes.at(i).radius == 0pt { anchors.at(i) = nodes.at(i).real-pos }
+	}
+
+	cetz.draw.hide({
+		if anchors.at(0) == none {
+			cetz.draw.intersections("from", {
+				(nodes.at(0).draw)(nodes.at(0), nodes.at(0).outset)
+				center-center-line
+			})
+		}
+		if anchors.at(1) == none {
+			cetz.draw.intersections("to", {
+				(nodes.at(1).draw)(nodes.at(1), nodes.at(1).outset)
+				center-center-line
+			})
+		}
+	})
+
+
 
 	cetz.draw.get-ctx(ctx => {
-		let ps = ("0", "1").map(ctx.nodes.a.anchors)
-		ps = ps.map(p => {
+		let pt1 = if anchors.at(0) == none {
+			let p = (ctx.nodes.from.anchors)("0")
 			p.at(1) *= -1
 			vector-2d(vector.scale(p, 1cm))
-		})
+		} else { anchors.at(0) }
 
-		let θ = vector-angle(vector.sub(..ps))
+		let pt2 = if anchors.at(1) == none {
+			let p = (ctx.nodes.to.anchors)("0")
+			p.at(1) *= -1
+			vector-2d(vector.scale(p, 1cm))
+		} else { anchors.at(1) }
 
-		draw-edge-line(edge, ps, options)
+
+		// let pts = (
+		// 	// prone to breaking!
+		// 	// TODO: handle failure to find intersection point
+		// 	if anchors.at(0) == none { (ctx.nodes.from.anchors)("0") } else { anchors.at(0) },
+		// 	if anchors.at(1) == none { (ctx.nodes.to.anchors)("0") } else { anchors.at(1) },
+		// ).map(p => {
+		// 	p.at(1) *= -1
+		// 	vector-2d(vector.scale(p, 1cm))
+		// })
+
+		draw-edge-line(edge, (pt1, pt2), options)
 	})
 }
 
 #let draw-anchored-arc(edge, nodes, options) = {
-	let points = nodes.map(n => n.real-pos)
-	let (center, radius, start, stop) = get-arc-connecting-points(..points, edge.bend)
+	let (from, to) = nodes.map(n => n.real-pos)
+	// let (center, radius, start, stop) = get-arc-connecting-points(..points, edge.bend)
 
-	if start == stop {
-	panic(edge, center, radius, start, stop, points)
-	}
+	let θ = vector-angle(vector.sub(to, from))
 
-	let center-center-arc = cetz.draw.arc(
-		center,
-		radius: radius,
-		start: start,
-		stop: stop,
-		anchor: "origin",
-	)
+
+
+	// if start == stop {
+	// panic(edge, center, radius, start, stop, points)
+	// }
+
+	let anchors = nodes.map(node => {
+		if node.radius == 0pt { node.real-pos }
+		else { none }
+	})
+
+
+	// let center-center-arc = cetz.draw.arc(
+	// 	center,
+	// 	radius: radius,
+	// 	start: start,
+	// 	stop: stop,
+	// 	anchor: "origin",
+	// )
+
 
 	let anchoring-shapes = nodes.map(node => (node.draw)(node, node.outset))
 
-	cetz.draw.hide(cetz.draw.intersections("a", {
-		anchoring-shapes.at(0)
-		anchoring-shapes.at(1)
-		center-center-arc
-	}))
+	// cetz.draw.line(
+	// 	from,
+	// 	vector.add(from, vector-polar(nodes.at(0).radius, θ + edge.bend))
+	// )
+	// cetz.draw.line(
+	// 	to,
+	// 	vector.add(to, vector-polar(-nodes.at(1).radius, θ - edge.bend))
+	// )
+
+	cetz.draw.hide({
+		if anchors.at(0) == none {
+			cetz.draw.intersections("from", {
+				anchoring-shapes.at(0)
+				// center-center-arc
+				cetz.draw.line(
+					from,
+					vector.add(from, vector-polar(nodes.at(0).radius*5, θ + edge.bend))
+				)
+			})
+		}
+		if anchors.at(1) == none {
+			cetz.draw.intersections("to", {
+				anchoring-shapes.at(1)
+				// center-center-arc
+				cetz.draw.line(
+					to,
+					vector.add(to, vector-polar(-nodes.at(1).radius*5, θ - edge.bend))
+				)
+			})
+		}
+	})
 
 	cetz.draw.get-ctx(ctx => {
-		let pts = ("0", "1").map(ctx.nodes.a.anchors)
-			.map(p => {
+		let pts = anchors.zip(("from", "to")).map(((anchor, name)) => {
+			if anchor == none {
+				let p = (ctx.nodes.at(name).anchors)("0")
 				p.at(1) *= -1
 				vector-2d(vector.scale(p, 1cm))
-			})
+			} else {
+				anchor
+			}
+		})
+
+		// let pts = ("0", "1").map(ctx.nodes.a.anchors)
+		// 	.map(p => {
+		// 		p.at(1) *= -1
+		// 		vector-2d(vector.scale(p, 1cm))
+		// 	})
 
 		draw-edge-arc(edge, pts, options)
 	})
@@ -576,9 +658,9 @@
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
+	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
+	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
 	else { panic(edge.kind) }
-	// else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
-	// else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
 }
 
 
@@ -600,16 +682,16 @@
 			(node.draw)(node, 0pt)
 
 		})
+	}
 
-		if options.debug >= 2 {
-			cetz.draw.group({
-				cetz.draw.set-style(
-					stroke: DEBUG_COLOR + .1pt,
-					fill: none,
-				)
-				(node.draw)(node, node.outset)
-			})
-		}
+	if options.debug >= 2 {
+		cetz.draw.group({
+			cetz.draw.set-style(
+				stroke: DEBUG_COLOR + .1pt,
+				fill: none,
+			)
+			(node.draw)(node, node.outset)
+		})
 	}
 
 	if node.label != none {

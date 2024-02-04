@@ -145,6 +145,7 @@
 ///     }
 /// })
 #let get-arc-connecting-points(from, to, angle) = {
+	// TODO: properly handle trivial arcs
 	if from == to { to = vector.add(to, (0pt, 1e-4pt)) }
 
 	let mid = vector.scale(vector.add(from, to), 0.5)

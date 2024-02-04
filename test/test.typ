@@ -49,10 +49,27 @@
 	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
 	node((0,2), `a3`, draw: diamond),
+	edge((0,0), "r"),
 
 )
 
-/*
+
+#diagram(
+	debug: 3,
+	edge((0,0), (1,0), "->", bend: 0deg),
+	edge((0,1), (1,1), "->", bend: 10deg),
+	edge((0,2), (0,2), "->", bend: 0deg),
+	edge((0,3), (0,3), "->", bend: 20deg),
+	node((1,2), $A$),
+	edge((1,2), (1,2), bend: 0deg),
+	node((1,3), $B$),
+	edge((1,3), (1,3), "->", bend: 120deg),
+)
+
+
+
+
+
 // #panic(edge((0,0), (1,0), vertices: ((2,3),), marks: (none, "head")).value)
 
 = Connectors
@@ -95,7 +112,6 @@
 		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ">->")).join()
 	})
 }
-
 
 
 = Matching math arrows
@@ -185,6 +201,7 @@ Compare #text(result-color)[our output] to the #text(target-color)[reference sym
 
 
 
+
 = Double and triple lines
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [
@@ -271,6 +288,7 @@ $
 
 	}
 )
+
 
 
 = Fine mark angle corrections
