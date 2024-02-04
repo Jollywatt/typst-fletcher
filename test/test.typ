@@ -15,7 +15,7 @@
 	edge((0,0), (1,0), marks: (none, "head")),
 	edge((0,1), (1,0), $f$, marks: ("hook", "head"), dash: "dashed"),
 	edge((0,0), (0,1), marks: (none, ">>")),
-	edge((0,0), (0,0), marks: (none, "head"), bend: -120deg),
+	edge((0,0), (0,0), marks: (none, "head"), bend: 120deg),
 )
 
 = Arc connectors
@@ -349,30 +349,31 @@ Reversed $y$-axis:
 
 = CeTZ integration
 
-TODO!
-// #import "/src/utils.typ": vector-polar
-// #diagram(
-// 	node((0,1), $A$, stroke: 1pt),
-// 	node((2,0), [Bézier], stroke: 1pt),
-// 	render: (grid, nodes, edges, options) => {
-// 		fletcher.cetz.canvas({
-// 			fletcher.draw-diagram(grid, nodes, edges, options)
+#diagram(
+	node((0,1), $A$, stroke: 1pt),
+	node((2,0), [Bézier], stroke: 1pt),
+	render: (grid, nodes, edges, options) => {
+		fletcher.cetz.canvas({
+			fletcher.draw-diagram(grid, nodes, edges, options)
 
-// 			let n1 = fletcher.find-node-at(nodes, (0,1))
-// 			let p1 = fletcher.get-node-anchor(n1, 0deg)
+			let n1 = fletcher.find-node-at(nodes, (0,1))
+			let n2 = fletcher.find-node-at(nodes, (2,0))
 
-// 			let n2 = fletcher.find-node-at(nodes, (2,0))
-// 			let p2 = fletcher.get-node-anchor(n2, -90deg)
+			let θ1 = 0deg
+			let θ2 = -90deg
 
-// 			let c1 = fletcher.cetz.vector.add(p1, vector-polar(20pt, 0deg))
-// 			let c2 = fletcher.cetz.vector.add(p2, vector-polar(70pt, -90deg))
+			fletcher.get-node-anchor(n1, θ1, p1 => {
+				fletcher.get-node-anchor(n2, θ2, p2 => {
+					let c1 = (rel: (θ1, 20pt), to: p1)
+					let c2 = (rel: (θ2, 70pt), to: p2)
+					fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+					fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+				})
+			})
 
-// 			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
-
-// 			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
-// 		})
-// 	}
-// )
+		})
+	}
+)
 
 = Node bounds, inset, and outset
 

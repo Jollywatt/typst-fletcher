@@ -61,6 +61,13 @@ $)
 
 ## Change log
 
+### 0.4.1
+
+- Support custom node shapes! Edges connect to node outlines automatically.
+- Allow edges to have multiple segments.
+  - Add `vertices` an `corner-radius` options to `edge()`.
+- Support `cetz:0.2.0`.
+
 ### 0.4.0
 
 - Add ability to specify diagrams in math-mode, using `&` to separate nodes.
