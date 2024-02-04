@@ -515,9 +515,11 @@
 		nodes.at(1).real-pos,
 	)
 
+	let anchoring-shapes = nodes.map(node => (node.draw)(node, node.outset))
+
 	cetz.draw.hide(cetz.draw.intersections("a", {
-		nodes.at(0).anchoring-shape
-		nodes.at(1).anchoring-shape
+		anchoring-shapes.at(0)
+		anchoring-shapes.at(1)
 		center-center-line
 	}))
 
@@ -538,6 +540,10 @@
 	let points = nodes.map(n => n.real-pos)
 	let (center, radius, start, stop) = get-arc-connecting-points(..points, edge.bend)
 
+	if start == stop {
+	panic(edge, center, radius, start, stop, points)
+	}
+
 	let center-center-arc = cetz.draw.arc(
 		center,
 		radius: radius,
@@ -546,9 +552,11 @@
 		anchor: "origin",
 	)
 
+	let anchoring-shapes = nodes.map(node => (node.draw)(node, node.outset))
+
 	cetz.draw.hide(cetz.draw.intersections("a", {
-		nodes.at(0).anchoring-shape
-		nodes.at(1).anchoring-shape
+		anchoring-shapes.at(0)
+		anchoring-shapes.at(1)
 		center-center-arc
 	}))
 
@@ -559,7 +567,6 @@
 				vector-2d(vector.scale(p, 1cm))
 			})
 
-
 		draw-edge-arc(edge, pts, options)
 	})
 
@@ -569,9 +576,9 @@
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
-	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
-	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
 	else { panic(edge.kind) }
+	// else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
+	// else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
 }
 
 
@@ -579,46 +586,29 @@
 #let draw-node(node, options) = {
 
 
-
 	if node.stroke != none or node.fill != none {
 
-		if "drawn" in node {
-			node.drawn
+		if node.draw == none {
+			panic("Node doesn't have `draw` callback set.", node)
+		}
 
-			if options.debug >= 2 {
-				cetz.draw.group({
-					cetz.draw.set-style(stroke: DEBUG_COLOR + .1pt)
-					node.anchoring-shape
-				})
-			}
+		cetz.draw.group({
+			cetz.draw.set-style(
+				fill: node.fill,
+				stroke: node.stroke,
+			)
+			(node.draw)(node, 0pt)
 
-		} else {
-			for (i, offset) in node.extrude.enumerate() {
-				let fill = if i == 0 { node.fill } else { none }
+		})
 
-				if node.shape == "rect" {
-					cetz.draw.content(
-						node.real-pos,
-						rect(
-							width: node.size.at(0) + 2*offset,
-							height: node.size.at(1) + 2*offset,
-							stroke: node.stroke,
-							fill: fill,
-							radius: node.corner-radius,
-						)
-					)
-				}
-				if node.shape == "circle" {
-					cetz.draw.content(
-						node.real-pos,
-						circle(
-							radius: node.radius + offset,
-							stroke: node.stroke,
-							fill: fill,
-						)
-					)
-				}
-			}
+		if options.debug >= 2 {
+			cetz.draw.group({
+				cetz.draw.set-style(
+					stroke: DEBUG_COLOR + .1pt,
+					fill: none,
+				)
+				(node.draw)(node, node.outset)
+			})
 		}
 	}
 

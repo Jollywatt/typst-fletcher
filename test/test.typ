@@ -19,7 +19,7 @@
 		  (+x, h/2 + e*σ),
 		  (+x, -y),
 		 ).map(p => fletcher.vector.add(p, node.real-pos)),
-    close: true
+    close: true,
   )
 }
 #let diamond(node, extrude) = {
@@ -44,9 +44,9 @@
 	node-stroke: 1pt,
 	node-outset: 5pt,
 	axes: (ltr, ttb),
-	node((0,0), `a1`),
+	node((0,0), `a1`, radius: 5mm),
 	edge("->"),
-	node((1,1), [crowded], draw: house),
+	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
 	node((0,2), `a3`, draw: diamond),
 

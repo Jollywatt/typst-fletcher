@@ -80,6 +80,7 @@
 		}
 	}
 
+
 	if type(label) == content and label.func() == circle { panic(label) }
 	metadata((
 		class: "node",
@@ -981,29 +982,10 @@
 
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
-
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, options)
 		options.get-coord = grid.get-coord
 		let nodes = compute-node-positions(nodes, grid, options)
-
-		nodes = nodes.map(node => {
-			if node.draw != none {
-				node.drawn = (node.draw)(node, 0pt)
-				node.anchoring-shape = (node.draw)(node, node.outset)
-			} else {
-				node.drwawn = cetz.draw.rect(..rect-at(
-					node.real-pos,
-					node.size.map(i => calc.max(i/2, 1e-4pt))
-				))
-				node.anchoring-shape = cetz.draw.rect(..rect-at(
-					node.real-pos,
-					node.size.map(i => calc.max(i/2 + node.outset, 1e-4pt))
-				))
-			}
-
-			node
-		})
 
 		render(grid, nodes, edges, options)
 	}))

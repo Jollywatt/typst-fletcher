@@ -1,5 +1,5 @@
 #import calc: floor, ceil, min, max
-#import "@preview/cetz:0.2.0": draw, vector
+#import "@preview/cetz:0.2.0" as cetz: draw, vector
 
 #let DEBUG_COLOR = rgb("f008")
 
@@ -145,6 +145,8 @@
 ///     }
 /// })
 #let get-arc-connecting-points(from, to, angle) = {
+	if from == to { to = vector.add(to, (0pt, 1e-4pt)) }
+
 	let mid = vector.scale(vector.add(from, to), 0.5)
 	let (dx, dy) = vector.sub(to, from)
 	let perp = (dy, -dx)
