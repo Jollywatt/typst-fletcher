@@ -49,7 +49,7 @@
 	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
 	node((0,2), `a3`, draw: diamond),
-	edge((0,0), "r"),
+	edge((0,0), "d,ru,d", "=>"),
 
 )
 

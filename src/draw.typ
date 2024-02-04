@@ -362,10 +362,14 @@
 
 #let draw-edge-poly(edge, nodes, options) = {
 
-	let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at( 0)), nodes.at(0).real-pos))
-	let θ-to   = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
-	let from = get-node-anchor(nodes.at(0), θ-from)
-	let to   = get-node-anchor(nodes.at(1), θ-to)
+	// let θ-from = vector-angle(vector.sub((options.get-coord)(edge.vertices.at( 0)), nodes.at(0).real-pos))
+	// let θ-to   = vector-angle(vector.sub((options.get-coord)(edge.vertices.at(-1)), nodes.at(1).real-pos))
+	// let from = get-node-anchor(nodes.at(0), θ-from)
+	// let to   = get-node-anchor(nodes.at(1), θ-to)
+
+	// let (from, to) = nodes.map(node => node.real-pos)
+	assert(nodes.all(node => type(node) == array))
+	let (from, to) = nodes
 
 	let verts = (
 		from,
@@ -616,7 +620,7 @@
 			interset-node-outline(1)
 		}
 	})
-	
+
 	cetz.draw.get-ctx(ctx => {
 
 		let pts = range(2).map(i => {
@@ -715,12 +719,31 @@
 
 }
 
+#let draw-anchored-poly(edge, nodes, options) = {
+	
+	let end-segments = range(2).map(i => (
+		(options.get-coord)(edge.vertices.at(-i)),
+		nodes.at(i).real-pos,
+	))
+
+	draw-edge-between-nodes(
+		edge,
+		nodes,
+		(
+			vector-angle(vector.sub(..end-segments.at(0))),
+			vector-angle(vector.sub(..end-segments.at(1))),
+		),
+		draw-edge-poly,
+		options,
+	)
+}
+
 #let draw-edge(edge, nodes, options) = {
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
 	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
-	else if edge.kind == "poly" { draw-edge-poly(edge, nodes, options) }
+	else if edge.kind == "poly" { draw-anchored-poly(edge, nodes, options) }
 	else { panic(edge.kind) }
 }
 
