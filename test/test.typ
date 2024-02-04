@@ -3,7 +3,35 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
+= The CeTZ Way
 
+
+#let house(node) = {
+	let (w, h) = node.size
+  fletcher.cetz.draw.line(
+	  ..(
+		  (-w/2, -h/2),
+		  (-w/2, h/2),
+		  (0pt, h),
+		  (w/2, h/2),
+		  (w/2, -h/2),
+		 ).map(p => fletcher.vector.add(p, node.real-pos)),
+    close: true
+  )
+}
+#diagram(
+	node-stroke: 1pt,
+	// node-outset: 5pt,
+	axes: (ltr, ttb),
+	node((0,0), `a1`),
+	edge("->"),
+	node((0.5,1), `a2`, draw: house),
+	edge("=>"),
+	node((0,2), `a3`),
+
+)
+
+/*
 // #panic(edge((0,0), (1,0), vertices: ((2,3),), marks: (none, "head")).value)
 
 = Connectors

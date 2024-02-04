@@ -63,6 +63,7 @@
 	corner-radius: auto,
 	defocus: auto,
 	extrude: (0,),
+	draw: none,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
 
@@ -94,6 +95,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
+		draw: draw,
 	))
 }
 
@@ -984,6 +986,13 @@
 		let grid  = compute-grid(nodes, options)
 		options.get-coord = grid.get-coord
 		let nodes = compute-node-positions(nodes, grid, options)
+
+		nodes = nodes.map(node => {
+			if node.draw != none {
+				node.drawn = (node.draw)(node)
+			}
+			node
+		})
 
 		render(grid, nodes, edges, options)
 	}))

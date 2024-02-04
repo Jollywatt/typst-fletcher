@@ -35,7 +35,8 @@
 			vector.add(origin, vector-polar(1e3*node.radius, θ)),
 		)
 
-		intersect-rect-with-crossing-line(node.outer-rect, crossing-line)
+		// intersect-rect-with-crossing-line(node.outer-rect, crossing-line)
+		node.real-pos
 
 	} else { panic(node.shape) }
 }
@@ -515,7 +516,48 @@
 }
 
 
+
+#let draw-edge(edge, nodes, options) = {
+	let center-center-line = cetz.draw.line(
+		nodes.at(0).real-pos,
+		nodes.at(1).real-pos,
+	)
+	nodes = nodes.map(node => {
+		node.boundary-rect = rect-at(
+			node.real-pos,
+			node.size.map(i => calc.max(i/2, 1e-4pt) + node.outset)
+		)
+		node
+	})
+	let node-shapes = nodes.map(node => {
+		if "drawn" in node {
+			node.drawn
+		} else {
+			cetz.draw.rect(..node.boundary-rect)
+		}
+	})
+
+	cetz.draw.hide(cetz.draw.intersections("a", {
+		node-shapes.at(0)
+		node-shapes.at(1)
+		center-center-line
+	}))
+
+	cetz.draw.get-ctx(ctx => {
+		let ps = ("0", "1").map(ctx.nodes.a.anchors)
+		ps = ps.map(p => {
+			p.at(1) *= -1
+			vector-2d(vector.scale(p, 1cm))
+		})
+
+		draw-edge-line(edge, ps, options)
+	})
+}
+
+
 #let draw-node(node, options) = {
+
+	if "drawn" in node { return node.drawn }
 
 	if node.stroke != none or node.fill != none {
 
