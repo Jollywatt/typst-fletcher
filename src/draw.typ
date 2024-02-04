@@ -1,76 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
 
-/// Get the point at which a connector should attach to a node from a given
-/// angle, taking into account the node's size and shape.
-///
-/// - node (dictionary): The node to connect to.
-/// - θ (angle): The desired angle from the node's center to the connection
-///  point.
-/// -> point
-// #let get-node-anchor(node, θ) = {
-
-// 	if node.radius < 1e-3pt { return node.real-pos }
-
-// 	if node.shape == "circle" {
-// 		vector.add(
-// 			node.real-pos,
-// 			vector-polar(node.radius + node.outset, θ),
-// 		)
-
-// 	} else if node.shape == "rect" {
-// 		let origin = node.real-pos
-
-// 		// this is for the "defocus adjustment"
-// 		// basically, for very long/wide nodes, don't make edges coming in from
-// 		// all angles go to the exact node center, but "spread them out" a bit.
-// 		// https://www.desmos.com/calculator/irt0mvixky
-// 		let μ = calc.pow(node.aspect, node.defocus)
-// 		let origin-δ = (
-// 			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
-// 			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
-// 		)
-// 		let crossing-line = (
-// 			vector.add(origin, origin-δ),
-// 			vector.add(origin, vector-polar(1e3*node.radius, θ)),
-// 		)
-
-// 		// intersect-rect-with-crossing-line(node.outer-rect, crossing-line)
-// 		node.real-pos
-
-// 	} else { panic(node.shape) }
-// }
-
-/// Get the points where a connector between two nodes should be drawn between,
-/// taking into account the nodes' sizes and relative positions.
-///
-/// - edge (dictionary): The connector whose end points should be determined.
-/// - nodes (pair of dictionaries): The start and end nodes of the connector.
-/// -> pair of points
-// #let get-edge-anchors(edge, nodes) = {
-// 	assert(nodes.len() == 2)
-// 	let center-center-line = nodes.map(node => node.real-pos)
-
-// 	let v = vector.sub(..center-center-line)
-// 	let θ = vector-angle(v) // approximate angle of connector
-
-// 	if edge.kind in ("line", "arc") {
-// 		let δ = edge.bend
-// 		let incident-angles = (θ + δ + 180deg, θ - δ)
-
-// 		let points = zip(nodes, incident-angles).map(((node, θ)) => {
-// 			get-node-anchor(node, θ)
-// 		})
-
-// 		return points
-// 	} else if edge.kind == "corner" {
-		
-// 		zip(nodes, (θ + 180deg, θ)).map(((node, θ)) => {
-// 			get-node-anchor(node, θ)
-// 		})
-// 	} else { panic(edge) }
-
-// }
 
 #let draw-edge-label(edge, label-pos, options) = {
 
@@ -117,20 +47,17 @@
 
 #let draw-edge-line(edge, (from, to), options) = {
 
-	// Stroke end points, before adjusting for the arrow head
-
 	let θ = vector-angle(vector.sub(to, from))
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
-		// let shifted-line-points = (from, to).zip((0pt, 0pt))
 		let shifted-line-points = (from, to).zip(cap-offsets(edge, shift))
 			.map(((point, offset)) => vector.add(
 				point,
 				vector.add(
 					// Shift end points lengthways depending on markers
 					vector-polar(offset, θ),
-					// Shift line sideways (for double line effects, etc) 
+					// Shift line sideways (for double line effects, etc)
 					vector-polar(shift, θ + 90deg),
 				)
 			))
@@ -176,9 +103,6 @@
 
 #let draw-edge-arc(edge, (from, to), options) = {
 
-	// Stroke end points, before adjusting for the arrow heads
-	// let (from, to) = get-edge-anchors(edge, nodes)
-	let θ = vector-angle(vector.sub(to, from))
 
 	// Determine the arc from the stroke end points and bend angle
 	let (center, radius, start, stop) = get-arc-connecting-points(from, to, edge.bend)
@@ -220,6 +144,7 @@
 
 		if edge.label-anchor == auto {
 			// Choose label anchor based on connector direction
+			let θ = vector-angle(vector.sub(to, from))
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 		
@@ -234,29 +159,6 @@
 
 		draw-edge-label(edge, label-pos, options)
 	}
-
-
-	// Draw debug stuff
-	if options.debug >= 3 {
-		// for (cell, point) in zip(nodes, (from, to)) {
-		// 	cetz.draw.line(
-		// 		cell.real-pos,
-		// 		point,
-		// 		stroke: DEBUG_COLOR + 0.1pt,
-		// 	)
-		// }
-
-		cetz.draw.arc(
-			center,
-			radius: radius,
-			start: start,
-			stop: stop,
-			anchor: "origin",
-			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
-		)
-
-	}
-
 
 }
 
@@ -305,26 +207,18 @@
 
 	let rounded-corners
 	if edge.corner-radius != none {
-		rounded-corners = if edge.corner-radius != none {
-			range(1, θs.len()).map(calculate-rounded-corner)
-		}
+		rounded-corners = range(1, θs.len()).map(calculate-rounded-corner)
 	}
 	
-
-	if options.debug >= 4 {
-		cetz.draw.on-layer(1, cetz.draw.line(
-			..verts,
-			stroke: 0.1pt + green
-		))
-	}
-
-	let scaled-label-pos = edge.label-pos*n-segments
 
 	let lerp-scale(t, i) = {
 		let τ = t*n-segments - i
 		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
 	}
 
+	let debug-stroke = edge.stroke.thickness/4 + green
+
+	// draw each segment
 	for i in range(verts.len() - 1) {
 		let (from, to) = (verts.at(i), verts.at(i + 1))
 		let marks = ()
@@ -350,14 +244,17 @@
 					hide: true,
 				))
 			}
+
 		} else { // rounded corners
 
 			if i > 0 {
+				// offset start of segment to give space for previous arc
 				let (line-shift,) = rounded-corners.at(i - 1)
 				from = vector.add(from, vector-polar(line-shift, θs.at(i)))
 			}
 
 			if i < θs.len() - 1 {
+
 				let (arc-center, arc-radius, start, delta, line-shift) = rounded-corners.at(i)
 				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
 
@@ -371,19 +268,16 @@
 						stroke: edge.stroke,
 					)
 
-
 					if options.debug >= 4 {
 						cetz.draw.on-layer(1, cetz.draw.circle(
 							arc-center,
 							radius: arc-radius - d,
-							stroke: 0.1pt + green,
+							stroke: debug-stroke,
 						))
 
 					}
 				}
-
 			}
-
 		}
 
 		// distribute original marks across segments
@@ -393,12 +287,19 @@
 		}).filter(mark => mark.pos != none)
 
 		let label-pos = lerp-scale(edge.label-pos, i)
-		if label-pos == none {
-			draw-edge-line(edge + (kind: "line", marks: marks, label: none), (from, to), options)
-		} else {
-			draw-edge-line(edge + (kind: "line", marks: marks, label-pos: label-pos, label: edge.label), (from, to), options)
-		}
+		let label-options = if label-pos == none { (label: none) }
+		else { (label-pos: label-pos, label: edge.label) }
 
+		draw-edge-line(edge + (kind: "line", marks: marks) + label-options, (from, to), options)
+
+	}
+
+
+	if options.debug >= 4 {
+		cetz.draw.line(
+			..verts,
+			stroke: debug-stroke,
+		)
 	}
 }
 
@@ -408,7 +309,7 @@
 #let draw-node-anchoring-ray(node, θ) = {
 	let r = 10*(node.radius + node.outset)
 
-	if node.shape == "circle" {
+	if calc.abs(node.aspect - 1) < 0.1 {
 		cetz.draw.line(
 			node.real-pos,
 			vector.add(
@@ -437,47 +338,6 @@
 
 }
 
-#let draw-edge-connecting-nodes(edge, nodes, angles, drawing-function, options) = {
-	
-	let interset-node-outline(i) = {
-		let node = nodes.at(i)
-		cetz.draw.intersections("anchor-" + str(i), {
-			(node.draw)(node, node.outset)
-			draw-node-anchoring-ray(node, angles.at(i))
-		})
-	}
-
-	let anchors = nodes.map(node => {
-		// if node is a point, then that's the anchor point for edges
-		if node.radius == 0pt { node.real-pos }
-	})
-
-	cetz.draw.hide({
-		if anchors.at(0) == none {
-			interset-node-outline(0)
-		}
-		if anchors.at(1) == none {
-			interset-node-outline(1)
-		}
-	})
-
-	cetz.draw.get-ctx(ctx => {
-
-		let pts = range(2).map(i => {
-			if anchors.at(i) != none {
-				anchors.at(i)
-			} else {
-				let p = (ctx.nodes.at("anchor-" + str(i)).anchors)("0")
-				p.at(1) *= -1
-				vector-2d(vector.scale(p, 1cm))
-			}
-		})
-
-
-		(drawing-function)(edge, pts, options)
-	})
-
-}
 
 #let get-node-anchor(node, θ, callback) = {
 	if node.radius == 0pt {
@@ -504,32 +364,60 @@
 	}
 }
 
+#let get-node-anchors(nodes, θs, callback) = {
+	let anchor-pts = nodes.map(node => if node.radius == 0pt { node.real-pos })
+
+	cetz.draw.hide({
+		for (i, node) in nodes.enumerate() {
+			if anchor-pts.at(i) == none {
+				let ray = draw-node-anchoring-ray(node, θs.at(i))
+				let outline = (node.draw)(node, node.outset)
+				cetz.draw.intersections("anchor-"+str(i), ray + outline)
+			}
+		}
+	})
+
+	cetz.draw.get-ctx(ctx => {
+		let pts = anchor-pts.enumerate().map(((i, anchor-pt)) => {
+			if anchor-pt == none {
+				// find by intersection
+
+				let anchors = ctx.nodes.at("anchor-"+str(i)).anchors
+				let pt = anchors("0")
+				pt.at(1) *= -1
+				pt = vector-2d(vector.scale(pt, 1cm))
+				pt
+
+			} else {
+				// already found
+				anchor-pt
+			}
+		})
+
+		callback(pts)
+	})
+}
+
+
+
 #let draw-anchored-line(edge, nodes, options) = {
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
+	let θs = (θ, θ + 180deg)
 
-	draw-edge-connecting-nodes(
-		edge,
-		nodes,
-		(θ, 180deg + θ),
-		draw-edge-line,
-		options,
-	)
-
+	get-node-anchors(nodes, θs, anchors => {
+		draw-edge-line(edge, anchors, options)
+	})
 }
 
 #let draw-anchored-arc(edge, nodes, options) = {
-
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
-
-	draw-edge-connecting-nodes(
-		edge,
-		nodes,
-		(θ + edge.bend, 180deg + θ - edge.bend),
-		draw-edge-arc,
-		options,
-	)
+	let θs = (θ + edge.bend, 180deg + θ - edge.bend)
+	
+	get-node-anchors(nodes, θs, anchors => {
+		draw-edge-arc(edge, anchors, options)
+	})
 
 }
 
@@ -540,16 +428,14 @@
 		nodes.at(i).real-pos,
 	))
 
-	draw-edge-connecting-nodes(
-		edge,
-		nodes,
-		(
-			vector-angle(vector.sub(..end-segments.at(0))),
-			vector-angle(vector.sub(..end-segments.at(1))),
-		),
-		draw-edge-polyline,
-		options,
+	let θs = (
+		vector-angle(vector.sub(..end-segments.at(0))),
+		vector-angle(vector.sub(..end-segments.at(1))),
 	)
+
+	get-node-anchors(nodes, θs, anchors => {
+		draw-edge-polyline(edge, anchors, options)
+	})
 }
 
 #let draw-anchored-corner(edge, nodes, options) = {
@@ -557,20 +443,19 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 
-	let θ-floor = calc.floor(θ/90deg)*90deg
-	let θ-ceil = calc.ceil(θ/90deg)*90deg
-
 	let bend-dir = (
 		if edge.corner == right { true }
 		else if edge.corner == left { false }
 		else { panic("Edge corner option must be left or right.") }
 	)
 
-	let angles = (
-		if bend-dir { (θ-ceil, θ-floor + 180deg) }
-		else { (θ-floor, θ-ceil + 180deg) }
-	)
-
+	let θ-floor = calc.floor(θ/90deg)*90deg
+	let θ-ceil = calc.ceil(θ/90deg)*90deg
+	let θs = if bend-dir {
+		(θ-ceil, θ-floor + 180deg)
+	} else {
+		(θ-floor, θ-ceil + 180deg)
+	}
 
 	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
 		(nodes.at(1).pos.at(0), nodes.at(0).pos.at(1))
@@ -583,13 +468,9 @@
 		label-side: if bend-dir { left } else { right },
 	)
 
-	draw-edge-connecting-nodes(
-		edge + edge-options,
-		nodes,
-		angles,
-		draw-edge-polyline,
-		options,
-	)
+	get-node-anchors(nodes, θs, anchors => {
+		draw-edge-polyline(edge + edge-options, anchors, options)
+	})
 }
 
 #let draw-edge(edge, nodes, options) = {

@@ -22,6 +22,7 @@
 
 #diagram(
 	cell-size: 3cm,
+	debug: 3,
 {
 	node((0,0), "from")
 	node((1,0), "to")
@@ -499,7 +500,7 @@ $ a^2 $
 	  node((-.7,0), `open(path)`, stroke: none, fill: none),
 	  edge((-.7,0), (0,0), "-|>"),
 	  edge((0,0), (1,0), `read()`, "-|>"),
-	  edge((0,0), (0,0), `read()`, "<|-", bend: -130deg),
+	  edge((0,0), (0,0), `read()`, "-|>", bend: 130deg),
 	  edge((1,0), (2,0), `close()`, "-|>"),
 	  edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
 	)
