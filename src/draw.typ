@@ -613,11 +613,13 @@
 		}
 
 		cetz.draw.group({
-			cetz.draw.set-style(
-				fill: node.fill,
-				stroke: node.stroke,
-			)
-			(node.draw)(node, 0pt)
+			for (i, extrude) in node.extrude.enumerate() {
+				cetz.draw.set-style(
+					fill: if i == 0 { node.fill },
+					stroke: node.stroke,
+				)
+				(node.draw)(node, extrude)
+			}
 
 		})
 	}
