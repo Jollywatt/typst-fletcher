@@ -597,7 +597,7 @@
 
 }
 
-#let draw-edge-between-nodes(edge, nodes, angles, drawing-function, options) = {
+#let draw-edge-connecting-nodes(edge, nodes, angles, drawing-function, options) = {
 	
 	let interset-node-outline(i) = {
 		let node = nodes.at(i)
@@ -643,7 +643,7 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 
-	draw-edge-between-nodes(
+	draw-edge-connecting-nodes(
 		edge,
 		nodes,
 		(θ, 180deg + θ),
@@ -658,7 +658,7 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 
-	draw-edge-between-nodes(
+	draw-edge-connecting-nodes(
 		edge,
 		nodes,
 		(θ + edge.bend, 180deg + θ - edge.bend),
@@ -726,7 +726,7 @@
 		nodes.at(i).real-pos,
 	))
 
-	draw-edge-between-nodes(
+	draw-edge-connecting-nodes(
 		edge,
 		nodes,
 		(
@@ -738,11 +738,47 @@
 	)
 }
 
+#let draw-anchored-corner(edge, nodes, options) = {
+
+	let (from, to) = nodes.map(n => n.real-pos)
+	let θ = vector-angle(vector.sub(to, from))
+
+	let θ-floor = calc.floor(θ/90deg)*90deg
+	let θ-ceil = calc.ceil(θ/90deg)*90deg
+
+	let bend-dir = (
+		if edge.corner == right { true }
+		else if edge.corner == left { false }
+		else { panic("Edge corner option must be left or right.") }
+	)
+
+	let angles = (
+		if bend-dir { (θ-ceil, θ-floor + 180deg) }
+		else { (θ-floor, θ-ceil + 180deg) }
+	)
+
+
+	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
+		(nodes.at(1).pos.at(0), nodes.at(0).pos.at(1))
+	} else {
+		(nodes.at(0).pos.at(0), nodes.at(1).pos.at(1))
+	}
+
+
+	draw-edge-connecting-nodes(
+		edge + (vertices: (corner-point,)),
+		nodes,
+		angles,
+		draw-edge-poly,
+		options,
+	)
+}
+
 #let draw-edge(edge, nodes, options) = {
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
-	else if edge.kind == "corner" { draw-edge-corner(edge, nodes, options) }
+	else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, options) }
 	else if edge.kind == "poly" { draw-anchored-poly(edge, nodes, options) }
 	else { panic(edge.kind) }
 }
