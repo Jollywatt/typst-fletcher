@@ -1,4 +1,3 @@
-#import calc: floor, ceil, min, max
 #import "utils.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
@@ -64,10 +63,10 @@
 	corner-radius: auto,
 	defocus: auto,
 	extrude: (0,),
+	draw: none,
 ) = {
-	if args.named().len() > 0 {
-		panic("Unexpected named argument(s):", args)
-	}
+	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+
 	if args.pos().len() == 2 {
 		(pos, label) = args.pos()
 	} else if args.pos().len() == 1 {
@@ -80,6 +79,7 @@
 			label = arg
 		}
 	}
+
 
 	if type(label) == content and label.func() == circle { panic(label) }
 	metadata((
@@ -96,6 +96,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
+		draw: draw,
 	))
 }
 
@@ -112,26 +113,20 @@
 /// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
 /// <options> = any number of options specified as strings
 /// ```
-#let interpret-edge-args(args) = {
-	if args.named().len() > 0 {
-		panic("Unexpected named argument(s):", args)
-	}
+#let interpret-edge-args(args, options) = {
+	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+	let pos = args.pos()
 
-
+	// predicates to detect the kind of a positional argument
 	let is-coord(arg) = type(arg) == array and arg.len() == 2
 	let is-rel-coord(arg) = is-coord(arg) or (
-		type(arg) == str and arg.match(regex("^[utdblrnsew]+$")) != none or
+		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
 		type(arg) == dictionary and "rel" in arg
 	)
-
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
 	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
-	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg)
-
-
-	let pos = args.pos()
-	let new-args = (:)
+	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
 
 	let peek(x, ..predicates) = {
 		let preds = predicates.pos()
@@ -139,63 +134,106 @@
 	}
 
 	// Up to the first two arguments may be coordinates
- 	if peek(pos, is-coord, is-rel-coord) {
-		new-args.from = pos.remove(0)
-		new-args.to = pos.remove(0)
-	} else if peek(pos, is-rel-coord) {
-		new-args.to = pos.remove(0)
+	let first-coord = auto
+	let other-coords = ()
+
+	if peek(pos, is-coord) or pos.at(0) == auto {
+		first-coord = pos.remove(0)
+	}
+	while peek(pos, is-rel-coord) {
+		if type(pos.at(0)) == str {
+			other-coords += pos.remove(0).split(",")
+		} else {
+			other-coords.push(pos.remove(0))
+		}
 	}
 
-	// if peek(pos, is-arrow) {
-	// 	new-args.marks = MARK_SYMBOL_ALIASES.at(pos.remove(0))
-	// }
+	if other-coords.len() == 0 {
+		options.from = auto
+		options.to = first-coord
+	} else {
+		options.from = first-coord
+		let (..verts, to) = other-coords
+		if options.vertices == () {
+			options.vertices = verts
+		} else if verts != () { panic("Vertices cannot be specified by both positional and named arguments.") }
+		options.to = to
+	}
 
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
-		new-args.marks = pos.remove(0)
-		new-args.label = pos.remove(0)
+		options.marks = pos.remove(0)
+		options.label = pos.remove(0)
 	} else if peek(pos, maybe-label, maybe-marks) {
-		new-args.label = pos.remove(0)
-		new-args.marks = pos.remove(0)
+		options.label = pos.remove(0)
+		options.marks = pos.remove(0)
 	} else if peek(pos, maybe-label) {
-		new-args.label = pos.remove(0)
+		options.label = pos.remove(0)
 	} else if peek(pos, maybe-marks) {
-		new-args.marks = pos.remove(0)
+		options.marks = pos.remove(0)
 	}
 
 	while peek(pos, is-edge-option) {
-		new-args += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
+		options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
 	}
 
 	// If label hasn't already been found, broaden search to accept strings as labels
-	if "label" not in new-args and peek(pos, x => type(x) == str) {
-		new-args.label = pos.remove(0)	
+	if "label" not in options and peek(pos, x => type(x) == str) {
+		options.label = pos.remove(0)
 	}
 
 	if pos.len() > 0 {
-		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", new-args)
+		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", options)
 	}
 
-	new-args
+	options
+
+
+	// let unset-values = (to: auto, from: auto, vertices: (), label: none, marks: (none, none))
+	// for (key, value) in interpreted-options {
+	// 	if key in unset-values {
+	// 		let unset = unset-values.at(key)
+	// 		if value == unset { continue }
+	// 		else if options.at(key) != unset {
+	// 			panic("Positional argument " + repr(value) + " is interpreted as '" + key + "' which is already given.")
+	// 		}
+	// 	}
+	// 	options.at(key) = value
+	// }
 }
 
 /// Draw a connecting line or arc in an arrow diagram.
 ///
-/// - from (elastic coord): Start coordinate `(x, y)` of connector. If there is
-///  a node at that point, the connector is adjusted to begin at the node's
-///  bounding rectangle/circle.
-/// - to (elastic coord): End coordinate `(x, y)` of connector. If there is a 
-///  node at that point, the connector is adjusted to end at the node's bounding
-///  rectangle/circle.
 ///
-/// - ..args (any): The connector's `label` and `marks` named arguments can also
-///  be specified as positional arguments. For example, the following are equivalent:
+/// - ..args (any): Positional arguments specify the edge's start and end points 
+///  and any additional vertices.
+///
+///  ```typc 
+///  edge(from, to, ..)
+///  edge(to, ..) // start position automatically chosen based on last node specified
+///  edge(..) // both positions automatically chosen depending on adjacent nodes
+///  edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
+///  ```
+///
+///  All coordinates except the start point can be relative (a dictionary of the
+///  form `(rel: (Δx, Δy))` or a string containing the characters
+///  ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
+/// 
+///  Some named arguments, including `marks`, `label`, and `vertices` can be
+///  also be specified as positional arguments. For example, the following are
+///  equivalent:
+///
 ///  ```typc
 ///  edge((0,0), (1,0), $f$, "->")
 ///  edge((0,0), (1,0), $f$, marks: "->")
 ///  edge((0,0), (1,0), "->", label: $f$)
 ///  edge((0,0), (1,0), label: $f$, marks: "->")
 ///  ```
+///
+///  Additionally, some common options are given flags that may be given as
+///  string positional arguments. These are
+///  #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
+///   last: [, and ]).
 /// 
 /// - label-pos (number): Position of the label along the connector, from the
 ///  start to end (from `0` to `1`).
@@ -393,8 +431,6 @@
 ///
 #let edge(
 	..args,
-	from: auto,
-	to: auto,
 	vertices: (),
 	label: none,
 	label-side: auto,
@@ -406,7 +442,7 @@
 	kind: auto,
 	bend: 0deg,
 	corner: none,
-	corner-radius: none,
+	corner-radius: 2.5pt,
 	marks: (none, none),
 	mark-scale: 100%,
 	extrude: (0,),
@@ -416,8 +452,8 @@
 ) = {
 
 	let options = (
-		from: from,
-		to: to,
+		from: auto, // set with positional args
+		to: auto,
 		vertices: vertices,
 		label: label,
 		label-pos: label-pos,
@@ -438,11 +474,12 @@
 		crossing-fill: crossing-fill,
 	)
 
-	options += interpret-edge-args(args)
+	options = interpret-edge-args(args, options)
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
-	if type(options.to) == str {
+	let interpret-coord-str(coord) = {
+		if type(coord) != str { return coord }
 		let rel = (0, 0)
 		let dirs = (
 			"t": ( 0,-1), "n": ( 0,-1), "u": ( 0,-1),
@@ -450,11 +487,13 @@
 			"l": (-1, 0), "w": (-1, 0),
 			"r": (+1, 0), "e": (+1, 0),
 		)
-		for char in options.to.clusters() {
+		for char in coord.clusters() {
 			rel = vector.add(rel, dirs.at(char))
 		}
-		options.to = (rel: rel)
+		(rel: rel)
 	}
+	options.to = interpret-coord-str(options.to)
+	options.vertices = options.vertices.map(interpret-coord-str)
 	
 	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
 	options.stroke = as-stroke((
@@ -477,6 +516,7 @@
 
 	assert(type(obj.marks) == array, message: repr(obj))
 
+	// for the crossing effect, add another edge underneath
 	if options.crossing {
 		metadata((
 			..obj,
@@ -487,7 +527,8 @@
 	metadata(obj)
 }
 
-
+// Ensure all node and edge attributes are complete and consistent,
+// resolving relative lengths and so on.
 #let apply-defaults(nodes, edges, options) = {
 	let to-pt(len) = if type(len) == length {
 		len.abs + len.em*options.em-size
@@ -535,7 +576,18 @@
 
 		edges: edges.map(edge => {
 
+
 			edge.stroke = as-stroke(edge.stroke)
+
+			if edge.stroke == none {
+				// hack: for no stroke, it's easier to do the following.
+				// then we have the guarantee that edge.stroke is actually
+				// a stroke, not possibly none
+				edge.extrude = ()
+				edge.marks = ()
+				edge.stroke = as-stroke((:))
+			}
+
 			edge.stroke = stroke(
 				paint: default(edge.stroke.paint, options.edge-stroke.paint),
 				thickness: to-pt(default(edge.stroke.thickness, options.edge-stroke.thickness)),
@@ -544,6 +596,11 @@
 				dash: default(edge.stroke.dash, options.edge-stroke.dash),
 				miter-limit: default(edge.stroke.miter-limit, options.edge-stroke.miter-limit),
 			)
+
+			edge.extrude = edge.extrude.map(d => {
+				if type(d) == length { to-pt(d) }
+				else { d*edge.stroke.thickness }
+			})
 
 			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
 			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
@@ -560,7 +617,8 @@
 			}
 
 			if edge.kind == auto {
-				if edge.corner != none { edge.kind = "corner" }
+				if edge.vertices.len() > 0 { edge.kind = "poly" }
+				else if edge.corner != none { edge.kind = "corner" }
 				else if edge.bend != 0deg { edge.kind = "arc" }
 				else { edge.kind = "line" }
 			}
@@ -579,10 +637,7 @@
 
 			edge.label-sep = to-pt(edge.label-sep)
 
-			edge.extrude = edge.extrude.map(d => {
-				if type(d) == length { to-pt(d) }
-				else { d*edge.stroke.thickness }
-			})
+
 
 			edge
 		}),
@@ -684,13 +739,22 @@
 	}
 
 	edges = edges.map(edge => {
+
+		for i in range(edge.vertices.len()) {
+			let prev = if i == 0 { edge.from } else { edge.vertices.at(i - 1) }
+			if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
+				edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
+			}
+		}
+
+		let prev = edge.vertices.at(-1, default: edge.from)
 		if edge.to == auto {
-			edge.to = vector.add(edge.from, (1, 0))
+			edge.to = vector.add(prev, (1, 0))
 		} else if type(edge.to) == dictionary and "rel" in edge.to {
 			// Resolve relative coordinates
-			// panic(edge)
-			edge.to = vector.add(edge.from, edge.to.rel)
+			edge.to = vector.add(prev, edge.to.rel)
 		}
+
 
 		assert(edge.from != auto and edge.to != auto, message: repr(edge))
 		assert(type(edge.to) != dictionary, message: repr(edge))
@@ -917,7 +981,6 @@
 		}
 
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
-
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, options)

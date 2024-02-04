@@ -3,52 +3,62 @@
 
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
+	// Width and height explicitly given
 	if auto not in node.size {
 		let (width, height) = node.size
 		node.radius = vector-len((width/2, height/2))
 		node.aspect = width/height
-		return node
-	}
 
-	if node.radius != auto {
+	// Radius explicitly given
+	} else if node.radius != auto {
 		node.size = (2*node.radius, 2*node.radius)
 		node.aspect = 1
-		return node
-	}
 
-	// Determine physical size of node content
-	let (width, height) = measure(node.label, styles)
-	let radius = vector-len((width/2, height/2))
+	// Width and/or height set to auto
+	} else {
 
-	node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
+		// Determine physical size of node content
+		let (width, height) = measure(node.label, styles)
+		let radius = vector-len((width/2, height/2))
 
-	if node.shape == auto {
-		let is-roundish = max(node.aspect, 1/node.aspect) < 1.5
-		node.shape = if is-roundish { "circle" } else { "rect" }
-	}
+		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
-	// add node inset
-	if radius != 0pt {
-		if node.shape == "circle" { 
-			radius += node.inset/2
-		} else {
-			width += node.inset
-			height += node.inset
+		if node.shape == auto {
+			let is-roundish = max(node.aspect, 1/node.aspect) < 1.5
+			node.shape = if is-roundish { "circle" } else { "rect" }
 		}
+
+		// Add node inset
+		if radius != 0pt {
+			if node.shape == "circle" { 
+				radius += node.inset/2
+			} else {
+				width += node.inset
+				height += node.inset
+			}
+		}
+
+		// If width/height/radius is auto, set it to the measured width/height/radius
+		node.size = node.size.zip((width, height))
+			.map(((given, measured)) => default(given, measured))
+		node.radius = default(node.radius, radius)
+
 	}
 
-	node.size = node.size.zip((width, height))
-		.map(((custom, measured)) => if custom == auto {
-			measured
+	if node.draw == none {
+		if node.shape == "rect" {
+			node.draw = (node, extrude) => cetz.draw.rect(
+				..rect-at(node.real-pos, node.size.map(i => i/2 + extrude))
+			)
+		} else if node.shape == "circle" {
+			node.draw = (node, extrude) => cetz.draw.circle(
+				node.real-pos, radius: node.radius + extrude
+			)
 		} else {
-			custom
-		})
+			panic("Node doesn't have draw")
+		}
 
-	if node.radius == auto {
-		node.radius = radius
 	}
-
-
 
 	node
 })

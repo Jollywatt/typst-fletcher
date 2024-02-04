@@ -322,7 +322,7 @@ Avoid importing everything `*` as many internal functions are exported.
 		edge((0,0), (1,0), [go], "->"),
 		edge((1,0), (2,-1), "->", bend: -15deg),
 		edge((1,0), (2,+1), "->", bend: +15deg),
-		edge((2,+1), (2,+1), "->", bend: +130deg, label: [loop!]),
+		edge((2,+1), (2,+1), "->", bend: -130deg, label: [loop!]),
 	)
 	```)
 )
@@ -484,6 +484,30 @@ It can also be handy to specify the direction of an edge, instead of its end coo
 #fletcher.diagram($ A edge("rr", ->, bend: #30deg) & B & C $)
 ```)
 
+== Edge types
+
+Currently, there are three different `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
+All nodes have a start and end point (`from` and `to`), and `"poly"` edges can also have an array of additional `vertices`.
+The `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if any `vertices` are given.
+
+#code-example-row(```typ
+#fletcher.diagram(
+	debug: 1,
+	edge((0,0), (1,1), "->", `line`),
+	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
+	edge((0,2), (3,3), vertices: ((1,2), (2,3)), "->", `poly`),
+)
+```)
+
+An alternative way to specify `vertices` is by providing multiple coordinates: `edge(A, B, C, D)` is the same as `edge(from: A, to: D, vertices: (B, C))` if the arguments are all coordinates.
+An edge's `vertices` and `to` coordinates can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
+
+```typc
+edge((0,2), (rel: (1,0)), (rel: (1,1)), (rel: (1,0)), "->", `poly`)
+edge((0,2), "r", "rd", "r", "->", `poly`) // use relative coordinate names
+edge((0,2), "r,rd,r", "->", `poly`) // shorthand
+```
+
 == The `defocus` adjustment
 
 For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.
@@ -531,7 +555,6 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 		}
 	}
 }))
-]
 
 Some other marks are supported, and can be placed anywhere along the edge.
 
@@ -647,13 +670,53 @@ The tail length (specified in multiples of the stroke thickness) is the distance
 This is visualised by the green line shown above.
 The mark is rotated so that the ends of the line both lie on the arc.
 
+#pagebreak()
+
 = CeTZ integration
-Currently, only straight, arc and right-angled connectors are supported.
+
+
+Fletcher's drawing cababilities are deliberately restricted to a few simple building blocks.
 However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
 
+== Bézier edges
+
+Currently, only straight, arc and right-angled connectors are supported.
 Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes and draw arrow heads:
 
-#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+// #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
+// #fletcher.diagram(
+// 	node((0,1), $A$),
+// 	node((2,0), [Bézier], fill: purple.lighten(80%)),
+// 	render: (grid, nodes, edges, options) => {
+// 		// cetz is also exported as fletcher.cetz
+// 		cetz.canvas({
+// 			// this is the default code to render the diagram
+// 			fletcher.draw-diagram(grid, nodes, edges, options)
+
+// 			// retrieve node data by coordinates
+// 			let n1 = fletcher.find-node-at(nodes, (0,1))
+// 			let n2 = fletcher.find-node-at(nodes, (2,0))
+
+// 			// get anchor points for the connector
+// 			let p1 = fletcher.get-node-anchor(n1, 0deg)
+// 			let p2 = fletcher.get-node-anchor(n2, -90deg)
+
+// 			// make some control points
+// 			let c1 = cetz.vector.add(p1, (20pt, 0pt))
+// 			let c2 = cetz.vector.add(p2, (0pt, -80pt))
+
+// 			cetz.draw.bezier(p1, p2, c1, c2)
+
+// 			// place an arrow head at a given point and angle
+// 			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
+// 			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
+// 				(kind: "hook'", outer-len: 0))
+// 		})
+// 	}
+// )
+// ```))
+
+#code-example-row(```typ
 #fletcher.diagram(
 	node((0,1), $A$),
 	node((2,0), [Bézier], fill: purple.lighten(80%)),
@@ -667,24 +730,27 @@ Here is an example of how you might hack together a Bézier connector using the 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let n2 = fletcher.find-node-at(nodes, (2,0))
 
-			// get anchor points for the connector
-			let p1 = fletcher.get-node-anchor(n1, 0deg)
-			let p2 = fletcher.get-node-anchor(n2, -90deg)
+			let out-angle = 0deg
+			let in-angle = -90deg
 
-			// make some control points
-			let c1 = cetz.vector.add(p1, (20pt, 0pt))
-			let c2 = cetz.vector.add(p2, (0pt, -80pt))
+			fletcher.get-node-anchor(n1, out-angle, p1 => {
+				fletcher.get-node-anchor(n2, in-angle, p2 => {
+					// make some control points
+					let c1 = (to: p1, rel: (out-angle, 15mm))
+					let c2 = (to: p2, rel: (in-angle, 30mm))
+					cetz.draw.bezier(
+						p1, p2, c1, c2,
+						mark: (end: ">") // cetz-style mark
+					)
+				})
+			})
 
-			cetz.draw.bezier(p1, p2, c1, c2)
-
-			// place an arrow head at a given point and angle
-			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
-			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
-				(kind: "hook'", outer-len: 0))
 		})
 	}
 )
-```))
+```)
+
+== Node groups
 
 Here is another example of how you could automatically draw "node groups" around selected nodes.
 First, we find all nodes of a certain fill, get their actual coordinates, and then draw a rectangle around their bounding box.

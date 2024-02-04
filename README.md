@@ -46,7 +46,7 @@ $)
 )
 ```
 
-## Todo
+## Todo/wishlist
 
 - [x] Mathematical arrow styles
 - [x] Also allow `&`-delimited equations for specifying nodes
@@ -55,8 +55,18 @@ $)
 - [ ] Allow referring to node coordinates by their content?
 - [ ] Support loops connecting a node to itself
 - [x] More ergonomic syntax to avoid repeating coordinates?
+- [ ] Poly-edges with multiple segments
+- [ ] Add way to adjust edge connection points while still having them snap to node edges
+- [ ] Zig-zags and waves
 
 ## Change log
+
+### 0.4.1
+
+- Support custom node shapes! Edges connect to node outlines automatically.
+- Allow edges to have multiple segments.
+  - Add `vertices` an `corner-radius` options to `edge()`.
+- Support `cetz:0.2.0`.
 
 ### 0.4.0
 

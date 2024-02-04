@@ -1,9 +1,7 @@
-#import "@preview/cetz:0.1.2"
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
-
 
 
 = Connectors
@@ -17,7 +15,7 @@
 	edge((0,0), (1,0), marks: (none, "head")),
 	edge((0,1), (1,0), $f$, marks: ("hook", "head"), dash: "dashed"),
 	edge((0,0), (0,1), marks: (none, ">>")),
-	edge((0,0), (0,0), marks: (none, "head"), bend: -120deg),
+	edge((0,0), (0,0), marks: (none, "head"), bend: 120deg),
 )
 
 = Arc connectors
@@ -33,7 +31,6 @@
 })
 
 #diagram(
-	debug: 3,
 	node((0,0), $X$),
 	node((1,0), $Y$),
 	edge((0,0), (1,0), bend: 45deg, marks: ">->"),
@@ -47,8 +44,6 @@
 		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ">->")).join()
 	})
 }
-
-
 
 = Matching math arrows
 
@@ -115,7 +110,6 @@ Compare #text(result-color)[our output] to the #text(target-color)[reference sym
 			text(target-color, $arrow.hook$),
 			"hook->",
 			stroke: result-color,
-			label-side: right,
 			label-anchor: "center",
 			label-sep: 0.0915em,
 			label-pos: 0.51,
@@ -135,6 +129,7 @@ Compare #text(result-color)[our output] to the #text(target-color)[reference sym
 		),
 	)
 }
+
 
 
 
@@ -226,6 +221,7 @@ $
 )
 
 
+
 = Fine mark angle corrections
 #diagram(
 	debug: 4,
@@ -266,6 +262,27 @@ $
 	}).join()
 )
 
+
+= Label side
+
+#diagram(spacing: 1.5cm, {
+	for (i, a) in (left, center, right).enumerate() {
+		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
+		}
+	}
+})
+
+
+#diagram(spacing: (3cm, 1cm), {
+	for (i, a) in (left, center, right).enumerate() {
+		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+			edge((j, 2*i), (j, 2*i - 1), label: a, "->", label-side: a, bend: θ)
+		}
+	}
+})
+
+
 = Automatic label placement
 Default placement above the line.
 
@@ -291,14 +308,6 @@ Reversed $y$-axis:
 	}
 })
 
-
-#diagram(spacing: 1.5cm, {
-	for (i, a) in (left, center, right).enumerate() {
-		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
-			edge((2*i, j), (2*i + 1, j), label: a, "->", label-side: a, bend: θ)
-		}
-	}
-})
 
 
 = Crossing connectors
@@ -340,26 +349,28 @@ Reversed $y$-axis:
 
 = CeTZ integration
 
-#import "/src/utils.typ": vector-polar
 #diagram(
 	node((0,1), $A$, stroke: 1pt),
 	node((2,0), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
-		cetz.canvas({
+		fletcher.cetz.canvas({
 			fletcher.draw-diagram(grid, nodes, edges, options)
 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
-			let p1 = fletcher.get-node-anchor(n1, 0deg)
-
 			let n2 = fletcher.find-node-at(nodes, (2,0))
-			let p2 = fletcher.get-node-anchor(n2, -90deg)
 
-			let c1 = cetz.vector.add(p1, vector-polar(20pt, 0deg))
-			let c2 = cetz.vector.add(p2, vector-polar(70pt, -90deg))
+			let θ1 = 0deg
+			let θ2 = -90deg
 
-			fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+			fletcher.get-node-anchor(n1, θ1, p1 => {
+				fletcher.get-node-anchor(n2, θ2, p2 => {
+					let c1 = (rel: (θ1, 20pt), to: p1)
+					let c2 = (rel: (θ2, 70pt), to: p2)
+					fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+					fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+				})
+			})
 
-			cetz.draw.bezier(p1, p2, c1, c2)
 		})
 	}
 )
@@ -385,7 +396,6 @@ Reversed $y$-axis:
 
 #for dir in (left, right) {
 	pad(1mm, diagram(
-		// debug: 4,
 		spacing: 1cm,
 		node((0,0), [#dir]),
 		{
@@ -421,6 +431,7 @@ Reversed $y$-axis:
 		}
 	))
 }
+
 
 = Double node strokes
 
@@ -505,7 +516,7 @@ $ b^2 $
 			axes: axes,
 			debug: 1,
 			node((0,0), $(0,0)$),
-			edge((0,0), (1,0), "hook->", bend: 20deg),
+			edge((0,0), (1,0), "hook->"),
 			node((1,0), $(1,0)$),
 			node((1,1), $(1,1)$),
 			node((0.5,0.5), raw(repr(axes))),
@@ -601,6 +612,19 @@ $)
 	edge((0,1), (1,0), $tilde(f)$, "hook-->")
 )
 
+= Nodes in math-mode
+
+#diagram(
+	node-outset: 2pt,
+	node-inset: 5pt,
+	node-corner-radius: 2pt,
+	$
+		A edge(->) & node(sqrt(B), fill: #blue.lighten(70%), inset: #10pt) \
+		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
+		edge(#(1,0), "..||..")
+	$,
+)
+
 = Relative node coordinates
 
 #diagram($
@@ -608,16 +632,26 @@ $)
 	G slash ker(f) edge("ne", "hook-->", tilde(f))
 $)
 
-= Nodes in math-mode
+$
+#block(diagram($
+	(0,0) edge(#(0,1), #(rel: (0, -1)), ->) & // first non-relative coordinate becomes `from`...
+	(1,0) edge(#(0,1), "=>") \ // ...unless it is the only coordinate, in which case it becomes `to`
+	(0,1) edge(#(0,0), "dr", "..>") &
+	(1,1) edge("u", "-->") // if a single relative coordinate is given, set `from: auto`
+$))
+equiv
+#block(diagram(
+	node((0,0), $(0,0)$),
+	node((1,0), $(1,0)$),
+	node((0,1), $(0,1)$),
+	node((1,1), $(1,1)$),
 
-#diagram(
-	node-outset: 2pt,
-	node-inset: 5pt,
-	$
-		A edge(->) & node(B, fill: #blue.lighten(50%)) \
-		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
-	$,
-)
+	edge((0,1), (0,0), "->"),
+	edge((1,0), (0,1), "=>"),
+	edge((0,0), (1,1), "..>"),
+	edge((1,1), (1,0), "-->"),
+))
+$
 
 = Edge paths
 
@@ -642,3 +676,57 @@ $)
 		node((2,1), $B$),
 	)
 }
+
+#diagram(debug: 4, spacing: (2cm, 1cm), $
+	A edge("u,r,rdd,l,u", ->>) & B edge("dl,r,ul", "=")
+$)
+
+= Custom node shapes
+
+
+#let house(node, e) = {
+	let (w, h) = node.size
+	let α = 10deg
+	let (x, y) = (w/2 + e, h/2 + e)
+	let σ = calc.tan(45deg - α/2)
+  fletcher.cetz.draw.line(
+	  ..(
+		  (-x, -y),
+		  (-x, h/2 + e*σ),
+		  (0pt, h/2 + w/2*calc.tan(α) + e/calc.cos(α)),
+		  (+x, h/2 + e*σ),
+		  (+x, -y),
+		 ).map(p => fletcher.vector.add(p, node.real-pos)),
+    close: true,
+  )
+}
+#let diamond(node, extrude) = {
+	let (w, h) = node.size
+
+	let α = calc.atan2(w/1pt, h/1pt)
+	let x = w/2 + extrude/calc.sin(α)
+	let y = h/2 + extrude/calc.cos(α)
+	fletcher.cetz.draw.line(
+		..(
+			(-x, 0pt),
+			(0pt, -y),
+			(+x, 0pt),
+			(0pt, +y),
+		).map(x => fletcher.vector.add(x, node.real-pos)),
+		close: true
+	)
+}
+
+#diagram(
+	debug: 3,
+	node-stroke: 1pt,
+	node-outset: 5pt,
+	axes: (ltr, ttb),
+	node((0,0), `a1`, radius: 5mm),
+	edge("->"),
+	node((1,1), [crowded], draw: house, fill: blue.lighten(90%)),
+	edge("..>", bend: 30deg),
+	node((0,2), `a3`, draw: diamond, inset: 20pt),
+	edge((0,0), "d,ru,d", "=>"),
+
+)
