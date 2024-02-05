@@ -720,4 +720,18 @@ $)
 
 )
 
+= Edge dodge
 
+#diagram(
+	node((0,0), $A$),
+	edge((0,0), (1,0), "->", dodge: +3.4pt),
+	edge((0,0), (1,0), "<-", dodge: -3.4pt),
+	node((1,0), $B$),
+)
+
+#diagram(
+	node((0,0), $A$),
+	edge((0,0), (1,0), "->", dodge: +3.4pt, bend: 40deg),
+	edge((0,0), (1,0), "<-", dodge: -3.4pt, bend: 40deg),
+	node((1,0), $B$),
+)

@@ -336,14 +336,17 @@
 
 
 
-#let draw-node-anchoring-ray(node, θ) = {
+#let draw-node-anchoring-ray(node, θ, shift: none) = {
 	let r = 10*(node.radius + node.outset)
+
+	let origin = node.real-pos
+	if shift != none { origin = vector.add(origin, shift) }
 
 	if calc.abs(node.aspect - 1) < 0.1 {
 		cetz.draw.line(
-			node.real-pos,
+			origin,
 			vector.add(
-				node.real-pos,
+				origin,
 				vector-polar(r, θ),
 			),
 		)
@@ -360,8 +363,8 @@
 		)
 		
 		cetz.draw.line(
-			vector.add(node.real-pos, δ),
-			vector.add(node.real-pos, vector-polar(r, θ)),
+			vector.add(origin, δ),
+			vector.add(origin, vector-polar(r, θ)),
 		)
 
 	}
@@ -369,12 +372,12 @@
 }
 
 
-#let get-node-anchor(node, θ, callback) = {
+#let get-node-anchor(node, θ, callback, shift: none) = {
 	if node.radius == 0pt {
 		callback(node.real-pos)
 	} else {
 		// find intersection point of θ-angled ray with node outline
-		let ray = draw-node-anchoring-ray(node, θ)
+		let ray = draw-node-anchoring-ray(node, θ, shift: shift)
 		let outline = (node.draw)(node, node.outset)
 		cetz.draw.hide(cetz.draw.intersections("node-anchor", ray + outline))
 
@@ -394,13 +397,15 @@
 	}
 }
 
-#let get-node-anchors(nodes, θs, callback) = {
+#let get-node-anchors(nodes, θs, callback, shifts: none) = {
 	let anchor-pts = nodes.map(node => if node.radius == 0pt { node.real-pos })
+
+	if shifts == none { shifts = (none,)*anchor-pts.len() }
 
 	cetz.draw.hide({
 		for (i, node) in nodes.enumerate() {
 			if anchor-pts.at(i) == none {
-				let ray = draw-node-anchoring-ray(node, θs.at(i))
+				let ray = draw-node-anchoring-ray(node, θs.at(i), shift: shifts.at(i))
 				let outline = (node.draw)(node, node.outset)
 				cetz.draw.intersections("anchor-"+str(i), ray + outline)
 			}
@@ -413,6 +418,9 @@
 				// find by intersection
 
 				let anchors = ctx.nodes.at("anchor-"+str(i)).anchors
+				if anchors(()).len() < 1 {
+					panic("No intersection found with outline of node at " + repr(nodes.at(i).pos) + ".")
+				}
 				let pt = anchors("0")
 				pt.at(1) *= -1
 				pt = vector-2d(vector.scale(pt, 1cm))
@@ -434,20 +442,24 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ, θ + 180deg)
+	let δs = edge.dodge.map(d => vector-polar(d, θ + 90deg))
 
 	get-node-anchors(nodes, θs, anchors => {
 		draw-edge-line(edge, anchors, options)
-	})
+	}, shifts: δs)
 }
 
 #let draw-anchored-arc(edge, nodes, options) = {
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
-	let θs = (θ + edge.bend, 180deg + θ - edge.bend)
-	
+	let θs = (θ + edge.bend, θ - edge.bend)
+	let δs = edge.dodge.zip(θs)
+		.map(((d, φ)) => vector-polar(d, φ + 90deg))
+
+	θs.at(1) += 180deg
 	get-node-anchors(nodes, θs, anchors => {
 		draw-edge-arc(edge, anchors, options)
-	})
+	}, shifts: δs)
 
 }
 

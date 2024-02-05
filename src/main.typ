@@ -133,9 +133,9 @@
 
 	// Up to the first two arguments may be coordinates
 	let first-coord = auto
-	let other-coords = ()
+	let other-coords = () 
 
-	if peek(pos, is-coord) or pos.at(0) == auto {
+	if peek(pos, is-coord) {
 		first-coord = pos.remove(0)
 	}
 	while peek(pos, is-rel-coord) {
@@ -436,6 +436,7 @@
 	crossing: false,
 	crossing-thickness: auto,
 	crossing-fill: auto,
+	dodge: 0pt,
 ) = {
 
 	let options = (
@@ -459,6 +460,7 @@
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
+		dodge: dodge,
 	)
 
 	options = interpret-edge-args(args, options)
@@ -494,6 +496,8 @@
 		options.label-anchor = "center"
 		options.label-sep = 0pt
 	}
+
+	if type(options.dodge) != array { options.dodge = (options.dodge, options.dodge) }
 
 	let obj = ( 
 		class: "edge",
