@@ -59,8 +59,9 @@
 
 #let hexagon(node, extrude, angle: 30deg) = {
 	let (w, h) = node.size
-	let (x, y) = (w/2 + extrude*calc.cos(angle), h/2 + extrude)
-	let δ = h/2*calc.tan(angle) + extrude*calc.tan(angle)
+	let (x, y) = (w/2 , h/2 + extrude)
+	let δ = y*calc.tan(angle)
+	x += extrude*calc.tan(45deg - angle/2)
 	draw.line(
 		..(
 			(-x, -y),

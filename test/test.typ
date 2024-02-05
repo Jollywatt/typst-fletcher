@@ -703,5 +703,7 @@ $)
 	edge("->"),
 	node((1,3), [_amazing_], draw: fletcher.shapes.parallelogram),
 
+	node((2,0), [Ratio?], draw: fletcher.shapes.hexagon)
+
 
 )

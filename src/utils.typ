@@ -15,6 +15,26 @@
 	else { stroke(obj) }
 }
 
+#let stroke-to-dict(s) = {
+	let s = as-stroke(s)
+	let d = (
+		paint: s.paint,
+		thickness: s.thickness,
+		cap: s.cap,
+		join: s.join,
+		dash: s.dash,
+		miter-limit: s.miter-limit,
+	)
+
+	for (key, value) in d {
+		if value == auto {
+			let _ = d.remove(key)
+		}
+	}
+
+	d
+}
+
 #let zip(a, ..others) = if others.pos().len() == 0 {
 	a.map(i => (i,))
 } else {

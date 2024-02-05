@@ -540,8 +540,18 @@
 	(
 		nodes: nodes.map(node => {
 
-			node.stroke = as-stroke(node.stroke)
-			node.stroke = default(node.stroke, options.node-stroke)
+			if node.stroke == auto {
+				node.stroke = options.node-stroke
+			} else if node.stroke != none {
+				if options.node-stroke != none {
+					node.stroke = as-stroke(
+						stroke-to-dict(options.node-stroke) +
+						stroke-to-dict(node.stroke)
+					)
+				} else {
+					node.stroke = as-stroke(node.stroke)
+				}
+			}
 
 			node.fill = default(node.fill, options.node-fill)
 			node.corner-radius = default(node.corner-radius, options.node-corner-radius)
@@ -568,6 +578,10 @@
 				else { d*real-stroke-thickness }
 			}).map(to-pt)
 
+			if type(node.outset) in (int, float) {
+				node.outset *= real-stroke-thickness
+			}
+
 			node.inset = to-pt(node.inset)
 			node.outset = to-pt(node.outset)
 
@@ -588,14 +602,14 @@
 				edge.stroke = as-stroke((:))
 			}
 
-			edge.stroke = stroke(
-				paint: default(edge.stroke.paint, options.edge-stroke.paint),
-				thickness: to-pt(default(edge.stroke.thickness, options.edge-stroke.thickness)),
-				cap: default(edge.stroke.cap, options.edge-stroke.cap),
-				join: default(edge.stroke.join, options.edge-stroke.join),
-				dash: default(edge.stroke.dash, options.edge-stroke.dash),
-				miter-limit: default(edge.stroke.miter-limit, options.edge-stroke.miter-limit),
+			edge.stroke = (
+				(thickness: 1pt) + // want to be able to assume thickness is a length
+				stroke-to-dict(options.edge-stroke) +
+				stroke-to-dict(edge.stroke)
 			)
+			edge.stroke.thickness = to-pt(edge.stroke.thickness)
+			edge.stroke = as-stroke(edge.stroke)
+
 
 			edge.extrude = edge.extrude.map(d => {
 				if type(d) == length { to-pt(d) }

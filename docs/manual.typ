@@ -74,10 +74,12 @@
 
 #v(1fr)
 
-#outline(indent: 1em, target:
-	heading.where(level: 1)
-	.or(heading.where(level: 2))
-	.or(heading.where(level: 3)),
+#columns(1,
+	outline(indent: 1em, target:
+		heading.where(level: 1)
+		.or(heading.where(level: 2))
+		.or(heading.where(level: 3)),
+	)
 )
 
 #v(1fr)
@@ -225,23 +227,48 @@
 			cell-size: (0mm, 1cm),
 			node-inset: 20pt,
 			edge-corner-radius: 5pt,
+			node-stroke: 1.5pt,
 		{
 			let c = green.lighten(40%)
-			node((0,0), [START], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.pill, inset: 20pt)
+			node((0,0), [START],
+				fill: c,
+				stroke: c.darken(10%),
+				draw: fletcher.shapes.pill,
+				inset: 20pt,
+				extrude: (0, 2),
+				outset: 2,
+			)
 			edge("-|>")
 
 			let c = blue.mix(luma(80%))
-			node((1,0), [DECISION], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.diamond, inset: 35pt)
+			node((1,0), [DECISION],
+				fill: c,
+				stroke: c.darken(10%),
+				draw: fletcher.shapes.diamond,
+				inset: 35pt,
+			)
 
 			let c = luma(80%)
-			node((3,-1), [PROCESS], fill: c, stroke: 1.5pt + c.darken(10%))
-			node((3,+1), [PROCESS], fill: c, stroke: 1.5pt + c.darken(10%))
+			node((3,-1), [PROCESS],
+				fill: c,
+				stroke: c.darken(10%),
+			)
+			node((3,+1), [PROCESS],
+				fill: c,
+				stroke: c.darken(10%),
+			)
 
 			edge((1,0), "r,u,r", "-|>", label-side: center, [YES])
 			edge((1,0), "r,d,r", "-|>", label-side: center, [NO])
 
 			let c = red.lighten(50%)
-			node((3,3), [END], fill: c, stroke: 1.5pt + c.darken(10%), draw: fletcher.shapes.hexagon)
+			node((3,3), [END],
+				fill: c,
+				stroke: c.darken(10%),
+				draw: fletcher.shapes.hexagon,
+				extrude: (0, 2),
+				outset: 2,
+			)
 			edge((3,+1), "dd", "-|>")
 			edge((3,-1), "r,dddd,l", "-|>")
 
