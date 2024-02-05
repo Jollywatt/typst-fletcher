@@ -210,7 +210,6 @@
 		rounded-corners = range(1, θs.len()).map(calculate-rounded-corner)
 	}
 	
-
 	let lerp-scale(t, i) = {
 		let τ = t*n-segments - i
 		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
@@ -218,10 +217,21 @@
 
 	let debug-stroke = edge.stroke.thickness/4 + green
 
+	// phase keeps track of how to offset dash patterns
+	// to ensure continuity between segments
+	let phase = 0pt
+	let stroke-with-phase(phase) = stroke-to-dict(edge.stroke) + (
+		dash: if type(edge.stroke.dash) == dictionary {
+			(array: edge.stroke.dash.array, phase: phase)
+		}
+	)
+
 	// draw each segment
 	for i in range(verts.len() - 1) {
 		let (from, to) = (verts.at(i), verts.at(i + 1))
 		let marks = ()
+
+		let len = 0pt
 
 		if edge.corner-radius == none {
 
@@ -245,6 +255,8 @@
 				))
 			}
 
+			len += vector-len(vector.sub(from, to))
+
 		} else { // rounded corners
 
 			if i > 0 {
@@ -258,6 +270,8 @@
 				let (arc-center, arc-radius, start, delta, line-shift) = rounded-corners.at(i)
 				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
 
+				len += vector-len(vector.sub(from, to))
+
 				for d in edge.extrude {
 					cetz.draw.arc(
 						arc-center,
@@ -265,7 +279,7 @@
 						start: start,
 						delta: delta,
 						anchor: "origin",
-						stroke: edge.stroke,
+						stroke: stroke-with-phase(phase + len),
 					)
 
 					if options.debug >= 4 {
@@ -277,7 +291,12 @@
 
 					}
 				}
+
+				len += delta/1rad*arc-radius
+
 			}
+
+
 		}
 
 		// distribute original marks across segments
@@ -290,7 +309,18 @@
 		let label-options = if label-pos == none { (label: none) }
 		else { (label-pos: label-pos, label: edge.label) }
 
-		draw-edge-line(edge + (kind: "line", marks: marks) + label-options, (from, to), options)
+
+		draw-edge-line(
+			edge + (
+				kind: "line",
+				marks: marks,
+				stroke: stroke-with-phase(phase),
+			) + label-options,
+			(from, to),
+			options,
+		)
+
+		phase += len
 
 	}
 

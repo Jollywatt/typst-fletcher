@@ -682,9 +682,21 @@ $
 	A edge("u,r,rdd,l,u", ->>) & B edge("dl,r,ul", "=")
 $)
 
+
+= Dashed edge paths
+
+#for dash in ("dashed", "loosely-dashed", "dotted") {
+	diagram(
+		edge(
+			"r,ddd,r,u,ll,u,rr",
+			"<->",
+			corner-radius: 5mm,
+			stroke: (dash: dash)
+		)
+	)
+}
+
 = Custom node shapes
-
-
 
 #diagram(
 	debug: 3,
@@ -707,3 +719,5 @@ $)
 
 
 )
+
+
