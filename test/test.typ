@@ -672,7 +672,7 @@ $
 			(3,0),
 		), kind: "poly",
 			corner-radius: radius,
-			extrude: (4, 0, -2)
+			extrude: (4, 0, -4)
 		),
 		node((2,1), $B$),
 	)
@@ -693,17 +693,17 @@ $)
 	axes: (ltr, ttb),
 	node((0,0), `a1`, radius: 5mm),
 	edge("->"),
-	node((1,1), [crowded], draw: fletcher.shapes.house, fill: blue.lighten(90%)),
+	node((1,1), [crowded], shape: fletcher.shapes.house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
-	node((0,2), `a3`, draw: fletcher.shapes.diamond, inset: 20pt),
+	node((0,2), `a3`, shape: fletcher.shapes.diamond, inset: 20pt),
 	edge((0,0), "d,ru,d", "=>"),
 
 	edge((1,1), "rd", bend: -40deg),
-	node((2,2), `cool`, draw: fletcher.shapes.pill),
+	node((2,2), `cool`, shape: fletcher.shapes.pill),
 	edge("->"),
-	node((1,3), [_amazing_], draw: fletcher.shapes.parallelogram),
+	node((1,3), [_amazing_], shape: fletcher.shapes.parallelogram),
 
-	node((2,0), [Ratio?], draw: fletcher.shapes.hexagon)
+	node((2,0), [Ratio?], shape: fletcher.shapes.hexagon)
 
 
 )

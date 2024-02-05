@@ -233,7 +233,7 @@
 			node((0,0), [START],
 				fill: c,
 				stroke: c.darken(10%),
-				draw: fletcher.shapes.pill,
+				shape: fletcher.shapes.pill,
 				inset: 20pt,
 				extrude: (0, 2),
 				outset: 2,
@@ -244,7 +244,7 @@
 			node((1,0), [DECISION],
 				fill: c,
 				stroke: c.darken(10%),
-				draw: fletcher.shapes.diamond,
+				shape: fletcher.shapes.diamond,
 				inset: 35pt,
 			)
 
@@ -265,7 +265,7 @@
 			node((3,3), [END],
 				fill: c,
 				stroke: c.darken(10%),
-				draw: fletcher.shapes.hexagon,
+				shape: fletcher.shapes.hexagon,
 				extrude: (0, 2),
 				outset: 2,
 			)

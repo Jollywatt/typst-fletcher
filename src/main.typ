@@ -63,7 +63,6 @@
 	corner-radius: auto,
 	defocus: auto,
 	extrude: (0,),
-	draw: none,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
 
@@ -96,7 +95,6 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
-		draw: draw,
 	))
 }
 
@@ -187,20 +185,9 @@
 	}
 
 	options
-
-
-	// let unset-values = (to: auto, from: auto, vertices: (), label: none, marks: (none, none))
-	// for (key, value) in interpreted-options {
-	// 	if key in unset-values {
-	// 		let unset = unset-values.at(key)
-	// 		if value == unset { continue }
-	// 		else if options.at(key) != unset {
-	// 			panic("Positional argument " + repr(value) + " is interpreted as '" + key + "' which is already given.")
-	// 		}
-	// 	}
-	// 	options.at(key) = value
-	// }
 }
+
+
 
 /// Draw a connecting line or arc in an arrow diagram.
 ///
@@ -603,7 +590,7 @@
 			}
 
 			edge.stroke = (
-				(thickness: 1pt) + // want to be able to assume thickness is a length
+				(thickness: 0.048em) + // want to be able to assume thickness is a length
 				stroke-to-dict(options.edge-stroke) +
 				stroke-to-dict(edge.stroke)
 			)
