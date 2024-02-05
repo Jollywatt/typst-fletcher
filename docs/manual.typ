@@ -258,8 +258,8 @@
 				stroke: c.darken(10%),
 			)
 
-			edge((1,0), "r,u,r", "-|>", label-side: center, [YES])
-			edge((1,0), "r,d,r", "-|>", label-side: center, [NO])
+			edge((1,0), "r,u,r", "-|>", dodge: 3pt, label-side: center, [YES])
+			edge((1,0), "r,d,r", "-|>", dodge: 3pt, label-side: center, [NO])
 
 			let c = red.lighten(50%)
 			node((3,3), [END],
@@ -284,9 +284,9 @@
 
 = Getting started
 
-#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
+Avoid importing everything with `*` as many internal functions are also exported.
 
-Avoid importing everything `*` as many internal functions are exported.
+#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
 
 
 #let code-example(src) = (

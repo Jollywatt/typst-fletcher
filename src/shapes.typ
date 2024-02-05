@@ -16,22 +16,6 @@
 	)
 }
 
-#let house(node, extrude, angle: 10deg) = {
-	let (w, h) = node.size
-	let (x, y) = (w/2 + extrude, h/2 + extrude)
-	let a = extrude*calc.tan(45deg - angle/2)
- 	draw.line(
-		..(
-			(-x, -y),
-			(-x, h/2 + a),
-			(0pt, h/2 + w/2*calc.tan(angle) + extrude/calc.cos(angle)),
-			(+x, h/2 + a),
-			(+x, -y),
-		).map(p => vector.add(p, node.real-pos)),
-		close: true,
-	)
-}
-
 #let pill(node, extrude) = {
 	let size = node.size.map(i => i + 2*extrude)
 	draw.rect(
@@ -70,6 +54,22 @@
 			(+x, +y),
 			(-x, +y),
 			(-x - δ, 0pt),
+		).map(p => vector.add(p, node.real-pos)),
+		close: true,
+	)
+}
+
+#let house(node, extrude, angle: 10deg) = {
+	let (w, h) = node.size
+	let (x, y) = (w/2 + extrude, h/2 + extrude)
+	let a = extrude*calc.tan(45deg - angle/2)
+ 	draw.line(
+		..(
+			(-x, -y),
+			(-x, h/2 + a),
+			(0pt, h/2 + w/2*calc.tan(angle) + extrude/calc.cos(angle)),
+			(+x, h/2 + a),
+			(+x, -y),
 		).map(p => vector.add(p, node.real-pos)),
 		close: true,
 	)

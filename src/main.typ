@@ -6,14 +6,13 @@
 
 /// Draw a labelled node in an diagram which can connect to edges.
 ///
-/// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node,
-///  where `x` is the column and `y` is the row (increasing upwards). The
+/// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node. The
 ///  coordinates are usually integers, but can be fractional.
 ///
 ///  See the `diagram()` options to control the physical scale of elastic
 ///  coordinates.
 ///
-/// - label (content): Node content to display.
+/// - label (content): Content to display inside the node.
 /// - inset (length, auto): Padding between the node's content and its bounding
 ///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
 ///  `diagram()`.
@@ -21,9 +20,33 @@
 ///  points for connecting edges.
 ///
 ///  This does not affect node layout, only how edges connect to the node.
-/// - shape (string, auto): Shape of the node, one of `"rect"` or `"circle"`. If
-/// `auto`, shape is automatically chosen depending on the aspect ratio of the
-/// node's label.
+///
+/// - shape (rect, circle, function, auto): Shape to draw for the node. If
+///  `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
+///  of the node's label.
+///
+///  Some other shape functions are provided in the `fletcher.shapes` submodule,
+///  including #(
+///  	fletcher.shapes.diamond,
+///  	fletcher.shapes.parallelogram,
+///  	fletcher.shapes.hexagon,
+///  	fletcher.shapes.house,
+///  ).map(i => [#i]).join([, ], last: [, and ]).
+///
+///  Custom shapes should be specified as a function `(node, extrude) => (..)`
+///  returning `cetz` objects.
+///  - The `node` argument is a dictionary containing the node's attributes,
+///    including its center position (`node.real-pos`), the label's dimensions
+///    (`node.size`), and other options (such as `node.corner-radius`, which may
+///    not have an effect for some shapes).
+///  - The `extrude` argument is a length which the shape outline should be
+///   extruded outwards by. This serves two functions: to support automatic edge
+///   anchoring with a node `outset`, and to create multi-stroke effects using
+///   `extrude`.
+///
+///  #fletcher.diagram(
+/// )
+///
 /// - stroke (stroke): Stroke style for the node outline. Defaults to the `node-stroke` option
 ///  of `diagram()`.
 /// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
@@ -192,13 +215,17 @@
 /// Draw a connecting line or arc in an arrow diagram.
 ///
 ///
-/// - ..args (any): Positional arguments specify the edge's start and end points 
-///  and any additional vertices.
+/// - ..args (any): Positional arguments may specify the edge's:
+///  - start and end nodes
+///  - any additional vertices
+///  - label
+///  - marks
 ///
-///  ```typc 
-///  edge(from, to, ..)
-///  edge(to, ..) // start position automatically chosen based on last node specified
-///  edge(..) // both positions automatically chosen depending on adjacent nodes
+///  The start and end nodes must come first, and are optional:
+///  ```typc
+///  edge(from, to, ..) // explicit start and end nodes
+///  edge(to, ..) // start node chosen automatically based on last node specified
+///  edge(..) // both nodes chosen automatically depending on adjacent nodes
 ///  edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
 ///  ```
 ///
@@ -257,14 +284,14 @@
 ///  		}
 ///  })
 /// 
-/// - label (content): Content for connector label. See `label-side` to control
-///  the position (and `label-sep`, `label-pos` and `label-anchor` for finer
-///  control).
+/// - label (content): Content for the edge label. See the `label-pos` and
+///  `label-side` options to control the position (and `label-sep` and
+///  `label-anchor` for finer control).
 ///
 /// - label-side (left, right, center): Which side of the connector to place the
-///  label on, viewed as you walk along it. If `center`, then the label is place
-///  over the connector. When `auto`, a value of `left` or `right` is chosen to
-///  automatically so that the label is
+///  label on, viewed as you walk along it from base to tip. If `center`, then
+///  the label is place over the connector. When `auto`, a value of `left` or
+///  `right` is chosen to automatically so that the label is
 ///    - roughly above the connector, in the case of straight lines; or
 ///    - on the outside of the curve, in the case of arcs.
 ///
@@ -274,9 +301,10 @@
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
 ///  thickness.
-/// - dash (dash type): Dash style for the connector stroke.
-/// - bend (angle): Curvature of the connector. If `0deg`, the connector is a
-///  straight line; positive angles bend clockwise.
+/// - dash (dash type): The stroke's dash style. This is also set by some mark
+///  styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
+/// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
+///  positive angles bend clockwise.
 /// 
 ///  #fletcher.diagram(debug: 0, {
 ///  	node((0,0), $A$)
@@ -396,7 +424,7 @@
 ///  Defaults to the `crossing-thickness` option of `diagram()`.
 /// 
 ///  #fletcher.diagram(crossing-fill: luma(98%), {
-///  	(1, 2, 5, 8, 12).enumerate().map(((i, x)) => {
+///  	(1, 2, 4, 8).enumerate().map(((i, x)) => {
 ///  		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
 ///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
 ///  		2pt, label-pos: 0.3, crossing: true, crossing-thickness: x)
@@ -416,6 +444,22 @@
 ///  	cross(2, luma(98%))
 ///  })
 ///
+/// - corner-radius (length, none): Radius of rounded corners for edges with
+///  multiple segments. Note that `none` is distinct from `0pt`.
+///
+///  #for (i, r) in (none, 0pt, 5pt).enumerate() {
+///  	if i > 0 { h(1fr) }
+///  	fletcher.diagram(
+///  		edge-stroke: 1pt,
+///  		edge((3*i, 0), "r,t,rd,r", "=>", raw(repr(r)), label-pos: 0.6, corner-radius: r)
+///  	)
+///  }
+///
+///  This length specifies the corner radius for right-angled bends. The actual
+///  radius is smaller for acute angles and larger for obtuse angles to balance
+///  things visually. (Trust me, it looks naff otherwise.)
+///
+///  If `auto`, defaults to the `diagram()` option `edge-corner-radius`.
 #let edge(
 	..args,
 	vertices: (),
@@ -810,15 +854,34 @@
 /// single length `d` is short for `(d, d)`.
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
+///  A single length `d` is short for `(d, d)`.
 ///
-/// - node-inset (length, pair of lengths): Default padding between a node's
-///  content and its bounding box.
-/// - node-outset (length, pair of lengths): Default padding between a node's
-///  boundary and where edges terminate.
-/// - node-stroke (stroke): Default stroke for all nodes in diagram. Overridden
-///  by individual node options.
+/// - node-inset (length, pair of lengths): Default value of the `inset` option
+///  for `edge()`.
+/// - node-outset (length, pair of lengths): Default value of the `outset`
+///  option for `edge()`.
+/// - node-stroke (stroke, none): Default value of the `stroke` option for
+///  `node()`.
+///
+///   The default stroke is folded with the stroke specified for the node. For
+///   example, if `node-stroke` is `1pt` and the node option `stroke` is `red`,
+///   then the resulting stroke is `1pt + red`.
 /// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
 ///  individual node options.
+///
+/// - edge-stroke (stroke): Default value of the `stroke` option for `edge()`.
+///  By The default value for this option is chosen relative to the font size to
+///  match the thickness of mathematical arrows such as $A -> B$.
+///
+///   The default stroke is folded with the stroke specified for the edge. For
+///   example, if `edge-stroke` is `1pt` and the edge option `stroke` is `red`,
+///   then the resulting stroke is `1pt + red`.
+///
+/// - node-corner-radius (length, none): Default value of the `corner-radius`
+///  option for `node()`.
+///
+/// - edge-corner-radius (length, none): Default value of the `corner-radius`
+///  option for `edge()`.
 ///
 /// - node-defocus (number): Default strength of the "defocus" adjustment for
 ///  nodes. This affects how connectors attach to non-square nodes. If
@@ -867,7 +930,7 @@
 ///  		node((1,1), $(1,1)$),
 ///  		node((0.5,0.5), `axes: (ltr, ttb)`),
 ///  	),
-///  	move(dy: 0.87em, fletcher.diagram(
+///  	move(dy: 0.7em, fletcher.diagram(
 ///  		axes: (ltr, btt),
 ///  		debug: 1,
 ///  		node((0,0), $(0,0)$),
@@ -903,15 +966,15 @@
 	axes: (ltr, ttb),
 	spacing: 3em,
 	cell-size: 0pt,
+	edge-stroke: 0.048em,
+	node-stroke: none,
+	edge-corner-radius: 2.5pt,
+	node-corner-radius: none,
 	node-inset: 12pt,
 	node-outset: 0pt,
-	node-stroke: none,
 	node-fill: none,
-	node-corner-radius: 0pt,
-	edge-corner-radius: 2.5pt,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
-	edge-stroke: 0.048em,
 	mark-scale: 100%,
 	crossing-fill: white,
 	crossing-thickness: 5,
