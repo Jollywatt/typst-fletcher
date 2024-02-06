@@ -1,5 +1,6 @@
 #import fletcher.shapes: diamond
 #set text(font: "Comic Neue")
+
 #fletcher.diagram(
 	node-stroke: fg, // hide
 	edge-stroke: 1pt/*<*/ + fg/*>*/,
