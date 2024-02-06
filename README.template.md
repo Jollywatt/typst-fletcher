@@ -17,42 +17,9 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 #import "@preview/fletcher:0.4.0" as fletcher: node, edge
 ```
 
+{{first-isomorphism-theorem}}
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/first-isomorphism-theorem-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/first-isomorphism-theorem-light.svg">
-</picture>
-
-```typ
-#fletcher.diagram(cell-size: 15mm, $
-  G edge(f, ->) edge("d", pi, ->>) & im(f) \
-  G slash ker(f) edge("ur", tilde(f), "hook-->")
-$)
-```
-
-
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/flowchart-trap-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/flowchart-trap-light.svg">
-</picture>
-
-```typ
-#import fletcher.shapes: diamond
-#set text(font: "Comic Neue")
-#fletcher.diagram(
-  node-stroke: fg, // hide
-  edge-stroke: 1pt,
-  crossing-fill: bg, // hide
-  node((0,0), [Start],
-    corner-radius: 2pt, extrude: (0, 2.5)),
-  edge("-|>"),
-  node((0,1), align(center)[Hey, wait,\ this flowchart\ is a trap!],
-    shape: diamond, inset: 45pt),
-  edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
-)
-```
-
+{{flowchart-trap}}
 
 
 
