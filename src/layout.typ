@@ -30,12 +30,9 @@
 
 		// Add node inset
 		if radius != 0pt {
-			if node.shape == "circle" { 
-				radius += node.inset/2
-			} else {
-				width += node.inset
-				height += node.inset
-			}
+			width += node.inset
+			height += node.inset
+			radius = vector-len((width/2, height/2))
 		}
 
 		// If width/height/radius is auto, set it to the measured width/height/radius

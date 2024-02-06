@@ -562,6 +562,15 @@
 	metadata(obj)
 }
 
+
+
+
+
+
+
+
+
+
 // Ensure all node and edge attributes are complete and consistent,
 // resolving relative lengths and so on.
 #let apply-defaults(nodes, edges, options) = {
@@ -570,7 +579,6 @@
 	} else {
 		len
 	}
-
 
 	(
 		nodes: nodes.map(node => {

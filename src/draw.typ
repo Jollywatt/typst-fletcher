@@ -571,22 +571,12 @@
 			)
 			(node.draw)(node, node.outset)
 		})
-	}
 
-	// // node bounding shapes
-	// if options.debug >= 3 and node.shape == "rect" {
-	// 	cetz.draw.rect(
-	// 		..node.rect,
-	// 		stroke: DEBUG_COLOR + 0.25pt,
-	// 	)
-	// }
-	// if options.debug >= 3 and node.shape == "circle" {
-	// 	cetz.draw.circle(
-	// 		node.real-pos,
-	// 		radius: node.radius,
-	// 		stroke: DEBUG_COLOR + 0.25pt,
-	// 	)
-	// }
+		cetz.draw.rect(
+			..node.rect,
+			stroke: DEBUG_COLOR + .1pt,
+		)
+	}
 }
 
 
