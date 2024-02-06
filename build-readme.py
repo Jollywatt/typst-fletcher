@@ -6,6 +6,7 @@ REPO_URL = "https://github.com/Jollywatt/typst-fletcher/raw/master"
 
 import os
 import re
+from pip._vendor import tomli
 
 src_template = """
 #import "/src/exports.typ" as fletcher: node, edge
@@ -82,16 +83,16 @@ def insert_md_example(match):
 		url = url,
 	).replace('\t', ' '*2)
 
+def get_version():
+	return tomli.load(open("typst.toml", 'rb'))['package']['version']
+
 def build_readme():
 	with open("README.template.md", 'r') as file:
-		src = file.read()
-
+		src = file.read().replace("{{VERSION}}", get_version())
 		out = re.sub(readme_pattern, insert_md_example, src)
-
 		with open("README.md", 'w') as newfile:
 			print("Writing README.md")
 			newfile.write(out)
-
 
 
 def compile_all_examples():

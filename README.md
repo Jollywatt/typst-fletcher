@@ -11,10 +11,8 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 
 
-
-
 ```typ
-#import "@preview/fletcher:0.4.0" as fletcher: node, edge
+#import "@preview/fletcher:0.4.1" as fletcher: node, edge
 ```
 
 
