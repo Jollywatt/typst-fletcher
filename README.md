@@ -41,9 +41,7 @@ $)
 #import fletcher.shapes: diamond
 #set text(font: "Comic Neue")
 #fletcher.diagram(
-  node-stroke: fg, // hide
   edge-stroke: 1pt,
-  crossing-fill: bg, // hide
   node((0,0), [Start],
     corner-radius: 2pt, extrude: (0, 2.5)),
   edge("-|>"),

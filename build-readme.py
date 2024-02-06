@@ -68,7 +68,9 @@ def compile_example(example_name, darkmode=False):
 def clean_example(example_name):
 	srcpath = f"docs/example-gallery/{example_name}.typ"
 	with open(srcpath, 'r') as file:
-		src = file.read()
+		lines = file.readlines()
+		lines = [line for line in lines if not line.strip().endswith("// hide")]
+		src = ''.join(lines)
 		return re.sub(comments_pattern, "", src)
 
 
