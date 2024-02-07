@@ -1,10 +1,10 @@
 #import "@preview/cetz:0.2.0" as cetz: draw, vector
 
-#let diamond(node, extrude) = {
+#let diamond(node, extrude, scale: 1.5) = {
 	let (w, h) = node.size
 	let φ = calc.atan2(w/1pt, h/1pt)
-	let x = w/2 + extrude/calc.sin(φ)
-	let y = h/2 + extrude/calc.cos(φ)
+	let x = w/2*scale + extrude/calc.sin(φ)
+	let y = h/2*scale + extrude/calc.cos(φ)
 	draw.line(
 		..(
 			(-x, 0pt),
