@@ -8,11 +8,11 @@
 		label-pos,
 		box(
 			fill: edge.crossing-fill,
-			inset: .2em,
-			radius: .2em,
 			stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
-			[#edge.label],
+			radius: .2em,
+			pad(.2em)[#edge.label],
 		),
+		padding: .2em,
 		anchor: if edge.label-anchor != auto { edge.label-anchor },
 	)
 
