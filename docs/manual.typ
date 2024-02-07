@@ -216,65 +216,6 @@
 			node((4,0), [output], fill: colors.at(2))
 		)
 	}
-
-	#v(1fr)
-
-	#{
-
-		set text(font: "Cascadia Mono")
-		fletcher.diagram(
-			spacing: (1cm, 0mm),
-			cell-size: (0mm, 1cm),
-			node-inset: 20pt,
-			edge-corner-radius: 5pt,
-			node-stroke: 1.5pt,
-		{
-			let c = green.lighten(40%)
-			node((0,0), [START],
-				fill: c,
-				stroke: c.darken(10%),
-				shape: fletcher.shapes.pill,
-				inset: 20pt,
-				extrude: (0, 2),
-				outset: 2,
-			)
-			edge("-|>")
-
-			let c = blue.mix(luma(80%))
-			node((1,0), [DECISION],
-				fill: c,
-				stroke: c.darken(10%),
-				shape: fletcher.shapes.diamond,
-				inset: 35pt,
-			)
-
-			let c = luma(80%)
-			node((3,-1), [PROCESS],
-				fill: c,
-				stroke: c.darken(10%),
-			)
-			node((3,+1), [PROCESS],
-				fill: c,
-				stroke: c.darken(10%),
-			)
-
-			edge((1,0), "r,u,r", "-|>", dodge: 3pt, label-side: center, [YES])
-			edge((1,0), "r,d,r", "-|>", dodge: 3pt, label-side: center, [NO])
-
-			let c = red.lighten(50%)
-			node((3,3), [END],
-				fill: c,
-				stroke: c.darken(10%),
-				shape: fletcher.shapes.hexagon,
-				extrude: (0, 2),
-				outset: 2,
-			)
-			edge((3,+1), "dd", "-|>")
-			edge((3,-1), "r,dddd,l", "-|>")
-
-		})
-	}
-
 ]
 
 

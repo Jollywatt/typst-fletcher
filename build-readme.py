@@ -18,7 +18,7 @@ src_template = """
 
 // Not sure how to scale SVGs output, so just do this
 #show: it => style(styles => {{
-	let factor = 2
+	let factor = 1.8
 	let m = measure(it, styles)
 	box(
 		inset: (
@@ -106,6 +106,9 @@ def compile_all_examples():
 if __name__ == '__main__':
 	args = os.sys.argv[1:]
 
+	if len(args) == 0:
+		args = ['compile', 'build']
+		
 	if not set(args).issubset(['compile', 'build']):
 		print("""Usage:
   ./build-readme.py compile
