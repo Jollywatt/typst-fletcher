@@ -1,6 +1,6 @@
 // https://xkcd.com/1195/
 #import fletcher.shapes: diamond
-#set text(9pt, font: "Comic Neue", weight: 600)
+#set text(font: "Comic Neue", weight: 600)
 
 #fletcher.diagram( 
 	node-stroke: fg, // hide
@@ -10,6 +10,6 @@
 	edge("-|>"),
 	node((0,1), align(center)[
 		Hey, wait,\ this flowchart\ is a trap!
-	], shape: diamond, inset: 35pt),
+	], shape: diamond),
 	edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
 )

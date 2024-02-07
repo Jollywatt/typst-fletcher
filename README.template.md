@@ -19,7 +19,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 {{flowchart-trap}}
 
-
+{{state-machine}}
 
 
 ## Todo/wishlist
