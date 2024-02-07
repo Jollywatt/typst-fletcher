@@ -343,7 +343,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They automatically fit to the size of their label (with an `inset` and `outset`), can be circular or rectangular (`shape`), and can be given a `stroke` and `fill`.
+Nodes are content centered at a particular coordinate. They automatically fit to the size of their label (with an `inset` and `outset`). They can be given a `stroke` and `fill` and be of any `shape`.
 
 By default, the coorinates $(x, y)$ are $x$ going $arrow.r$ and $y$ going $arrow.t$.
 This can be changed with the `axis` option of `diagram()`.
@@ -354,7 +354,7 @@ This can be changed with the `axis` option of `diagram()`.
 	spacing: (1em, 4em), // (x, y)
 	node((0,0), $f$),
 	node((1,0), $f$, stroke: 1pt),
-	node((2,0), $f$, stroke: 1pt, shape: "rect"),
+	node((2,0), $f$, stroke: 1pt, shape: rect),
 	node((3,0), $f$, stroke: 1pt, radius: 6mm, extrude: (0, 3)),
 	{
 		let b = blue.lighten(70%)
@@ -415,6 +415,30 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 		)
 	}),
 )
+
+== Node shapes
+
+By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or can be a custom drawing function.
+
+
+#code-example-row(```typ
+#import fletcher: shapes
+#let theme = rgb("8cf")
+#fletcher.diagram(
+	node-fill: gradient.radial(white, theme, radius: 100%),
+	node-stroke: theme,
+	(
+		node((0,0), [Blue Pill], shape: shapes.pill),
+		node((1,0), [House], shape: shapes.house),
+		node((0,1), [Choice], shape: shapes.diamond),
+		node((1,1), [Stop], shape: shapes.hexagon,
+			extrude: (-3, 0), inset: 1.5em),
+	).intersperse(edge("o--|>")).join()
+)
+```)
+
+Custom shapes can be specified with a drawing function; see the `shape` option of `node()` for details.
+
 
 
 = Edges
@@ -680,7 +704,7 @@ However, an escape hatch is provided with the `render` argument of `diagram()` s
 == Bézier edges
 
 Currently, only straight, arc and right-angled connectors are supported.
-Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes and draw arrow heads:
+Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes:
 
 // #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 // #fletcher.diagram(
@@ -802,5 +826,9 @@ First, we find all nodes of a certain fill, get their actual coordinates, and th
 #show-module("/src/main.typ")
 #show-module("/src/layout.typ")
 #show-module("/src/draw.typ")
+
+== Marks
 #show-module("/src/marks.typ")
+
+== Utilities
 #show-module("/src/utils.typ")

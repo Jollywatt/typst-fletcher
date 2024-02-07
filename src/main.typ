@@ -28,6 +28,7 @@
 ///  Some other shape functions are provided in the `fletcher.shapes` submodule,
 ///  including #(
 ///  	fletcher.shapes.diamond,
+///  	fletcher.shapes.pill,
 ///  	fletcher.shapes.parallelogram,
 ///  	fletcher.shapes.hexagon,
 ///  	fletcher.shapes.house,
