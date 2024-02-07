@@ -707,7 +707,7 @@ $)
 	edge("->"),
 	node((1,1), [crowded], shape: fletcher.shapes.house, fill: blue.lighten(90%)),
 	edge("..>", bend: 30deg),
-	node((0,2), `a3`, shape: fletcher.shapes.diamond, inset: 20pt),
+	node((0,2), `a3`, shape: fletcher.shapes.diamond),
 	edge((0,0), "d,ru,d", "=>"),
 
 	edge((1,1), "rd", bend: -40deg),

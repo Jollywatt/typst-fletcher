@@ -378,7 +378,10 @@
 	} else {
 		// find intersection point of θ-angled ray with node outline
 		let ray = draw-node-anchoring-ray(node, θ, shift: shift)
-		let outline = (node.draw)(node, node.outset)
+		let outline = cetz.draw.group({
+			cetz.draw.translate(node.real-pos)
+			(node.draw)(node, node.outset)
+		})
 		cetz.draw.hide(cetz.draw.intersections("node-anchor", ray + outline))
 
 		cetz.draw.get-ctx(ctx => {
@@ -406,7 +409,10 @@
 		for (i, node) in nodes.enumerate() {
 			if anchor-pts.at(i) == none {
 				let ray = draw-node-anchoring-ray(node, θs.at(i), shift: shifts.at(i))
-				let outline = (node.draw)(node, node.outset)
+				let outline = cetz.draw.group({
+					cetz.draw.translate(node.real-pos)
+					(node.draw)(node, node.outset)
+				})
 				cetz.draw.intersections("anchor-"+str(i), ray + outline)
 			}
 		}
@@ -528,7 +534,6 @@
 
 #let draw-node(node, options) = {
 
-
 	if node.stroke != none or node.fill != none {
 
 		if node.draw == none {
@@ -536,6 +541,7 @@
 		}
 
 		cetz.draw.group({
+			cetz.draw.translate(node.real-pos)
 			for (i, extrude) in node.extrude.enumerate() {
 				cetz.draw.set-style(
 					fill: if i == 0 { node.fill },
@@ -565,6 +571,7 @@
 	// Show anchor outline
 	if options.debug >= 2 and node.radius != 0pt {
 		cetz.draw.group({
+			cetz.draw.translate(node.real-pos)
 			cetz.draw.set-style(
 				stroke: DEBUG_COLOR + .1pt,
 				fill: none,

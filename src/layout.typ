@@ -45,14 +45,15 @@
 	if node.shape in (rect, "rect") {
 		node.draw = (node, extrude) => {
 			let r = node.corner-radius
+			let (w, h) = node.size.map(i => i/2 + extrude)
 			cetz.draw.rect(
-				..rect-at(node.real-pos, node.size.map(i => i/2 + extrude)),
+				(-w, -h), (+w, +h),
 				radius: if r != none { r + extrude },
 			)
 		}
 	} else if node.shape in (circle, "circle") {
 		node.draw = (node, extrude) => cetz.draw.circle(
-			node.real-pos, radius: node.radius + extrude
+			(0, 0), radius: node.radius + extrude
 		)
 	} else if type(node.shape) == function {
 		node.draw = node.shape
