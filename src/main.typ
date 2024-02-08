@@ -137,6 +137,7 @@
 /// ```
 #let interpret-edge-args(args, options) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+	let new-options = (:)
 	let pos = args.pos()
 
 	// predicates to detect the kind of a positional argument
@@ -171,44 +172,44 @@
 	}
 
 	if other-coords.len() == 0 {
-		options.from = auto
-		options.to = first-coord
+		new-options.from = auto
+		new-options.to = first-coord
 	} else {
-		options.from = first-coord
+		new-options.from = first-coord
 		let (..verts, to) = other-coords
 		if options.vertices == () {
-			options.vertices = verts
+			new-options.vertices = verts
 		} else if verts != () { panic("Vertices cannot be specified by both positional and named arguments.") }
-		options.to = to
+		new-options.to = to
 	}
 
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
-		options.marks = pos.remove(0)
-		options.label = pos.remove(0)
+		new-options.marks = pos.remove(0)
+		new-options.label = pos.remove(0)
 	} else if peek(pos, maybe-label, maybe-marks) {
-		options.label = pos.remove(0)
-		options.marks = pos.remove(0)
+		new-options.label = pos.remove(0)
+		new-options.marks = pos.remove(0)
 	} else if peek(pos, maybe-label) {
-		options.label = pos.remove(0)
+		new-options.label = pos.remove(0)
 	} else if peek(pos, maybe-marks) {
-		options.marks = pos.remove(0)
+		new-options.marks = pos.remove(0)
 	}
 
 	while peek(pos, is-edge-option) {
-		options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
+		new-options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
 	}
 
 	// If label hasn't already been found, broaden search to accept strings as labels
-	if "label" not in options and peek(pos, x => type(x) == str) {
-		options.label = pos.remove(0)
+	if "label" not in new-options and peek(pos, x => type(x) == str) {
+		new-options.label = pos.remove(0)
 	}
 
 	if pos.len() > 0 {
-		panic("Could not interpret `edge()` argument(s):", pos, "Arguments were:", options)
+		panic("Could not interpret `edge()` argument(s):", pos, "Other arguments were:", new-options)
 	}
 
-	options
+	new-options
 }
 
 
@@ -508,7 +509,7 @@
 		shift: shift,
 	)
 
-	options = interpret-edge-args(args, options)
+	options += interpret-edge-args(args, options)
 	options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
