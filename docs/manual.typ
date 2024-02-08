@@ -17,8 +17,13 @@
 #let show-module(path) = {
 	show heading.where(level: 3): it => {
 		align(center, line(length: 100%, stroke: black.lighten(70%)))
-		block(text(1.3em, raw(it.body.text + "()")))
+		text(1.5em, heading(
+			level: 4,
+			outlined: true,
+			raw(it.body.text + "()")
+		))
 	}
+	set heading(outlined: false)
 	tidy.show-module(
 		tidy.parse-module(
 			read(path),
@@ -74,13 +79,15 @@
 
 #v(1fr)
 
-#columns(1,
-	outline(indent: 1em, target:
-		heading.where(level: 1)
-		.or(heading.where(level: 2))
-		.or(heading.where(level: 3)),
-	)
-)
+// #columns(1,
+// 	outline(indent: 1em, target:
+// 		heading.where(level: 1)
+// 		.or(heading.where(level: 2))
+// 		.or(heading.where(level: 3)),
+// 	)
+// )
+
+#outline(indent: 1em)
 
 #v(1fr)
 
@@ -823,11 +830,11 @@ First, we find all nodes of a certain fill, get their actual coordinates, and th
 
 = Function reference
 #show-module("/src/main.typ")
-#show-module("/src/layout.typ")
-#show-module("/src/draw.typ")
 
 == Marks
 #show-module("/src/marks.typ")
 
-== Utilities
+== Behind the scenes
 #show-module("/src/utils.typ")
+#show-module("/src/layout.typ")
+#show-module("/src/draw.typ")

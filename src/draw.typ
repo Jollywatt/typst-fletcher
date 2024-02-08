@@ -7,6 +7,8 @@
 	cetz.draw.content(
 		label-pos,
 		box(
+			// cetz seems to sometimes squash the content, causing a line-
+			// break, when padding is present...
 			fill: edge.crossing-fill,
 			stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
 			radius: .2em,
