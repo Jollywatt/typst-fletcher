@@ -131,7 +131,7 @@
 /// Generally, the following combinations are allowed:
 /// ```
 /// edge(..<coords>, ..<marklabel>, ..<options>)
-/// <coords> = (from, to) or (to) or ()
+/// <coords> = () or (to) or (from, to) or (from, ..vertices, to)
 /// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
 /// <options> = any number of options specified as strings
 /// ```
@@ -251,6 +251,33 @@
 ///  #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
 ///   last: [, and ]).
 /// 
+/// - vertices (array): Any coordinates for the edge in additional to the start
+///  and end coordinates.
+///
+///  These can also be positional arguments, e.g.,
+///  `edge(A, D, vertices: (B, C))` is the same as `edge(A, B, C, D)`.
+///  If the number of vertices is non-zero, the edge `kind` defaults to `"poly"`.
+///
+/// - kind (string): The kind of the edge, one of `"line"`, `"arc"`, or `"poly"`.
+///  This is chosen automatically based on the presence of other options (`bend`
+///  implies `"arc"`, `corner` or additional vertices implies `"poly"`).
+///
+/// - corner (none, left, right): Whether to create a right-angled corner,
+///  turning `left` or `right`.
+///
+/// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
+///  positive angles bend clockwise.
+/// 
+///  #fletcher.diagram(debug: 0, {
+///  	node((0,0), $A$)
+///  	node((1,1), $B$)
+///  	let N = 4
+///  	range(N + 1)
+///  		.map(x => (x/N - 0.5)*2*100deg)
+///  		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
+///  		.join()
+///  })
+///
 /// - label-pos (number): Position of the label along the connector, from the
 ///  start to end (from `0` to `1`).
 /// 
@@ -303,24 +330,12 @@
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
 ///  thickness.
+/// 
 /// - dash (dash type): The stroke's dash style. This is also set by some mark
 ///  styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
-/// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
-///  positive angles bend clockwise.
 /// 
-///  #fletcher.diagram(debug: 0, {
-///  	node((0,0), $A$)
-///  	node((1,1), $B$)
-///  	let N = 4
-///  	range(N + 1)
-///  		.map(x => (x/N - 0.5)*2*100deg)
-///  		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
-///  		.join()
-///  })
-///
-/// - marks (pair of strings):
-/// The marks (arrowheads) to draw along an edge's stroke.
-/// This may be:
+/// - marks (pair of strings): The marks (arrowheads) to draw along an edge's
+///  stroke. This may be:
 ///
 ///  - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///   shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, where
@@ -459,9 +474,18 @@
 ///
 ///  This length specifies the corner radius for right-angled bends. The actual
 ///  radius is smaller for acute angles and larger for obtuse angles to balance
-///  things visually. (Trust me, it looks naff otherwise.)
+///  things visually. (Trust me, it looks naff otherwise!)
 ///
 ///  If `auto`, defaults to the `diagram()` option `edge-corner-radius`.
+///
+/// - shift (length): Amount to shift the edge sideways by, perpendicular to its
+///  direction.
+/// 
+/// #fletcher.diagram($
+/// 	A edge(->, #`3pt`, shift: #3pt) #edge("<-", `-3pt`, shift:
+/// 	(-3pt),label-side: right) & B
+/// $)
+///
 #let edge(
 	..args,
 	vertices: (),
