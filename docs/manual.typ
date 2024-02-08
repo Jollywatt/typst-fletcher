@@ -418,26 +418,25 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 == Node shapes
 
-By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or can be a custom drawing function.
+By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule.
 
 
 #code-example-row(```typ
-#import fletcher: shapes
+#import fletcher.shapes: pill, parallelogram, diamond, hexagon
 #let theme = rgb("8cf")
 #fletcher.diagram(
 	node-fill: gradient.radial(white, theme, radius: 100%),
 	node-stroke: theme,
 	(
-		node((0,0), [Blue Pill], shape: shapes.pill),
-		node((1,0), [House], shape: shapes.house),
-		node((0,1), [Choice], shape: shapes.diamond),
-		node((1,1), [Stop], shape: shapes.hexagon,
-			extrude: (-3, 0), inset: 1.5em),
+		node((0,0), [Blue Pill], shape: pill),
+		node((1,0), [_Slant_], shape: parallelogram.with(angle: 20deg)),
+		node((0,1), [Choice], shape: diamond),
+		node((1,1), [Stop], shape: hexagon, extrude: (-3, 0), inset: 5mm),
 	).intersperse(edge("o--|>")).join()
 )
 ```)
 
-Custom shapes can be specified with a drawing function; see the `shape` option of `node()` for details.
+Custom shapes are also supported, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
 
 
 
@@ -461,8 +460,8 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 	edge(b, abc, "<=>")
 	edge(c, abc, $c$)
 
-	node((0.6, 3), [_just a thought..._])
-	edge((0.6, 3), b, "..|>", corner: right)
+	node((.6,3), [_just a thought..._])
+	edge(b, "..|>", corner: right)
 })
 ```))
 
