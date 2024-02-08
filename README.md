@@ -98,7 +98,7 @@ $)
 - Allow edges to have multiple segments.
   - Add `vertices` an `corner-radius` options to `edge()`.
   - Relative coordinate shorthands may be comma separated to signify multiple segments, e.g., `"r,u,ll"`.
-- Add `dodge` option to `edge()` to adjust end points.
+- Add `shift` option to `edge()` to adjust end points.
 - Support `cetz:0.2.0`.
 
 ### 0.4.0
