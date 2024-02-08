@@ -448,7 +448,7 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ, θ + 180deg)
-	let δs = edge.dodge.map(d => vector-polar(d, θ + 90deg))
+	let δs = edge.shift.map(d => vector-polar(d, θ + 90deg))
 
 	get-node-anchors(nodes, θs, anchors => {
 		draw-edge-line(edge, anchors, options)
@@ -459,7 +459,7 @@
 	let (from, to) = nodes.map(n => n.real-pos)
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend)
-	let δs = edge.dodge.zip(θs)
+	let δs = edge.shift.zip(θs)
 		.map(((d, φ)) => vector-polar(d, φ + 90deg))
 
 	θs.at(1) += 180deg

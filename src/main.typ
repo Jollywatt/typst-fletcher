@@ -481,7 +481,7 @@
 	crossing: false,
 	crossing-thickness: auto,
 	crossing-fill: auto,
-	dodge: 0pt,
+	shift: 0pt,
 ) = {
 
 	let options = (
@@ -505,7 +505,7 @@
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
-		dodge: dodge,
+		shift: shift,
 	)
 
 	options = interpret-edge-args(args, options)
@@ -542,7 +542,7 @@
 		options.label-sep = 0pt
 	}
 
-	if type(options.dodge) != array { options.dodge = (options.dodge, options.dodge) }
+	if type(options.shift) != array { options.shift = (options.shift, options.shift) }
 
 	let obj = ( 
 		class: "edge",
