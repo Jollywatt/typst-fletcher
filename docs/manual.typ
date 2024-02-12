@@ -230,7 +230,7 @@
 #pagebreak()
 
 
-= Getting started
+= Usage examples
 
 Avoid importing everything with `*` as many internal functions are also exported.
 
@@ -258,9 +258,6 @@ Avoid importing everything with `*` as many internal functions are also exported
 #table(
 	columns: (2fr, 1fr),
 	align: (top, center),
-	// inset: 10pt,
-
-	// stroke: gray + 0.2pt,
 	stroke: none,
 	inset: (x: 0pt, y: 7pt),
 
@@ -352,7 +349,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 Nodes are content centered at a particular coordinate. They automatically fit to the size of their label (with an `inset` and `outset`). They can be given a `stroke` and `fill` and be of any `shape`.
 
-By default, the coorinates $(x, y)$ are $x$ going $arrow.r$ and $y$ going $arrow.t$.
+By default, the coorinates $(x, y)$ are $x$ going $arrow.r$ and $y$ going $arrow.b$.
 This can be changed with the `axis` option of `diagram()`.
 
 #code-example-row(```typ
@@ -425,7 +422,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 == Node shapes
 
-By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule.
+By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or a function.
 
 
 #code-example-row(```typ
