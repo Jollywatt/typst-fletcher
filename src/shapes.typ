@@ -1,5 +1,16 @@
 #import "@preview/cetz:0.2.0" as cetz: draw, vector
 
+#let rect(node, extrude) = {
+	let r = node.corner-radius
+	let (w, h) = node.size.map(i => i/2 + extrude)
+	draw.rect(
+		(-w, -h), (+w, +h),
+		radius: if r != none { r + extrude },
+	)
+}
+
+#let circle(node, extrude) = draw.circle((0, 0), radius: node.radius + extrude)
+
 #let diamond(node, extrude, scale: 1.5) = {
 	let (w, h) = node.size
 	let φ = calc.atan2(w/1pt, h/1pt)

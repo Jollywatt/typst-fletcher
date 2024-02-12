@@ -382,7 +382,7 @@
 		let ray = draw-node-anchoring-ray(node, θ, shift: shift)
 		let outline = cetz.draw.group({
 			cetz.draw.translate(node.real-pos)
-			(node.draw)(node, node.outset)
+			(node.shape)(node, node.outset)
 		})
 		cetz.draw.hide(cetz.draw.intersections("node-anchor", ray + outline))
 
@@ -413,7 +413,7 @@
 				let ray = draw-node-anchoring-ray(node, θs.at(i), shift: shifts.at(i))
 				let outline = cetz.draw.group({
 					cetz.draw.translate(node.real-pos)
-					(node.draw)(node, node.outset)
+					(node.shape)(node, node.outset)
 				})
 				cetz.draw.intersections("anchor-"+str(i), ray + outline)
 			}
@@ -538,10 +538,6 @@
 
 	if node.stroke != none or node.fill != none {
 
-		if node.draw == none {
-			panic("Node doesn't have `draw` callback set.", node)
-		}
-
 		cetz.draw.group({
 			cetz.draw.translate(node.real-pos)
 			for (i, extrude) in node.extrude.enumerate() {
@@ -549,7 +545,7 @@
 					fill: if i == 0 { node.fill },
 					stroke: node.stroke,
 				)
-				(node.draw)(node, extrude)
+				(node.shape)(node, extrude)
 			}
 
 		})
@@ -578,7 +574,7 @@
 				stroke: DEBUG_COLOR + .1pt,
 				fill: none,
 			)
-			(node.draw)(node, node.outset)
+			(node.shape)(node, node.outset)
 		})
 
 		cetz.draw.rect(

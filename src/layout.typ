@@ -1,4 +1,5 @@
 #import "utils.typ": *
+#import "shapes.typ"
 
 
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
@@ -42,24 +43,8 @@
 
 	}
 
-	if node.shape in (rect, "rect") {
-		node.draw = (node, extrude) => {
-			let r = node.corner-radius
-			let (w, h) = node.size.map(i => i/2 + extrude)
-			cetz.draw.rect(
-				(-w, -h), (+w, +h),
-				radius: if r != none { r + extrude },
-			)
-		}
-	} else if node.shape in (circle, "circle") {
-		node.draw = (node, extrude) => cetz.draw.circle(
-			(0, 0), radius: node.radius + extrude
-		)
-	} else if type(node.shape) == function {
-		node.draw = node.shape
-	} else {
-		panic("Node doesn't have draw")
-	}
+	if node.shape in (circle, "circle") { node.shape = shapes.circle }
+	if node.shape in (rect, "rect") { node.shape = shapes.rect }
 
 	node
 })

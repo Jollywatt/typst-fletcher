@@ -1,5 +1,5 @@
 #import calc: floor, ceil, min, max
-#import "@preview/cetz:0.2.0" as cetz: draw, vector
+#import "@preview/cetz:0.2.0": vector
 
 #let DEBUG_COLOR = rgb("f008")
 
@@ -126,18 +126,6 @@
   ((x0, y1), (x0, y0)),
 )
 
-
-#let intersect-rect-with-crossing-line(rect, line) = {
-	rect = rect.map(vector-unitless)
-	line = line.map(vector-unitless)
-	for (p1, p2) in rect-edges(..rect) {
-		let meet = draw.intersection.line-line(p1, p2, ..line)
-		if meet != none {
-			return vector-2d(vector.scale(meet, 1pt))
-		}
-	}
-	panic("didn't intersect", rect, line)
-}
 
 
 /// Determine arc between two points with a given bend angle
