@@ -91,6 +91,10 @@ $)
 
 ## Change log
 
+### 0.4.2
+
+- Fixed node `inset` being half the amount specified. If upgrading from previous version, you will need to divide node `inset` values by two to preserve diagram layout.
+
 ### 0.4.1
 
 - Support custom node shapes! Edges connect to node outlines automatically.
