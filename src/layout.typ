@@ -20,7 +20,7 @@
 
 		// Determine physical size of node content
 		let (width, height) = measure(node.label, styles)
-		let radius = vector-len((width/2, height/2))
+		let radius = vector-len((width/2, height/2)) // circumcircle
 
 		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
@@ -30,13 +30,13 @@
 		}
 
 		// Add node inset
-		if radius != 0pt {
-			width += node.inset
-			height += node.inset
-			radius = vector-len((width/2, height/2))
+		if radius != 0pt { radius += node.inset }
+		if width != 0pt and height != 0pt {
+			width += 2*node.inset
+			height += 2*node.inset
 		}
 
-		// If width/height/radius is auto, set it to the measured width/height/radius
+		// If width/height/radius is auto, set to measured width/height/radius
 		node.size = node.size.zip((width, height))
 			.map(((given, measured)) => default(given, measured))
 		node.radius = default(node.radius, radius)

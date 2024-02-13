@@ -3,6 +3,8 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
+
+
 = Connectors
 
 #diagram(
@@ -473,6 +475,40 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 	node((0,0), [width], stroke: 1pt, width: 2cm),
 	node((1,0), [height], stroke: 1pt, height: 4em, inset: 0pt),
 	node((2,0), [both], width: 1em, height: 1em, fill: blue),
+)
+
+
+= Node inset and outset
+
+#let cm-square = box(width: 5mm, height: 5mm, fill: black)
+
+What `5mm` inset should look like:
+
+#rect(fill: green, inset: 5mm, cm-square)
+
+A diagram node with `5mm` inset:
+
+#diagram(node((0,0), cm-square, shape: rect, inset: 5mm, fill: green))
+
+A diagram node with `5mm` outset:
+
+#diagram(
+	debug: 2,
+	spacing: 1cm,
+	node((0,0), cm-square, shape: rect, inset: 0pt, outset: 5mm, fill: blue),
+	edge("->"),
+)
+
+Circular insets:
+
+#diagram(
+	node-stroke: 1pt,
+	node((0,0), $A$, inset: 0pt, shape: rect),
+	node((1,0), $A$, inset: 0pt),
+	node((0,1), $A$, shape: rect),
+	node((1,1), $A$),
+	node((0,2), $A B C D E$, shape: rect),
+	node((1,2), $A B C D E$, shape: circle),
 )
 
 
