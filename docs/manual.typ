@@ -284,21 +284,19 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	#fletcher.diagram(
-		debug: true,         // show a coordinate grid
-		axes: (ltr, btt),    // make y-axis go ↑
-		spacing: (8mm, 3mm), // wide columns, narrow rows
-		node-stroke: 1pt,    // outline node shapes
-		edge-stroke: 1pt,    // make lines thicker
-		mark-scale: 60%,     // make arrowheads smaller
-		edge((-2,0), (-1,0)),
-		edge((-1,0), (0,+1), $f$, "..|>", corner: right),
-		edge((-1,0), (0,-1), $g$, "-|>", corner: left),
-		node((0,+1), $F(s)$),
-		node((0,-1), $G(s)$),
-		edge((0,+1), (1,0), "..|>", corner: right),
-		edge((0,-1), (1,0), "-|>", corner: left),
+		debug: true,          // show a coordinate grid
+		spacing: (10mm, 5mm), // wide columns, narrow rows
+		node-stroke: 1pt,     // outline node shapes
+		edge-stroke: 1pt,     // make lines thicker
+		mark-scale: 60%,      // make arrowheads smaller
+		edge((-2,0), "r,u,r", "-|>", $f$, label-side: left),
+		edge((-2,0), "r,d,r", "..|>", $g$),
+		node((0,-1), $F(s)$),
+		node((0,+1), $G(s)$),
+		edge((0,+1), (1,0), "..|>", corner: left),
+		edge((0,-1), (1,0), "-|>", corner: right),
 		node((1,0), text(white, $ plus.circle $), inset: 1pt, fill: black),
-		edge((1,0), (2,0), "-|>"),
+		edge("-|>"),
 	)
 	```),
 
