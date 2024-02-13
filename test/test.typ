@@ -3,7 +3,6 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
-
 = Connectors
 
 #diagram(
@@ -734,4 +733,21 @@ $)
 	edge((0,0), (1,0), "->", shift: +3.4pt, bend: 40deg),
 	edge((0,0), (1,0), "<-", shift: -3.4pt, bend: 40deg),
 	node((1,0), $B$),
+)
+
+
+
+= Label fill
+
+#diagram(
+	crossing-fill: luma(90%),
+	edge((0,0), (1,1), "->", [hi], label-side: right),
+	edge((1,0), (2,1), "->", [hi], label-side: center),
+	edge((2,0), (3,1), "->", [hi], label-fill: true),
+)
+#diagram(
+	crossing-fill: luma(90%),
+	edge((0,0), (1,1), "->", [hi], label-side: right, label-fill: blue),
+	edge((1,0), (2,1), "->", [hi], label-side: center, label-fill: false),
+	edge((2,0), (3,1), "->", [hi]),
 )

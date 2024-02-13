@@ -493,6 +493,7 @@
 	label-pos: 0.5,
 	label-sep: auto,
 	label-anchor: auto,
+	label-fill: auto,
 	stroke: auto,
 	dash: none,
 	kind: auto,
@@ -517,6 +518,7 @@
 		label-sep: label-sep,
 		label-anchor: label-anchor,
 		label-side: label-side,
+		label-fill: label-fill,
 		stroke: stroke,
 		dash: dash,
 		kind: kind,
@@ -686,7 +688,6 @@
 
 			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
 			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
-			edge.label-sep = default(edge.label-sep, options.label-sep)
 			edge.corner-radius = default(edge.corner-radius, options.edge-corner-radius)
 
 			if edge.is-crossing-background {
@@ -718,8 +719,12 @@
 				mark
 			})
 
-			edge.label-sep = to-pt(edge.label-sep)
+			edge.label-sep = to-pt(default(edge.label-sep, options.label-sep))
 
+			edge.label-fill = default(edge.label-fill, edge.label-side == center)
+
+			if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
+			if edge.label-fill == false { edge.label-fill = none }
 
 
 			edge

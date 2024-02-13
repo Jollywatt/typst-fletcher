@@ -3,13 +3,12 @@
 
 
 #let draw-edge-label(edge, label-pos, options) = {
-
 	cetz.draw.content(
 		label-pos,
 		box(
 			// cetz seems to sometimes squash the content, causing a line-
 			// break, when padding is present...
-			fill: edge.crossing-fill,
+			fill: edge.label-fill,
 			stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
 			radius: .2em,
 			pad(.2em)[#edge.label],
@@ -91,7 +90,6 @@
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 	
-		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
 		let label-pos = vector.add(
 			vector.lerp(from, to, edge.label-pos),
 			vector-polar(edge.label-sep, θ + label-dir*90deg),
@@ -150,7 +148,6 @@
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
 		
-		edge.label-sep = to-abs-length(edge.label-sep, options.em-size)
 		let label-pos = vector.add(
 			center,
 			vector-polar(
