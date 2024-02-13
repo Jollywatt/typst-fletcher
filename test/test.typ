@@ -139,7 +139,7 @@ Compare #text(result-color)[our output] to the #text(target-color)[reference sym
 
 #for (i, a) in ("->", "=>", "==>").enumerate() [
 	Diagram #diagram(
-		// node-inset: 5pt,
+		node-inset: 2.5pt,
 		label-sep: 1pt + i*1pt,
 		node((0, -i), $A$),
 		edge((0, -i), (1, -i), text(0.6em, $f$), a),
@@ -377,17 +377,6 @@ Reversed $y$-axis:
 	}
 )
 
-= Node bounds, inset, and outset
-
-#diagram(
-	debug: 2,
-	node-outset: 5pt,
-	node-inset: 5pt,
-	node((0,0), `hello`, stroke: 1pt),
-	node((1,0), `there`, stroke: 1pt),
-	edge((0,0), (1,0), "<=>"),
-)
-
 
 = Corner edges
 
@@ -471,10 +460,10 @@ Make sure provided dimensions are exact, not affected by node `inset`.
 #circle(radius: 1cm, align(center + horizon, `1cm`))
 
 #diagram(
-	node((0,1), `1cm`, stroke: 1pt, radius: 1cm, inset: 1cm, shape: "circle"),
-	node((0,0), [width], stroke: 1pt, width: 2cm),
-	node((1,0), [height], stroke: 1pt, height: 4em, inset: 0pt),
-	node((2,0), [both], width: 1em, height: 1em, fill: blue),
+	node((0,0), `1cm`, stroke: 1pt, radius: 1cm, inset: 1cm, shape: "circle"),
+	node((0,1), [width], stroke: 1pt, width: 2cm),
+	node((1,1), [height], stroke: 1pt, height: 4em, inset: 0pt),
+	node((2,1), [both], width: 1em, height: 1em, fill: blue),
 )
 
 
@@ -652,10 +641,9 @@ $)
 
 #diagram(
 	node-outset: 2pt,
-	node-inset: 5pt,
 	node-corner-radius: 2pt,
 	$
-		A edge(->) & node(sqrt(B), fill: #blue.lighten(70%), inset: #10pt) \
+		A edge(->) & node(sqrt(B), fill: #blue.lighten(70%), inset: #5pt) \
 		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
 		edge(#(1,0), "..||..")
 	$,

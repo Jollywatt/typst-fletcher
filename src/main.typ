@@ -1015,7 +1015,7 @@
 	node-stroke: none,
 	edge-corner-radius: 2.5pt,
 	node-corner-radius: none,
-	node-inset: 12pt,
+	node-inset: 6pt,
 	node-outset: 0pt,
 	node-fill: none,
 	node-defocus: 0.2,

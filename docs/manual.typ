@@ -295,7 +295,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 		node((0,+1), $G(s)$),
 		edge((0,+1), (1,0), "..|>", corner: left),
 		edge((0,-1), (1,0), "-|>", corner: right),
-		node((1,0), text(white, $ plus.circle $), inset: 1pt, fill: black),
+		node((1,0), text(white, $ plus.circle $), inset: 2pt, fill: black),
 		edge("-|>"),
 	)
 	```),
@@ -303,8 +303,8 @@ Avoid importing everything with `*` as many internal functions are also exported
 	..code-example(```typ
 	An equation $f: A -> B$ and \
 	an inline diagram #fletcher.diagram(
-		node-inset: 4pt,
-		label-sep: 2pt,
+		node-inset: 2pt,
+		label-sep: 0pt,
 		$A edge(->, text(#0.8em, f)) & B$
 	).
 	```),
@@ -362,7 +362,7 @@ This can be changed with the `axis` option of `diagram()`.
 		let b = blue.lighten(70%)
 		node((0,1), `xyz`, fill: b, )
 		let dash = (paint: blue, dash: "dashed")
-		node((1,1), `xyz`, stroke: dash, inset: 2em)
+		node((1,1), `xyz`, stroke: dash, inset: 1em)
 		node((2,1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
 		node((3,1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
 	}
@@ -433,7 +433,7 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 		node((0,0), [Blue Pill], shape: pill),
 		node((1,0), [_Slant_], shape: parallelogram.with(angle: 20deg)),
 		node((0,1), [Choice], shape: diamond),
-		node((1,1), [Stop], shape: hexagon, extrude: (-3, 0), inset: 5mm),
+		node((1,1), [Stop], shape: hexagon, extrude: (-3, 0), inset: 10pt),
 	).intersperse(edge("o--|>")).join()
 )
 ```)
