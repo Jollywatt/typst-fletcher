@@ -290,7 +290,7 @@
 ///  )
 /// - label-sep (number): Separation between the connector and the label anchor.
 ///  
-///  With the default anchor (`"bottom"`):
+///  With the default anchor (automatically set to `"bottom"` in this case):
 ///
 ///  #fletcher.diagram(
 ///  	debug: 2,
@@ -312,20 +312,27 @@
 ///  		}
 ///  })
 /// 
+///  Set `debug` to `2` or higher to see label anchors and outlines as seen
+///  here. 
+/// 
 /// - label (content): Content for the edge label. See the `label-pos` and
 ///  `label-side` options to control the position (and `label-sep` and
 ///  `label-anchor` for finer control).
 ///
-/// - label-side (left, right, center): Which side of the connector to place the
+/// - label-side (left, right, center): Which side of the edge to place the
 ///  label on, viewed as you walk along it from base to tip. If `center`, then
-///  the label is place over the connector. When `auto`, a value of `left` or
-///  `right` is chosen to automatically so that the label is
+///  the label is placed directly on the edge. When `auto`, a value of `left` or
+///  `right` is automatically chosen so that the label is:
 ///    - roughly above the connector, in the case of straight lines; or
 ///    - on the outside of the curve, in the case of arcs.
 ///
 /// - label-anchor (anchor): The anchor point to place the label at, such as
 ///  `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
 ///  automatically chosen based on `label-side` and the angle of the connector.
+///
+/// - label-fill (bool, paint): The background fill for the label. If `auto`,
+///  then defaults to `true` if the label is over the edge
+///  (`label-side: center`). If `true`, defaults to the value of `crossing-fill`.
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
 ///  thickness.
