@@ -85,14 +85,6 @@
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)
 	(
-		// "right",
-		// "top-right",
-		// "top",
-		// "top-left",
-		// "left",
-		// "bottom-left",
-		// "bottom",
-		// "bottom-right",
 	  "east",
 	  "north-east",
 	  "north",
@@ -118,14 +110,6 @@
     size: vector.sub(p2, p1)
   )
 }
-
-#let rect-edges((x0, y0), (x1, y1)) = (
-  ((x0, y0), (x1, y0)),
-  ((x1, y0), (x1, y1)),
-  ((x1, y1), (x0, y1)),
-  ((x0, y1), (x0, y0)),
-)
-
 
 
 /// Determine arc between two points with a given bend angle

@@ -90,6 +90,7 @@
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
 
+	// interpret first two positional arguments
 	if args.pos().len() == 2 {
 		(pos, label) = args.pos()
 	} else if args.pos().len() == 1 {
@@ -103,8 +104,6 @@
 		}
 	}
 
-
-	if type(label) == content and label.func() == circle { panic(label) }
 	metadata((
 		class: "node",
 		pos: pos,
@@ -126,7 +125,7 @@
 /// Interpret the positional arguments given to an `edge()`
 ///
 /// Tries to intelligently distinguish the `from`, `to`, `marks`, and `label`
-/// arguments based on the types.
+/// arguments based on the argument types.
 ///
 /// Generally, the following combinations are allowed:
 /// ```

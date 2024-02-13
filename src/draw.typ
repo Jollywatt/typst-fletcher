@@ -585,56 +585,49 @@
 }
 
 
-#let draw-debug-axes(grid, options) = {
-	
-	// draw axes
-	if options.debug >= 1 {
+#let draw-debug-axes(grid) = {
 
-		cetz.draw.scale(
-			x: grid.scale.at(0),
-			y: grid.scale.at(1),
+	cetz.draw.scale(
+		x: grid.scale.at(0),
+		y: grid.scale.at(1),
+	)
+	// cetz panics if rect is zero area
+	if grid.bounding-size.all(x => x != 0pt) {
+		cetz.draw.rect(
+			(0,0),
+			grid.bounding-size,
+			stroke: DEBUG_COLOR + 0.25pt
 		)
-		// cetz panics if rect is zero area
-		if grid.bounding-size.all(x => x != 0pt) {
-			cetz.draw.rect(
-				(0,0),
-				grid.bounding-size,
-				stroke: DEBUG_COLOR + 0.25pt
+	}
+
+	for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
+
+		for (i, x) in grid.centers.at(axis).enumerate() {
+			let size = grid.sizes.at(axis).at(i)
+
+			// coordinate label
+			cetz.draw.content(
+				coord(x, -.5em),
+				text(fill: DEBUG_COLOR, size: .7em)[#(grid.origin.at(axis) + i)]
 			)
-		}
 
-		for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
+			// size bracket
+			cetz.draw.line(
+				..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
+				stroke: DEBUG_COLOR + .75pt,
+				mark: (start: "|", end: "|")
+			)
 
-			for (i, x) in grid.centers.at(axis).enumerate() {
-				let size = grid.sizes.at(axis).at(i)
-
-				// coordinate label
-				cetz.draw.content(
-					coord(x, -.5em),
-					// text(fill: DEBUG_COLOR, size: .75em)[#(grid.origin.at(axis) + i)],
-					text(fill: DEBUG_COLOR, size: .7em)[#(grid.origin.at(axis) + i)]
-
-					// anchor: if axis == 0 { "south" } else { "east" }
-				)
-
-				// size bracket
-				cetz.draw.line(
-					..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-					stroke: DEBUG_COLOR + .75pt,
-					mark: (start: "|", end: "|")
-				)
-
-				// gridline
-				cetz.draw.line(
-					coord(x, 0),
-					coord(x, grid.bounding-size.at(1 - axis)),
-					stroke: (
-						paint: DEBUG_COLOR,
-						thickness: .3pt,
-						dash: "densely-dotted",
-					),
-				)
-			}
+			// gridline
+			cetz.draw.line(
+				coord(x, 0),
+				coord(x, grid.bounding-size.at(1 - axis)),
+				stroke: (
+					paint: DEBUG_COLOR,
+					thickness: .3pt,
+					dash: "densely-dotted",
+				),
+			)
 		}
 	}
 }
@@ -651,7 +644,6 @@
 	options,
 ) = {
 
-
 	for node in nodes {
 		draw-node(node, options)
 	}
@@ -661,7 +653,9 @@
 		draw-edge(edge, nodes, options)
 	}
 
-	draw-debug-axes(grid, options)
+	if options.debug >= 1 {
+		draw-debug-axes(grid)
+	}
 
 }
 
