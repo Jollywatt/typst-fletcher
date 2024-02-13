@@ -480,9 +480,12 @@
 		vector-angle(vector.sub(..end-segments.at(1))),
 	)
 
+	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
+
+
 	get-node-anchors(nodes, θs, anchors => {
 		draw-edge-polyline(edge, anchors, options)
-	})
+	}, shifts: δs)
 }
 
 #let draw-anchored-corner(edge, nodes, options) = {
