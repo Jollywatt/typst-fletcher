@@ -553,11 +553,12 @@
 }
 
 #let draw-anchored-polyline(edge, nodes, options) = {
+	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	
-	let end-segments = range(2).map(i => (
-		(options.get-coord)(edge.vertices.at(-i)),
-		nodes.at(i).real-pos,
-	))
+	let end-segments = (
+		(from, (options.get-coord)(edge.vertices.at(0))),
+		((options.get-coord)(edge.vertices.at(-1)), to),
+	)
 
 	let θs = (
 		vector-angle(vector.sub(..end-segments.at(0))),
@@ -566,15 +567,29 @@
 
 	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
 
+	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
-	get-node-anchors(nodes, θs, anchors => {
+	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
+		if node == none { return }
+		cetz.draw.group({
+			cetz.draw.translate(node.real-pos)
+			(node.shape)(node, node.outset)
+		})
+		dummy-line
+	})
+
+	find-anchor-pair(intersection-objects, (from, to), anchors => {
 		draw-edge-polyline(edge, anchors, options)
-	}, shifts: δs)
+	})
+
+	// get-node-anchors(nodes, θs, anchors => {
+	// 	draw-edge-polyline(edge, anchors, options)
+	// }, shifts: δs)
 }
 
 #let draw-anchored-corner(edge, nodes, options) = {
 
-	let (from, to) = nodes.map(n => n.real-pos)
+	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	let θ = vector-angle(vector.sub(to, from))
 
 	let bend-dir = (
@@ -592,9 +607,9 @@
 	}
 
 	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
-		(nodes.at(1).pos.at(0), nodes.at(0).pos.at(1))
+		(edge.to.at(0), edge.from.at(1))
 	} else {
-		(nodes.at(0).pos.at(0), nodes.at(1).pos.at(1))
+		(edge.from.at(0), edge.to.at(1))
 	}
 
 	let edge-options = (
@@ -602,9 +617,10 @@
 		label-side: if bend-dir { left } else { right },
 	)
 
-	get-node-anchors(nodes, θs, anchors => {
-		draw-edge-polyline(edge + edge-options, anchors, options)
-	})
+	draw-anchored-polyline(edge + edge-options, nodes, options)
+	// get-node-anchors(nodes, θs, anchors => {
+	// 	draw-edge-polyline(edge + edge-options, anchors, options)
+	// })
 }
 
 #let draw-edge(edge, nodes, options) = {

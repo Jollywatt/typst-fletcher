@@ -6,11 +6,14 @@
 = Hi
 
 #diagram(debug: 3, {
-	node((1,0), `a long node`, stroke: .1pt)
+	node((1,0), `a wide node`, stroke: .1pt)
 	node((1,1), $A$)
-	node((2,1), $B$)
+	node((2,1), [#range(4)])
 	edge((1,1), (1.3,0), "->", bend: 0deg)
 	edge((2,1), (1,0.1), "->", bend: 30deg)
+	edge((2,1), (2,0.1), (1,0.1), "->>")
+	edge((1.8,1), (.7,0), "=>", corner: left)
+
 })
 
 = Intersection finding
