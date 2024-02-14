@@ -3,6 +3,32 @@
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
+= Hi
+
+#diagram(debug: 3, {
+	node((1,0), `a long node`, stroke: .1pt)
+	edge((1,1), (0.4,0), "->")
+	node((1,1), $A$)
+	node((2,1), $B$)
+})
+
+= Intersection finding
+
+#fletcher.cetz.canvas({
+	import fletcher.cetz.draw
+	let target = (2cm,0cm)
+	let obj = draw.circle((0cm,0cm))
+	let line = draw.line((-1cm,1cm), target)
+	line
+	obj
+	draw.content(target, `target`)
+
+	fletcher.find-farthest-intersection(obj + line, target, pt => {
+		draw.content(pt, text(red, `farthest`))
+	})
+})
+
+/*
 = Connectors
 
 #diagram(

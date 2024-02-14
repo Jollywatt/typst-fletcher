@@ -78,13 +78,13 @@
 	label: auto,
 	inset: auto,
 	outset: auto,
-	shape: auto,
+	stroke: auto,
+	fill: auto,
 	width: auto,
 	height: auto,
 	radius: auto,
-	stroke: auto,
-	fill: auto,
 	corner-radius: auto,
+	shape: auto,
 	defocus: auto,
 	extrude: (0,),
 ) = {
@@ -1076,13 +1076,14 @@
 		let (nodes, edges) = (nodes, edges)
 
 		// Add dummy nodes at edge terminals
-		for edge in edges {
-			nodes.push(node(edge.from, none).value)
-			nodes.push(node(edge.to, none).value)
-			for vertex in edge.vertices { nodes.push(node(vertex, none).value) }
-		}
+		// for edge in edges {
+		// 	nodes.push(node(edge.from, none).value)
+		// 	nodes.push(node(edge.to, none).value)
+		// 	for vertex in edge.vertices { nodes.push(node(vertex, none).value) }
+		// }
 
 		// Swap axes
+		// TODO: this is dumb. Just do a coord transform step later on
 		if options.axes.map(a => a.axis()) == ("vertical", "horizontal") {
 			nodes = nodes.map(node => {
 				node.pos = node.pos.rev()

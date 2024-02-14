@@ -78,7 +78,7 @@
 	// Draw label
 	if edge.label != none {
 
-		// Choose label anchor based on connector direction,
+		// Choose label anchor based on edge direction,
 		// preferring to place labels above the edge
 		if edge.label-side == auto {
 			edge.label-side = if calc.abs(θ) < 90deg { left } else { right }
@@ -138,12 +138,13 @@
 	if edge.label != none {
 
 		if edge.label-side == auto {
+			// Choose label side to be on outside of arc
 			edge.label-side = if edge.bend > 0deg { left } else { right }
 		}
 		let label-dir = if edge.label-side == left { +1 } else { -1 }
 
 		if edge.label-anchor == auto {
-			// Choose label anchor based on connector direction
+			// Choose label anchor based on edge direction
 			let θ = vector-angle(vector.sub(to, from))
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
@@ -334,14 +335,19 @@
 
 
 
-
+/// Draw a ray emanating from a node at a given angle.
+/// 
+/// This ray is used to find the anchor point for edges which connect to the
+/// node. The anchor point is the intersection of the ray and the node's
+/// outline.
 #let draw-node-anchoring-ray(node, θ, shift: none) = {
+
 	let r = 10*(node.radius + node.outset)
 
 	let origin = node.real-pos
 	if shift != none { origin = vector.add(origin, shift) }
 
-	if calc.abs(node.aspect - 1) < 0.1 {
+	if true or calc.abs(node.aspect - 1) < 0.1 {
 		cetz.draw.line(
 			origin,
 			vector.add(
@@ -424,7 +430,8 @@
 
 				let anchors = ctx.nodes.at("anchor-"+str(i)).anchors
 				if anchors(()).len() < 1 {
-					panic("No intersection found with outline of node at " + repr(nodes.at(i).pos) + ".")
+					// panic("No intersection found with outline of node at " + repr(nodes.at(i).pos) + ".")
+					return nodes.at(i).real-pos
 				}
 				let pt = anchors("0")
 				pt.at(1) *= -1
@@ -442,16 +449,83 @@
 }
 
 
+/// Of all the intersection points between given cetz objects, find the one
+/// which is farthest from a target point and pass it to a callback.
+///
+/// If no intersection points are found, return the target point.
+#let find-farthest-intersection(objects, target, callback) = {
+	
+	let node-name = "intersection-finder"
+	cetz.draw.hide(cetz.draw.intersections(node-name, objects))
+
+	cetz.draw.get-ctx(ctx => {
+
+		let calculate-anchors = ctx.nodes.at(node-name).anchors
+		let anchor-names = calculate-anchors(())
+		let anchor-points = anchor-names.map(calculate-anchors)
+			.map(point => {
+				point.at(1) *= -1
+				vector-2d(vector.scale(point, 1cm))
+			}).sorted(key: point => vector-len(vector.sub(point, target)))
+
+		let anchor = anchor-points.at(-1, default: target)
+
+		callback(anchor)
+
+	})
+
+}
 
 #let draw-anchored-line(edge, nodes, options) = {
-	let (from, to) = nodes.map(n => n.real-pos)
-	let θ = vector-angle(vector.sub(to, from))
-	let θs = (θ, θ + 180deg)
-	let δs = edge.shift.map(d => vector-polar(d, θ + 90deg))
+	let (from, to) = (
+		(options.get-coord)(edge.from),
+		(options.get-coord)(edge.to),
+	)
 
-	get-node-anchors(nodes, θs, anchors => {
-		draw-edge-line(edge, anchors, options)
-	}, shifts: δs)
+	if options.debug >= 3 {
+		cetz.draw.line(
+			from,
+			to,
+			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
+		)
+	}
+
+	let dummy-line = cetz.draw.line(
+		from,
+		to,
+	)
+
+	let node = nodes.at(0)
+	let (from-outline, to-outline) = nodes.map(node => cetz.draw.group({
+		cetz.draw.translate(node.real-pos)
+		(node.shape)(node, node.outset)
+	}))
+
+	find-farthest-intersection(from-outline + dummy-line, from, a => {
+		find-farthest-intersection(to-outline + dummy-line, to, b => {
+			draw-edge-line(edge, (a, b), options)
+		})
+	})
+
+
+
+	// get-node-anchors(nodes, θs, anchors => {
+	// 	for a in anchors {
+	// 		cetz.draw.circle(a, radius: 3pt, stroke: red)
+	// 	}
+	// }, shifts: δs)
+
+	// let (from, to) = nodes.map(n => n.real-pos)
+	// // let δs = edge.shift.map(d => vector-polar(d, θ + 90deg))
+	// let δs = (
+	// 	vector.sub((options.get-coord)(edge.from), from),
+	// 	vector.sub((options.get-coord)(edge.to), to),
+	// )
+	// // panic(δs)
+
+	// get-node-anchors(nodes, θs, anchors => {
+	// 	draw-edge-line(edge, anchors, options)
+	// }, shifts: δs)
 }
 
 #let draw-anchored-arc(edge, nodes, options) = {
@@ -633,8 +707,11 @@
 }
 
 #let find-node-at(nodes, pos) = {
-	nodes.filter(node => node.pos == pos)
-		.sorted(key: node => node.radius).last()
+	// nodes.filter(node => vector.snode.pos == pos)
+	// 	.sorted(key: node => node.radius).last()
+	nodes
+		.sorted(key: node => vector.sub(node.pos, pos).map(x => x*x).sum())
+		.first()
 }
 
 #let draw-diagram(
@@ -649,6 +726,7 @@
 	}
 
 	for edge in edges {
+		// find notes to snap to
 		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, options)
 	}
