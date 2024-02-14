@@ -10,6 +10,7 @@
 	node((1,1), $A$)
 	node((2,1), $B$)
 	edge((1,1), (1.3,0), "->", bend: 0deg)
+	edge((2,1), (1,0.1), "->", bend: 30deg)
 })
 
 = Intersection finding
