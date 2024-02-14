@@ -507,13 +507,15 @@
 	bend: 0deg,
 	corner: none,
 	corner-radius: auto,
+	extrude: (0,),
+	shift: 0pt,
+	anchor-from: auto,
+	anchor-to: auto,
 	marks: (none, none),
 	mark-scale: 100%,
-	extrude: (0,),
 	crossing: false,
 	crossing-thickness: auto,
 	crossing-fill: auto,
-	shift: 0pt,
 ) = {
 
 	let options = (
@@ -532,13 +534,15 @@
 		bend: bend,
 		corner: corner,
 		corner-radius: corner-radius,
+		extrude: extrude,
+		shift: shift,
+		anchor-from: anchor-from,
+		anchor-to: anchor-to,
 		marks: marks,
 		mark-scale: mark-scale,
-		extrude: extrude,
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
-		shift: shift,
 	)
 
 	options += interpret-edge-args(args, options)

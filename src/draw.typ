@@ -453,7 +453,14 @@
 /// which is farthest from a target point and pass it to a callback.
 ///
 /// If no intersection points are found, return the target point.
+///
+/// - objects (cetz, none): Objects to search within for intersections. If
+///  `none`, callback is immediately called with `target`.
+/// - target (point): Target point to sort intersections by proximity with, and
+///  to use as a fallback if no intersections are found.
 #let find-farthest-intersection(objects, target, callback) = {
+
+	if objects == none { return callback(target) }
 	
 	let node-name = "intersection-finder"
 	cetz.draw.hide(cetz.draw.intersections(node-name, objects))
@@ -476,11 +483,12 @@
 
 }
 
+#let find-both-anchors() = {
+	
+}
+
 #let draw-anchored-line(edge, nodes, options) = {
-	let (from, to) = (
-		(options.get-coord)(edge.from),
-		(options.get-coord)(edge.to),
-	)
+	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 
 	if options.debug >= 3 {
 		cetz.draw.line(
@@ -495,37 +503,23 @@
 		to,
 	)
 
-	let node = nodes.at(0)
-	let (from-outline, to-outline) = nodes.map(node => cetz.draw.group({
-		cetz.draw.translate(node.real-pos)
-		(node.shape)(node, node.outset)
-	}))
+	let (from-outline, to-outline) = nodes.map(node => {
+		if node == none { return }
+		cetz.draw.group({
+			cetz.draw.translate(node.real-pos)
+			(node.shape)(node, node.outset)
+		})
+		dummy-line
+	})
 
-	find-farthest-intersection(from-outline + dummy-line, from, a => {
-		find-farthest-intersection(to-outline + dummy-line, to, b => {
-			draw-edge-line(edge, (a, b), options)
+
+	find-farthest-intersection(from-outline, from, from-anchored => {
+		find-farthest-intersection(to-outline, to, to-anchored => {
+			draw-edge-line(edge, (from-anchored, to-anchored), options)
 		})
 	})
 
 
-
-	// get-node-anchors(nodes, θs, anchors => {
-	// 	for a in anchors {
-	// 		cetz.draw.circle(a, radius: 3pt, stroke: red)
-	// 	}
-	// }, shifts: δs)
-
-	// let (from, to) = nodes.map(n => n.real-pos)
-	// // let δs = edge.shift.map(d => vector-polar(d, θ + 90deg))
-	// let δs = (
-	// 	vector.sub((options.get-coord)(edge.from), from),
-	// 	vector.sub((options.get-coord)(edge.to), to),
-	// )
-	// // panic(δs)
-
-	// get-node-anchors(nodes, θs, anchors => {
-	// 	draw-edge-line(edge, anchors, options)
-	// }, shifts: δs)
 }
 
 #let draw-anchored-arc(edge, nodes, options) = {
@@ -707,11 +701,12 @@
 }
 
 #let find-node-at(nodes, pos) = {
-	// nodes.filter(node => vector.snode.pos == pos)
-	// 	.sorted(key: node => node.radius).last()
-	nodes
-		.sorted(key: node => vector.sub(node.pos, pos).map(x => x*x).sum())
-		.first()
+	nodes.filter(node => {
+		// node must be within a one-unit block around pos
+		vector.sub(node.pos, pos).all(Δ => calc.abs(Δ) < 0.5)
+	})
+		.sorted(key: node => vector.len(vector.sub(node.pos, pos)))
+		.at(0, default: none)
 }
 
 #let draw-diagram(
@@ -726,7 +721,7 @@
 	}
 
 	for edge in edges {
-		// find notes to snap to
+		// find notes to snap to (can be none!)
 		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, options)
 	}

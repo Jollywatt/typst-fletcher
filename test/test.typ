@@ -7,9 +7,9 @@
 
 #diagram(debug: 3, {
 	node((1,0), `a long node`, stroke: .1pt)
-	edge((1,1), (0.4,0), "->")
 	node((1,1), $A$)
 	node((2,1), $B$)
+	edge((1,1), (1.3,0), "->", bend: 0deg)
 })
 
 = Intersection finding
