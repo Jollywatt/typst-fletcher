@@ -78,13 +78,13 @@
 	label: auto,
 	inset: auto,
 	outset: auto,
-	shape: auto,
+	stroke: auto,
+	fill: auto,
 	width: auto,
 	height: auto,
 	radius: auto,
-	stroke: auto,
-	fill: auto,
 	corner-radius: auto,
+	shape: auto,
 	defocus: auto,
 	extrude: (0,),
 ) = {
@@ -507,13 +507,15 @@
 	bend: 0deg,
 	corner: none,
 	corner-radius: auto,
+	extrude: (0,),
+	shift: 0pt,
+	anchor-from: auto,
+	anchor-to: auto,
 	marks: (none, none),
 	mark-scale: 100%,
-	extrude: (0,),
 	crossing: false,
 	crossing-thickness: auto,
 	crossing-fill: auto,
-	shift: 0pt,
 ) = {
 
 	let options = (
@@ -532,13 +534,15 @@
 		bend: bend,
 		corner: corner,
 		corner-radius: corner-radius,
+		extrude: extrude,
+		shift: shift,
+		anchor-from: anchor-from,
+		anchor-to: anchor-to,
 		marks: marks,
 		mark-scale: mark-scale,
-		extrude: extrude,
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
-		shift: shift,
 	)
 
 	options += interpret-edge-args(args, options)
@@ -1075,14 +1079,8 @@
 
 		let (nodes, edges) = (nodes, edges)
 
-		// Add dummy nodes at edge terminals
-		for edge in edges {
-			nodes.push(node(edge.from, none).value)
-			nodes.push(node(edge.to, none).value)
-			for vertex in edge.vertices { nodes.push(node(vertex, none).value) }
-		}
-
 		// Swap axes
+		// TODO: this is dumb. Just do a coord transform step later on
 		if options.axes.map(a => a.axis()) == ("vertical", "horizontal") {
 			nodes = nodes.map(node => {
 				node.pos = node.pos.rev()
@@ -1099,7 +1097,7 @@
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
 		let nodes = compute-node-sizes(nodes, styles)
-		let grid  = compute-grid(nodes, options)
+		let grid  = compute-grid(nodes, edges, options)
 		options.get-coord = grid.get-coord
 		let nodes = compute-node-positions(nodes, grid, options)
 

@@ -4,6 +4,7 @@
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
 
 
+#let todo = highlight[TODO!]
 
 = Connectors
 
@@ -18,6 +19,7 @@
 	edge((0,0), (0,1), marks: (none, ">>")),
 	edge((0,0), (0,0), marks: (none, "head"), bend: 120deg),
 )
+
 
 = Arc connectors
 
@@ -46,6 +48,7 @@
 		range(N + 1).map(x => (x/N - 0.5)*2*120deg).map(θ => edge((0,0), to, bend: θ, marks: ">->")).join()
 	})
 }
+
 
 = Matching math arrows
 
@@ -741,9 +744,48 @@ $)
 	node((2,0), [Ratio?], shape: fletcher.shapes.hexagon)
 
 
+
+
 )
 
+
+= Intersection finding
+
+#fletcher.cetz.canvas({
+	import fletcher.cetz.draw
+	let target = (2cm,0cm)
+	let obj = draw.circle((0cm,0cm))
+	let line = draw.line((-1cm,1cm), target)
+	line
+	obj
+	draw.content(target, `target`)
+
+	fletcher.find-farthest-intersection(obj + line, target, pt => {
+		draw.content(pt, text(red, `farthest`))
+	})
+})
+
+= Off-center edges
+
+#diagram(debug: 3, {
+	node((0,0), $A$)
+	node((1,0), $B$)
+	for y in (.1, 0, -.1) {
+		edge((0,y), "r", "->")
+	}
+	node((0,1), `a wide node`, stroke: .1pt)
+	node((1,2), $C$)
+	edge((0,1), (1,2), "->", bend: 35deg)
+	edge((0.2,1), (1,2), "->>", corner: left)
+	edge((0,1), "d", (rel: (-.2,0)), "u", "=>")
+
+})
+
+
+
 = Edge shift
+
+#todo
 
 #diagram(
 	node((0,0), $A$),
@@ -759,6 +801,14 @@ $)
 	node((1,0), $B$),
 )
 
+#diagram(
+	debug: 6,
+	node-stroke: 1pt,
+	node((0,0), $A$),
+	edge((0,0), (1,0), (1,1), "->", shift: (0pt, +5pt)),
+	edge((0,0), (1,0), (1,1), "->", shift: (0pt, -5pt)),
+	node((1,1), $B C$),
+)
 
 
 = Label fill

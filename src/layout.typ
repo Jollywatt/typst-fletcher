@@ -49,6 +49,7 @@
 	node
 })
 
+// TODO reduce repetition
 #let to-physical-coords(grid, coord) = {
 	zip(coord, grid.centers, grid.origin, grid.scale)
 		.map(((x, c, o, s)) => s*lerp-at(c, x - o))
@@ -56,8 +57,8 @@
 
 #let compute-node-positions(nodes, grid, options) = nodes.map(node => {
 
-	let (x, y) = to-physical-coords(grid, node.pos)
-	node.real-pos = (x, y)
+	// let (x, y) = to-physical-coords(grid, node.pos)
+	node.real-pos = (options.get-coord)(node.pos)
 
 
 	node.rect = (-1, +1).map(dir => vector.add(
@@ -115,15 +116,21 @@
 	new-rects
 }
 
+
 /// Determine the number, sizes and positions of rows and columns.
-#let compute-grid(nodes, options) = {
+#let compute-grid(nodes, edges, options) = {
 	let rects = nodes.map(node => (pos: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
-	// (x: (x-min, x-max), y: ...)
-	let bounding-rect = zip((0, 0), ..rects.map(n => n.pos)).map(min-max)
-	let bounding-dims = bounding-rect.map(((min, max)) => max - min + 1)
-	let origin = bounding-rect.map(((min, max)) => min)
+	// all points in diagram that should be spanned by coordinate grid
+	let points = rects.map(r => r.pos)
+	points += edges.map(e => (e.from, e.to, ..e.vertices)).join()
+
+	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
+	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
+	let (y-min, y-max) = min-max-int(points.map(p => p.at(1)))
+	let origin = (x-min, y-min)
+	let bounding-dims = (x-max - x-min + 1, y-max - y-min + 1)
 
 	// Initialise row and column sizes to minimum size
 	let cell-sizes = zip(options.cell-size, bounding-dims)
