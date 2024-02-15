@@ -6,13 +6,16 @@
 = Hi
 
 #diagram(debug: 3, {
-	node((1,0), `a wide node`, stroke: .1pt)
-	node((1,1), $A$)
-	node((2,1), [#range(4)])
-	edge((1,1), (1.3,0), "->", bend: 0deg)
-	edge((2,1), (1,0.1), "->", bend: 30deg)
-	edge((2,1), (2,0.1), (1,0.1), "->>")
-	edge((1.8,1), (.7,0), "=>", corner: left)
+	node((0,0), $A$)
+	node((1,0), $B$)
+	for y in (.1, 0, -.1) {
+		edge((0,y), "r", "->")
+	}
+	node((0,1), `a wide node`, stroke: .1pt)
+	node((1,2), $C$)
+	edge((0,1), (1,2), "->", bend: 35deg)
+	edge((0.2,1), (1,2), "->>", corner: left)
+	edge((0,1), "d", (rel: (-.2,0)), "u", "=>")
 
 })
 
