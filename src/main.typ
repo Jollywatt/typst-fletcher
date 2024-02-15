@@ -1097,7 +1097,7 @@
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
 		let nodes = compute-node-sizes(nodes, styles)
-		let grid  = compute-grid(nodes, options)
+		let grid  = compute-grid(nodes, edges, options)
 		options.get-coord = grid.get-coord
 		let nodes = compute-node-positions(nodes, grid, options)
 
