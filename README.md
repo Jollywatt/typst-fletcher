@@ -1,7 +1,8 @@
 # Fletcher
 
-[![Manual](https://img.shields.io/badge/docs-manual.pdf-green)](https://github.com/Jollywatt/typst-fletcher/raw/master/docs/manual.pdf)
-![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Fmaster%2Ftypst.toml&query=package.version&label=version)
+[![Manual](https://img.shields.io/badge/latest-manual.pdf-green)](https://github.com/Jollywatt/typst-fletcher/raw/latest/docs/manual.pdf)
+![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Flatest%2Ftypst.toml&query=package.version&label=latest&color=green)
+![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Fmaster%2Ftypst.toml&query=package.version&label=dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
 _**Fletcher** (noun) a maker of arrows_
