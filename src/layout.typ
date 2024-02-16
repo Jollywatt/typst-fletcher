@@ -1,7 +1,10 @@
 #import "utils.typ": *
 #import "shapes.typ"
 
-
+/// Resolve the sizes of nodes.
+///
+/// Widths and heights that are `auto` are determined by measuring the size of
+/// the node's label.
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
 	// Width and height explicitly given
@@ -50,17 +53,6 @@
 })
 
 
-#let compute-final-coordinates(nodes, edges, grid, options) = (
-	nodes: nodes.map(node => {
-		node.real-pos = (options.get-coord)(node.pos)
-		node
-	}),
-	edges: edges.map(edge => {
-		edge.vertices = edge.vertices.map(options.get-coord)
-		edge
-	}),
-)
-
 
 /// Convert an array of rects with fractional positions into rects with integral
 /// positions.
@@ -103,7 +95,11 @@
 }
 
 
-/// Determine the number, sizes and positions of rows and columns.
+/// Determine the number, sizes and relative positions of rows and columns in
+/// the diagram's coordinate grid.
+///
+/// Rows and columns are sized to fit nodes. Coordinates are not required to
+/// start at the origin, `(0,0)`.
 #let compute-grid(nodes, edges, options) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
@@ -163,7 +159,6 @@
 			.map(((x, c, o, s)) => s*lerp-at(c, x - o))
 	}
 
-
 	(
 		centers: cell-centers,
 		sizes: cell-sizes,
@@ -173,3 +168,16 @@
 		get-coord: get-coord,
 	)
 }
+
+
+
+#let compute-final-coordinates(nodes, edges, grid, options) = (
+	nodes: nodes.map(node => {
+		node.real-pos = (options.get-coord)(node.pos)
+		node
+	}),
+	edges: edges.map(edge => {
+		edge.vertices = edge.vertices.map(options.get-coord)
+		edge
+	}),
+)

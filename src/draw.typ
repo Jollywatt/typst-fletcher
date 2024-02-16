@@ -2,14 +2,14 @@
 #import "marks.typ": *
 
 
-#let draw-edge-label(edge, label-pos, options) = {
+#let draw-edge-label(edge, label-pos, debug: 0) = {
 	cetz.draw.content(
 		label-pos,
 		box(
 			// cetz seems to sometimes squash the content, causing a line-
 			// break, when padding is present...
 			fill: edge.label-fill,
-			stroke: if options.debug >= 2 { DEBUG_COLOR + 0.25pt },
+			stroke: if debug >= 2 { DEBUG_COLOR + 0.25pt },
 			radius: .2em,
 			pad(.2em)[#edge.label],
 		),
@@ -17,7 +17,7 @@
 		anchor: if edge.label-anchor != auto { edge.label-anchor },
 	)
 
-	if options.debug >= 2 {
+	if debug >= 2 {
 		cetz.draw.circle(
 			label-pos,
 			radius: 0.75pt,
@@ -46,7 +46,7 @@
 }
 
 
-#let draw-edge-line(edge, (from, to), options) = {
+#let draw-edge-line(edge, (from, to), debug: 0) = {
 
 	let θ = vector-angle(vector.sub(to, from))
 
@@ -72,7 +72,7 @@
 	// Draw marks
 	let curve(t) = vector.lerp(from, to, t)
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: options.debug >= 4)
+		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
 	}
 
 	// Draw label
@@ -94,14 +94,14 @@
 			vector.lerp(from, to, edge.label-pos),
 			vector-polar(edge.label-sep, θ + label-dir*90deg),
 		)
-		draw-edge-label(edge, label-pos, options)
+		draw-edge-label(edge, label-pos, debug: debug)
 	}
 
 
 	
 }
 
-#let draw-edge-arc(edge, (from, to), options) = {
+#let draw-edge-arc(edge, (from, to), debug: 0) = {
 
 
 	// Determine the arc from the stroke end points and bend angle
@@ -130,7 +130,7 @@
 	// Draw marks
 	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: options.debug >= 4)
+		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
 	}
 
 
@@ -157,13 +157,13 @@
 			)
 		)
 
-		draw-edge-label(edge, label-pos, options)
+		draw-edge-label(edge, label-pos, debug: debug)
 	}
 
 }
 
 
-#let draw-edge-polyline(edge, (from, to), options) = {
+#let draw-edge-polyline(edge, (from, to), debug: 0) = {
 
 	let verts = (
 		from,
@@ -282,7 +282,7 @@
 						stroke: stroke-with-phase(phase + Δphase),
 					)
 
-					if options.debug >= 4 {
+					if debug >= 4 {
 						cetz.draw.on-layer(1, cetz.draw.circle(
 							arc-center,
 							radius: arc-radius - d,
@@ -317,7 +317,7 @@
 				stroke: stroke-with-phase(phase),
 			) + label-options,
 			(from, to),
-			options,
+			debug: debug,
 		)
 
 		phase += Δphase
@@ -325,7 +325,7 @@
 	}
 
 
-	if options.debug >= 4 {
+	if debug >= 4 {
 		cetz.draw.line(
 			..verts,
 			stroke: debug-stroke,
@@ -340,7 +340,7 @@
 ///
 /// If no intersection points are found, use the target point itself.
 ///
-/// - objects (cetz, none): Objects to search within for intersections. If
+/// - objects (cetz array, none): Objects to search within for intersections. If
 ///  `none`, callback is immediately called with `target`.
 /// - target (point): Target point to sort intersections by proximity with, and
 ///  to use as a fallback if no intersections are found.
@@ -384,7 +384,6 @@
 #let draw-anchored-line(edge, nodes, options) = {
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 
-	// edge shift
 	let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
 	from = vector.add(from, vector-polar(δ-from, θ))
@@ -415,7 +414,7 @@
 
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-line(edge, anchors, options)
+		draw-edge-line(edge, anchors, debug: options.debug)
 	})
 
 }
@@ -446,7 +445,7 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-arc(edge, anchors, options)
+		draw-edge-arc(edge, anchors, debug: options.debug)
 	})
 }
 
@@ -486,7 +485,7 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-polyline(edge, anchors, options)
+		draw-edge-polyline(edge, anchors, debug: options.debug)
 	})
 
 }
@@ -523,9 +522,7 @@
 	)
 
 	draw-anchored-polyline(edge + edge-options, nodes, options)
-	// get-node-anchors(nodes, θs, anchors => {
-	// 	draw-edge-polyline(edge + edge-options, anchors, options)
-	// })
+
 }
 
 #let draw-edge(edge, nodes, options) = {
