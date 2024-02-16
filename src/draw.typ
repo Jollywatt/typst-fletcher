@@ -219,6 +219,7 @@
 }
 
 
+
 /// Draw a multi-segment edge
 ///
 /// #box(example(```
@@ -463,6 +464,20 @@
 	
 }
 
+#let defocus-adjustment(node, θ) = {
+		// this is for the "defocus adjustment"
+		// basically, for very long/wide nodes, don't make edges coming in from
+		// all angles go to the exact node center, but "spread them out" a bit.
+		// https://www.desmos.com/calculator/irt0mvixky
+		let μ = calc.pow(node.aspect, node.defocus)
+		let δ = (
+			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
+			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
+		)
+		
+		vector.add(node.final-pos, δ)
+}
+
 #let draw-anchored-line(edge, nodes, options) = {
 	let (from, to) = edge.vertices
 
@@ -470,6 +485,10 @@
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
 	from = vector.add(from, vector-polar(δ-from, θ))
 	to = vector.add(to, vector-polar(δ-to, θ))
+
+	// TODO: to defocus adjustment sensibly
+	if nodes.at(0) != none { from = defocus-adjustment(nodes.at(0), θ - 90deg) }
+	if nodes.at(1) != none { to = defocus-adjustment(nodes.at(1), θ + 90deg) }
 
 
 	if options.debug >= 3 {
