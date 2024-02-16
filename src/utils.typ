@@ -116,7 +116,7 @@
 }
 
 #let rect-at(origin, size) = (-1, +1).map(dir => {
-	vector.add(origin, vector.scale(size, dir))
+	vector.add(origin, vector.scale(size, dir/2))
 })
 
 #let bounding-rect(points) = {

@@ -167,7 +167,7 @@
 
 	let verts = (
 		from,
-		..edge.vertices.map(options.get-coord),
+		..edge.vertices,
 		to,
 	)
 	let n-segments = verts.len() - 1
@@ -453,8 +453,8 @@
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	
 	let end-segments = (
-		(from, (options.get-coord)(edge.vertices.at(0))),
-		((options.get-coord)(edge.vertices.at(-1)), to),
+		(from, edge.vertices.at(0)),
+		(edge.vertices.at(-1), to),
 	)
 
 	let θs = (
@@ -509,9 +509,9 @@
 	}
 
 	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
-		(edge.to.at(0), edge.from.at(1))
+		(to.at(0), from.at(1))
 	} else {
-		(edge.from.at(0), edge.to.at(1))
+		(from.at(0), to.at(1))
 	}
 
 	let edge-options = (
@@ -580,7 +580,7 @@
 		})
 
 		cetz.draw.rect(
-			..node.rect,
+			..rect-at(node.real-pos, node.size),
 			stroke: DEBUG_COLOR + .1pt,
 		)
 	}

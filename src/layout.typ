@@ -49,31 +49,17 @@
 	node
 })
 
-// TODO reduce repetition
-#let to-physical-coords(grid, coord) = {
-	zip(coord, grid.centers, grid.origin, grid.scale)
-		.map(((x, c, o, s)) => s*lerp-at(c, x - o))
-}
 
-#let compute-node-positions(nodes, grid, options) = nodes.map(node => {
-
-	// let (x, y) = to-physical-coords(grid, node.pos)
-	node.real-pos = (options.get-coord)(node.pos)
-
-
-	node.rect = (-1, +1).map(dir => vector.add(
-		node.real-pos,
-		vector.scale(node.size, dir/2),
-	))
-
-	node.outer-rect = rect-at(
-		node.real-pos,
-		node.size.map(x => x/2 + node.outset),
-	)
-
-	node
-
-})
+#let compute-final-coordinates(nodes, edges, grid, options) = (
+	nodes: nodes.map(node => {
+		node.real-pos = (options.get-coord)(node.pos)
+		node
+	}),
+	edges: edges.map(edge => {
+		edge.vertices = edge.vertices.map(options.get-coord)
+		edge
+	}),
+)
 
 
 /// Convert an array of rects with fractional positions into rects with integral
@@ -161,11 +147,22 @@
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
+	assert(options.axes.at(0).axis() != options.axes.at(1).axis(), message: "Axes cannot both be in the same direction; try `(ltr, ttb)`.")
+
+	let flip = options.axes.map(a => a.axis()) == ("vertical", "horizontal")
+
+	if flip { options.axes = options.axes.rev() }
 
 	let scale = (
 		if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
 		if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
 	)
+
+	let get-coord(coord) = {
+		zip(if flip { coord.rev() } else { coord }, cell-centers, origin, scale)
+			.map(((x, c, o, s)) => s*lerp-at(c, x - o))
+	}
+
 
 	(
 		centers: cell-centers,
@@ -173,9 +170,6 @@
 		origin: origin,
 		bounding-size: total-size,
 		scale: scale,
-		get-coord: coord => {
-			zip(coord, cell-centers, origin, scale)
-				.map(((x, c, o, s)) => s*lerp-at(c, x - o))
-		}
+		get-coord: get-coord,
 	)
 }

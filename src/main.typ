@@ -794,16 +794,27 @@
 }
 
 #let interpret-diagram-args(args) = {
+
+	if args.named().len() > 0 { 
+		let args = args.named().keys().join(", ")
+		panic("Unexpected named argument(s) to diagram: " + args)
+	}
+
+	// Interpret objects at a sequence of nodes and edges
+	let positional-args = args.pos().join() + [] // join to ensure sequence
+	assert(repr(positional-args.func()) == "sequence")
+	let objects = positional-args.children
+
 	let nodes = ()
 	let edges = ()
 
 	let prev-coord = (0,0)
 	let should-set-last-edge-point = false
 
-	for arg in args {
-		if arg.func() == metadata {
-			if arg.value.class == "node" {
-				let node = arg.value
+	for obj in objects {
+		if obj.func() == metadata {
+			if obj.value.class == "node" {
+				let node = obj.value
 
 				nodes.push(node)
 
@@ -814,8 +825,8 @@
 					should-set-last-edge-point = false
 				}
 
-			} else if arg.value.class == "edge" {
-				let edge = arg.value
+			} else if obj.value.class == "edge" {
+				let edge = obj.value
 
 				if edge.from == auto {
 					edge.from = prev-coord
@@ -827,13 +838,13 @@
 				edges.push(edge)
 			}
 
-		} else if arg.func() == math.equation {
-			let result = extract-nodes-and-edges-from-equation(arg)
+		} else if obj.func() == math.equation {
+			let result = extract-nodes-and-edges-from-equation(obj)
 			nodes += result.nodes
 			edges += result.edges
 
 		} else {
-			panic("Unrecognised value passed to diagram", arg)
+			panic("Unrecognised value passed to diagram", obj)
 		}
 	}
 
@@ -871,23 +882,23 @@
 
 /// Draw an arrow diagram.
 ///
-/// - ..objects (array): An array of dictionaries specifying the diagram's
-///   nodes and connections.
+/// - ..args (array): Content to draw in the diagram, including nodes and edges.
 /// 
-///  The results of `node()` and `edge()` can be joined, meaning you can specify
-///  them as separate arguments, or in a block:
+///  The results of `node()` and `edge()` can be _joined_, meaning you can
+///  specify them as separate arguments, or in a block:
 ///
 ///  ```typ
 ///  #fletcher.diagram(
-///    // one object per argument
-///    node((0, 0), $A$),
-///    node((1, 0), $B$),
-///    {
-///      // multiple objects in a block
-///      // can use scripting, loops, etc
-///      node((2, 0), $C$)
-///      node((3, 0), $D$)
-///    },
+///  	// one object per argument
+///  	node((0, 0), $A$),
+///  	node((1, 0), $B$),
+///  	{
+///  	  // multiple objects in a block
+///  	  // can use scripting, loops, etc
+///  	  node((2, 0), $C$)
+///  	  node((3, 0), $D$)
+///  	},
+///  	for x in range(4) { node((x, 1) [#x]) },
 ///  )
 ///  ```
 ///
@@ -1010,7 +1021,7 @@
 ///  This callback is exposed so you can access the above data and draw things
 ///  directly with CeTZ.
 #let diagram(
-	..objects,
+	..args,
 	debug: false,
 	axes: (ltr, ttb),
 	spacing: 3em,
@@ -1037,11 +1048,6 @@
 	if type(spacing) != array { spacing = (spacing, spacing) }
 	if type(cell-size) != array { cell-size = (cell-size, cell-size) }
 
-	if objects.named().len() > 0 { 
-		let args = objects.named().keys().join(", ")
-		panic("Unexpected named argument(s): " + args)
-	}
-
 	let options = (
 		debug: int(debug),
 		axes: axes,
@@ -1061,14 +1067,9 @@
 		crossing-thickness: crossing-thickness,
 	)
 
-	assert(axes.at(0).axis() != axes.at(1).axis(), message: "Axes cannot both be in the same direction.")
+	
 
-
-	// Interpret objects at a sequence of nodes and edges
-	let positional-args = objects.pos().join() + [] // join to ensure sequence
-	assert(repr(positional-args.func()) == "sequence")
-
-	let (nodes, edges) = interpret-diagram-args(positional-args.children)
+	let (nodes, edges) = interpret-diagram-args(args)
 	
 	box(style(styles => {
 		let options = options
@@ -1077,29 +1078,12 @@
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
 
-		let (nodes, edges) = (nodes, edges)
-
-		// Swap axes
-		// TODO: this is dumb. Just do a coord transform step later on
-		if options.axes.map(a => a.axis()) == ("vertical", "horizontal") {
-			nodes = nodes.map(node => {
-				node.pos = node.pos.rev()
-				node
-			})
-			edges = edges.map(edge => {
-				edge.from = edge.from.rev()
-				edge.to = edge.to.rev()
-				edge
-			})
-			options.axes = options.axes.rev()
-		}
-
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid  = compute-grid(nodes, edges, options)
 		options.get-coord = grid.get-coord
-		let nodes = compute-node-positions(nodes, grid, options)
+		let (nodes, edges) = compute-final-coordinates(nodes, edges, grid, options)
 
 		render(grid, nodes, edges, options)
 	}))
