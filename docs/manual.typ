@@ -35,6 +35,7 @@
 
 #show heading.where(level: 1): it => it + v(0.5em)
 
+#set raw(lang: "typc")
 #show raw.where(block: false): it => {
 	if it.text.ends-with("()") {
 		link(label(it.text), it.text)
@@ -332,14 +333,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 
 
-#set raw(lang: "typc")
-#let fn-link(name) = link(label(name), raw(name))
 
-// = Details
-
-// The recommended way to load the package is:
-// #raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge", block: true)
-// Other functions (including internal functions) are exported, so avoid importing everything with #raw(lang: none, "*") and access them as needed with, e.g., `fletcher.diagram`.
 
 = Nodes
 
@@ -757,17 +751,17 @@ Here is an example of how you might hack together a Bézier connector using the 
 			let out-angle = 0deg
 			let in-angle = -90deg
 
-			fletcher.get-node-anchor(n1, out-angle, p1 => {
-				fletcher.get-node-anchor(n2, in-angle, p2 => {
-					// make some control points
-					let c1 = (to: p1, rel: (out-angle, 15mm))
-					let c2 = (to: p2, rel: (in-angle, 30mm))
-					cetz.draw.bezier(
-						p1, p2, c1, c2,
-						mark: (end: ">") // cetz-style mark
-					)
-				})
-			})
+			// fletcher.get-node-anchor(n1, out-angle, p1 => {
+			// 	fletcher.get-node-anchor(n2, in-angle, p2 => {
+			// 		// make some control points
+			// 		let c1 = (to: p1, rel: (out-angle, 15mm))
+			// 		let c2 = (to: p2, rel: (in-angle, 30mm))
+			// 		cetz.draw.bezier(
+			// 			p1, p2, c1, c2,
+			// 			mark: (end: ">") // cetz-style mark
+			// 		)
+			// 	})
+			// })
 
 		})
 	}

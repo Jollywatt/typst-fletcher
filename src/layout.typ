@@ -87,7 +87,7 @@
 /// 25%.) The same splitting procedure is done for `y` positions and heights.
 ///
 /// - rects (array of rects): An array of rectangles of the form
-///   `(pos: (x, y), size: (width, height))`. The coordinates `x` and `y` may be
+///   `(center: (x, y), size: (width, height))`. The coordinates `x` and `y` may be
 ///   floats.
 /// -> array of rects
 #let expand-fractional-rects(rects) = {
@@ -95,18 +95,18 @@
 	for axis in (0, 1) {
 		new-rects = ()
 		for rect in rects {
-			let coord = rect.pos.at(axis)
+			let coord = rect.center.at(axis)
 			let size = rect.size.at(axis)
 
 			if calc.fract(coord) == 0 {
-				rect.pos.at(axis) = calc.trunc(coord)
+				rect.center.at(axis) = calc.trunc(coord)
 				new-rects.push(rect)
 			} else {
-				rect.pos.at(axis) = floor(coord)
+				rect.center.at(axis) = floor(coord)
 				rect.size.at(axis) = size*(ceil(coord) - coord)
 				new-rects.push(rect)
 
-				rect.pos.at(axis) = ceil(coord)
+				rect.center.at(axis) = ceil(coord)
 				rect.size.at(axis) = size*(coord - floor(coord))
 				new-rects.push(rect)
 			}
@@ -119,12 +119,14 @@
 
 /// Determine the number, sizes and positions of rows and columns.
 #let compute-grid(nodes, edges, options) = {
-	let rects = nodes.map(node => (pos: node.pos, size: node.size))
+	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
-	let points = rects.map(r => r.pos)
+	let points = rects.map(r => r.center)
 	points += edges.map(e => (e.from, e.to, ..e.vertices)).join()
+
+	if points.len() == 0 { points.push((0,0)) }
 
 	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
 	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
@@ -138,7 +140,7 @@
 
 	// Expand cells to fit rects
 	for rect in rects {
-		let indices = vector.sub(rect.pos, origin)
+		let indices = vector.sub(rect.center, origin)
 		for axis in (0, 1) {
 			cell-sizes.at(axis).at(indices.at(axis)) = max(
 				cell-sizes.at(axis).at(indices.at(axis)),

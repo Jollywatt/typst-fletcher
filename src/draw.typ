@@ -231,7 +231,7 @@
 		let (from, to) = (verts.at(i), verts.at(i + 1))
 		let marks = ()
 
-		let len = 0pt
+		let Δphase = 0pt
 
 		if edge.corner-radius == none {
 
@@ -255,7 +255,7 @@
 				))
 			}
 
-			len += vector-len(vector.sub(from, to))
+			Δphase += vector-len(vector.sub(from, to))
 
 		} else { // rounded corners
 
@@ -270,7 +270,7 @@
 				let (arc-center, arc-radius, start, delta, line-shift) = rounded-corners.at(i)
 				to = vector.add(to, vector-polar(-line-shift, θs.at(i)))
 
-				len += vector-len(vector.sub(from, to))
+				Δphase += vector-len(vector.sub(from, to))
 
 				for d in edge.extrude {
 					cetz.draw.arc(
@@ -279,7 +279,7 @@
 						start: start,
 						delta: delta,
 						anchor: "origin",
-						stroke: stroke-with-phase(phase + len),
+						stroke: stroke-with-phase(phase + Δphase),
 					)
 
 					if options.debug >= 4 {
@@ -292,7 +292,7 @@
 					}
 				}
 
-				len += delta/1rad*arc-radius
+				Δphase += delta/1rad*arc-radius
 
 			}
 
@@ -320,7 +320,7 @@
 			options,
 		)
 
-		phase += len
+		phase += Δphase
 
 	}
 
@@ -333,120 +333,6 @@
 	}
 }
 
-
-
-/// Draw a ray emanating from a node at a given angle.
-/// 
-/// This ray is used to find the anchor point for edges which connect to the
-/// node. The anchor point is the intersection of the ray and the node's
-/// outline.
-#let draw-node-anchoring-ray(node, θ, shift: none) = {
-
-	let r = 10*(node.radius + node.outset)
-
-	let origin = node.real-pos
-	if shift != none { origin = vector.add(origin, shift) }
-
-	if true or calc.abs(node.aspect - 1) < 0.1 {
-		cetz.draw.line(
-			origin,
-			vector.add(
-				origin,
-				vector-polar(r, θ),
-			),
-		)
-	} else {
-
-		// this is for the "defocus adjustment"
-		// basically, for very long/wide nodes, don't make edges coming in from
-		// all angles go to the exact node center, but "spread them out" a bit.
-		// https://www.desmos.com/calculator/irt0mvixky
-		let μ = calc.pow(node.aspect, node.defocus)
-		let δ = (
-			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
-			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
-		)
-		
-		cetz.draw.line(
-			vector.add(origin, δ),
-			vector.add(origin, vector-polar(r, θ)),
-		)
-
-	}
-
-}
-
-
-#let get-node-anchor(node, θ, callback, shift: none) = {
-	if node.radius == 0pt {
-		callback(node.real-pos)
-	} else {
-		// find intersection point of θ-angled ray with node outline
-		let ray = draw-node-anchoring-ray(node, θ, shift: shift)
-		let outline = cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
-			(node.shape)(node, node.outset)
-		})
-		cetz.draw.hide(cetz.draw.intersections("node-anchor", ray + outline))
-
-		cetz.draw.get-ctx(ctx => {
-
-			let anchors = ctx.nodes.node-anchor.anchors
-			if anchors(()).len() < 1 { panic("Couldn't get node anchor. Node:", node, "Angle:", θ) }
-
-			let anchor-pt = anchors("0")
-			anchor-pt.at(1) *= -1 // dunno why this is needed
-			// also not sure where this 1cm comes from
-			anchor-pt = vector-2d(vector.scale(anchor-pt, 1cm))
-
-			callback(anchor-pt)
-		})
-
-	}
-}
-
-#let get-node-anchors(nodes, θs, callback, shifts: none) = {
-	let anchor-pts = nodes.map(node => if node.radius == 0pt { node.real-pos })
-
-	if shifts == none { shifts = (none,)*anchor-pts.len() }
-
-	cetz.draw.hide({
-		for (i, node) in nodes.enumerate() {
-			if anchor-pts.at(i) == none {
-				let ray = draw-node-anchoring-ray(node, θs.at(i), shift: shifts.at(i))
-				let outline = cetz.draw.group({
-					cetz.draw.translate(node.real-pos)
-					(node.shape)(node, node.outset)
-				})
-				cetz.draw.intersections("anchor-"+str(i), ray + outline)
-			}
-		}
-	})
-
-	cetz.draw.get-ctx(ctx => {
-		let pts = anchor-pts.enumerate().map(((i, anchor-pt)) => {
-			if anchor-pt == none {
-				// find by intersection
-
-				let anchors = ctx.nodes.at("anchor-"+str(i)).anchors
-				if anchors(()).len() < 1 {
-					// panic("No intersection found with outline of node at " + repr(nodes.at(i).pos) + ".")
-					return nodes.at(i).real-pos
-				}
-				let pt = anchors("0")
-				pt.at(1) *= -1
-				pt = vector-2d(vector.scale(pt, 1cm))
-				pt
-
-			} else {
-				// already found
-				anchor-pt
-			}
-		})
-
-		callback(pts)
-	})
-}
 
 
 /// Of all the intersection points within a set of CeTZ objects, find the one
@@ -498,6 +384,13 @@
 #let draw-anchored-line(edge, nodes, options) = {
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 
+	// edge shift
+	let (δ-from, δ-to) = edge.shift
+	let θ = vector-angle(vector.sub(to, from)) + 90deg
+	from = vector.add(from, vector-polar(δ-from, θ))
+	to = vector.add(to, vector-polar(δ-to, θ))
+
+
 	if options.debug >= 3 {
 		cetz.draw.line(
 			from,
@@ -531,6 +424,10 @@
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
+
+	let (δ-from, δ-to) = edge.shift
+	from = vector.add(from, vector-polar(δ-from, θs.at(0) + 90deg))
+	to = vector.add(to, vector-polar(δ-to, θs.at(1) - 90deg))
 
 	let dummy-lines = (from, to).zip(θs)
 		.map(((point, φ)) => cetz.draw.line(
@@ -566,6 +463,11 @@
 	)
 
 	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
+
+	end-segments = end-segments.zip(δs).map(((segment, δ)) => {
+		segment.map(point => vector.add(point, δ))
+	})
+
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
