@@ -420,6 +420,7 @@
 
 }
 
+
 #let draw-anchored-arc(edge, nodes, options) = {
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	let θ = vector-angle(vector.sub(to, from))
@@ -449,6 +450,7 @@
 	})
 }
 
+
 #let draw-anchored-polyline(edge, nodes, options) = {
 	let (from, to) = (edge.from, edge.to).map(options.get-coord)
 	
@@ -468,6 +470,9 @@
 		segment.map(point => vector.add(point, δ))
 	})
 
+	edge.vertices.at(0) = vector.add(edge.vertices.at(0), δs.at(0))
+	edge.vertices.at(-1) = vector.add(edge.vertices.at(-1), δs.at(1))
+
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
@@ -484,10 +489,8 @@
 		draw-edge-polyline(edge, anchors, options)
 	})
 
-	// get-node-anchors(nodes, θs, anchors => {
-	// 	draw-edge-polyline(edge, anchors, options)
-	// }, shifts: δs)
 }
+
 
 #let draw-anchored-corner(edge, nodes, options) = {
 

@@ -787,8 +787,6 @@ $)
 
 = Edge shift
 
-#todo
-
 #diagram(
 	node((0,0), $A$),
 	edge((0,0), (1,0), "->", shift: +3.4pt),
@@ -804,11 +802,12 @@ $)
 )
 
 #diagram(
-	debug: 6,
 	node-stroke: 1pt,
 	node((0,0), $A$),
-	edge((0,0), (1,0), (1,1), "->", shift: (0pt, +5pt)),
-	edge((0,0), (1,0), (1,1), "->", shift: (0pt, -5pt)),
+	edge((0,0), (1,0), (1,1), "->", shift: +4pt),
+	edge((0,0), (1,0), (1,1), "->", shift: -4pt),
+	edge((0,0), (1,1), "->", corner: left, shift: +4pt),
+	edge((0,0), (1,1), "->", corner: left, shift: -4pt),
 	node((1,1), $B C$),
 )
 
