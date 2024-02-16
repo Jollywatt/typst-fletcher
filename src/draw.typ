@@ -163,18 +163,17 @@
 }
 
 
-#let draw-edge-polyline(edge, (from, to), debug: 0) = {
+#let draw-edge-polyline(edge, debug: 0) = {
 
-	let verts = (
-		from,
-		..edge.vertices,
-		to,
-	)
+	let verts = edge.vertices
+
+
 	let n-segments = verts.len() - 1
 
 	// angles of each segment
 	let θs = range(1, verts.len()).map(i => {
 		let (vert, vert-next) = (verts.at(i - 1), verts.at(i))
+		assert(vert != vert-next, message: "Adjacent vertices must be distinct.")
 		vector-angle(vector.sub(vert-next, vert))
 	})
 
@@ -382,7 +381,7 @@
 }
 
 #let draw-anchored-line(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to)
+	let (from, to) = edge.vertices
 
 	let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
@@ -421,7 +420,8 @@
 
 
 #let draw-anchored-arc(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to)
+	let (from, to) = edge.vertices
+
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
 
@@ -451,11 +451,13 @@
 
 
 #let draw-anchored-polyline(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to)
-	
+	let (from, to) = (edge.vertices.at(0), edge.vertices.at(-1))
+
+	assert(edge.vertices.len() > 2, message: repr(edge))
+
 	let end-segments = (
-		(from, edge.vertices.at(0)),
-		(edge.vertices.at(-1), to),
+		edge.vertices.slice(0, 2), // first two vertices
+		edge.vertices.slice(-2), // last two vertices
 	)
 
 	let θs = (
@@ -485,7 +487,10 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-polyline(edge, anchors, debug: options.debug)
+		let edge = edge
+		edge.vertices.at(0) = anchors.at(0)
+		edge.vertices.at(-1) = anchors.at(1)
+		draw-edge-polyline(edge, debug: options.debug)
 	})
 
 }
@@ -493,7 +498,7 @@
 
 #let draw-anchored-corner(edge, nodes, options) = {
 
-	let (from, to) = (edge.from, edge.to)
+	let (from, to) = edge.vertices
 	let θ = vector-angle(vector.sub(to, from))
 
 	let bend-dir = (
@@ -517,7 +522,7 @@
 	}
 
 	let edge-options = (
-		vertices: (corner-point,),
+		vertices: (from, corner-point, to),
 		label-side: if bend-dir { left } else { right },
 	)
 
@@ -655,7 +660,7 @@
 	}
 
 	for edge in edges {
-		// find notes to snap to (can be none!)
+		// find notes to snap to (each can be none!)
 		let nodes = (edge.anchor-from, edge.anchor-to).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, options)
 	}

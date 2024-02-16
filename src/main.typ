@@ -1082,6 +1082,15 @@
 
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
 
+			/// transition zone
+		edges = edges.map(edge => {
+			edge.vertices = (edge.from, ..edge.vertices, edge.to)
+			let _ = edge.remove("from")
+			let _ = edge.remove("to")
+			edge
+		})
+
+
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 		options.get-coord = grid.get-coord

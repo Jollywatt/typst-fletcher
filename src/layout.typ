@@ -106,7 +106,7 @@
 
 	// all points in diagram that should be spanned by coordinate grid
 	let points = rects.map(r => r.center)
-	points += edges.map(e => (e.from, e.to, ..e.vertices)).join()
+	points += edges.map(e => e.vertices).join()
 
 	if points.len() == 0 { points.push((0,0)) }
 
@@ -181,8 +181,6 @@
 		node
 	}),
 	edges: edges.map(edge => {
-		edge.from = (options.get-coord)(edge.from)
-		edge.to = (options.get-coord)(edge.to)
 		edge.vertices = edge.vertices.map(options.get-coord)
 		edge
 	}),
