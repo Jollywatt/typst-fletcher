@@ -75,7 +75,7 @@
 
 	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-	Version #VERSION
+	Version #VERSION *(not yet stable)*
 ]
 
 #v(1fr)

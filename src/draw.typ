@@ -45,9 +45,19 @@
 	})
 }
 
-
-#let draw-edge-line(edge, (from, to), debug: 0) = {
-
+/// Draw a straight edge
+///
+/// - edge (dictionary): The edge object, a dictionary, containing:
+///   - `vertices`: an array of two points, the line's start and end points.
+///   - `extrude`: An array of extrusion lengths to apply a multi-stroke effect
+///    with.
+///   - `stroke`: The stroke style.
+///   - `marks`: An array of marks to draw along the edge.
+///   - `label`: Content for label.
+///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
+/// - debug (int): Level of debug details to draw.
+#let draw-edge-line(edge, debug: 0) = {
+	let (from, to) = edge.vertices
 	let θ = vector-angle(vector.sub(to, from))
 
 	// Draw line(s), one for each extrusion shift
@@ -97,12 +107,23 @@
 		draw-edge-label(edge, label-pos, debug: debug)
 	}
 
-
-	
 }
 
-#let draw-edge-arc(edge, (from, to), debug: 0) = {
 
+/// Draw a straight edge
+///
+/// - edge (dictionary): The edge object, a dictionary, containing:
+///   - `vertices`: an array of two points, the arc's start and end points.
+///   - `bend`: The angle of the arc.
+///   - `extrude`: An array of extrusion lengths to apply a multi-stroke effect
+///    with.
+///   - `stroke`: The stroke style.
+///   - `marks`: An array of marks to draw along the edge.
+///   - `label`: Content for label.
+///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
+/// - debug (int): Level of debug details to draw.
+#let draw-edge-arc(edge, debug: 0) = {
+	let (from, to) = edge.vertices
 
 	// Determine the arc from the stroke end points and bend angle
 	let (center, radius, start, stop) = get-arc-connecting-points(from, to, edge.bend)
@@ -163,16 +184,25 @@
 }
 
 
+/// Draw a multi-segment edge
+///
+/// - edge (dictionary): The edge object, a dictionary, containing:
+///   - `vertices`: an array of at least two points to draw segments between.
+///   - `corner-radius`: Radius of curvature between segments.
+///   - `extrude`: An array of extrusion lengths to apply a multi-stroke effect
+///    with.
+///   - `stroke`: The stroke style.
+///   - `marks`: An array of marks to draw along the edge.
+///   - `label`: Content for label.
+///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
+/// - debug (int): Level of debug details to draw.
 #let draw-edge-polyline(edge, debug: 0) = {
 
-	let verts = edge.vertices
-
-
-	let n-segments = verts.len() - 1
+	let n-segments = edge.vertices.len() - 1
 
 	// angles of each segment
-	let θs = range(1, verts.len()).map(i => {
-		let (vert, vert-next) = (verts.at(i - 1), verts.at(i))
+	let θs = range(n-segments).map(i => {
+		let (vert, vert-next) = (edge.vertices.at(i), edge.vertices.at(i + 1))
 		assert(vert != vert-next, message: "Adjacent vertices must be distinct.")
 		vector-angle(vector.sub(vert-next, vert))
 	})
@@ -182,7 +212,7 @@
 
 	// i literally don't know how this works
 	let calculate-rounded-corner(i) = {
-		let pt = verts.at(i)
+		let pt = edge.vertices.at(i)
 		let Δθ = wrap-angle-180(θs.at(i) - θs.at(i - 1))
 		let dir = sign(Δθ) // +1 if ccw, -1 if cw
 
@@ -226,8 +256,8 @@
 	)
 
 	// draw each segment
-	for i in range(verts.len() - 1) {
-		let (from, to) = (verts.at(i), verts.at(i + 1))
+	for i in range(n-segments) {
+		let (from, to) = (edge.vertices.at(i), edge.vertices.at(i + 1))
 		let marks = ()
 
 		let Δphase = 0pt
@@ -312,10 +342,10 @@
 		draw-edge-line(
 			edge + (
 				kind: "line",
+				vertices: (from, to),
 				marks: marks,
 				stroke: stroke-with-phase(phase),
 			) + label-options,
-			(from, to),
 			debug: debug,
 		)
 
@@ -326,7 +356,7 @@
 
 	if debug >= 4 {
 		cetz.draw.line(
-			..verts,
+			..edge.vertices,
 			stroke: debug-stroke,
 		)
 	}
@@ -413,7 +443,9 @@
 
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-line(edge, anchors, debug: options.debug)
+		draw-edge-line(edge + (
+			vertices: anchors,
+		), debug: options.debug)
 	})
 
 }
@@ -432,7 +464,7 @@
 	let dummy-lines = (from, to).zip(θs)
 		.map(((point, φ)) => cetz.draw.line(
 			point,
-			vector.add(point, vector-polar(10cm, φ)),
+			vector.add(point, vector-polar(10cm, φ)), // ray emanating from node
 		))
 
 	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
@@ -445,15 +477,14 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-arc(edge, anchors, debug: options.debug)
+		draw-edge-arc(edge + (vertices: anchors), debug: options.debug)
 	})
 }
 
 
 #let draw-anchored-polyline(edge, nodes, options) = {
+	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
 	let (from, to) = (edge.vertices.at(0), edge.vertices.at(-1))
-
-	assert(edge.vertices.len() > 2, message: repr(edge))
 
 	let end-segments = (
 		edge.vertices.slice(0, 2), // first two vertices
@@ -471,7 +502,12 @@
 		segment.map(point => vector.add(point, δ))
 	})
 
+	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
+	// first segment
 	edge.vertices.at(0) = vector.add(edge.vertices.at(0), δs.at(0))
+	edge.vertices.at(1) = vector.add(edge.vertices.at(1), δs.at(0))
+	// last segment
+	edge.vertices.at(-2) = vector.add(edge.vertices.at(-2), δs.at(1))
 	edge.vertices.at(-1) = vector.add(edge.vertices.at(-1), δs.at(1))
 
 
