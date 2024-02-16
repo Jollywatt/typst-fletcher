@@ -170,13 +170,19 @@
 }
 
 
-
+/// Convert elastic diagram coordinates in nodes and edges to canvas coordinates
+///
+/// Nodes have a `pos` (elastic coordinates) and `final-pos` (canvas
+/// coordinates), and edges have `from`, `to`, and `vertices` (all canvas
+/// coordinates).
 #let compute-final-coordinates(nodes, edges, grid, options) = (
 	nodes: nodes.map(node => {
-		node.real-pos = (options.get-coord)(node.pos)
+		node.final-pos = (options.get-coord)(node.pos)
 		node
 	}),
 	edges: edges.map(edge => {
+		edge.from = (options.get-coord)(edge.from)
+		edge.to = (options.get-coord)(edge.to)
 		edge.vertices = edge.vertices.map(options.get-coord)
 		edge
 	}),

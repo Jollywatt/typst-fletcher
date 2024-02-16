@@ -671,6 +671,8 @@
 
 		edges: edges.map(edge => {
 
+			edge.anchor-from = default(edge.anchor-from, edge.from)
+			edge.anchor-to = default(edge.anchor-to, edge.to)
 
 			edge.stroke = as-stroke(edge.stroke)
 

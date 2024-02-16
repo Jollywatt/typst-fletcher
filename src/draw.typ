@@ -382,7 +382,7 @@
 }
 
 #let draw-anchored-line(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to).map(options.get-coord)
+	let (from, to) = (edge.from, edge.to)
 
 	let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
@@ -406,7 +406,7 @@
 	let intersection-objects = nodes.map(node => {
 		if node == none { return }
 		cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
+			cetz.draw.translate(node.final-pos)
 			(node.shape)(node, node.outset)
 		})
 		dummy-line
@@ -421,7 +421,7 @@
 
 
 #let draw-anchored-arc(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to).map(options.get-coord)
+	let (from, to) = (edge.from, edge.to)
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
 
@@ -438,7 +438,7 @@
 	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
 		if node == none { return }
 		cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
+			cetz.draw.translate(node.final-pos)
 			(node.shape)(node, node.outset)
 		})
 		dummy-line
@@ -451,7 +451,7 @@
 
 
 #let draw-anchored-polyline(edge, nodes, options) = {
-	let (from, to) = (edge.from, edge.to).map(options.get-coord)
+	let (from, to) = (edge.from, edge.to)
 	
 	let end-segments = (
 		(from, edge.vertices.at(0)),
@@ -478,7 +478,7 @@
 	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
 		if node == none { return }
 		cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
+			cetz.draw.translate(node.final-pos)
 			(node.shape)(node, node.outset)
 		})
 		dummy-line
@@ -493,7 +493,7 @@
 
 #let draw-anchored-corner(edge, nodes, options) = {
 
-	let (from, to) = (edge.from, edge.to).map(options.get-coord)
+	let (from, to) = (edge.from, edge.to)
 	let θ = vector-angle(vector.sub(to, from))
 
 	let bend-dir = (
@@ -541,7 +541,7 @@
 	if node.stroke != none or node.fill != none {
 
 		cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
+			cetz.draw.translate(node.final-pos)
 			for (i, extrude) in node.extrude.enumerate() {
 				cetz.draw.set-style(
 					fill: if i == 0 { node.fill },
@@ -554,14 +554,14 @@
 	}
 
 	if node.label != none {
-		cetz.draw.content(node.real-pos, node.label, anchor: "center")
+		cetz.draw.content(node.final-pos, node.label, anchor: "center")
 	}
 
 	// Draw debug stuff
 	if options.debug >= 1 {
 		// dot at node anchor
 		cetz.draw.circle(
-			node.real-pos,
+			node.final-pos,
 			radius: 0.5pt,
 			fill: DEBUG_COLOR,
 			stroke: none,
@@ -571,7 +571,7 @@
 	// Show anchor outline
 	if options.debug >= 2 and node.radius != 0pt {
 		cetz.draw.group({
-			cetz.draw.translate(node.real-pos)
+			cetz.draw.translate(node.final-pos)
 			cetz.draw.set-style(
 				stroke: DEBUG_COLOR + .1pt,
 				fill: none,
@@ -580,7 +580,7 @@
 		})
 
 		cetz.draw.rect(
-			..rect-at(node.real-pos, node.size),
+			..rect-at(node.final-pos, node.size),
 			stroke: DEBUG_COLOR + .1pt,
 		)
 	}
@@ -656,7 +656,7 @@
 
 	for edge in edges {
 		// find notes to snap to (can be none!)
-		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
+		let nodes = (edge.anchor-from, edge.anchor-to).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, options)
 	}
 

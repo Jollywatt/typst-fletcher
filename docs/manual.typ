@@ -780,7 +780,7 @@ First, we find all nodes of a certain fill, get their actual coordinates, and th
 
 // draw a blob around nodes
 #let enclose-nodes(nodes, clearance: 8mm) = {
-  let points = nodes.map(node => node.real-pos)
+  let points = nodes.map(node => node.final-pos)
   let (center, size) = fletcher.bounding-rect(points)
 
   cetz.draw.content(
