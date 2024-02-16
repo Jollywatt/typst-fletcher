@@ -45,7 +45,24 @@
 	})
 }
 
-/// Draw a straight edge
+/// Draw a straight edge.
+///
+/// #example(```
+/// cetz.canvas({
+/// 	let edge = (
+/// 		vertices: ((0cm, 0cm), (4cm, 4cm)),
+/// 		extrude: (-2pt, +2pt),
+/// 		stroke: red + 2pt,
+/// 		marks: fletcher.interpret-marks((none, ">")),
+/// 		label: $f$,
+/// 		label-pos: 0.75,
+/// 		label-fill: none,
+/// 		label-sep: 15pt,
+/// 		label-side: right,
+/// 		label-anchor: "center",
+/// 	)
+/// 	fletcher.draw-edge-line(edge)
+/// })```)
 ///
 /// - edge (dictionary): The edge object, a dictionary, containing:
 ///   - `vertices`: an array of two points, the line's start and end points.
@@ -110,7 +127,25 @@
 }
 
 
-/// Draw a straight edge
+/// Draw a bent edge.
+///
+/// #example(```
+/// cetz.canvas({
+/// 	let edge = (
+/// 		vertices: ((0cm, 0cm), (4cm, 4cm)),
+/// 		bend: 30deg,
+/// 		extrude: (-2pt, +2pt),
+/// 		stroke: purple + 1pt,
+/// 		marks: fletcher.interpret-marks-arg("<-|->").marks,
+/// 		label: $f$,
+/// 		label-pos: 0.75,
+/// 		label-fill: none,
+/// 		label-sep: 15pt,
+/// 		label-side: auto,
+/// 		label-anchor: "center",
+/// 	)
+/// 	fletcher.draw-edge-arc(edge)
+/// })```)
 ///
 /// - edge (dictionary): The edge object, a dictionary, containing:
 ///   - `vertices`: an array of two points, the arc's start and end points.
@@ -185,6 +220,24 @@
 
 
 /// Draw a multi-segment edge
+///
+/// #box(example(```
+/// cetz.canvas({
+/// 	let edge = (
+/// 		vertices: ((0cm, 0cm), (2cm, 0cm), (4cm, 4cm)),
+/// 		corner-radius: 5pt,
+/// 		extrude: (0pt,),
+/// 		stroke: green + 1pt,
+/// 		marks: fletcher.interpret-marks-arg("-->").marks,
+/// 		label: $f$,
+/// 		label-pos: 0.75,
+/// 		label-fill: none,
+/// 		label-sep: 15pt,
+/// 		label-side: auto,
+/// 		label-anchor: "center",
+/// 	)
+/// 	fletcher.draw-edge-polyline(edge)
+/// })```))
 ///
 /// - edge (dictionary): The edge object, a dictionary, containing:
 ///   - `vertices`: an array of at least two points to draw segments between.

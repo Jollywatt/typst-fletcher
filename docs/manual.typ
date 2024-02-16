@@ -1,4 +1,4 @@
-#import "@preview/tidy:0.1.0"
+#import "@preview/tidy:0.2.0"
 #import "/src/exports.typ" as fletcher: node, edge
 
 #set page(numbering: "1")
@@ -14,7 +14,13 @@
 	edge: edge,
 	cetz: fletcher.cetz,
 )
-#let show-module(path) = {
+
+#let show-fns(file, only: none, exclude: ()) = {
+	let module-doc = tidy.parse-module(read(file), scope: scope)
+
+	module-doc.functions = module-doc.functions.filter(fn => (only == none or fn.name in only )and fn.name not in exclude)
+
+
 	show heading.where(level: 3): it => {
 		align(center, line(length: 100%, stroke: black.lighten(70%)))
 		text(1.5em, heading(
@@ -24,23 +30,11 @@
 		))
 	}
 	set heading(outlined: false)
-	tidy.show-module(
-		tidy.parse-module(
-			read(path),
-			scope: scope,
-		),
-		show-outline: false,
-	)
+	tidy.show-module(module-doc, show-outline: false)
 }
 
 #show heading.where(level: 1): it => it + v(0.5em)
 
-#set raw(lang: "typc")
-#show raw.where(block: false): it => {
-	if it.text.ends-with("()") {
-		link(label(it.text), it.text)
-	} else { it }
-}
 
 #v(.2fr)
 
@@ -51,11 +45,11 @@
 			set text(1.3em)
 			fletcher.diagram(
 				edge-stroke: 1pt,
-				spacing: 31mm,
+				spacing: 28mm,
 				label-sep: 6pt,
 				node((0,1), $A$),
 				node((1,1), $B$),
-				edge((0,1), (1,1), $f$, ">>->", bend: 15deg),
+				edge((0,1), (1,1), $f$, ">>->"),
 			)
 		},
 		text(2.7em, `fletcher`),
@@ -69,28 +63,47 @@
 
 	#emph[
 	Commutative diagrams,
-	finite state machines,
+	flow charts,
+	state machines,
 	block diagrams...
 	]
 
 	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-	Version #VERSION *(not yet stable)*
+	Version #VERSION
+]
+
+#set raw(lang: "typc")
+#show raw.where(block: false): it => {
+	if it.text.ends-with("()") {
+		link(label(it.text), it.text)
+	} else { it }
+}
+
+
+#v(1fr)
+
+// #heading(outlined: false)[Contents]
+// #block(height: 40%, columns(2, outline(indent: 1em, title: none)))
+
+#columns(2)[
+	#outline(title: [Guide], indent: 1em, target: selector(heading).before(<func-ref>, inclusive: false))
+	#colbreak()
+	#outline(title: [Reference], indent: 1em, target: selector(heading).after(<func-ref>, inclusive: true))
+
 ]
 
 #v(1fr)
 
-// #columns(1,
-// 	outline(indent: 1em, target:
-// 		heading.where(level: 1)
-// 		.or(heading.where(level: 2))
-// 		.or(heading.where(level: 3)),
-// 	)
-// )
 
-#outline(indent: 1em)
 
-#v(1fr)
+
+
+
+
+
+
+
 
 #pagebreak()
 
@@ -98,59 +111,59 @@
 
 	#let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
 	#fletcher.diagram(
-	  spacing: 4cm,
-	  node-defocus: 0,
-	  axes: (ltr, btt),
-	  {
+		spacing: 4cm,
+		node-defocus: 0,
+		axes: (ltr, btt),
+		{
 
-	  let v000 = c(0, 0, 0)
+		let v000 = c(0, 0, 0)
 
-	  node(v000, $P$)
-	  node(c(1,0,0), $P$)
-	  node(c(2,0,0), $X$)
-	  node(c(0,1,0), $J P$)
-	  node(c(1,1,0), $J P$)
-	  node(c(2,1,0), $"CP"$)
+		node(v000, $P$)
+		node(c(1,0,0), $P$)
+		node(c(2,0,0), $X$)
+		node(c(0,1,0), $J P$)
+		node(c(1,1,0), $J P$)
+		node(c(2,1,0), $"CP"$)
 	  
-	  node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
-	  node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
-	  node(c(2,0,1), $T X times.circle T^* X$)
-	  node(c(0,1,1), $T P times.circle pi^* T^* X$)
-	  node(c(1,1,1), $T P times.circle pi^* T^* X$)
-	  node(c(2,1,1), $T_G P times.circle T^* X$)
+		node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
+		node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
+		node(c(2,0,1), $T X times.circle T^* X$)
+		node(c(0,1,1), $T P times.circle pi^* T^* X$)
+		node(c(1,1,1), $T P times.circle pi^* T^* X$)
+		node(c(2,1,1), $T_G P times.circle T^* X$)
 	  
 
-	  // aways
-	  edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
-	  edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
-	  edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
+		// aways
+		edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
+		edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
+		edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
 	  
-	  edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
-	  edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
-	  edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
+		edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
+		edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
+		edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
 	  
-	  // downs
-	  edge(c(0,1,0), v000, $pi_J$, "==>", label-pos: 0.2)
-	  edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
-	  edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
+		// downs
+		edge(c(0,1,0), v000, $pi_J$, "==>", label-pos: 0.2)
+		edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
+		edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
 	  
-	  edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
-	  edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
-	  edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "->", label-pos: 0.2)
+		edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
+		edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
+		edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "->", label-pos: 0.2)
 	  
-	  // acrosses
-	  edge(v000, c(1,0,0), $lambda_g$, "->")
-	  edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
+		// acrosses
+		edge(v000, c(1,0,0), $lambda_g$, "->")
+		edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
 	  
-	  edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
-	  edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
+		edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
+		edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
 	  
-	  edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
+		edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
 	  
-	  edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
-	  edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
+		edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
+		edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
 
-	  edge(c(1,1,1), c(2,1,1), $Ω$, "<..>", bend: 60deg)
+		edge(c(1,1,1), c(2,1,1), $Ω$, "<..>", bend: 60deg)
 	})
 
 	#v(1fr)
@@ -339,15 +352,12 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They automatically fit to the size of their label (with an `inset` and `outset`). They can be given a `stroke` and `fill` and be of any `shape`.
-
-By default, the coorinates $(x, y)$ are $x$ going $arrow.r$ and $y$ going $arrow.b$.
-This can be changed with the `axis` option of `diagram()`.
+Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an `inset` and `outset`), but can be given an exact `width`, `height`, or `radius`, as well as a `stroke` and `fill`. For example:
 
 #code-example-row(```typ
 #fletcher.diagram(
-	debug: 1,
-	spacing: (1em, 4em), // (x, y)
+	debug: true, // show a coordinate grid
+	spacing: (5pt, 4em), // small column gaps, large row spacing
 	node((0,0), $f$),
 	node((1,0), $f$, stroke: 1pt),
 	node((2,0), $f$, stroke: 1pt, shape: rect),
@@ -363,14 +373,14 @@ This can be changed with the `axis` option of `diagram()`.
 )
 ```)
 
+By default, coordinates $(x, y)$ have $x$ going $arrow.r$ and $y$ going $arrow.b$.
+This can be changed with the `axis` option of `diagram()`.
 
 == Elastic coordinates
 
 Diagrams are laid out on a flexible coordinate grid.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 See the `diagram()` parameters for more control: `cell-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns.
-
-Elastic coordinates can be demonstrated more clearly with a debug grid and no `spacing` between cells:
 
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
@@ -432,7 +442,7 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 )
 ```)
 
-Custom shapes are also supported, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
+Custom #link("https://github.com/johannes-wolf/cetz")[CeTZ] shapes are possible by passing a callback to `shape`, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
 
 
 
@@ -440,7 +450,7 @@ Custom shapes are also supported, but it is up to the user implement outline ext
 
 #link(label("edge()"))[`edge(from, to, label, marks, ..options)`]
 
-Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape. Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
+Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's `outset`). Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
 
 #code-example-row(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
@@ -463,7 +473,7 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 
 == Implicit coordinates
 
-To specify the start and end points of an edge, you may provide both explicitly (`edge(from, to)`); leave `from` implicit (`edge(to)`); or leave both implicit.
+To specify the start and end points of an edge, you may provide both explicitly (like `edge(from, to)`); leave `from` implicit (like `edge(to)`); or leave both implicit.
 When `from` is implicit, it becomes the coordinate of the last `node`, and `to` becomes the next `node`.
 
 #code-example-row(```typ
@@ -481,7 +491,7 @@ Implicit coordinates can be handy for diagrams in math-mode:
 #fletcher.diagram($ L edge("->", bend: #30deg) & P $)
 ```)
 
-However, don't forget you can also use variables in code-mode to avoid repeating coordinates:
+However, don't forget you can also use variables in code-mode, which is more flexible and explicit:
 
 #code-example-row(```typ
 #fletcher.diagram(node-fill: blue, {
@@ -499,14 +509,14 @@ It can also be handy to specify the direction of an edge, instead of its end coo
 #strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you do to things like:
 
 #code-example-row(```typ
-#fletcher.diagram($ A edge("rr", ->, bend: #30deg) & B & C $)
+#fletcher.diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
 ```)
 
 == Edge types
 
 Currently, there are three different `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
-All nodes have a start and end point (`from` and `to`), and `"poly"` edges can also have an array of additional `vertices`.
-The `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if any `vertices` are given.
+All edges have at least two `vertices`, but `"poly"` edges can have more.
+An edge's `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if more than two `vertices` are given.
 
 #code-example-row(```typ
 #fletcher.diagram(
@@ -517,12 +527,12 @@ The `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if any 
 )
 ```)
 
-An alternative way to specify `vertices` is by providing multiple coordinates: `edge(A, B, C, D)` is the same as `edge(from: A, to: D, vertices: (B, C))` if the arguments are all coordinates.
-An edge's `vertices` and `to` coordinates can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
+An alternative way to specify extra `vertices` is by providing multiple coordinates: `edge(A, B, C, D)` is the same as `edge(from: A, to: D, vertices: (B, C))` if the arguments look like coordinates.
+All vertices except the first can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
 
 ```typc
 edge((0,2), (rel: (1,0)), (rel: (1,1)), (rel: (1,0)), "->", `poly`)
-edge((0,2), "r", "rd", "r", "->", `poly`) // use relative coordinate names
+edge((0,2), "r", "rd", "r", "->", `poly`) // using relative coordinate names
 edge((0,2), "r,rd,r", "->", `poly`) // shorthand
 ```
 
@@ -817,13 +827,23 @@ First, we find all nodes of a certain fill, get their actual coordinates, and th
 
 #pagebreak()
 
-= Function reference
-#show-module("/src/main.typ")
+= Main functions <func-ref>
 
-== Marks
-#show-module("/src/marks.typ")
 
-== Behind the scenes
-#show-module("/src/utils.typ")
-#show-module("/src/layout.typ")
-#show-module("/src/draw.typ")
+#show-fns("/src/main.typ", only: (
+	"diagram",
+	"node",
+	"edge",
+))
+
+
+= Behind the scenes
+#show-fns("/src/main.typ", exclude: (
+	"diagram",
+	"node",
+	"edge",
+))
+#show-fns("/src/marks.typ")
+#show-fns("/src/utils.typ")
+#show-fns("/src/layout.typ")
+#show-fns("/src/draw.typ")
