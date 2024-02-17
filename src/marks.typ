@@ -38,8 +38,8 @@
 #let MARK_DEFAULTS = (
 	head: (
 		size: 7, // radius of curvature, multiples of stroke thickness
-		sharpness: 24deg, // angle at vertex between central line and arrow's edge
-		delta: 54deg, // angle spanned by arc of curved arrow edge
+		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
+		delta: 53.5deg, // angle spanned by arc of curved arrow edge
 		outer-len: 4,
 	),
 	solid: (
@@ -64,8 +64,8 @@
 #let MARK_ALIASES = (
 	">": (kind: "head", rev: false),
 	"<": (kind: "head", rev: true),
-	">>": (kind: "head", rev: false, extrude: (-3, 0), inner-len: 3, outer-len: 7),
-	"<<": (kind: "head", rev: true,  extrude: (-3, 0), inner-len: 3, outer-len: 7),
+	">>": (kind: "head", rev: false, extrude: (-2.88, 0), inner-len: 3, outer-len: 7),
+	"<<": (kind: "head", rev: true,  extrude: (-2.88, 0), inner-len: 3, outer-len: 7),
 	">>>": (kind: "head", rev: false, extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
 	"<<<": (kind: "head", rev: true,  extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
 	"|>": (kind: "solid", rev: false),
@@ -87,15 +87,15 @@
 	doublehead: (
 		kind: "head",
 		size: 9.6*1.1,
-		sharpness: 19deg,
-		delta: 43.7deg,
+		sharpness: 19.4deg,
+		delta: 43.5deg,
 		outer-len: 5.5,
 	),
 	triplehead: (
 		kind: "head",
 		size: 9*1.5,
-		sharpness: 25deg,
-		delta: 43deg,
+		sharpness: 25.5deg,
+		delta: 42.6deg,
 		outer-len: 6,
 	),
 

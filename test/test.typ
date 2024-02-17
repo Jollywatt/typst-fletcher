@@ -61,7 +61,7 @@ Compare to $->$, $=>$, $arrow.triple$, $arrow.twohead$, $arrow.hook$, $|->$.
 			("->>", $->>$,
 				0em, 0.021),
 			("hook->", $arrow.hook$,
-				0.005em, 0.008),
+				0.005em, 0.006),
 			("|->", $|->$,
 				0em, -.023),
 		).enumerate() {
