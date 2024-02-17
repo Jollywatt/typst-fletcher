@@ -470,12 +470,11 @@
 /// https://www.desmos.com/calculator/irt0mvixky.
 #let defocus-adjustment(node, θ) = {
 	let μ = calc.pow(node.aspect, node.defocus)
-	let δ = (
+	(
 		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
 		calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
 	)
 	
-	vector.add(node.final-pos, δ)
 }
 
 #let draw-anchored-line(edge, nodes, debug: 0) = {
@@ -487,8 +486,12 @@
 	to = vector.add(to, vector-polar(δ-to, θ))
 
 	// TODO: to defocus adjustment sensibly
-	if nodes.at(0) != none { from = defocus-adjustment(nodes.at(0), θ - 90deg) }
-	if nodes.at(1) != none { to = defocus-adjustment(nodes.at(1), θ + 90deg) }
+	if nodes.at(0) != none {
+		from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
+	}
+	if nodes.at(1) != none {
+		to = vector.add(to, defocus-adjustment(nodes.at(1), θ + 90deg))
+	}
 
 
 	if debug >= 3 {
