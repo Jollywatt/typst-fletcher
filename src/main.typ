@@ -748,7 +748,6 @@
 #let extract-nodes-and-edges-from-equation(eq) = {
 	assert(eq.func() == math.equation)
 	let terms = eq.body + []
-	assert(repr(terms.func()) == "sequence")
 
 	let edges = ()
 	let nodes = ()
@@ -782,7 +781,9 @@
 
 	for (y, row) in matrix.enumerate() {
 		for (x, item) in row.enumerate() {
-			nodes.push(node((x, y), $item$).value)
+			if not is-space(item) {
+				nodes.push(node((x, y), $item$).value)
+			}
 		}
 	}
 
