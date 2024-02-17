@@ -177,6 +177,7 @@
 
 /// Return true if an element is a space or sequence of spaces
 #let is-space(el) = {
+	if el == none { return true }
 	if repr(el.func()) == "space" { return true }
 	if repr(el.func()) == "sequence" { return el.children.all(is-space) }
 	return false

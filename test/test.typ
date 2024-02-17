@@ -6,22 +6,9 @@
 
 #let todo = highlight[TODO!]
 
-= Connectors
+#outline()
 
-#diagram(
-	debug: 0,
-	cell-size: (10mm, 10mm),
-	node((0,0), $X$),
-	node((1,0), $Y$),
-	node((0,1), $Z$),
-	edge((0,0), (1,0), marks: (none, "head")),
-	edge((0,1), (1,0), $f$, marks: ("hook", "head"), dash: "dashed"),
-	edge((0,0), (0,1), marks: (none, ">>")),
-	edge((0,0), (0,0), marks: (none, "head"), bend: 120deg),
-)
-
-
-= Arc connectors
+= Arc edges
 
 #diagram(
 	cell-size: 3cm,
@@ -60,78 +47,33 @@ Compare to $->$, $=>$, $arrow.triple$, $arrow.twohead$, $arrow.hook$, $|->$.
 #{
 	set text(10em)
 	diagram(
-		spacing: 0.815em,
+		spacing: 0.825em,
 		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $->$),
-			"->",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-		),
-	)
-	diagram(
-		spacing: 0.8em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $=>$),
-			"=>",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-		),
-	)
-	diagram(
-		spacing: 0.83em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $arrow.triple$),
-			"==>",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-		),
-	)
-	diagram(
-		spacing: 0.835em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $->>$),
-			"->>",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-		),
-	)
-	diagram(
-		spacing: 0.83em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $arrow.hook$),
-			"hook->",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-			label-pos: 0.51,
-		),
-	)
-	diagram(
-		spacing: 0.807em,
-		crossing-fill: none,
-		edge(
-			(0,0), (1,0),
-			text(target-color, $|->$),
-			"|->",
-			stroke: result-color,
-			label-anchor: "center",
-			label-sep: 0.0915em,
-			label-pos: 0.506,
-		),
+		label-sep: 0.0915em,
+		edge-stroke: result-color,
+		for (i, a) in (
+			("->", $->$,
+				0em, 0),
+			("=>", $=>$,
+				0em, -0.01),
+			("==>", $arrow.triple$,
+				0em, 0.017),
+			("->>", $->>$,
+				0em, 0.021),
+			("hook->", $arrow.hook$,
+				0.005em, 0.008),
+			("|->", $|->$,
+				0em, -.023),
+		).enumerate() {
+			let (marks, label, δl, δr) = a
+			edge(
+				(0, i), (1 + δr,i),
+				move(dx: δl - 0.48em, text(target-color, label)),
+				marks: marks,
+				label-anchor: "west",
+				label-pos: 0,
+			)
+		},
 	)
 }
 
@@ -197,10 +139,37 @@ $
 }
 $
 
+= Symbol arrow aliases
+
+
+#table(
+	columns: 4,
+	align: horizon,
+	[Math], [Unicode], [Mark], [Diagram],
+	..(
+		$->$, $-->$, $<-$, $<->$, $<-->$,
+		$->>$, $<<-$,
+		$>->$, $<-<$,
+		$=>$, $==>$, $<==$, $<=>$, $<==>$,
+		$|->$, $|=>$,
+		$~>$, $<~$,
+		$arrow.hook$, $arrow.hook.l$,
+	).map(x => {
+		let unicode = x.body.text
+		(x, unicode)
+		if unicode in fletcher.MARK_SYMBOL_ALIASES {
+			let marks = fletcher.MARK_SYMBOL_ALIASES.at(unicode)
+			(raw(marks), diagram(edge((0,0), (1,0), marks: marks)))
+		} else {
+			(text(red)[none!],) * 2
+		}
+	}).flatten()
+)
+
+
 = Bending arrows
 
 #diagram(
-	debug: 1,
 	spacing: (10mm, 5mm),
 	for (i, bend) in (0deg, 40deg, 80deg, -90deg).enumerate() {
 		let x = 2*i
@@ -596,32 +565,6 @@ Each row should be the same thing repeated.
 )
 
 
-= Symbol arrow aliases
-
-
-#table(
-	columns: 4,
-	align: horizon,
-	[Math], [Unicode], [Mark], [Diagram],
-	..(
-		$->$, $-->$, $<-$, $<->$, $<-->$,
-		$->>$, $<<-$,
-		$>->$, $<-<$,
-		$=>$, $==>$, $<==$, $<=>$, $<==>$,
-		$|->$, $|=>$,
-		$~>$, $<~$,
-		$arrow.hook$, $arrow.hook.l$,
-	).map(x => {
-		let unicode = x.body.text
-		(x, unicode)
-		if unicode in fletcher.MARK_SYMBOL_ALIASES {
-			let marks = fletcher.MARK_SYMBOL_ALIASES.at(unicode)
-			(raw(marks), diagram(edge((0,0), (1,0), marks: marks)))
-		} else {
-			(text(red)[none!],) * 2
-		}
-	}).flatten()
-)
 
 
 = Math-mode diagrams
@@ -652,6 +595,11 @@ $)
 		node(C, stroke: #(red + .3pt), radius: #1em) edge("u", "=")
 		edge(#(1,0), "..||..")
 	$,
+)
+
+#diagram(
+	node-stroke: 1pt,
+	$ node(A B C, extrude: #(0,2)) edge(->) & pi r^2 $
 )
 
 = Relative node coordinates

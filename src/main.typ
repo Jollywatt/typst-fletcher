@@ -802,9 +802,7 @@
 		panic("Unexpected named argument(s) to diagram: " + args)
 	}
 
-	// Interpret objects at a sequence of nodes and edges
 	let positional-args = args.pos().join() + [] // join to ensure sequence
-	assert(repr(positional-args.func()) == "sequence")
 	let objects = positional-args.children
 
 	let nodes = ()
@@ -834,6 +832,8 @@
 					edge.from = prev-coord
 				}
 				if edge.to == auto {
+					// if edge's end point isn't set, defer it until the next node is seen.
+					// currently, this is only allowed for one edge at a time.
 					if should-set-last-edge-point { panic("Cannot infer edge end point. Please specify explicitly.") }
 					should-set-last-edge-point = true
 				}
