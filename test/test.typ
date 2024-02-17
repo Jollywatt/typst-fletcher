@@ -52,11 +52,11 @@
 
 = Matching math arrows
 
-Compare to $->$, $=>$ $arrow.triple$ $arrow.twohead$, $arrow.hook$, $|->$.
+Compare to $->$, $=>$, $arrow.triple$, $arrow.twohead$, $arrow.hook$, $|->$.
 
 #let (result-color, target-color) = (rgb("f066"), rgb("0bf5"))
 
-Compare #text(result-color)[our output] to the #text(target-color)[reference symbol] in default math font. \
+#text(result-color)[Our output] versus #text(target-color)[reference symbol] in default math font. \
 #{
 	set text(10em)
 	diagram(
@@ -243,7 +243,6 @@ $
 
 
 = Defocus adjustment
-#todo
 
 #let around = (
 	(-1,+1), ( 0,+1), (+1,+1),
@@ -362,7 +361,7 @@ Reversed $y$-axis:
 	node((2,0), [Bézier], stroke: 1pt),
 	render: (grid, nodes, edges, options) => {
 		fletcher.cetz.canvas({
-			fletcher.draw-diagram(grid, nodes, edges, options)
+			fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let n2 = fletcher.find-node-at(nodes, (2,0))

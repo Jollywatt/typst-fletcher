@@ -453,9 +453,7 @@
 
 }
 
-#let find-anchor-pair(intersection-objects, targets, callback) = {
-	let (from-group, to-group) = intersection-objects
-	let (from-point, to-point) = targets
+#let find-anchor-pair((from-group, to-group), (from-point, to-point), callback) = {
 	find-farthest-intersection(from-group, from-point, from-anchor => {
 		find-farthest-intersection(to-group, to-point, to-anchor => {
 			callback((from-anchor, to-anchor))
@@ -464,21 +462,23 @@
 	
 }
 
+/// Return the anchor point for an edge connecting to a node with the "defocus"
+/// adjustment.
+///
+/// Basically, for very long/wide nodes, don't make edges coming in from all
+/// angles go to the exact node center, but "spread them out" a bit. See 
+/// https://www.desmos.com/calculator/irt0mvixky.
 #let defocus-adjustment(node, θ) = {
-		// this is for the "defocus adjustment"
-		// basically, for very long/wide nodes, don't make edges coming in from
-		// all angles go to the exact node center, but "spread them out" a bit.
-		// https://www.desmos.com/calculator/irt0mvixky
-		let μ = calc.pow(node.aspect, node.defocus)
-		let δ = (
-			calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
-			calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
-		)
-		
-		vector.add(node.final-pos, δ)
+	let μ = calc.pow(node.aspect, node.defocus)
+	let δ = (
+		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
+		calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
+	)
+	
+	vector.add(node.final-pos, δ)
 }
 
-#let draw-anchored-line(edge, nodes, options) = {
+#let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.vertices
 
 	let (δ-from, δ-to) = edge.shift
@@ -491,7 +491,7 @@
 	if nodes.at(1) != none { to = defocus-adjustment(nodes.at(1), θ + 90deg) }
 
 
-	if options.debug >= 3 {
+	if debug >= 3 {
 		cetz.draw.line(
 			from,
 			to,
@@ -517,13 +517,13 @@
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
 		draw-edge-line(edge + (
 			vertices: anchors,
-		), debug: options.debug)
+		), debug: debug)
 	})
 
 }
 
 
-#let draw-anchored-arc(edge, nodes, options) = {
+#let draw-anchored-arc(edge, nodes, debug: 0) = {
 	let (from, to) = edge.vertices
 
 	let θ = vector-angle(vector.sub(to, from))
@@ -549,12 +549,12 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-arc(edge + (vertices: anchors), debug: options.debug)
+		draw-edge-arc(edge + (vertices: anchors), debug: debug)
 	})
 }
 
 
-#let draw-anchored-polyline(edge, nodes, options) = {
+#let draw-anchored-polyline(edge, nodes, debug: 0) = {
 	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
 	let (from, to) = (edge.vertices.at(0), edge.vertices.at(-1))
 
@@ -598,13 +598,13 @@
 		let edge = edge
 		edge.vertices.at(0) = anchors.at(0)
 		edge.vertices.at(-1) = anchors.at(1)
-		draw-edge-polyline(edge, debug: options.debug)
+		draw-edge-polyline(edge, debug: debug)
 	})
 
 }
 
 
-#let draw-anchored-corner(edge, nodes, options) = {
+#let draw-anchored-corner(edge, nodes, debug: 0) = {
 
 	let (from, to) = edge.vertices
 	let θ = vector-angle(vector.sub(to, from))
@@ -634,22 +634,22 @@
 		label-side: if bend-dir { left } else { right },
 	)
 
-	draw-anchored-polyline(edge + edge-options, nodes, options)
+	draw-anchored-polyline(edge + edge-options, nodes, debug: debug)
 
 }
 
-#let draw-edge(edge, nodes, options) = {
+#let draw-edge(edge, nodes, ..args) = {
 	edge.marks = interpret-marks(edge.marks)
-	if edge.kind == "line" { draw-anchored-line(edge, nodes, options) }
-	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, options) }
-	else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, options) }
-	else if edge.kind == "poly" { draw-anchored-polyline(edge, nodes, options) }
+	if edge.kind == "line" { draw-anchored-line(edge, nodes, ..args) }
+	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, ..args) }
+	else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, ..args) }
+	else if edge.kind == "poly" { draw-anchored-polyline(edge, nodes, ..args) }
 	else { panic(edge.kind) }
 }
 
 
 
-#let draw-node(node, options) = {
+#let draw-node(node, debug: 0) = {
 
 	if node.stroke != none or node.fill != none {
 
@@ -671,7 +671,7 @@
 	}
 
 	// Draw debug stuff
-	if options.debug >= 1 {
+	if debug >= 1 {
 		// dot at node anchor
 		cetz.draw.circle(
 			node.final-pos,
@@ -682,7 +682,7 @@
 	}
 
 	// Show anchor outline
-	if options.debug >= 2 and node.radius != 0pt {
+	if debug >= 2 and node.radius != 0pt {
 		cetz.draw.group({
 			cetz.draw.translate(node.final-pos)
 			cetz.draw.set-style(
@@ -702,20 +702,17 @@
 
 #let draw-debug-axes(grid) = {
 
-	cetz.draw.scale(
-		x: grid.scale.at(0),
-		y: grid.scale.at(1),
-	)
 	// cetz panics if rect is zero area
 	if grid.bounding-size.all(x => x != 0pt) {
 		cetz.draw.rect(
 			(0,0),
-			grid.bounding-size,
+			element-wise-mul(grid.bounding-size, grid.scale),
 			stroke: DEBUG_COLOR + 0.25pt
 		)
 	}
 
-	for (axis, coord) in ((0, (x,y) => (x,y)), (1, (y,x) => (x,y))) {
+	let (σx, σy) = grid.scale
+	for (axis, coord) in ((0, (x,y) => (σx*x,σy*y)), (1, (y,x) => (σx*x,σy*y))) {
 
 		for (i, x) in grid.centers.at(axis).enumerate() {
 			let size = grid.sizes.at(axis).at(i)
@@ -760,20 +757,20 @@
 	grid,
 	nodes,
 	edges,
-	options,
+	debug: 0,
 ) = {
 
 	for node in nodes {
-		draw-node(node, options)
+		draw-node(node, debug: debug)
 	}
 
 	for edge in edges {
 		// find notes to snap to (each can be none!)
-		let nodes = (edge.anchor-from, edge.anchor-to).map(find-node-at.with(nodes))
-		draw-edge(edge, nodes, options)
+		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
+		draw-edge(edge, nodes, debug: debug)
 	}
 
-	if options.debug >= 1 {
+	if debug >= 1 {
 		draw-debug-axes(grid)
 	}
 

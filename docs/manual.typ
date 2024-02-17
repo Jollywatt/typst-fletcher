@@ -23,7 +23,7 @@
 
 	show heading.where(level: 3): it => {
 		align(center, line(length: 100%, stroke: black.lighten(70%)))
-		text(1.5em, heading(
+		text(1.2em, heading(
 			level: 4,
 			outlined: true,
 			raw(it.body.text + "()")
@@ -70,7 +70,7 @@
 
 	#link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-	Version #VERSION
+	*Version #VERSION*
 ]
 
 #set raw(lang: "typc")
@@ -752,7 +752,7 @@ Here is an example of how you might hack together a Bézier connector using the 
 		// cetz is also exported as fletcher.cetz
 		cetz.canvas({
 			// this is the default code to render the diagram
-			fletcher.draw-diagram(grid, nodes, edges, options)
+			fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
 
 			// retrieve node data by coordinates
 			let n1 = fletcher.find-node-at(nodes, (0,1))
@@ -819,7 +819,7 @@ First, we find all nodes of a certain fill, get their actual coordinates, and th
     let group = nodes.filter(node => node.fill == in-group)
     cetz.canvas({
       enclose-nodes(group) // draw a node group in the background
-      fletcher.draw-diagram(grid, nodes, edges, options)
+      fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
     })
   }
 )

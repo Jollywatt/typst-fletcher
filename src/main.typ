@@ -671,8 +671,7 @@
 
 		edges: edges.map(edge => {
 
-			edge.anchor-from = default(edge.anchor-from, edge.from)
-			edge.anchor-to = default(edge.anchor-to, edge.to)
+			edge.vertices = (edge.from, ..edge.vertices, edge.to)
 
 			edge.stroke = as-stroke(edge.stroke)
 
@@ -714,7 +713,7 @@
 			}
 
 			if edge.kind == auto {
-				if edge.vertices.len() > 0 { edge.kind = "poly" }
+				if edge.vertices.len() > 2 { edge.kind = "poly" }
 				else if edge.corner != none { edge.kind = "corner" }
 				else if edge.bend != 0deg { edge.kind = "arc" }
 				else { edge.kind = "line" }
@@ -1042,7 +1041,7 @@
 	crossing-thickness: 5,
 	render: (grid, nodes, edges, options) => {
 		cetz.canvas(
-			draw-diagram(grid, nodes, edges, options)
+			draw-diagram(grid, nodes, edges, debug: options.debug)
 		)
 	},
 ) = {
@@ -1081,14 +1080,6 @@
 		options.spacing = options.spacing.map(to-pt)
 
 		let (nodes, edges) = apply-defaults(nodes, edges, options)
-
-			/// transition zone
-		edges = edges.map(edge => {
-			edge.vertices = (edge.from, ..edge.vertices, edge.to)
-			let _ = edge.remove("from")
-			let _ = edge.remove("to")
-			edge
-		})
 
 
 		let nodes = compute-node-sizes(nodes, styles)
