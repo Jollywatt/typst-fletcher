@@ -9,6 +9,9 @@
 	"double": (extrude: (-2, +2)),
 	"triple": (extrude: (-4, 0, +4)),
 	"crossing": (crossing: true),
+	"wave": (decorations: "wave"),
+	"zigzag": (decorations: "zigzag"),
+	"coil": (decorations: "coil"),
 )
 
 #let MARK_SYMBOL_ALIASES = (

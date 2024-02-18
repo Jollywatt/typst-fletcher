@@ -45,6 +45,19 @@
 	})
 }
 
+#let with-decorations(edge, path) = {
+	if edge.decorations == none { return path }
+
+	let has-mark-at(t) = edge.marks.find(mark => calc.abs(mark.pos) < 1e-3 ) != none
+
+	let decor = edge.decorations.with(stroke: edge.stroke)
+
+	if has-mark-at(0) { decor = decor.with(start: 10%) }
+	if has-mark-at(1) { decor = decor.with(stop: 90%) }
+
+	decor(path)
+}
+
 /// Draw a straight edge.
 ///
 /// #example(```
@@ -90,10 +103,13 @@
 				)
 			))
 
-		cetz.draw.line(
+
+		with-decorations(edge, cetz.draw.line(
 			..shifted-line-points,
 			stroke: edge.stroke,
-		)
+		))
+
+
 	}
 
 	// Draw marks
@@ -172,7 +188,7 @@
 		let (δ-start, δ-stop) = cap-offsets(edge, shift)
 			.map(arclen => -bend-dir*arclen/radius*1rad)
 
-		cetz.draw.arc(
+		let obj = cetz.draw.arc(
 			center,
 			radius: radius + shift,
 			start: start + δ-start,
@@ -180,6 +196,12 @@
 			anchor: "origin",
 			stroke: edge.stroke,
 		)
+
+		if edge.decorations == none { obj }
+		else {
+			let decor = edge.decorations.with(stroke: edge.stroke)
+			decor(obj)
+		}
 	}
 
 
@@ -466,8 +488,9 @@
 /// adjustment.
 ///
 /// Basically, for very long/wide nodes, don't make edges coming in from all
-/// angles go to the exact node center, but "spread them out" a bit. See 
-/// https://www.desmos.com/calculator/irt0mvixky.
+/// angles go to the exact node center, but "spread them out" a bit.
+///
+/// See https://www.desmos.com/calculator/irt0mvixky.
 #let defocus-adjustment(node, θ) = {
 	let μ = calc.pow(node.aspect, node.defocus)
 	(

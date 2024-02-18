@@ -774,3 +774,15 @@ $)
 	edge((1,0), (2,1), "->", [hi], label-side: center, label-fill: false),
 	edge((2,0), (3,1), "->", [hi]),
 )
+
+= Line decorations
+
+#diagram(spacing: 8em, $
+	A edge(<->, "wave") & B edge(<->, "zigzag") & C edge(<->, "coil")
+$)
+
+#diagram(spacing: (2em, 3em), $
+	e^- edge("dr", "-<|-") & & & & & edge("dl", "-|>-") e^+ \
+	& edge("wave") & edge(gamma, "wave", bend: #80deg) edge("wave", bend: #(-80deg)) & edge("wave") \
+	e^+ edge("ur", "-|>-") & & & & & edge("ul", "-<|-") e^- \
+$)

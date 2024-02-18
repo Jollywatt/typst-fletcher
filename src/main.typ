@@ -503,6 +503,7 @@
 	label-fill: auto,
 	stroke: auto,
 	dash: none,
+	decorations: none,
 	kind: auto,
 	bend: 0deg,
 	corner: none,
@@ -530,6 +531,7 @@
 		label-fill: label-fill,
 		stroke: stroke,
 		dash: dash,
+		decorations: decorations,
 		kind: kind,
 		bend: bend,
 		corner: corner,
@@ -580,6 +582,24 @@
 	}
 
 	if type(options.shift) != array { options.shift = (options.shift, options.shift) }
+
+	if type(options.decorations) == str {
+		options.decorations = (
+			"wave": cetz.decorations.wave.with(
+				amplitude: .12,
+				segment-length: .2,
+				tension: .2,
+			),
+			"zigzag": cetz.decorations.zigzag.with(
+				amplitude: .12,
+				segment-length: .2,
+			),
+			"coil": cetz.decorations.coil.with(
+				amplitude: .15,
+				segment-length: .12,
+			),
+		).at(options.decorations)
+	}
 
 	let obj = ( 
 		class: "edge",
