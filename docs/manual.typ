@@ -35,6 +35,7 @@
 
 #show heading.where(level: 1): it => it + v(0.5em)
 
+#show "CeTZ": it => link("https://github.com/johannes-wolf/cetz", it)
 
 #v(.2fr)
 
@@ -343,50 +344,27 @@ Avoid importing everything with `*` as many internal functions are also exported
 )
 
 
+#pagebreak()
 
+= Diagrams
 
-
-
-
-= Nodes
-
-#link(label("node()"))[`node((x, y), label, ..options)`]
-
-Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an `inset` and `outset`), but can be given an exact `width`, `height`, or `radius`, as well as a `stroke` and `fill`. For example:
-
-#code-example-row(```typ
-#fletcher.diagram(
-	debug: true, // show a coordinate grid
-	spacing: (5pt, 4em), // small column gaps, large row spacing
-	node((0,0), $f$),
-	node((1,0), $f$, stroke: 1pt),
-	node((2,0), $f$, stroke: 1pt, shape: rect),
-	node((3,0), $f$, stroke: 1pt, radius: 6mm, extrude: (0, 3)),
-	{
-		let b = blue.lighten(70%)
-		node((0,1), `xyz`, fill: b, )
-		let dash = (paint: blue, dash: "dashed")
-		node((1,1), `xyz`, stroke: dash, inset: 1em)
-		node((2,1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
-		node((3,1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
-	}
-)
-```)
-
-By default, coordinates $(x, y)$ have $x$ going $arrow.r$ and $y$ going $arrow.b$.
-This can be changed with the `axis` option of `diagram()`.
+Diagrams are a collection of nodes and edges rendered on a CeTZ canvas.
+// Nodes and edges may be passed as separate arguments, together in code blocks, or within `&`-delimited math matrices.
 
 == Elastic coordinates
 
-Diagrams are laid out on a flexible coordinate grid.
+Diagrams are laid out on a flexible coordinate grid, visible when the `debug` option is turned on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
-See the `diagram()` parameters for more control: `cell-size` is the minimum row and column width, and `spacing` is the gutter between rows and columns.
+
+By default, coordinates $(x, y)$ have $x$ going $arrow.r$ and $y$ going $arrow.b$.
+This can be changed with the `axis` option of `diagram()`.
+The `cell-size` option is the minimum row and column width, and `spacing` is the gutter between rows and columns.
 
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
 #fletcher.diagram(
-	debug: 1,
-	spacing: 0pt,
+	debug: true,
+	spacing: 10pt,
 	node-corner-radius: 3pt,
 	node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
 	node((1,0), [b], fill: c.at(1), width:  5mm, height:  5mm),
@@ -395,12 +373,14 @@ See the `diagram()` parameters for more control: `cell-size` is the minimum row 
 )
 ```)
 
-So far, this is just like a table. However, coordinates can also be fractional.
+
+
 
 == Fractional coordinates
 
-Rows and columns are at integer coordinates, but nodes may have fractional coordinates.
-These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down. Both the node's position and its influence on row/column sizes are interpolated.
+So far, this is just like a table. However, coordinates can also be fractional.
+These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down.
+// Both the node's position and its influence on row/column sizes are interpolated.
 
 // As a result, diagrams are responsive to node sizes (like tables) while also allowing precise positioning.
 For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
@@ -422,6 +402,34 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 	}),
 )
 
+
+= Nodes
+
+#link(label("node()"))[`node((x, y), label, ..options)`]
+
+Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an `inset` and `outset`), but can be given an exact `width`, `height`, or `radius`, as well as a `stroke` and `fill`. For example:
+
+#code-example-row(```typ
+#fletcher.diagram(
+	debug: true, // show a coordinate grid
+	spacing: (5pt, 4em), // small column gaps, large row spacing
+	node((0,0), $f$),
+	node((1,0), $f$, stroke: 1pt),
+	node((2,0), $f$, stroke: blue, shape: rect),
+	node((3,0), $f$, stroke: 1pt, radius: 6mm, extrude: (0, 3)),
+	{
+		let b = blue.lighten(70%)
+		node((0,1), `xyz`, fill: b, )
+		let dash = (paint: blue, dash: "dashed")
+		node((1,1), `xyz`, stroke: dash, inset: 1em)
+		node((2,1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
+		node((3,1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
+	}
+)
+```)
+
+
+
 == Node shapes
 
 By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or a function.
@@ -442,7 +450,7 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 )
 ```)
 
-Custom #link("https://github.com/johannes-wolf/cetz")[CeTZ] shapes are possible by passing a callback to `shape`, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
+Custom CeTZ shapes are possible by passing a callback to `shape`, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
 
 
 
@@ -505,8 +513,8 @@ However, don't forget you can also use variables in code-mode, which is more fle
 
 == Relative coordinates
 
-It can also be handy to specify the direction of an edge, instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`. For convenience, you can also specify a relative coordinate with string of _directions_, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
-#strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you do to things like:
+You may specify an edge's direction instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`, or with string of _directions_ for short, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
+#strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you to do things like:
 
 #code-example-row(```typ
 #fletcher.diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
@@ -520,10 +528,9 @@ An edge's `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` i
 
 #code-example-row(```typ
 #fletcher.diagram(
-	debug: 1,
 	edge((0,0), (1,1), "->", `line`),
 	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
-	edge((0,2), (3,3), vertices: ((1,2), (2,3)), "->", `poly`),
+	edge((4,0), (5,0), vertices: ((4,1), (5,1)), "->", `poly`),
 )
 ```)
 
@@ -535,6 +542,8 @@ edge((0,2), (rel: (1,0)), (rel: (1,1)), (rel: (1,0)), "->", `poly`)
 edge((0,2), "r", "rd", "r", "->", `poly`) // using relative coordinate names
 edge((0,2), "r,rd,r", "->", `poly`) // shorthand
 ```
+
+Only the first and last `vertices` of an edge snap to node outlines.
 
 == The `defocus` adjustment
 
@@ -563,7 +572,9 @@ See the `node-defocus` argument of #link(label("diagram()"))[`diagram()`] for de
 
 = Marks and arrows
 
-A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, $arrow.hook$, etc.
+Edges can be arrows.
+Marks can be specified by shorthands like  `edge(a, b, "-->")` or with the `marks` option of `edge()`.
+Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$.
 #align(center, fletcher.diagram(
 	debug: 0,
 	spacing: (14mm, 12mm),
@@ -584,7 +595,7 @@ A few mathematical arrow heads are supported, designed to match $arrow$, $arrow.
 	}
 }))
 
-Some other marks are supported, and can be placed anywhere along the edge.
+A few other marks are supported, and can be placed anywhere along the edge.
 
 #align(center, fletcher.diagram(
 	debug: 0,
@@ -611,8 +622,6 @@ All the mark shorthands are defined in `fletcher.MARK_ALIASES` and `fletcher.MAR
 	.join([, ])
 }
 
-Edge styles can be specified with a shorthand like `edge(a, b, "-->")`. See the `marks` argument of `edge()` for details.
-
 
 
 == Adjusting marks
@@ -636,7 +645,7 @@ While shorthands exist for specifying marks and stroke styles, finer control is 
 Shorthands like `"<->"` expand into specific `edge()` options.
 For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`.
 Mark names such as `"bar"` or `"doublehead"` are themselves shorthands for dictionaries defining the marks' parameters.
-These parameters can be retrieved from the mark name as follows:
+These can be retrieved from the mark name as follows:
 #code-example-row(```typ
 #fletcher.interpret-mark("doublehead")
 // In this particular example:
@@ -649,7 +658,7 @@ These parameters can be retrieved from the mark name as follows:
 //    correction to the arrowhead's bearing for tightly curved edges.
 // Distances are multiples of the stroke thickness.
 ```)
-Finally, the fully expanded version of a `marks` shorthand can be inspected by invoking `interpret-marks-arg()`:
+Finally, the fully expanded version of a mark shorthand can be obtained with `interpret-marks-arg()`:
 #code-example-row(```typ
 #fletcher.interpret-marks-arg("|=>")
 
@@ -659,7 +668,7 @@ Finally, the fully expanded version of a `marks` shorthand can be inspected by i
 
 
 
-You can customise these basic marks by adjusting these parameters.
+You can customise the basic marks somewhat by adjusting these parameters.
 For example:
 
 #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
@@ -708,8 +717,7 @@ However, an escape hatch is provided with the `render` argument of `diagram()` s
 
 == Bézier edges
 
-Currently, only straight, arc and right-angled connectors are supported.
-Here is an example of how you might hack together a Bézier connector using the same functions that `fletcher` uses internally to anchor edges to nodes:
+Here is an example of how you might hack together a Bézier edge using the same functions that `fletcher` uses internally to anchor edges to nodes:
 
 // #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
 // #fletcher.diagram(
@@ -781,28 +789,27 @@ Here is an example of how you might hack together a Bézier connector using the 
 == Node groups
 
 Here is another example of how you could automatically draw "node groups" around selected nodes.
-First, we find all nodes of a certain fill, get their actual coordinates, and then draw a rectangle around their bounding box.
+First, we find all nodes of a certain fill, obtain their final coordinates, and then draw a rectangle around their bounding box.
 
 #code-example-row(```typ
-
 #let in-group = orange.lighten(60%)
 #let out-group = blue.lighten(60%)
 
 // draw a blob around nodes
 #let enclose-nodes(nodes, clearance: 8mm) = {
-  let points = nodes.map(node => node.final-pos)
-  let (center, size) = fletcher.bounding-rect(points)
+	let points = nodes.map(node => node.final-pos)
+	let (center, size) = fletcher.bounding-rect(points)
 
-  cetz.draw.content(
-    center,
-    rect(
-      width: size.at(0) + 2*clearance,
-      height: size.at(1) + 2*clearance,
-      radius: clearance,
-      stroke: in-group,
-      fill: in-group.lighten(85%),
-    )
-  )
+	cetz.draw.content(
+		center,
+		rect(
+			width: size.at(0) + 2*clearance,
+			height: size.at(1) + 2*clearance,
+			radius: clearance,
+			stroke: in-group,
+			fill: in-group.lighten(85%),
+		)
+	)
 }
 
 #fletcher.diagram(

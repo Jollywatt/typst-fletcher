@@ -3,10 +3,10 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
-/// Replace `auto` with a value
+// Replace `auto` with a value
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
 
-/// Make a function propagate `auto`
+// Make a function propagate `auto`
 #let pass-auto(f) = x => if x == auto { x } else { f(x) }
 
 #let pass-none(f) = x => if x == none { x } else { f(x) }
@@ -173,7 +173,7 @@
 	(center: center, radius: radius, start: start, stop: stop)
 }
 
-/// Return true if an element is a space or sequence of spaces
+/// Return true if a content element is a space or sequence of spaces
 #let is-space(el) = {
 	if el == none { return true }
 	if repr(el.func()) == "space" { return true }

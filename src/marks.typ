@@ -213,7 +213,6 @@
 ///   - `kind` (required) the mark name, e.g. `"solid"` or `"bar"`
 ///   - `pos` the position along the edge to place the mark, from 0 to 1
 ///   - `rev` whether to reverse the direction
-///   - `tail` the visual length of the mark's tail
 ///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
 /// -> dictiony
 #let interpret-marks-arg(arg) = {

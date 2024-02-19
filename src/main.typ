@@ -6,20 +6,19 @@
 
 /// Draw a labelled node in an diagram which can connect to edges.
 ///
-/// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node. The
-///  coordinates are usually integers, but can be fractional.
+/// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node.
 ///
 ///  See the `diagram()` options to control the physical scale of elastic
 ///  coordinates.
 ///
 /// - label (content): Content to display inside the node.
 /// - inset (length, auto): Padding between the node's content and its bounding
-///  box or bounding circle. If `auto`, defaults to the `node-inset` option of
-///  `diagram()`.
+///  box or bounding circle.
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///  points for connecting edges.
 ///
-///  This does not affect node layout, only how edges connect to the node.
+///  This does not affect node layout, only how closely edges connect to the
+///  node.
 ///
 /// - shape (rect, circle, function, auto): Shape to draw for the node. If
 ///  `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
@@ -37,13 +36,12 @@
 ///  Custom shapes should be specified as a function `(node, extrude) => (..)`
 ///  returning `cetz` objects.
 ///  - The `node` argument is a dictionary containing the node's attributes,
-///    including its center position (`node.real-pos`), the label's dimensions
-///    (`node.size`), and other options (such as `node.corner-radius`, which may
-///    not have an effect for some shapes).
+///    including its dimensions (`node.size`), and other options (such as
+///    `node.corner-radius`).
 ///  - The `extrude` argument is a length which the shape outline should be
 ///   extruded outwards by. This serves two functions: to support automatic edge
-///   anchoring with a node `outset`, and to create multi-stroke effects using
-///   `extrude`.
+///   anchoring with a non-zero node `outset`, and to create multi-stroke
+///   effects using the `extrude` node option.
 ///
 ///  #fletcher.diagram(
 /// )
@@ -85,8 +83,8 @@
 	radius: auto,
 	corner-radius: auto,
 	shape: auto,
-	defocus: auto,
 	extrude: (0,),
+	defocus: auto,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
 
@@ -310,11 +308,20 @@
 ///
 /// - corner (none, left, right): Whether to create a right-angled corner,
 ///  turning `left` or `right`.
+///  (Bending right means the corner sticks out to the left, and vice versa.)
+///
+///  #diagram(
+///  	node((0,1), `from`),
+///  	node((1,0), `to`),
+///  	edge((0,1), (1,0), `right`, "->", corner: right),
+///  	edge((0,1), (1,0), `left`, "->", corner: left),
+///  )
+///
 ///
 /// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
 ///  positive angles bend clockwise.
 /// 
-///  #fletcher.diagram(debug: 0, {
+///  #fletcher.diagram(debug: 0, crossing-fill: luma(248), {
 ///  	node((0,0), $A$)
 ///  	node((1,1), $B$)
 ///  	let N = 4
@@ -377,9 +384,10 @@
 ///  `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
 ///  automatically chosen based on `label-side` and the angle of the connector.
 ///
-/// - label-fill (bool, paint): The background fill for the label. If `auto`,
-///  then defaults to `true` if the label is over the edge
-///  (`label-side: center`). If `true`, defaults to the value of `crossing-fill`.
+/// - label-fill (bool, paint): The background fill for the label. If `true`,
+///  defaults to the value of `crossing-fill`. If `false` or `none`, no fill is
+///  used. If `auto`, then defaults to `true` if the label is covering the edge
+///  (`label-side: center`). 
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
 ///  thickness.
@@ -526,12 +534,12 @@
 ///
 ///  #let cross(x, fill) = {
 ///  	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
-///  	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill)
+///  	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill, label-fill: true)
 ///  }
 ///  #fletcher.diagram(crossing-thickness: 5, {
 ///  	cross(0, white)
 ///  	cross(1, blue.lighten(50%))
-///  	cross(2, luma(98%))
+///  	cross(2, luma(248))
 ///  })
 ///
 /// - corner-radius (length, none): Radius of rounded corners for edges with
@@ -555,13 +563,15 @@
 ///  direction.
 /// 
 /// #fletcher.diagram($
-/// 	A edge(->, #`3pt`, shift: #3pt) #edge("<-", `-3pt`, shift:
-/// 	(-3pt),label-side: right) & B
+/// 	A edge(->, #`3pt`, shift: #3pt) #edge("->", `-3pt`, shift:
+/// 	(-3pt), label-side: right) & B
 /// $)
 ///
 #let edge(
 	..args,
 	vertices: (),
+	extrude: (0,),
+	shift: 0pt,
 	label: none,
 	label-side: auto,
 	label-pos: 0.5,
@@ -575,10 +585,6 @@
 	bend: 0deg,
 	corner: none,
 	corner-radius: auto,
-	extrude: (0,),
-	shift: 0pt,
-	anchor-from: auto,
-	anchor-to: auto,
 	marks: (none, none),
 	mark-scale: 100%,
 	crossing: false,
@@ -605,8 +611,6 @@
 		corner-radius: corner-radius,
 		extrude: extrude,
 		shift: shift,
-		anchor-from: anchor-from,
-		anchor-to: anchor-to,
 		marks: marks,
 		mark-scale: mark-scale,
 		crossing: crossing,
@@ -757,7 +761,6 @@
 
 	edge
 }
-
 
 
 #let extract-nodes-and-edges-from-equation(eq) = {
@@ -923,8 +926,18 @@
 ///  )
 ///  ```
 ///
+///  Nodes and edges can also be specified in math-mode.
+///
+///  ```typ
+///  #fletcher.diagram($
+///  	A & B \          // two nodes at (0,0) and (1,0)
+///  	C edge(->) & D \ // an edge from (0,1) to (1,1)
+///  	node(sqrt(pi), stroke: #1pt) // a node with options
+///  $)
+///  ```
+///
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
-///  Level `1` shows a coordinate grid; higher levels show bounding boxes and
+///  Level `1` or `true` shows a coordinate grid; higher levels show bounding boxes and
 ///  anchors, etc.
 ///
 /// - spacing (length, pair of lengths): Gaps between rows and columns. Ensures
@@ -951,8 +964,8 @@
 ///  individual node options.
 ///
 /// - edge-stroke (stroke): Default value of the `stroke` option for `edge()`.
-///  By The default value for this option is chosen relative to the font size to
-///  match the thickness of mathematical arrows such as $A -> B$.
+///  By default, this is chosen to match the thickness of mathematical arrows
+///  such as $A -> B$ in the current font size.
 ///
 ///   The default stroke is folded with the stroke specified for the edge. For
 ///   example, if `edge-stroke` is `1pt` and the edge option `stroke` is `red`,
@@ -993,11 +1006,11 @@
 /// - crossing-thickness (number): Default thickness of the occlusion made by
 ///  crossing connectors. See the `crossing-thickness` option of `edge()`.
 /// 
-/// - axes (pair of directions): The directions of the diagram's axes.
+/// - axes (pair of directions): The orientation of the diagram's axes.
 ///
-///  This defines the orientation of the coordinate system used by nodes and
-///  edges. To make the $y$ coordinate increase up the page, use `(ltr, btt)`.
-///  For the matrix convention `(row, column)`, use `(ttb, ltr)`.
+///  This defines the elastic coordinate system used by nodes and edges. To make
+///  the $y$ coordinate increase up the page, use `(ltr, btt)`. For the matrix
+///  convention `(row, column)`, use `(ttb, ltr)`.
 ///
 ///  #stack(
 ///  	dir: ltr,
@@ -1060,9 +1073,7 @@
 	crossing-fill: white,
 	crossing-thickness: 5,
 	render: (grid, nodes, edges, options) => {
-		cetz.canvas(
-			draw-diagram(grid, nodes, edges, debug: options.debug)
-		)
+		cetz.canvas(draw-diagram(grid, nodes, edges, debug: options.debug))
 	},
 ) = {
 
