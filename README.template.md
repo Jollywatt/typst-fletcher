@@ -34,7 +34,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 - [x] More ergonomic syntax to avoid repeating coordinates?
 - [x] Poly-edges with multiple segments
 - [x] Add way to adjust edge connection points while still having them snap to node edges
-- [ ] Zig-zags and waves
+- [x] Zig-zags and waves
 
 ## Change log
 
@@ -42,6 +42,7 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 - Improve edge-to-node snapping. Edges can terminate anywhere near a node (not just at its center) and will automatically snap to the node outline.
 - Fixed node `inset` being half the amount specified. If upgrading from previous version, you will need to divide node `inset` values by two to preserve diagram layout.
+- Add `decorations` option to `edge()` for CeTZ path decorations (`"wave"`, `"zigzag"`, and `"coil"`, also accepted as positional string arguments).
 
 ### 0.4.1
 
