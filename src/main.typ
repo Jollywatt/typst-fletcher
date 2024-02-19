@@ -642,7 +642,7 @@
 	options.stroke = if options.stroke != none {
 		(
 			cap: "round",
-			dash: dash,
+			dash: options.dash,
 		) + stroke-to-dict(map-auto(options.stroke, (:)))
 	}
 

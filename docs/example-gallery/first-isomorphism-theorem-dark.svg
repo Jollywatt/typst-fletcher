@@ -147,7 +147,7 @@
                                                             </g>
                                                         </g>
                                                         <g transform="translate(40.06458754539857 28.269500000000004)">
-                                                            <path class="typst-shape" fill="none" stroke="#ffffff" stroke-width="0.528" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4" d="M 0 54.871014 C 0 54.871014 53.34523 0 53.34523 0 "/>
+                                                            <path class="typst-shape" fill="none" stroke="#ffffff" stroke-width="0.528" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4" stroke-dashoffset="0" stroke-dasharray="3 3" d="M 0 54.871014 C 0 54.871014 53.34523 0 53.34523 0 "/>
                                                         </g>
                                                         <g transform="translate(37.45363967291265 81.02053548769287)">
                                                             <path class="typst-shape" fill="none" stroke="#ffffff" stroke-width="0.528" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4" d="M 2.6109478 2.1199782 C 2.025532 2.722138 1.0628117 2.7357118 0.46065187 2.150296 C 0.46065187 2.150296 0.46065187 2.150296 0.46065187 2.150296 C -0.141508 1.5648803 -0.15508178 0.60215986 0.43033403 0 "/>
