@@ -122,6 +122,52 @@
 }
 
 
+
+#let resolve-node-options(node, options) = {
+	let to-pt(len) = to-abs-length(len, options.em-size)
+
+	node.stroke = map-auto(node.stroke, options.node-stroke)
+	if node.stroke != none {
+		let base-stroke = pass-none(stroke-to-dict)(options.node-stroke)
+		node.stroke = base-stroke + stroke-to-dict(node.stroke)
+	}
+	node.stroke = pass-none(stroke)(node.stroke) // guarantee stroke or none
+
+	node.fill = map-auto(node.fill, options.node-fill)
+	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
+	node.inset = map-auto(node.inset, options.node-inset)
+	node.outset = map-auto(node.outset, options.node-outset)
+	node.defocus = map-auto(node.defocus, options.node-defocus)
+
+	node.size = node.size.map(pass-auto(to-pt))
+	node.radius = pass-auto(to-pt)(node.radius)
+
+	if node.shape == auto {
+		if node.radius != auto { node.shape = "circle" }
+		if node.size != (auto, auto) { node.shape = "rect" }
+	}
+
+	let thickness = if node.stroke == none { 1pt } else {
+		map-auto(node.stroke.thickness, 1pt)
+	}
+
+	node.extrude = node.extrude.map(d => {
+		if type(d) == length { d }
+		else { d*thickness }
+	}).map(to-pt)
+
+	if type(node.outset) in (int, float) {
+		node.outset *= thickness
+	}
+
+	node.inset = to-pt(node.inset)
+	node.outset = to-pt(node.outset)
+
+	node
+}
+
+
+
 /// Interpret the positional arguments given to an `edge()`
 ///
 /// Tries to intelligently distinguish the `from`, `to`, `marks`, and `label`
@@ -136,6 +182,7 @@
 /// ```
 #let interpret-edge-args(args, options) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+
 	let new-options = (:)
 	let pos = args.pos()
 
@@ -588,13 +635,12 @@
 	options.to = interpret-coord-str(options.to)
 	options.vertices = options.vertices.map(interpret-coord-str)
 	
-	let stroke = map-auto(as-stroke(options.stroke), as-stroke((:)))
-	options.stroke = as-stroke((
-		paint: stroke.paint,
-		cap: map-auto(stroke.cap, "round"),
-		thickness: stroke.thickness,
-		dash: map-auto(stroke.dash, options.dash),
-	))
+	options.stroke = if options.stroke != none {
+		(
+			cap: "round",
+			dash: dash,
+		) + stroke-to-dict(map-auto(options.stroke, (:)))
+	}
 
 	if options.label-side == center {
 		options.label-anchor = "center"
@@ -640,67 +686,12 @@
 
 
 
-
-
-
-
-#let resolve-node-options(node, options) = {
-	let to-pt(len) = to-abs-length(len, options.em-size)
-
-	if node.stroke == auto {
-		node.stroke = options.node-stroke
-	} else if node.stroke != none {
-		if options.node-stroke != none {
-			node.stroke = as-stroke(
-				stroke-to-dict(options.node-stroke) +
-				stroke-to-dict(node.stroke)
-			)
-		} else {
-			node.stroke = as-stroke(node.stroke)
-		}
-	}
-
-	node.fill = map-auto(node.fill, options.node-fill)
-	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
-	node.inset = map-auto(node.inset, options.node-inset)
-	node.outset = map-auto(node.outset, options.node-outset)
-	node.defocus = map-auto(node.defocus, options.node-defocus)
-
-	node.size = node.size.map(pass-auto(to-pt))
-	node.radius = pass-auto(to-pt)(node.radius)
-
-	if node.shape == auto {
-		if node.radius != auto { node.shape = "circle" }
-		if node.size != (auto, auto) { node.shape = "rect" }
-	}
-
-	let real-stroke-thickness = if type(node.stroke) == stroke {
-		map-auto(node.stroke.thickness, 1pt)
-	} else  {
-		1pt
-	}
-
-	node.extrude = node.extrude.map(d => {
-		if type(d) == length { d }
-		else { d*real-stroke-thickness }
-	}).map(to-pt)
-
-	if type(node.outset) in (int, float) {
-		node.outset *= real-stroke-thickness
-	}
-
-	node.inset = to-pt(node.inset)
-	node.outset = to-pt(node.outset)
-
-	node
-}
-
 #let resolve-edge-options(edge, options) = {
 	let to-pt(len) = to-abs-length(len, options.em-size)
 
 	edge.vertices = (edge.from, ..edge.vertices, edge.to)
 
-	edge.stroke = as-stroke(edge.stroke)
+	edge.stroke = pass-none(stroke)(edge.stroke)
 
 	if edge.stroke == none {
 		// hack: for no stroke, it's easier to do the following.
@@ -708,17 +699,16 @@
 		// a stroke, not possibly none
 		edge.extrude = ()
 		edge.marks = ()
-		edge.stroke = as-stroke((:))
+		edge.stroke = stroke((:))
 	}
 
 	edge.stroke = (
-		(thickness: 0.048em) + // want to be able to assume thickness is a length
+		(thickness: 0.048em) + // guarantees thickness is a length
 		stroke-to-dict(options.edge-stroke) +
 		stroke-to-dict(edge.stroke)
 	)
 	edge.stroke.thickness = to-pt(edge.stroke.thickness)
 	edge.stroke = as-stroke(edge.stroke)
-
 
 	edge.extrude = edge.extrude.map(d => {
 		if type(d) == length { to-pt(d) }
@@ -820,6 +810,8 @@
 
 }
 
+
+
 #let interpret-diagram-args(args) = {
 
 	if args.named().len() > 0 { 
@@ -906,6 +898,8 @@
 	)
 
 }
+
+
 
 /// Draw an arrow diagram.
 ///
@@ -1094,24 +1088,24 @@
 		crossing-thickness: crossing-thickness,
 	)
 
-	
-
 	let (nodes, edges) = interpret-diagram-args(args)
 	
 	box(style(styles => {
 		let options = options
 
 		options.em-size = measure(h(1em), styles).width
-		let to-pt(len) = len.abs + len.em*options.em-size
+		let to-pt(len) = to-abs-length(len, options.em-size)
 		options.spacing = options.spacing.map(to-pt)
+		options.cell-size = options.cell-size.map(to-pt)
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
-
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
+
 		options.get-coord = grid.get-coord
+		
 		let (nodes, edges) = compute-final-coordinates(nodes, edges, grid, options)
 
 		render(grid, nodes, edges, options)

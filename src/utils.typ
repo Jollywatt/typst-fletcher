@@ -4,15 +4,15 @@
 #let DEBUG_COLOR = rgb("f008")
 
 /// Replace `auto` with a value
-#let map-auto(a, b) = if a == auto { b } else { a }
+#let map-auto(value, fallback) = if value == auto { fallback } else { value }
 
 /// Make a function propagate `auto`
 #let pass-auto(f) = x => if x == auto { x } else { f(x) }
 
-#let as-stroke(obj) = {
-	if obj == none or obj == auto { obj }
-	else { stroke(obj) }
-}
+#let pass-none(f) = x => if x == none { x } else { f(x) }
+
+// for when `stroke` is already in namespace
+#let as-stroke(x) = stroke(x)
 
 #let stroke-to-dict(s) = {
 	let s = as-stroke(s)
@@ -25,6 +25,7 @@
 		miter-limit: s.miter-limit,
 	)
 
+	// remove auto entries to allow folding strokes by joining dicts
 	for (key, value) in d {
 		if value == auto {
 			let _ = d.remove(key)
@@ -40,9 +41,7 @@
 	a.zip(..others)
 }
 
-#let to-abs-length(len, em-size) = {
-	len.abs + len.em*em-size
-}
+#let to-abs-length(len, em-size) = len.abs + len.em*em-size
 
 #let sign(x) = x/calc.abs(x)
 

@@ -613,6 +613,7 @@
 }
 
 #let draw-edge(edge, nodes, ..args) = {
+	if edge.extrude.len() == 0 { return } // no line to draw
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, ..args) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, ..args) }

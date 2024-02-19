@@ -304,6 +304,39 @@ Reversed $y$-axis:
 	edge((0,0), (1,0), "-", "dashed"),
 )
 
+= `edge()` stroke
+
+
+$
+
+#block(diagram(
+	edge-stroke: red,
+	edge(stroke: 2pt),
+))
+&equiv
+#line(stroke: (paint: red, thickness: 2pt, cap: "round"))
+\
+#block(diagram(
+	edge-stroke: 2pt,
+	edge(stroke: (cap: "butt"))
+))
+&equiv
+#line(stroke: 2pt)
+\
+#block(diagram(
+	edge-stroke: 1pt + green,
+	edge(dash: "dashed")
+))
+&equiv
+#line(stroke: (paint: green, dash: "dashed", cap: "round"))
+\
+#block(diagram(
+	edge(stroke: none)
+))
+&equiv & "(none)"
+
+$
+
 
 = Diagram-level options
 
@@ -316,6 +349,7 @@ Reversed $y$-axis:
 	node((0,1), $A$),
 	node((1,0), $sin compose cos compose tan$, fill: none),
 	node((2,1), $C$),
+	edge("o-o", stroke: orange),
 	node((3,1), $D$, shape: "rect"),
 	edge((0,1), (1,0), $sigma$, "-}>", bend: -45deg),
 	edge((2,1), (1,0), $f$, "<{-"),
