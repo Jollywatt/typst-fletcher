@@ -3,16 +3,11 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
+/// Replace `auto` with a value
+#let map-auto(a, b) = if a == auto { b } else { a }
 
-// Make a function propagate auto
+/// Make a function propagate `auto`
 #let pass-auto(f) = x => if x == auto { x } else { f(x) }
-
-#let default(..args) = {
-	for arg in args.pos() {
-		if arg != auto { return arg }
-	}
-	auto
-}
 
 #let as-stroke(obj) = {
 	if obj == none or obj == auto { obj }

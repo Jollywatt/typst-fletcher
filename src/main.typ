@@ -588,12 +588,12 @@
 	options.to = interpret-coord-str(options.to)
 	options.vertices = options.vertices.map(interpret-coord-str)
 	
-	let stroke = default(as-stroke(options.stroke), as-stroke((:)))
+	let stroke = map-auto(as-stroke(options.stroke), as-stroke((:)))
 	options.stroke = as-stroke((
 		paint: stroke.paint,
-		cap: default(stroke.cap, "round"),
+		cap: map-auto(stroke.cap, "round"),
 		thickness: stroke.thickness,
-		dash: default(stroke.dash, options.dash),
+		dash: map-auto(stroke.dash, options.dash),
 	))
 
 	if options.label-side == center {
@@ -660,11 +660,11 @@
 		}
 	}
 
-	node.fill = default(node.fill, options.node-fill)
-	node.corner-radius = default(node.corner-radius, options.node-corner-radius)
-	node.inset = default(node.inset, options.node-inset)
-	node.outset = default(node.outset, options.node-outset)
-	node.defocus = default(node.defocus, options.node-defocus)
+	node.fill = map-auto(node.fill, options.node-fill)
+	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
+	node.inset = map-auto(node.inset, options.node-inset)
+	node.outset = map-auto(node.outset, options.node-outset)
+	node.defocus = map-auto(node.defocus, options.node-defocus)
 
 	node.size = node.size.map(pass-auto(to-pt))
 	node.radius = pass-auto(to-pt)(node.radius)
@@ -675,7 +675,7 @@
 	}
 
 	let real-stroke-thickness = if type(node.stroke) == stroke {
-		default(node.stroke.thickness, 1pt)
+		map-auto(node.stroke.thickness, 1pt)
 	} else  {
 		1pt
 	}
@@ -725,9 +725,9 @@
 		else { d*edge.stroke.thickness }
 	})
 
-	edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
-	edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
-	edge.corner-radius = default(edge.corner-radius, options.edge-corner-radius)
+	edge.crossing-fill = map-auto(edge.crossing-fill, options.crossing-fill)
+	edge.crossing-thickness = map-auto(edge.crossing-thickness, options.crossing-thickness)
+	edge.corner-radius = map-auto(edge.corner-radius, options.edge-corner-radius)
 
 	if edge.is-crossing-background {
 		edge.stroke = (
@@ -757,9 +757,9 @@
 		mark
 	})
 
-	edge.label-sep = to-pt(default(edge.label-sep, options.label-sep))
+	edge.label-sep = to-pt(map-auto(edge.label-sep, options.label-sep))
 
-	edge.label-fill = default(edge.label-fill, edge.label-side == center)
+	edge.label-fill = map-auto(edge.label-fill, edge.label-side == center)
 
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
 	if edge.label-fill == false { edge.label-fill = none }
@@ -783,7 +783,7 @@
 		if child.func() == metadata {
 			if child.value.class == "edge" {
 				let edge = child.value
-				edge.from = default(edge.from, (x, y))
+				edge.from = map-auto(edge.from, (x, y))
 				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
 				edges.push(edge)
 

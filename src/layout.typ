@@ -41,8 +41,8 @@
 
 		// If width/height/radius is auto, set to measured width/height/radius
 		node.size = node.size.zip((width, height))
-			.map(((given, measured)) => default(given, measured))
-		node.radius = default(node.radius, radius)
+			.map(((given, measured)) => map-auto(given, measured))
+		node.radius = map-auto(node.radius, radius)
 
 	}
 

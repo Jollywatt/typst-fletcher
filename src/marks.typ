@@ -424,7 +424,7 @@
 			p,
 			radius: mark.size*stroke.thickness,
 			stroke: stroke,
-			fill: if mark.fill { default(stroke.paint, black) }
+			fill: if mark.fill { map-auto(stroke.paint, black) }
 		)
 
 	} else if mark.kind == "solid" {
@@ -434,7 +434,7 @@
 			p,
 			(to: p, rel: vector-polar(-d, θ - mark.sharpness)),
 			(to: p, rel: vector-polar(-d*calc.cos(mark.sharpness)*(1 - mark.stealth), θ)),
-			fill: if mark.fill { default(stroke.paint, black) },
+			fill: if mark.fill { map-auto(stroke.paint, black) },
 			close: true,
 			stroke: if not mark.fill { stroke }
 		)
