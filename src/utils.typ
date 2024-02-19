@@ -3,6 +3,10 @@
 
 #let DEBUG_COLOR = rgb("f008")
 
+
+// Make a function propagate auto
+#let pass-auto(f) = x => if x == auto { x } else { f(x) }
+
 #let default(..args) = {
 	for arg in args.pos() {
 		if arg != auto { return arg }

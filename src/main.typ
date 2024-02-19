@@ -644,143 +644,130 @@
 
 
 
+#let resolve-node-options(node, options) = {
+	let to-pt(len) = to-abs-length(len, options.em-size)
 
-
-
-// Ensure all node and edge attributes are complete and consistent,
-// resolving relative lengths and so on.
-#let apply-defaults(nodes, edges, options) = {
-	let to-pt(len) = if type(len) == length {
-		len.abs + len.em*options.em-size
-	} else {
-		len
+	if node.stroke == auto {
+		node.stroke = options.node-stroke
+	} else if node.stroke != none {
+		if options.node-stroke != none {
+			node.stroke = as-stroke(
+				stroke-to-dict(options.node-stroke) +
+				stroke-to-dict(node.stroke)
+			)
+		} else {
+			node.stroke = as-stroke(node.stroke)
+		}
 	}
 
-	(
-		nodes: nodes.map(node => {
+	node.fill = default(node.fill, options.node-fill)
+	node.corner-radius = default(node.corner-radius, options.node-corner-radius)
+	node.inset = default(node.inset, options.node-inset)
+	node.outset = default(node.outset, options.node-outset)
+	node.defocus = default(node.defocus, options.node-defocus)
 
-			if node.stroke == auto {
-				node.stroke = options.node-stroke
-			} else if node.stroke != none {
-				if options.node-stroke != none {
-					node.stroke = as-stroke(
-						stroke-to-dict(options.node-stroke) +
-						stroke-to-dict(node.stroke)
-					)
-				} else {
-					node.stroke = as-stroke(node.stroke)
-				}
-			}
+	node.size = node.size.map(pass-auto(to-pt))
+	node.radius = pass-auto(to-pt)(node.radius)
 
-			node.fill = default(node.fill, options.node-fill)
-			node.corner-radius = default(node.corner-radius, options.node-corner-radius)
-			node.inset = default(node.inset, options.node-inset)
-			node.outset = default(node.outset, options.node-outset)
-			node.defocus = default(node.defocus, options.node-defocus)
+	if node.shape == auto {
+		if node.radius != auto { node.shape = "circle" }
+		if node.size != (auto, auto) { node.shape = "rect" }
+	}
 
-			node.size = node.size.map(to-pt)
-			node.radius = to-pt(node.radius)
+	let real-stroke-thickness = if type(node.stroke) == stroke {
+		default(node.stroke.thickness, 1pt)
+	} else  {
+		1pt
+	}
 
-			if node.shape == auto {
-				if node.radius != auto { node.shape = "circle" }
-				if node.size != (auto, auto) { node.shape = "rect" }
-			}
+	node.extrude = node.extrude.map(d => {
+		if type(d) == length { d }
+		else { d*real-stroke-thickness }
+	}).map(to-pt)
 
-			let real-stroke-thickness = if type(node.stroke) == stroke {
-				default(node.stroke.thickness, 1pt)
-			} else  {
-				1pt
-			}
+	if type(node.outset) in (int, float) {
+		node.outset *= real-stroke-thickness
+	}
 
-			node.extrude = node.extrude.map(d => {
-				if type(d) == length { d }
-				else { d*real-stroke-thickness }
-			}).map(to-pt)
+	node.inset = to-pt(node.inset)
+	node.outset = to-pt(node.outset)
 
-			if type(node.outset) in (int, float) {
-				node.outset *= real-stroke-thickness
-			}
-
-			node.inset = to-pt(node.inset)
-			node.outset = to-pt(node.outset)
-
-			node
-		}),
-
-		edges: edges.map(edge => {
-
-			edge.vertices = (edge.from, ..edge.vertices, edge.to)
-
-			edge.stroke = as-stroke(edge.stroke)
-
-			if edge.stroke == none {
-				// hack: for no stroke, it's easier to do the following.
-				// then we have the guarantee that edge.stroke is actually
-				// a stroke, not possibly none
-				edge.extrude = ()
-				edge.marks = ()
-				edge.stroke = as-stroke((:))
-			}
-
-			edge.stroke = (
-				(thickness: 0.048em) + // want to be able to assume thickness is a length
-				stroke-to-dict(options.edge-stroke) +
-				stroke-to-dict(edge.stroke)
-			)
-			edge.stroke.thickness = to-pt(edge.stroke.thickness)
-			edge.stroke = as-stroke(edge.stroke)
-
-
-			edge.extrude = edge.extrude.map(d => {
-				if type(d) == length { to-pt(d) }
-				else { d*edge.stroke.thickness }
-			})
-
-			edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
-			edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
-			edge.corner-radius = default(edge.corner-radius, options.edge-corner-radius)
-
-			if edge.is-crossing-background {
-				edge.stroke = (
-					thickness: edge.crossing-thickness*edge.stroke.thickness,
-					paint: edge.crossing-fill,
-					cap: "round",
-				)
-				edge.marks = (none, none)
-				edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
-			}
-
-			if edge.kind == auto {
-				if edge.vertices.len() > 2 { edge.kind = "poly" }
-				else if edge.corner != none { edge.kind = "corner" }
-				else if edge.bend != 0deg { edge.kind = "arc" }
-				else { edge.kind = "line" }
-			}
-
-
-			// Scale marks
-			edge.mark-scale *= options.mark-scale
-			let scale = edge.mark-scale/100%
-			edge.marks = edge.marks.map(mark => {
-				if mark == none { return }
-				for k in ("size", "inner-len", "outer-len") {
-					if k in mark { mark.at(k) *= scale }
-				}
-				mark
-			})
-
-			edge.label-sep = to-pt(default(edge.label-sep, options.label-sep))
-
-			edge.label-fill = default(edge.label-fill, edge.label-side == center)
-
-			if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
-			if edge.label-fill == false { edge.label-fill = none }
-
-
-			edge
-		}),
-	)
+	node
 }
+
+#let resolve-edge-options(edge, options) = {
+	let to-pt(len) = to-abs-length(len, options.em-size)
+
+	edge.vertices = (edge.from, ..edge.vertices, edge.to)
+
+	edge.stroke = as-stroke(edge.stroke)
+
+	if edge.stroke == none {
+		// hack: for no stroke, it's easier to do the following.
+		// then we have the guarantee that edge.stroke is actually
+		// a stroke, not possibly none
+		edge.extrude = ()
+		edge.marks = ()
+		edge.stroke = as-stroke((:))
+	}
+
+	edge.stroke = (
+		(thickness: 0.048em) + // want to be able to assume thickness is a length
+		stroke-to-dict(options.edge-stroke) +
+		stroke-to-dict(edge.stroke)
+	)
+	edge.stroke.thickness = to-pt(edge.stroke.thickness)
+	edge.stroke = as-stroke(edge.stroke)
+
+
+	edge.extrude = edge.extrude.map(d => {
+		if type(d) == length { to-pt(d) }
+		else { d*edge.stroke.thickness }
+	})
+
+	edge.crossing-fill = default(edge.crossing-fill, options.crossing-fill)
+	edge.crossing-thickness = default(edge.crossing-thickness, options.crossing-thickness)
+	edge.corner-radius = default(edge.corner-radius, options.edge-corner-radius)
+
+	if edge.is-crossing-background {
+		edge.stroke = (
+			thickness: edge.crossing-thickness*edge.stroke.thickness,
+			paint: edge.crossing-fill,
+			cap: "round",
+		)
+		edge.marks = (none, none)
+		edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
+	}
+
+	if edge.kind == auto {
+		if edge.vertices.len() > 2 { edge.kind = "poly" }
+		else if edge.corner != none { edge.kind = "corner" }
+		else if edge.bend != 0deg { edge.kind = "arc" }
+		else { edge.kind = "line" }
+	}
+
+	// Scale marks
+	edge.mark-scale *= options.mark-scale
+	let scale = edge.mark-scale/100%
+	edge.marks = edge.marks.map(mark => {
+		if mark == none { return }
+		for k in ("size", "inner-len", "outer-len") {
+			if k in mark { mark.at(k) *= scale }
+		}
+		mark
+	})
+
+	edge.label-sep = to-pt(default(edge.label-sep, options.label-sep))
+
+	edge.label-fill = default(edge.label-fill, edge.label-side == center)
+
+	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
+	if edge.label-fill == false { edge.label-fill = none }
+
+
+	edge
+}
+
 
 
 #let extract-nodes-and-edges-from-equation(eq) = {
@@ -1118,7 +1105,8 @@
 		let to-pt(len) = len.abs + len.em*options.em-size
 		options.spacing = options.spacing.map(to-pt)
 
-		let (nodes, edges) = apply-defaults(nodes, edges, options)
+		let nodes = nodes.map(node => resolve-node-options(node, options))
+		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
 
 		let nodes = compute-node-sizes(nodes, styles)
