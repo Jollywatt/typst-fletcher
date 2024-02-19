@@ -754,8 +754,9 @@ Here is an example of how you might hack together a Bézier edge using the same 
 
 #code-example-row(```typ
 #fletcher.diagram(
-	node((0,1), $A$),
+	node((0,1), $A$, stroke: 1pt, shape: fletcher.shapes.diamond),
 	node((2,0), [Bézier], fill: purple.lighten(80%)),
+
 	render: (grid, nodes, edges, options) => {
 		// cetz is also exported as fletcher.cetz
 		cetz.canvas({
@@ -766,25 +767,27 @@ Here is an example of how you might hack together a Bézier edge using the same 
 			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let n2 = fletcher.find-node-at(nodes, (2,0))
 
-			let out-angle = 0deg
-			let in-angle = -90deg
+			let out-angle = 45deg
+			let in-angle = -110deg
 
-			// fletcher.get-node-anchor(n1, out-angle, p1 => {
-			// 	fletcher.get-node-anchor(n2, in-angle, p2 => {
-			// 		// make some control points
-			// 		let c1 = (to: p1, rel: (out-angle, 15mm))
-			// 		let c2 = (to: p2, rel: (in-angle, 30mm))
-			// 		cetz.draw.bezier(
-			// 			p1, p2, c1, c2,
-			// 			mark: (end: ">") // cetz-style mark
-			// 		)
-			// 	})
-			// })
+			fletcher.get-node-anchor(n1, out-angle, p1 => {
+				fletcher.get-node-anchor(n2, in-angle, p2 => {
+					// make some control points
+					let c1 = (to: p1, rel: (out-angle, 10mm))
+					let c2 = (to: p2, rel: (in-angle, 20mm))
+					cetz.draw.bezier(
+						p1, p2, c1, c2,
+						mark: (end: ">") // cetz-style mark
+					)
+				})
+			})
 
 		})
 	}
 )
 ```)
+
+#pagebreak(weak: true)
 
 == Node groups
 

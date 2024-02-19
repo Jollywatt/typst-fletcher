@@ -361,7 +361,7 @@ $
 
 #diagram(
 	node((0,1), $A$, stroke: 1pt),
-	node((2,0), [Bézier], stroke: 1pt),
+	node((2,0), [Bézier], stroke: 1pt, shape: fletcher.shapes.diamond),
 	render: (grid, nodes, edges, options) => {
 		fletcher.cetz.canvas({
 			fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
@@ -372,14 +372,14 @@ $
 			let θ1 = 0deg
 			let θ2 = -90deg
 
-			// fletcher.get-node-anchor(n1, θ1, p1 => {
-			// 	fletcher.get-node-anchor(n2, θ2, p2 => {
-			// 		let c1 = (rel: (θ1, 20pt), to: p1)
-			// 		let c2 = (rel: (θ2, 70pt), to: p2)
-			// 		fletcher.cetz.draw.bezier(p1, p2, c1, c2)
-			// 		fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
-			// 	})
-			// })
+			fletcher.get-node-anchor(n1, θ1, p1 => {
+				fletcher.get-node-anchor(n2, θ2, p2 => {
+					let c1 = (rel: (θ1, 30pt), to: p1)
+					let c2 = (rel: (θ2, 70pt), to: p2)
+					fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+					fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+				})
+			})
 
 		})
 	}

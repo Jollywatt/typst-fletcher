@@ -432,6 +432,19 @@
 	
 }
 
+#let get-node-anchor(node, θ, callback) = {
+	let outline = cetz.draw.group({
+		cetz.draw.translate(node.final-pos)
+		(node.shape)(node, node.outset)
+	})
+	let dummy-line = cetz.draw.line(
+		node.final-pos,
+		(rel: (θ, 10*node.radius))
+	)
+
+	find-farthest-intersection(outline + dummy-line, node.final-pos, callback)
+}
+
 /// Return the anchor point for an edge connecting to a node with the "defocus"
 /// adjustment.
 ///
