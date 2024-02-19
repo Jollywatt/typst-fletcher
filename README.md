@@ -77,6 +77,21 @@ $)
 
 
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/feynman-diagram-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/feynman-diagram-light.svg">
+</picture>
+
+```typ
+#fletcher.diagram($
+  e^- edge("rd", "-<|-") & & & edge("ld", "-|>-") e^+ \
+  & edge(gamma, "wave") \
+  e^+ edge("ru", "-|>-") & & & edge("lu", "-<|-") e^- \
+$)
+```
+
+
+
 ## Todo/wishlist
 
 - [x] Mathematical arrow styles

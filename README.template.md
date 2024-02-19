@@ -22,6 +22,8 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 {{state-machine}}
 
+{{feynman-diagram}}
+
 
 ## Todo/wishlist
 
