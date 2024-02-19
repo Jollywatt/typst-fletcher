@@ -52,6 +52,7 @@
 
 	let decor = edge.decorations.with(stroke: edge.stroke)
 
+	// TODO: should this be an absolute offset, not 10% the path length?
 	if has-mark-at(0) { decor = decor.with(start: 10%) }
 	if has-mark-at(1) { decor = decor.with(stop: 90%) }
 

@@ -777,7 +777,7 @@ $)
 
 = Line decorations
 
-#diagram(spacing: 8em, $
+#diagram(spacing: 4em, $
 	A edge(<->, "wave") & B edge(<->, "zigzag") & C edge(<->, "coil")
 $)
 

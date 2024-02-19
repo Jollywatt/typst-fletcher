@@ -588,7 +588,6 @@
 			"wave": cetz.decorations.wave.with(
 				amplitude: .12,
 				segment-length: .2,
-				tension: .2,
 			),
 			"zigzag": cetz.decorations.zigzag.with(
 				amplitude: .12,
@@ -596,7 +595,8 @@
 			),
 			"coil": cetz.decorations.coil.with(
 				amplitude: .15,
-				segment-length: .12,
+				segment-length: .15,
+				factor: 140%,
 			),
 		).at(options.decorations)
 	}
