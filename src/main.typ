@@ -340,6 +340,26 @@
 /// - dash (dash type): The stroke's dash style. This is also set by some mark
 ///  styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
 /// 
+/// - decorations (none, string, function): Apply a CeTZ path decoration to the
+///  stroke. Preset options are `"wave"`, `"zigzag"`, and `"coil"` (which may
+///  also be passed as convenience positional arguments), but a decoration
+///  function may also be specified.
+///
+///  #example(```
+///  diagram(
+///  	$
+///  		A edge("wave") &
+///  		B edge("zigzag") &
+///  		C edge("coil") & D \
+///  		alpha &&& omega
+///  	$,
+///  	edge((0,1), (3,1), "<->", decorations:
+///  		cetz.decorations.wave
+///  			.with(amplitude: .4)
+///  	)
+///  )
+///  ```)
+/// 
 /// - marks (pair of strings): The marks (arrowheads) to draw along an edge's
 ///  stroke. This may be:
 ///
@@ -606,8 +626,6 @@
 		..options,
 		is-crossing-background: false,
 	)
-
-	assert(type(obj.marks) == array, message: repr(obj))
 
 	// for the crossing effect, add another edge underneath
 	if options.crossing {
