@@ -357,8 +357,6 @@ $
 
 = CeTZ integration
 
-#todo
-
 #diagram(
 	node((0,1), $A$, stroke: 1pt),
 	node((2,0), [Bézier], stroke: 1pt, shape: fletcher.shapes.diamond),
