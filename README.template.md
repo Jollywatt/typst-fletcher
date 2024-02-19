@@ -24,6 +24,8 @@ built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
 
 {{feynman-diagram}}
 
+{{ml-architecture}}
+
 
 ## Todo/wishlist
 
