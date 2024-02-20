@@ -133,8 +133,8 @@
 
 	node.fill = map-auto(node.fill, options.node-fill)
 	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
-	node.inset = map-auto(node.inset, options.node-inset)
-	node.outset = map-auto(node.outset, options.node-outset)
+	node.inset = to-pt(map-auto(node.inset, options.node-inset))
+	node.outset = to-pt(map-auto(node.outset, options.node-outset))
 	node.defocus = map-auto(node.defocus, options.node-defocus)
 
 	node.size = node.size.map(pass-auto(to-pt))
@@ -157,9 +157,6 @@
 	if type(node.outset) in (int, float) {
 		node.outset *= thickness
 	}
-
-	node.inset = to-pt(node.inset)
-	node.outset = to-pt(node.outset)
 
 	node
 }
@@ -203,9 +200,11 @@
 	// Up to the first two arguments may be coordinates
 	let first-coord = auto
 	let other-coords = () 
+	let found-coords = false
 
 	if peek(pos, is-coord) {
 		first-coord = pos.remove(0)
+		found-coords = true
 	}
 	while peek(pos, is-rel-coord) {
 		if type(pos.at(0)) == str {
@@ -213,18 +212,19 @@
 		} else {
 			other-coords.push(pos.remove(0))
 		}
+		found-coords = true
 	}
 
-	if other-coords.len() == 0 {
-		new-options.from = auto
-		new-options.to = first-coord
+	if found-coords and options.vertices != () {
+		panic("Vertices cannot be specified by both positional and named arguments.")
+	}
+
+	if other-coords == () {
+		// if only one coord is given, it is the end point,
+		// with the start point implicit/auto
+		new-options.vertices = (auto, first-coord)
 	} else {
-		new-options.from = first-coord
-		let (..verts, to) = other-coords
-		if options.vertices == () {
-			new-options.vertices = verts
-		} else if verts != () { panic("Vertices cannot be specified by both positional and named arguments.") }
-		new-options.to = to
+		new-options.vertices = (first-coord, ..other-coords)
 	}
 
 	// accept (mark, label), (label, mark) or just either one
@@ -585,7 +585,7 @@
 	bend: 0deg,
 	corner: none,
 	corner-radius: auto,
-	marks: (none, none),
+	marks: (),
 	mark-scale: 100%,
 	crossing: false,
 	crossing-thickness: auto,
@@ -593,8 +593,6 @@
 ) = {
 
 	let options = (
-		from: auto, // set with positional args
-		to: auto,
 		vertices: vertices,
 		label: label,
 		label-pos: label-pos,
@@ -636,7 +634,6 @@
 		}
 		(rel: rel)
 	}
-	options.to = interpret-coord-str(options.to)
 	options.vertices = options.vertices.map(interpret-coord-str)
 	
 	options.stroke = if options.stroke != none {
@@ -692,8 +689,6 @@
 
 #let resolve-edge-options(edge, options) = {
 	let to-pt(len) = to-abs-length(len, options.em-size)
-
-	edge.vertices = (edge.from, ..edge.vertices, edge.to)
 
 	edge.stroke = pass-none(stroke)(edge.stroke)
 
@@ -758,7 +753,6 @@
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
 	if edge.label-fill == false { edge.label-fill = none }
 
-
 	edge
 }
 
@@ -770,13 +764,14 @@
 	let edges = ()
 	let nodes = ()
 
+	// convert math matrix into array-of-arrays matrix
 	let matrix = ((none,),)
 	let (x, y) = (0, 0)
 	for child in terms.children {
 		if child.func() == metadata {
 			if child.value.class == "edge" {
 				let edge = child.value
-				edge.from = map-auto(edge.from, (x, y))
+				edge.vertices.at(0) = map-auto(edge.vertices.at(0), (x, y))
 				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
 				edges.push(edge)
 
@@ -797,6 +792,7 @@
 		}
 	}
 
+	// turn matrix into an array of nodes
 	for (y, row) in matrix.enumerate() {
 		for (x, item) in row.enumerate() {
 			if not is-space(item) {
@@ -829,7 +825,7 @@
 	let edges = ()
 
 	let prev-coord = (0,0)
-	let should-set-last-edge-point = false
+	let should-set-prev-edge-end-point = false
 
 	for obj in objects {
 		if obj.func() == metadata {
@@ -839,23 +835,23 @@
 				nodes.push(node)
 
 				prev-coord = node.pos
-				if should-set-last-edge-point {
+				if should-set-prev-edge-end-point {
 					// the `to` point of the previous edge is waiting to be set
-					edges.at(-1).to = node.pos
-					should-set-last-edge-point = false
+					edges.at(-1).vertices.at(-1) = node.pos
+					should-set-prev-edge-end-point = false
 				}
 
 			} else if obj.value.class == "edge" {
 				let edge = obj.value
 
-				if edge.from == auto {
-					edge.from = prev-coord
+				if edge.vertices.at(0) == auto {
+					edge.vertices.at(0) = prev-coord
 				}
-				if edge.to == auto {
+				if edge.vertices.at(-1) == auto {
 					// if edge's end point isn't set, defer it until the next node is seen.
 					// currently, this is only allowed for one edge at a time.
-					if should-set-last-edge-point { panic("Cannot infer edge end point. Please specify explicitly.") }
-					should-set-last-edge-point = true
+					if should-set-prev-edge-end-point { panic("Cannot infer edge end point. Please specify explicitly.") }
+					should-set-prev-edge-end-point = true
 				}
 				edges.push(edge)
 			}
@@ -870,29 +866,23 @@
 		}
 	}
 
+	// resolve relative coordinates
 	edges = edges.map(edge => {
 
-		for i in range(edge.vertices.len()) {
-			let prev = if i == 0 { edge.from } else { edge.vertices.at(i - 1) }
+		for i in range(1, edge.vertices.len()) {
+			let prev = edge.vertices.at(i - 1)
 			if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
 				edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
 			}
 		}
 
-		let prev = edge.vertices.at(-1, default: edge.from)
-		if edge.to == auto {
-			edge.to = vector.add(prev, (1, 0))
-		} else if type(edge.to) == dictionary and "rel" in edge.to {
-			// Resolve relative coordinates
-			edge.to = vector.add(prev, edge.to.rel)
+		if edge.vertices.at(-1) == auto {
+			edge.vertices.at(-1) = vector.add(edge.vertices.at(-2), (1,0))
 		}
 
-
-		assert(edge.from != auto and edge.to != auto, message: repr(edge))
-		assert(type(edge.to) != dictionary, message: repr(edge))
+		assert(edge.vertices.all(v => type(v) == array), message: repr(edge))
 		edge
 	})
-
 
 
 	(

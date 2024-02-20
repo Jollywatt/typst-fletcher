@@ -181,7 +181,7 @@
 		node
 	}),
 	edges: edges.map(edge => {
-		edge.vertices = edge.vertices.map(options.get-coord)
+		edge.final-vertices = edge.vertices.map(options.get-coord)
 		edge
 	}),
 )

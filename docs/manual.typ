@@ -530,11 +530,11 @@ An edge's `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` i
 #fletcher.diagram(
 	edge((0,0), (1,1), "->", `line`),
 	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
-	edge((4,0), (5,0), vertices: ((4,1), (5,1)), "->", `poly`),
+	edge((4,0), (4,1), (5,1), (5,0), "->", `poly`),
 )
 ```)
 
-An alternative way to specify extra `vertices` is by providing multiple coordinates: `edge(A, B, C, D)` is the same as `edge(from: A, to: D, vertices: (B, C))` if the arguments look like coordinates.
+Instead of positional arguments, an array of coordinates may be also be passed the the edge option `vertices`.
 All vertices except the first can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
 
 ```typc

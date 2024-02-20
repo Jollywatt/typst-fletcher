@@ -8,6 +8,13 @@
 
 #outline()
 
+= basic
+
+#diagram($
+	A edge("->") & B
+$)
+
+/*
 = Arc edges
 
 #diagram(

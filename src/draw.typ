@@ -71,7 +71,8 @@
 ///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
 /// - debug (int): Level of debug details to draw.
 #let draw-edge-line(edge, debug: 0) = {
-	let (from, to) = edge.vertices
+	if edge.final-vertices.len() > 2 { panic(edge) }
+	let (from, to) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to, from))
 
 	// Draw line(s), one for each extrusion shift
@@ -140,7 +141,7 @@
 ///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
 /// - debug (int): Level of debug details to draw.
 #let draw-edge-arc(edge, debug: 0) = {
-	let (from, to) = edge.vertices
+	let (from, to) = edge.final-vertices
 
 	// Determine the arc from the stroke end points and bend angle
 	let (center, radius, start, stop) = get-arc-connecting-points(from, to, edge.bend)
@@ -222,11 +223,12 @@
 /// - debug (int): Level of debug details to draw.
 #let draw-edge-polyline(edge, debug: 0) = {
 
-	let n-segments = edge.vertices.len() - 1
+	let verts = edge.final-vertices
+	let n-segments = verts.len() - 1
 
 	// angles of each segment
 	let θs = range(n-segments).map(i => {
-		let (vert, vert-next) = (edge.vertices.at(i), edge.vertices.at(i + 1))
+		let (vert, vert-next) = (verts.at(i), verts.at(i + 1))
 		assert(vert != vert-next, message: "Adjacent vertices must be distinct.")
 		vector-angle(vector.sub(vert-next, vert))
 	})
@@ -236,7 +238,7 @@
 
 	// i literally don't know how this works
 	let calculate-rounded-corner(i) = {
-		let pt = edge.vertices.at(i)
+		let pt = verts.at(i)
 		let Δθ = wrap-angle-180(θs.at(i) - θs.at(i - 1))
 		let dir = sign(Δθ) // +1 if ccw, -1 if cw
 
@@ -281,7 +283,7 @@
 
 	// draw each segment
 	for i in range(n-segments) {
-		let (from, to) = (edge.vertices.at(i), edge.vertices.at(i + 1))
+		let (from, to) = (verts.at(i), verts.at(i + 1))
 		let marks = ()
 
 		let Δphase = 0pt
@@ -366,7 +368,7 @@
 		draw-edge-line(
 			edge + (
 				kind: "line",
-				vertices: (from, to),
+				final-vertices: (from, to),
 				marks: marks,
 				stroke: stroke-with-phase(phase),
 			) + label-options,
@@ -380,7 +382,7 @@
 
 	if debug >= 4 {
 		cetz.draw.line(
-			..edge.vertices,
+			..verts,
 			stroke: debug-stroke,
 		)
 	}
@@ -462,7 +464,7 @@
 }
 
 #let draw-anchored-line(edge, nodes, debug: 0) = {
-	let (from, to) = edge.vertices
+	let (from, to) = edge.final-vertices
 
 	let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
@@ -503,7 +505,7 @@
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
 		draw-edge-line(edge + (
-			vertices: anchors,
+			final-vertices: anchors,
 		), debug: debug)
 	})
 
@@ -511,7 +513,7 @@
 
 
 #let draw-anchored-arc(edge, nodes, debug: 0) = {
-	let (from, to) = edge.vertices
+	let (from, to) = edge.final-vertices
 
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
@@ -536,18 +538,19 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-arc(edge + (vertices: anchors), debug: debug)
+		draw-edge-arc(edge + (final-vertices: anchors), debug: debug)
 	})
 }
 
 
 #let draw-anchored-polyline(edge, nodes, debug: 0) = {
 	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
-	let (from, to) = (edge.vertices.at(0), edge.vertices.at(-1))
+	let verts = edge.final-vertices
+	let (from, to) = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
 
 	let end-segments = (
-		edge.vertices.slice(0, 2), // first two vertices
-		edge.vertices.slice(-2), // last two vertices
+		edge.final-vertices.slice(0, 2), // first two vertices
+		edge.final-vertices.slice(-2), // last two vertices
 	)
 
 	let θs = (
@@ -563,11 +566,11 @@
 
 	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
 	// first segment
-	edge.vertices.at(0) = vector.add(edge.vertices.at(0), δs.at(0))
-	edge.vertices.at(1) = vector.add(edge.vertices.at(1), δs.at(0))
+	edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
+	edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
 	// last segment
-	edge.vertices.at(-2) = vector.add(edge.vertices.at(-2), δs.at(1))
-	edge.vertices.at(-1) = vector.add(edge.vertices.at(-1), δs.at(1))
+	edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
+	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
 
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
@@ -583,8 +586,8 @@
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
 		let edge = edge
-		edge.vertices.at(0) = anchors.at(0)
-		edge.vertices.at(-1) = anchors.at(1)
+		edge.final-vertices.at(0) = anchors.at(0)
+		edge.final-vertices.at(-1) = anchors.at(1)
 		draw-edge-polyline(edge, debug: debug)
 	})
 
@@ -593,7 +596,7 @@
 
 #let draw-anchored-corner(edge, nodes, debug: 0) = {
 
-	let (from, to) = edge.vertices
+	let (from, to) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to, from))
 
 	let bend-dir = (
@@ -617,7 +620,7 @@
 	}
 
 	let edge-options = (
-		vertices: (from, corner-point, to),
+		final-vertices: (from, corner-point, to),
 		label-side: if bend-dir { left } else { right },
 	)
 
@@ -754,7 +757,7 @@
 
 	for edge in edges {
 		// find notes to snap to (each can be none!)
-		let nodes = (edge.from, edge.to).map(find-node-at.with(nodes))
+		let nodes = (edge.vertices.at(0), edge.vertices.at(-1)).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, debug: debug)
 	}
 
