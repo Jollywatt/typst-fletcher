@@ -48,13 +48,18 @@
 #let with-decorations(edge, path) = {
 	if edge.decorations == none { return path }
 
-	let has-mark-at(t) = edge.marks.find(mark => calc.abs(mark.pos) < 1e-3 ) != none
+	let has-mark-at(t) = edge.marks.find(mark => calc.abs(mark.pos - t) < 1e-3 ) != none
 
 	let decor = edge.decorations.with(stroke: edge.stroke)
 
 	// TODO: should this be an absolute offset, not 10% the path length?
-	if has-mark-at(0) { decor = decor.with(start: 10%) }
-	if has-mark-at(1) { decor = decor.with(stop: 90%) }
+	// if has-mark-at(0) { decor = decor.with(start: 10%) }
+	// if has-mark-at(1) { decor = decor.with(stop: 90%) }
+	let ε = 1e-3 // cetz assertions sometimes fail from floating point errors
+	decor = decor.with(
+		start: if has-mark-at(0) { 0.1 } else { ε } * 100%,
+		stop: if has-mark-at(1) { 0.9 } else { 1 - ε } * 100%,
+	)
 
 	decor(path)
 }
@@ -455,6 +460,7 @@
 ///
 /// See https://www.desmos.com/calculator/irt0mvixky.
 #let defocus-adjustment(node, θ) = {
+	if node == none { return (0pt, 0pt) }
 	let μ = calc.pow(node.aspect, node.defocus)
 	(
 		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
@@ -466,27 +472,16 @@
 #let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
 
+	// apply edge shift
 	let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
 	from = vector.add(from, vector-polar(δ-from, θ))
 	to = vector.add(to, vector-polar(δ-to, θ))
 
-	// TODO: to defocus adjustment sensibly
-	if nodes.at(0) != none {
-		from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
-	}
-	if nodes.at(1) != none {
-		to = vector.add(to, defocus-adjustment(nodes.at(1), θ + 90deg))
-	}
+	// TODO: do defocus adjustment sensibly
+	from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
+	to = vector.add(to, defocus-adjustment(nodes.at(1), θ + 90deg))
 
-
-	if debug >= 3 {
-		cetz.draw.line(
-			from,
-			to,
-			stroke: DEBUG_COLOR + edge.stroke.thickness/4,
-		)
-	}
 
 	let dummy-line = cetz.draw.line(
 		from,
