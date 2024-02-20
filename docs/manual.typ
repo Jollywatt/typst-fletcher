@@ -547,30 +547,51 @@ edge((4,0), "d,r,ur", "->", `poly`) // shorthand
 
 Only the first and last `vertices` of an edge snap to node outlines.
 
-== The `defocus` adjustment
+== Tweaking where edges connect
 
-For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.
-Notice the (subtle) difference the figures below. "Defocusing" the connecting lines can make the diagram look more comfortable.
+A node's `outset` controls how close edges connect to the node's boundary.
+To adjust where along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
+
+#code-example-row(```typ
+#fletcher.diagram(
+	node-stroke: (thickness: .5pt, dash: "dashed"),
+	node((0,0), [no outset], outset: 0pt),
+	node((0,1), [big outset], outset: 10pt),
+	edge((0,0), (0,1)),
+	edge((-0.1,0), (-0.4,1), "-o", "wave"), // shifted using fractional coordinates
+	edge((0,0), (0,1), "=>", shift: 15pt), // shifted by a length
+
+)
+```)
+
+The `shift` option of `edge()` lets you shift edges sideways by an absolute length:
+#code-example-row(```typ
+#fletcher.diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
+```)
+
+By default, edges which are incident at an angle are automatically adjusted slightly, especially if the node is wide or tall.
+Aesthetically, things can look more comfortable if edges don't all connect to the node's exact center, but instead spread out a bit.
+Notice the (subtle) difference the figures below.
 
 #align(center, stack(
 	dir: ltr,
 	spacing: 20%,
-	..(("With", 0.2), ("Without", 0)).map(((with, d)) => {
+	..(([With focus (default)], 0.2), ([Without defocus], 0)).map(((label, d)) => {
 		figure(
-			caption: [#with defocus],
+			caption: label,
 			fletcher.diagram(
-				spacing: (10mm, 9mm),
+				spacing: 10mm,
 				node-defocus: d,
 				node((0,0), $A times B times C$),
 				edge((-1,1)),
-				edge(( 0,2)),
+				edge(( 0,1.5)),
 				edge((+1,1)),
 			)
 		)
 	})
 ))
 
-See the `node-defocus` argument of #link(label("diagram()"))[`diagram()`] for details.
+The strength of this adjustment is controlled by the `defocus` option of `node()` (or the `node-defocus` option of `diagram()`).
 
 = Marks and arrows
 
