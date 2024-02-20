@@ -477,12 +477,12 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 	node((.6,3), [_just a thought..._])
 	edge(b, "..|>", corner: right)
 })
-```))
+```)
 
 == Implicit coordinates
 
 To specify the start and end points of an edge, you may provide both explicitly (like `edge(from, to)`); leave `from` implicit (like `edge(to)`); or leave both implicit.
-When `from` is implicit, it becomes the coordinate of the last `node`, and `to` becomes the next `node`.
+When `from` is implicit, it becomes the coordinate of the last `node`, and if `to` is implicit, the next `node`.
 
 #code-example-row(```typ
 #fletcher.diagram(
@@ -499,7 +499,7 @@ Implicit coordinates can be handy for diagrams in math-mode:
 #fletcher.diagram($ L edge("->", bend: #30deg) & P $)
 ```)
 
-However, don't forget you can also use variables in code-mode, which is more flexible and explicit:
+However, don't forget you can also use variables in code-mode, which is a more explicit and flexible way to reduce repetition of coordinates.
 
 #code-example-row(```typ
 #fletcher.diagram(node-fill: blue, {
@@ -522,25 +522,27 @@ You may specify an edge's direction instead of its end coordinate. This can be d
 
 == Edge types
 
-Currently, there are three different `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
+There are three `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
 All edges have at least two `vertices`, but `"poly"` edges can have more.
-An edge's `kind` defaults to `"arc"` if a `bend` is specified, and to `"poly"` if more than two `vertices` are given.
+In unspecified, `kind` is chosen based on `bend` and the number of `vertices`.
+
 
 #code-example-row(```typ
 #fletcher.diagram(
 	edge((0,0), (1,1), "->", `line`),
 	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
-	edge((4,0), (4,1), (5,1), (5,0), "->", `poly`),
+	edge((4,0), (4,1), (5,1), (6,0), "->", `poly`),
 )
 ```)
 
-Instead of positional arguments, an array of coordinates may be also be passed the the edge option `vertices`.
+
+Instead of as positional arguments, an array of coordinates may be also be passed the the edge option `vertices`.
 All vertices except the first can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
 
 ```typc
-edge((0,2), (rel: (1,0)), (rel: (1,1)), (rel: (1,0)), "->", `poly`)
-edge((0,2), "r", "rd", "r", "->", `poly`) // using relative coordinate names
-edge((0,2), "r,rd,r", "->", `poly`) // shorthand
+edge((4,0), (rel: (0,1)), (rel: (1,0)), (rel: (1,-1)), "->", `poly`)
+edge((4,0), "d", "r", "ur", "->", `poly`) // using relative coordinate names
+edge((4,0), "d,r,ur", "->", `poly`) // shorthand
 ```
 
 Only the first and last `vertices` of an edge snap to node outlines.
@@ -548,7 +550,7 @@ Only the first and last `vertices` of an edge snap to node outlines.
 == The `defocus` adjustment
 
 For aesthetic reasons, lines connecting to a node need not focus to the node's exact center, especially if the node is short and wide or tall and narrow.
-Notice the difference the figures below. "Defocusing" the connecting lines can make the diagram look more comfortable.
+Notice the (subtle) difference the figures below. "Defocusing" the connecting lines can make the diagram look more comfortable.
 
 #align(center, stack(
 	dir: ltr,
