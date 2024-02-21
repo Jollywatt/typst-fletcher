@@ -1,5 +1,6 @@
 #import "@preview/tidy:0.2.0"
 #import "/src/exports.typ" as fletcher: node, edge
+#import "/docs/style.typ"
 
 #set page(numbering: "1")
 #set par(justify: true)
@@ -20,20 +21,18 @@
 
 	module-doc.functions = module-doc.functions.filter(fn => (only == none or fn.name in only )and fn.name not in exclude)
 
-
-	show heading.where(level: 3): it => {
-		align(center, line(length: 100%, stroke: black.lighten(70%)))
-		text(1.2em, heading(
-			level: 4,
-			outlined: true,
-			raw(it.body.text + "()")
-		))
-	}
-	set heading(outlined: false)
-	tidy.show-module(module-doc, show-outline: false)
+	tidy.show-module(module-doc, show-outline: false, style: style)
 }
 
 #show heading.where(level: 1): it => it + v(0.5em)
+// #show heading.where(level: 3): it => {
+// 	align(center, line(length: 100%, stroke: black.lighten(70%)))
+// 	text(1.2em, heading(
+// 		level: 4,
+// 		outlined: true,
+// 		raw(it.body.text + "()")
+// 	))
+// }
 
 #show "CeTZ": it => link("https://github.com/johannes-wolf/cetz", it)
 
