@@ -4,72 +4,77 @@
 #import "marks.typ": *
 
 
-/// Draw a labelled node in an diagram which can connect to edges.
+/// Draw a labelled node in a diagram which can connect to edges.
 ///
 /// - pos (point): Dimensionless "elastic coordinates" `(x, y)` of the node.
 ///
-///  See the `diagram()` options to control the physical scale of elastic
-///  coordinates.
+///   See the options of `diagram()` to control the physical scale of elastic
+///   coordinates.
 ///
 /// - label (content): Content to display inside the node.
 /// - inset (length, auto): Padding between the node's content and its bounding
-///  box or bounding circle.
+///   box or bounding circle.
 /// - outset (length, auto): Margin between the node's bounds to the anchor
-///  points for connecting edges.
+///   points for connecting edges.
 ///
-///  This does not affect node layout, only how closely edges connect to the
-///  node.
+///   This does not affect node layout, only how closely edges connect to the
+///   node.
 ///
 /// - shape (rect, circle, function, auto): Shape to draw for the node. If
-///  `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
-///  of the node's label.
+///   `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
+///   of the node's label.
 ///
-///  Some other shape functions are provided in the `fletcher.shapes` submodule,
-///  including #(
-///  	fletcher.shapes.diamond,
-///  	fletcher.shapes.pill,
-///  	fletcher.shapes.parallelogram,
-///  	fletcher.shapes.hexagon,
-///  	fletcher.shapes.house,
-///  ).map(i => [#i]).join([, ], last: [, and ]).
+///   Some other shape functions are provided in the `fletcher.shapes`
+///   submodule, including
+///   #(
+///   	fletcher.shapes.diamond,
+///   	fletcher.shapes.pill,
+///   	fletcher.shapes.parallelogram,
+///   	fletcher.shapes.hexagon,
+///   	fletcher.shapes.house,
+///   ).map(i => [#i]).join([, ], last: [, and ]).
 ///
-///  Custom shapes should be specified as a function `(node, extrude) => (..)`
-///  returning `cetz` objects.
-///  - The `node` argument is a dictionary containing the node's attributes,
-///    including its dimensions (`node.size`), and other options (such as
-///    `node.corner-radius`).
-///  - The `extrude` argument is a length which the shape outline should be
-///   extruded outwards by. This serves two functions: to support automatic edge
-///   anchoring with a non-zero node `outset`, and to create multi-stroke
-///   effects using the `extrude` node option.
+///   Custom shapes should be specified as a function `(node, extrude) => (..)`
+///   returning `cetz` objects.
+///   - The `node` argument is a dictionary containing the node's attributes,
+///     including its dimensions (`node.size`), and other options (such as
+///     `node.corner-radius`).
+///   - The `extrude` argument is a length which the shape outline should be
+///     extruded outwards by. This serves two functions: to support automatic
+///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
+///     effects using the `extrude` node option.
 ///
-///  #fletcher.diagram(
-/// )
+/// - stroke (stroke): Stroke style for the node outline.
 ///
-/// - stroke (stroke): Stroke style for the node outline. Defaults to the `node-stroke` option
-///  of `diagram()`.
-/// - fill (paint): Fill of the node. Defaults to the `node-fill` option of
-///  `diagram()`.
+///   Defaults to #arglink[diagram][node-stroke].
+/// - fill (paint): Fill of the node. Defaults to #arglink[diagram][node-fill].
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
-///  incident with this node. If `auto`, defaults to the `node-defocus` option
-///  of `diagram()` .
+///   incident with this node.
+///
+///   Defaults to #arglink[diagram][node-defocus].
+///
 /// - extrude (array): Draw strokes around the node at the given offsets to
-///  obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
-///  of the stroke's thickness) or lengths.
+///   obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
+///   of the stroke's thickness) or lengths.
 ///
-///  The node's fill is drawn within the boundary defined by the first offset in
-///  the array.
+///   The node's fill is drawn within the boundary defined by the first offset in
+///   the array.
 ///
-///  #fletcher.diagram(
-///  	node-stroke: 1pt,
-///		node-fill: red.lighten(70%),
-///  	node((0,0), `(0,)`),
-///  	node((1,0), `(0, 2)`, extrude: (0, 2)),
-///  	node((2,0), `(2, 0)`, extrude: (2, 0)),
-///  	node((3,0), `(0, -2.5, 2mm)`, extrude: (0, -2.5, 2mm)),
-///  )
+///   #fletcher.diagram(
+///   	node-stroke: 1pt,
+///   	node-fill: red.lighten(70%),
+///   	node((0,0), `(0,)`),
+///   	node((1,0), `(0, 2)`, extrude: (0, 2)),
+///   	node((2,0), `(2, 0)`, extrude: (2, 0)),
+///   	node((3,0), `(0, -2.5, 2mm)`, extrude: (0, -2.5, 2mm)),
+///   )
 ///
-///  See also the `extrude` option of `edge()`.
+///   See also #arglink[edge][extrude].
+///
+/// - corner-radius (length): Radius of rounded corners, if supported by the
+///   node shape.
+///
+///   Defaults to #arglink[diagram][node-corner-radius].
 #let node(
 	..args,
 	pos: auto,
@@ -262,66 +267,66 @@
 ///
 ///
 /// - ..args (any): Positional arguments may specify the edge's:
-///  - start and end nodes
-///  - any additional vertices
-///  - label
-///  - marks
+///   - start and end nodes
+///   - any additional vertices
+///   - label
+///   - marks
 ///
-///  The start and end nodes must come first, and are optional:
-///  ```typc
-///  edge(from, to, ..) // explicit start and end nodes
-///  edge(to, ..) // start node chosen automatically based on last node specified
-///  edge(..) // both nodes chosen automatically depending on adjacent nodes
-///  edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
-///  ```
+///   The start and end nodes must come first, and are optional:
+///   ```typc
+///   edge(from, to, ..) // explicit start and end nodes
+///   edge(to, ..) // start node chosen automatically based on last node specified
+///   edge(..) // both nodes chosen automatically depending on adjacent nodes
+///   edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
+///   ```
 ///
-///  All coordinates except the start point can be relative (a dictionary of the
-///  form `(rel: (Δx, Δy))` or a string containing the characters
-///  ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
+///   All coordinates except the start point can be relative (a dictionary of the
+///   form `(rel: (Δx, Δy))` or a string containing the characters
+///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
 /// 
-///  Some named arguments, including `marks`, `label`, and `vertices` can be
-///  also be specified as positional arguments. For example, the following are
-///  equivalent:
+///   Some named arguments, including `marks`, `label`, and `vertices` can be
+///   also be specified as positional arguments. For example, the following are
+///   equivalent:
 ///
-///  ```typc
-///  edge((0,0), (1,0), $f$, "->")
-///  edge((0,0), (1,0), $f$, marks: "->")
-///  edge((0,0), (1,0), "->", label: $f$)
-///  edge((0,0), (1,0), label: $f$, marks: "->")
-///  ```
+///   ```typc
+///   edge((0,0), (1,0), $f$, "->")
+///   edge((0,0), (1,0), $f$, marks: "->")
+///   edge((0,0), (1,0), "->", label: $f$)
+///   edge((0,0), (1,0), label: $f$, marks: "->")
+///   ```
 ///
-///  Additionally, some common options are given flags that may be given as
-///  string positional arguments. These are
-///  #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
+///   Additionally, some common options are given flags that may be given as
+///   string positional arguments. These are
+///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
 ///   last: [, and ]).
 /// 
 /// - vertices (array): Any coordinates for the edge in additional to the start
-///  and end coordinates.
+///   and end coordinates.
 ///
-///  These can also be positional arguments, e.g.,
-///  `edge(A, D, vertices: (B, C))` is the same as `edge(A, B, C, D)`.
-///  If the number of vertices is non-zero, the edge `kind` defaults to `"poly"`.
+///   These can also be positional arguments, e.g.,
+///   `edge(A, D, vertices: (B, C))` is the same as `edge(A, B, C, D)`.
+///   If the number of vertices is non-zero, the edge `kind` defaults to `"poly"`.
 ///
 /// - kind (string): The kind of the edge, one of `"line"`, `"arc"`, or `"poly"`.
-///  This is chosen automatically based on the presence of other options (`bend`
-///  implies `"arc"`, `corner` or additional vertices implies `"poly"`).
+///   This is chosen automatically based on the presence of other options (`bend`
+///   implies `"arc"`, `corner` or additional vertices implies `"poly"`).
 ///
 /// - corner (none, left, right): Whether to create a right-angled corner,
-///  turning `left` or `right`.
-///  (Bending right means the corner sticks out to the left, and vice versa.)
+///   turning `left` or `right`.
+///   (Bending right means the corner sticks out to the left, and vice versa.)
 ///
-///  #diagram(
+///   #diagram(
 ///  	node((0,1), `from`),
 ///  	node((1,0), `to`),
 ///  	edge((0,1), (1,0), `right`, "->", corner: right),
 ///  	edge((0,1), (1,0), `left`, "->", corner: left),
-///  )
+///   )
 ///
 ///
 /// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
-///  positive angles bend clockwise.
+///   positive angles bend clockwise.
 /// 
-///  #fletcher.diagram(debug: 0, crossing-fill: luma(248), {
+///   #fletcher.diagram(debug: 0, crossing-fill: luma(248), {
 ///  	node((0,0), $A$)
 ///  	node((1,1), $B$)
 ///  	let N = 4
@@ -329,79 +334,79 @@
 ///  		.map(x => (x/N - 0.5)*2*100deg)
 ///  		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
 ///  		.join()
-///  })
+///   })
 ///
 /// - label-pos (number): Position of the label along the connector, from the
-///  start to end (from `0` to `1`).
+///   start to end (from `0` to `1`).
 /// 
-///  #stack(
+///   #stack(
 ///  	dir: ltr,
 ///  	spacing: 1fr,
 ///  	..(0, 0.25, 0.5, 0.75, 1).map(p => fletcher.diagram(
 ///  		cell-size: 1cm,
 ///  		edge((0,0), (1,0), p, "->", label-pos: p))
 ///  	),
-///  )
+///   )
 /// - label-sep (number): Separation between the connector and the label anchor.
 ///  
-///  With the default anchor (automatically set to `"bottom"` in this case):
+///   With the default anchor (automatically set to `"bottom"` in this case):
 ///
-///  #fletcher.diagram(
+///   #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
 ///  			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
 ///  		}
-///  })
+///   })
 ///  
-///  With `label-anchor: "center"`:
+///   With `label-anchor: "center"`:
 ///  
-///  #fletcher.diagram(
+///   #fletcher.diagram(
 ///  	debug: 2,
 ///  	cell-size: 8mm,
 ///  	{
 ///  		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
 ///  			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
 ///  		}
-///  })
+///   })
 /// 
-///  Set `debug` to `2` or higher to see label anchors and outlines as seen
-///  here. 
+///   Set `debug` to `2` or higher to see label anchors and outlines as seen
+///   here. 
 /// 
 /// - label (content): Content for the edge label. See the `label-pos` and
-///  `label-side` options to control the position (and `label-sep` and
-///  `label-anchor` for finer control).
+///   `label-side` options to control the position (and `label-sep` and
+///   `label-anchor` for finer control).
 ///
 /// - label-side (left, right, center): Which side of the edge to place the
-///  label on, viewed as you walk along it from base to tip. If `center`, then
-///  the label is placed directly on the edge. When `auto`, a value of `left` or
-///  `right` is automatically chosen so that the label is:
+///   label on, viewed as you walk along it from base to tip. If `center`, then
+///   the label is placed directly on the edge. When `auto`, a value of `left` or
+///   `right` is automatically chosen so that the label is:
 ///    - roughly above the connector, in the case of straight lines; or
 ///    - on the outside of the curve, in the case of arcs.
 ///
 /// - label-anchor (anchor): The anchor point to place the label at, such as
-///  `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
-///  automatically chosen based on `label-side` and the angle of the connector.
+///   `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
+///   automatically chosen based on `label-side` and the angle of the connector.
 ///
 /// - label-fill (bool, paint): The background fill for the label. If `true`,
-///  defaults to the value of `crossing-fill`. If `false` or `none`, no fill is
-///  used. If `auto`, then defaults to `true` if the label is covering the edge
-///  (`label-side: center`). 
+///   defaults to the value of `crossing-fill`. If `false` or `none`, no fill is
+///   used. If `auto`, then defaults to `true` if the label is covering the edge
+///   (`label-side: center`). 
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
-///  thickness.
+///   thickness.
 /// 
 /// - dash (dash type): The stroke's dash style. This is also set by some mark
-///  styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
+///   styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
 /// 
 /// - decorations (none, string, function): Apply a CeTZ path decoration to the
-///  stroke. Preset options are `"wave"`, `"zigzag"`, and `"coil"` (which may
-///  also be passed as convenience positional arguments), but a decoration
-///  function may also be specified.
+///   stroke. Preset options are `"wave"`, `"zigzag"`, and `"coil"` (which may
+///   also be passed as convenience positional arguments), but a decoration
+///   function may also be specified.
 ///
-///  #example(```
-///  diagram(
+///   #example(```
+///   diagram(
 ///  	$
 ///  		A edge("wave") &
 ///  		B edge("zigzag") &
@@ -412,13 +417,13 @@
 ///  		cetz.decorations.wave
 ///  			.with(amplitude: .4)
 ///  	)
-///  )
-///  ```)
+///   )
+///   ```)
 /// 
 /// - marks (pair of strings): The marks (arrowheads) to draw along an edge's
-///  stroke. This may be:
+///   stroke. This may be:
 ///
-///  - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
+///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///   shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, where
 ///   $
 ///   M_i in {#fletcher.MARK_ALIASES.keys().filter(x => x.len() < 4).map(raw.with(lang: none)).join($,$)} union N
@@ -430,7 +435,7 @@
 ///   $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$ 
 ///   where a trailing `'` means to reflect the mark across the stroke.
 ///
-///  - An array of marks, where each mark is specified by name or by a
+///   - An array of marks, where each mark is specified by name or by a
 ///   dictionary of parameters.
 ///
 /// Shorthands are expanded into other arguments. For example,
@@ -483,10 +488,10 @@
 /// 	}
 /// )
 /// - extrude (array): Draw a separate stroke for each extrusion offset to
-///  obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
-///  of the stroke's thickness) or lengths.
+///   obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
+///   of the stroke's thickness) or lengths.
 ///
-///  #fletcher.diagram({
+///   #fletcher.diagram({
 ///  	(
 ///  		(0,),
 ///  		(-1.5,+1.5),
@@ -498,69 +503,70 @@
 ///  			(2*i, 0), (2*i + 1, 0), [#e], "|->",
 ///  			extrude: e, stroke: 1pt, label-sep: 1em)
 ///  	}).join()
-///  })
+///   })
 ///  
-///  Notice how the ends of the line need to shift a little depending on the
-///  mark. For basic arrow heads, this offset is computed with
-///  `round-arrow-cap-offset()`.
+///   Notice how the ends of the line need to shift a little depending on the
+///   mark. For basic arrow heads, this offset is computed with
+///   `round-arrow-cap-offset()`.
 ///
 /// - crossing (bool): If `true`, draws a backdrop of color `crossing-fill` to
-///  give the illusion of lines crossing each other.
+///   give the illusion of lines crossing each other.
 ///
-///  #fletcher.diagram(crossing-fill: luma(98%), {
+///   #fletcher.diagram(crossing-fill: luma(98%), {
 ///  	edge((0,1), (1,0), stroke: 1pt)
 ///  	edge((0,0), (1,1), stroke: 1pt)
 ///  	edge((2,1), (3,0), stroke: 1pt)
 ///  	edge((2,0), (3,1), stroke: 1pt, crossing: true)
-///  })
+///   })
 ///
 /// You can also pass `"crossing"` as a positional argument as a shorthand for
 /// `crossing: true`.
 /// 
 /// - crossing-thickness (number): Thickness of the "crossing" background
-///  stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
-///  Defaults to the `crossing-thickness` option of `diagram()`.
+///   stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
+///   Defaults to #arglink[diagram][crossing-thickness].
 /// 
-///  #fletcher.diagram(crossing-fill: luma(98%), {
+///   #fletcher.diagram(crossing-fill: luma(98%), {
 ///  	(1, 2, 4, 8).enumerate().map(((i, x)) => {
 ///  		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
 ///  		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
 ///  		2pt, label-pos: 0.3, crossing: true, crossing-thickness: x)
 ///  	}).join()
-///  })
+///   })
 /// 
-/// - crossing-fill (paint): Color to use behind connectors or labels to give the illusion of crossing over other objects. Defaults to the `crossing-fill` option of
-///  `diagram()`.
+/// - crossing-fill (paint): Color to use behind connectors or labels to give
+///   the illusion of crossing over other objects. Defaults to
+///   #arglink[diagram][crossing-fill].
 ///
-///  #let cross(x, fill) = {
+///   #let cross(x, fill) = {
 ///  	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
 ///  	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill, label-fill: true)
-///  }
-///  #fletcher.diagram(crossing-thickness: 5, {
+///   }
+///   #fletcher.diagram(crossing-thickness: 5, {
 ///  	cross(0, white)
 ///  	cross(1, blue.lighten(50%))
 ///  	cross(2, luma(248))
-///  })
+///   })
 ///
 /// - corner-radius (length, none): Radius of rounded corners for edges with
-///  multiple segments. Note that `none` is distinct from `0pt`.
+///   multiple segments. Note that `none` is distinct from `0pt`.
 ///
-///  #for (i, r) in (none, 0pt, 5pt).enumerate() {
+///   #for (i, r) in (none, 0pt, 5pt).enumerate() {
 ///  	if i > 0 { h(1fr) }
 ///  	fletcher.diagram(
 ///  		edge-stroke: 1pt,
 ///  		edge((3*i, 0), "r,t,rd,r", "=>", raw(repr(r)), label-pos: 0.6, corner-radius: r)
 ///  	)
-///  }
+///   }
 ///
-///  This length specifies the corner radius for right-angled bends. The actual
-///  radius is smaller for acute angles and larger for obtuse angles to balance
-///  things visually. (Trust me, it looks naff otherwise!)
+///   This length specifies the corner radius for right-angled bends. The actual
+///   radius is smaller for acute angles and larger for obtuse angles to balance
+///   things visually. (Trust me, it looks naff otherwise!)
 ///
-///  If `auto`, defaults to the `diagram()` option `edge-corner-radius`.
+///   If `auto`, defaults to #arglink[diagram][edge-corner-radius].
 ///
 /// - shift (length): Amount to shift the edge sideways by, perpendicular to its
-///  direction.
+///   direction.
 /// 
 /// #fletcher.diagram($
 /// 	A edge(->, #`3pt`, shift: #3pt) #edge("->", `-3pt`, shift:
@@ -894,15 +900,15 @@
 
 
 
-/// Draw an arrow diagram.
+/// Draw a diagram of nodes and edges.
 ///
 /// - ..args (array): Content to draw in the diagram, including nodes and edges.
-/// 
-///  The results of `node()` and `edge()` can be _joined_, meaning you can
-///  specify them as separate arguments, or in a block:
 ///
-///  ```typ
-///  #fletcher.diagram(
+///   The results of `node()` and `edge()` can be _joined_, meaning you can
+///   specify them as separate arguments, or in a block:
+///
+///   ```typ
+///   #fletcher.diagram(
 ///  	// one object per argument
 ///  	node((0, 0), $A$),
 ///  	node((1, 0), $B$),
@@ -913,72 +919,71 @@
 ///  	  node((3, 0), $D$)
 ///  	},
 ///  	for x in range(4) { node((x, 1) [#x]) },
-///  )
-///  ```
+///   )
+///   ```
 ///
-///  Nodes and edges can also be specified in math-mode.
+///   Nodes and edges can also be specified in math-mode.
 ///
-///  ```typ
-///  #fletcher.diagram($
+///   ```typ
+///   #fletcher.diagram($
 ///  	A & B \          // two nodes at (0,0) and (1,0)
 ///  	C edge(->) & D \ // an edge from (0,1) to (1,1)
 ///  	node(sqrt(pi), stroke: #1pt) // a node with options
-///  $)
-///  ```
+///   $)
+///   ```
 ///
 /// - debug (bool, 1, 2, 3): Level of detail for drawing debug information.
-///  Level `1` or `true` shows a coordinate grid; higher levels show bounding boxes and
-///  anchors, etc.
+///   Level `1` or `true` shows a coordinate grid; higher levels show bounding boxes and
+///   anchors, etc.
 ///
 /// - spacing (length, pair of lengths): Gaps between rows and columns. Ensures
-///  that nodes at adjacent grid points are at least this far apart (measured as
-///  the space between their bounding boxes).
+///   that nodes at adjacent grid points are at least this far apart (measured as
+///   the space between their bounding boxes).
 ///
-///  Separate horizontal/vertical gutters can be specified with `(x, y)`. A
+///   Separate horizontal/vertical gutters can be specified with `(x, y)`. A
 /// single length `d` is short for `(d, d)`.
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
-///  A single length `d` is short for `(d, d)`.
+///   A single length `d` is short for `(d, d)`.
 ///
-/// - node-inset (length, pair of lengths): Default value of the `inset` option
-///  for `edge()`.
-/// - node-outset (length, pair of lengths): Default value of the `outset`
-///  option for `edge()`.
-/// - node-stroke (stroke, none): Default value of the `stroke` option for
-///  `node()`.
+/// - node-inset (length, pair of lengths): Default value of
+///   #arglink[edge][inset].
+/// - node-outset (length, pair of lengths): Default value of
+///   #arglink[node][outset].
+/// - node-stroke (stroke, none): Default value of the #arglink[node][stroke].
 ///
 ///   The default stroke is folded with the stroke specified for the node. For
 ///   example, if `node-stroke` is `1pt` and the node option `stroke` is `red`,
 ///   then the resulting stroke is `1pt + red`.
 /// - node-fill (paint): Default fill for all nodes in diagram. Overridden by
-///  individual node options.
+///   individual node options.
 ///
-/// - edge-stroke (stroke): Default value of the `stroke` option for `edge()`.
-///  By default, this is chosen to match the thickness of mathematical arrows
-///  such as $A -> B$ in the current font size.
+/// - edge-stroke (stroke): Default value of the #arglink[edge][stroke].
+///   By default, this is chosen to match the thickness of mathematical arrows
+///   such as $A -> B$ in the current font size.
 ///
 ///   The default stroke is folded with the stroke specified for the edge. For
 ///   example, if `edge-stroke` is `1pt` and the edge option `stroke` is `red`,
 ///   then the resulting stroke is `1pt + red`.
 ///
-/// - node-corner-radius (length, none): Default value of the `corner-radius`
-///  option for `node()`.
+/// - node-corner-radius (length, none): Default value of
+///   #arglink[node][corner-radius].
 ///
-/// - edge-corner-radius (length, none): Default value of the `corner-radius`
-///  option for `edge()`.
+/// - edge-corner-radius (length, none): Default value of
+///   #arglink[edge][corner-radius].
 ///
 /// - node-defocus (number): Default strength of the "defocus" adjustment for
-///  nodes. This affects how connectors attach to non-square nodes. If
+///   nodes. This affects how connectors attach to non-square nodes. If
 ///   `0`, the adjustment is disabled and connectors are always directed at the
 ///   node's exact center.
 ///
 ///   #stack(
-///  	dir: ltr,
-///  	spacing: 1fr,
-///  	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
-///  		fletcher.diagram(spacing: 8mm, {
+///   	dir: ltr,
+///   	spacing: 1fr,
+///   	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
+///   		fletcher.diagram(spacing: 8mm, {
 ///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
-///  			for y in (-1, +1) {
+///   			for y in (-1, +1) {
 ///   				edge((i - 1, y), (i, 0))
 ///   				edge((i, y), (i, 0))
 ///   				edge((i + 1, y), (i, 0))
@@ -986,23 +991,23 @@
 ///   		})
 ///   	})
 ///   )
-/// 
-/// - label-sep (length): Default value of `label-sep` option for `edge()`.
-/// - mark-scale (length): Default value of `mark-scale` option for `edge()`.
+///
+/// - label-sep (length): Default value of #arglink[edge][label-sep].
+/// - mark-scale (length): Default value of #arglink[edge][mark-scale].
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
-///  the illusion of crossing over other objects. See the `crossing-fill` option
-///  of `edge()`.
+///   the illusion of crossing over other objects. See the
+///   #arglink[edge][crossing-fill].
 ///
 /// - crossing-thickness (number): Default thickness of the occlusion made by
-///  crossing connectors. See the `crossing-thickness` option of `edge()`.
+///   crossing connectors. See #arglink[edge][crossing-thickness].
 /// 
 /// - axes (pair of directions): The orientation of the diagram's axes.
 ///
-///  This defines the elastic coordinate system used by nodes and edges. To make
-///  the $y$ coordinate increase up the page, use `(ltr, btt)`. For the matrix
-///  convention `(row, column)`, use `(ttb, ltr)`.
+///   This defines the elastic coordinate system used by nodes and edges. To make
+///   the $y$ coordinate increase up the page, use `(ltr, btt)`. For the matrix
+///   convention `(row, column)`, use `(ttb, ltr)`.
 ///
-///  #stack(
+///   #stack(
 ///  	dir: ltr,
 ///  	spacing: 1fr,
 ///  	fletcher.diagram(
@@ -1032,18 +1037,18 @@
 ///  		node((1,1), $(1,1)$),
 ///  		node((0.5,0.5), `axes: (ttb, ltr)`),
 ///  	),
-///  )
+///   )
 ///
 /// - render (function): After the node sizes and grid layout have been
-///  determined, the `render` function is called with the following arguments:
+///   determined, the `render` function is called with the following arguments:
 ///   - `grid`: a dictionary of the row and column widths and positions;
 ///   - `nodes`: an array of nodes (dictionaries) with computed attributes
 ///    (including size and physical coordinates);
 ///   - `edges`: an array of connectors (dictionaries) in the diagram; and
 ///   - `options`: other diagram attributes.
 ///
-///  This callback is exposed so you can access the above data and draw things
-///  directly with CeTZ.
+///   This callback is exposed so you can access the above data and draw things
+///   directly with CeTZ.
 #let diagram(
 	..args,
 	debug: false,

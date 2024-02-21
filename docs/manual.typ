@@ -8,31 +8,35 @@
 
 #let VERSION = toml("/typst.toml").package.version
 
+#let arglink(func, arg) = {
+	let func = func.text
+	let arg = arg.text
+	let arglabel = label(func + "(" + arg + ")")
+	[the ] + link(arglabel)[#raw(arg) option of #raw(func + "()")]
+}
+
 #let scope = (
 	fletcher: fletcher,
 	diagram: fletcher.diagram,
 	node: node,
 	edge: edge,
 	cetz: fletcher.cetz,
+	arglink: arglink,
+
 )
 
 #let show-fns(file, only: none, exclude: ()) = {
 	let module-doc = tidy.parse-module(read(file), scope: scope)
 
-	module-doc.functions = module-doc.functions.filter(fn => (only == none or fn.name in only )and fn.name not in exclude)
+	module-doc.functions = module-doc.functions.filter(fn => {
+		(only == none or fn.name in only ) and fn.name not in exclude
+	})
 
 	tidy.show-module(module-doc, show-outline: false, style: style)
 }
 
 #show heading.where(level: 1): it => it + v(0.5em)
-// #show heading.where(level: 3): it => {
-// 	align(center, line(length: 100%, stroke: black.lighten(70%)))
-// 	text(1.2em, heading(
-// 		level: 4,
-// 		outlined: true,
-// 		raw(it.body.text + "()")
-// 	))
-// }
+
 
 #show "CeTZ": it => link("https://github.com/johannes-wolf/cetz", it)
 
@@ -76,8 +80,10 @@
 #set raw(lang: "typc")
 #show raw.where(block: false): it => {
 	if it.text.ends-with("()") {
-		link(label(it.text), it.text)
-	} else { it }
+		return link(label(it.text), it)
+	} else {
+		it
+	}
 }
 
 

@@ -73,7 +73,6 @@
         radius: 10pt,
         stroke: (top: .6pt + gray),
       )[
-
         #text(1em, {
             strong(raw(name))
             h(1em)
@@ -82,18 +81,20 @@
             text(gray, link(fn-label, $arrow.tl$))
         })
         #label(fn.name + "(" + name + ")")
-      
       ]
+
       content
-      if show-default [ #parbreak() Default: #raw(lang: "typc", default) ]
+
+      if show-default [
+        #parbreak()
+        Default: #raw(default)
+      ]
     }
   )
 }
 
 
-#let show-function(
-  fn, style-args,
-) = {
+#let show-function(fn, style-args) = {
 
   if style-args.colors == auto { style-args.colors = colors }
 
