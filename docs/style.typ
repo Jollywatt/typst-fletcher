@@ -8,14 +8,19 @@
 #let colors-dark = tidy.styles.default.colors-dark
 #let show-outline = tidy.styles.default.show-outline
 
-#let show-type(type, style-args: (:)) = { 
+#let show-type(type, style-args: (:)) = {
   h(2pt)
-  let clr = colors.at(type, default: colors.at("default"))
-  box(outset: 2pt, fill: clr, radius: 2pt, raw(type))
+  let c-type = if type.starts-with("pair of") {
+    type.slice(8, -1)
+  } else { type }
+  let c = colors.at(c-type, default: colors.at("default"))
+  box(outset: 2pt, fill: c, radius: 2pt, raw(type))
   h(2pt)
 }
 
 
+#let fn-label(fn-name) = label(fn-name + "()")
+#let fn-param-label(fn-name, arg-name) = label(fn-name + "." + arg-name)
 
 
 
@@ -34,7 +39,7 @@
     if info.at("description", default: "") == "" {
       arg-name
     } else {
-      link(label(fn.name + "(" + arg-name + ")"), arg-name)
+      link(fn-param-label(fn.name, arg-name), arg-name)
     }
 
     if "types" in info {
@@ -61,7 +66,6 @@
   fn-name: none,
   is-long: false
 ) = {
-  let fn-label = label(fn.name + "()")
   let type-pills = types.map(show-type).join(text(0.8em)[ or ])
   block(
     inset: 10pt,
@@ -78,9 +82,9 @@
             h(1em)
             type-pills
             h(1fr)
-            text(gray, link(fn-label, $arrow.tl$))
+            text(gray, link(fn-label(fn.name), $arrow.tl$))
         })
-        #label(fn.name + "(" + name + ")")
+        #fn-param-label(fn.name, name)
       ]
 
       content
@@ -101,7 +105,7 @@
   block(breakable: false)[
     #text(1.2em)[
       #heading(raw(fn.name + "()"), level: style-args.first-heading-level + 1)
-      #label(style-args.label-prefix + fn.name + "()")
+      #fn-label(fn.name)
     ]
     
     #tidy.utilities.eval-docstring(fn.description, style-args)

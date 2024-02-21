@@ -8,12 +8,19 @@
 
 #let VERSION = toml("/typst.toml").package.version
 
-#let arglink(func, arg) = {
+// link to a specific parameter of a function
+#let param(func, arg, full: false) = {
 	let func = func.text
 	let arg = arg.text
-	let arglabel = label(func + "(" + arg + ")")
-	[the ] + link(arglabel)[#raw(arg) option of #raw(func + "()")]
+	let l1 = style.fn-param-label(func, arg)
+	let l2 = style.fn-label(func)
+	if full [
+		the #link(l1, raw(arg)) option of #link(l2, raw(func + "()"))
+	] else [
+		#link(l1, raw(arg))
+	]
 }
+#let the-param = param.with(full: true)
 
 #let scope = (
 	fletcher: fletcher,
@@ -21,7 +28,8 @@
 	node: node,
 	edge: edge,
 	cetz: fletcher.cetz,
-	arglink: arglink,
+	param: param,
+	the-param: the-param,
 
 )
 
@@ -358,12 +366,12 @@ Diagrams are a collection of nodes and edges rendered on a CeTZ canvas.
 
 == Elastic coordinates
 
-Diagrams are laid out on a flexible coordinate grid, visible when the `debug` option is turned on.
+Diagrams are laid out on a flexible coordinate grid, visible when the #param[diagram][debug] option is turned on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 
 By default, coordinates $(x, y)$ have $x$ going $arrow.r$ and $y$ going $arrow.b$.
-This can be changed with the `axis` option of `diagram()`.
-The `cell-size` option is the minimum row and column width, and `spacing` is the gutter between rows and columns.
+This can be changed with #the-param[diagram][axes].
+The #param[diagram][cell-size] option is the minimum row and column width, and #param[diagram][spacing] is the gutter between rows and columns.
 
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
@@ -412,7 +420,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an `inset` and `outset`), but can be given an exact `width`, `height`, or `radius`, as well as a `stroke` and `fill`. For example:
+Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an #param[node][inset] and #param[node][outset]), but can be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
 #fletcher.diagram(
@@ -437,7 +445,7 @@ Nodes are content centered at a particular coordinate. They can be circular, rec
 
 == Node shapes
 
-By default, nodes are circular or rectangular depending on the aspect ratio of their label. The `shape` option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or a function.
+By default, nodes are circular or rectangular depending on the aspect ratio of their label. The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or a function.
 
 
 #code-example-row(```typ
@@ -463,7 +471,7 @@ Custom CeTZ shapes are possible by passing a callback to `shape`, but it is up t
 
 #link(label("edge()"))[`edge(from, to, label, marks, ..options)`]
 
-Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's `outset`). Edges can have `label`s, can `bend` into arcs, and can have various arrow `marks`.
+Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's `outset`). Edges can have `label`s, can #param[edge][bend] into arcs, and can have various arrow #param[edge][marks].
 
 #code-example-row(```typ
 #fletcher.diagram(spacing: (12mm, 6mm), {
@@ -554,7 +562,7 @@ Only the first and last `vertices` of an edge snap to node outlines.
 
 == Tweaking where edges connect
 
-A node's `outset` controls how close edges connect to the node's boundary.
+A node's #param[node][outset] controls how close edges connect to the node's boundary.
 To adjust where along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
 
 #code-example-row(```typ
@@ -563,9 +571,8 @@ To adjust where along the boundary the edge connects, you can adjust the edge's 
 	node((0,0), [no outset], outset: 0pt),
 	node((0,1), [big outset], outset: 10pt),
 	edge((0,0), (0,1)),
-	edge((-0.1,0), (-0.4,1), "-o", "wave"), // shifted using fractional coordinates
-	edge((0,0), (0,1), "=>", shift: 15pt), // shifted by a length
-
+	edge((-0.1,0), (-0.4,1), "-o", "wave"), // shifted with fractional coordinates
+	edge((0,0), (0,1), "=>", shift: 15pt),  // shifted by a length
 )
 ```)
 
@@ -741,7 +748,7 @@ The mark is rotated so that the ends of the line both lie on the arc.
 
 
 Fletcher's drawing cababilities are deliberately restricted to a few simple building blocks.
-However, an escape hatch is provided with the `render` argument of `diagram()` so you can intercept diagram data and draw things using CeTZ directly.
+However, an escape hatch is provided with #the-param[diagram][render] so you can intercept diagram data and draw things using CeTZ directly.
 
 == Bézier edges
 
