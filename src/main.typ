@@ -228,17 +228,21 @@
 		found-coords = true
 	}
 
-	if found-coords and options.vertices != () {
+
+	if options.vertices == () {
+		// vertices specified through positional arguments
+		if other-coords == () {
+			// if only one coord is given, it is the end point,
+			// with the start point implicit/auto
+			new-options.vertices = (auto, first-coord)
+		} else {
+			new-options.vertices = (first-coord, ..other-coords)
+		}
+	} else if found-coords {
+		// vertices explicitly set with named argument
 		panic("Vertices cannot be specified by both positional and named arguments.")
 	}
 
-	if other-coords == () {
-		// if only one coord is given, it is the end point,
-		// with the start point implicit/auto
-		new-options.vertices = (auto, first-coord)
-	} else {
-		new-options.vertices = (first-coord, ..other-coords)
-	}
 
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
