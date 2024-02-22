@@ -36,6 +36,10 @@
 	(sym.arrow.bar.double): "|=>",
 	(sym.arrow.hook.r): "hook->",
 	(sym.arrow.hook.l): "<-hook'",
+	(sym.arrow.squiggly.r): "~>",
+	(sym.arrow.squiggly.l): "<~",
+	(sym.arrow.long.squiggly.r): "~>",
+	(sym.arrow.long.squiggly.l): "<~",
 )
 
 #let MARK_DEFAULTS = (
@@ -145,6 +149,7 @@
 	"==": EDGE_ARGUMENT_SHORTHANDS.triple,
 	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
 	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
+	"~": EDGE_ARGUMENT_SHORTHANDS.wave,
 )
 
 

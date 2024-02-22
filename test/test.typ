@@ -820,3 +820,11 @@ $)
 	& edge("wave") & edge(gamma, "wave", bend: #80deg) edge("wave", bend: #(-80deg)) & edge("wave") \
 	e^+ edge("ur", "-|>-") & & & & & edge("ul", "-<|-") e^- \
 $)
+
+
+#diagram(spacing: (1cm, 0cm), $
+	A edge(~>) & B \
+	A edge(<~) & B \
+	A edge("<~>") & B \
+	A edge(">~<") & B \
+$)
