@@ -3,7 +3,7 @@
 #set text(font: "Comic Neue", weight: 600)
 
 #fletcher.diagram( 
-	node-stroke: fg, // hide
+	node-stroke: 1pt/*<*/ + fg/*>*/,
 	edge-stroke: 1pt/*<*/ + fg/*>*/,
 	crossing-fill: bg, // hide
 	node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),

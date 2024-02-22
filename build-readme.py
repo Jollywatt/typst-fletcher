@@ -43,7 +43,7 @@ readme_template = """
 ```
 """
 
-comments_pattern = re.compile(r"/\*<\*/.*/\*>\*/", flags=re.DOTALL)
+comments_pattern = re.compile(r"/\*<\*/.*?/\*>\*/", flags=re.DOTALL)
 readme_pattern = re.compile(r"{{([a-z\-]+)}}")
 
 

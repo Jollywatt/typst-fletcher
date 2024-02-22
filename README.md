@@ -42,6 +42,7 @@ $)
 #set text(font: "Comic Neue", weight: 600)
 
 #fletcher.diagram( 
+  node-stroke: 1pt,
   edge-stroke: 1pt,
   node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
   edge("-|>"),
