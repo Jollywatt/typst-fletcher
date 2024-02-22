@@ -733,7 +733,7 @@
 #let find-node-at(nodes, pos) = {
 	nodes.filter(node => {
 		// node must be within a one-unit block around pos
-		vector.sub(node.pos, pos).all(Δ => calc.abs(Δ) < 0.5)
+		vector.sub(node.pos, pos).all(Δ => calc.abs(Δ) < 1)
 	})
 		.sorted(key: node => vector.len(vector.sub(node.pos, pos)))
 		.at(0, default: none)
@@ -751,8 +751,12 @@
 	}
 
 	for edge in edges {
-		// find notes to snap to (each can be none!)
-		let nodes = (edge.vertices.at(0), edge.vertices.at(-1)).map(find-node-at.with(nodes))
+		// find start/end notes to snap to (each can be none!)
+		let nodes = (
+			// coordinates of nodes to snap to
+			map-auto(edge.snap-to.at(0), edge.vertices.at(0)),
+			map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
+		).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, debug: debug)
 	}
 

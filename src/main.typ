@@ -582,6 +582,8 @@
 ///   	(-3pt), label-side: right) & B
 ///   $)
 ///
+/// - snap-to (pair of coords): The coordinates of the nodes to whose outlines 
+///  the edge should snap to.
 #let edge(
 	..args,
 	vertices: (),
@@ -605,6 +607,7 @@
 	crossing: false,
 	crossing-thickness: auto,
 	crossing-fill: auto,
+	snap-to: (auto, auto),
 ) = {
 
 	let options = (
@@ -629,6 +632,7 @@
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
+		snap-to: snap-to,
 	)
 
 	options += interpret-edge-args(args, options)
@@ -650,7 +654,8 @@
 		(rel: rel)
 	}
 	options.vertices = options.vertices.map(interpret-coord-str)
-	
+
+
 	options.stroke = if options.stroke != none {
 		(
 			cap: "round",
