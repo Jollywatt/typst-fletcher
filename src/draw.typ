@@ -29,7 +29,7 @@
 
 }
 
-// Get the arrow head adjustment for a given extrusion distance
+// Get the arrow head adjustment for a given extrusion distance.
 #let cap-offsets(edge, y) = {
 	(0, 1).map(pos => {
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
@@ -439,6 +439,7 @@
 	
 }
 
+/// Get the anchor point around a node outline at a certain angle.
 #let get-node-anchor(node, θ, callback) = {
 	let outline = cetz.draw.group({
 		cetz.draw.translate(node.final-pos)

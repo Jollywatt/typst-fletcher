@@ -4,7 +4,7 @@
 
 #set page(numbering: "1")
 #set par(justify: true)
-#show link: underline.with(stroke: blue.lighten(50%))
+#show link: underline.with(stroke: 1pt + blue.lighten(70%))
 
 #let VERSION = toml("/typst.toml").package.version
 
@@ -16,9 +16,9 @@
 	let l2 = style.fn-label(func)
 	if full [
 		the #link(l1, raw(arg)) option of #link(l2, raw(func + "()"))
-	] else [
-		#link(l1, raw(arg))
-	]
+	] else {
+		link(l1, raw(arg))
+	}
 }
 #let the-param = param.with(full: true)
 
@@ -52,12 +52,12 @@
 
 #align(center)[
 	#stack(
-		spacing: 12pt,
+		spacing: 14pt,
 		{
 			set text(1.3em)
 			fletcher.diagram(
 				edge-stroke: 1pt,
-				spacing: 28mm,
+				spacing: 27mm,
 				label-sep: 6pt,
 				node((0,1), $A$),
 				node((1,1), $B$),
@@ -118,69 +118,12 @@
 
 
 
+#let gallery-page = true
 
+#if gallery-page [
 #pagebreak()
 
 #align(center)[
-
-	#let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
-	#fletcher.diagram(
-		spacing: 4cm,
-		node-defocus: 0,
-		axes: (ltr, btt),
-		{
-
-		let v000 = c(0, 0, 0)
-
-		node(v000, $P$)
-		node(c(1,0,0), $P$)
-		node(c(2,0,0), $X$)
-		node(c(0,1,0), $J P$)
-		node(c(1,1,0), $J P$)
-		node(c(2,1,0), $"CP"$)
-	  
-		node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
-		node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
-		node(c(2,0,1), $T X times.circle T^* X$)
-		node(c(0,1,1), $T P times.circle pi^* T^* X$)
-		node(c(1,1,1), $T P times.circle pi^* T^* X$)
-		node(c(2,1,1), $T_G P times.circle T^* X$)
-	  
-
-		// aways
-		edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
-		edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
-		edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
-	  
-		edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
-		edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
-		edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
-	  
-		// downs
-		edge(c(0,1,0), v000, $pi_J$, "==>", label-pos: 0.2)
-		edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
-		edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
-	  
-		edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
-		edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
-		edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "->", label-pos: 0.2)
-	  
-		// acrosses
-		edge(v000, c(1,0,0), $lambda_g$, "->")
-		edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
-	  
-		edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
-		edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
-	  
-		edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
-	  
-		edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
-		edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
-
-		edge(c(1,1,1), c(2,1,1), $Ω$, "<..>", bend: 60deg)
-	})
-
-	#v(1fr)
 
 	#fletcher.diagram(
 		node-defocus: 0,
@@ -229,31 +172,95 @@
 
 	#v(1fr)
 
+	#fletcher.diagram(
+		spacing: (40mm, 35mm),
+		node-defocus: 0,
+		axes: (ltr, btt),
+		{
+		let c(x, y, z) = (x + 0.5*z, y + 0.4*z)
+
+		let v000 = c(0, 0, 0)
+
+		node(v000, $P$)
+		node(c(1,0,0), $P$)
+		node(c(2,0,0), $X$)
+		node(c(0,1,0), $J P$)
+		node(c(1,1,0), $J P$)
+		node(c(2,1,0), $J X$)
+	  
+		node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
+		node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
+		node(c(2,0,1), $T X times.circle T^* X$)
+		node(c(0,1,1), $T P times.circle pi^* T^* X$)
+		node(c(1,1,1), $T P times.circle pi^* T^* X$)
+		node(c(2,1,1), $T_G P times.circle T^* X$)
+	  
+
+		// aways
+		edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
+		edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
+		edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
+	  
+		edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
+		edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
+		edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
+	  
+		// downs
+		edge(c(0,1,0), v000, $pi_J$, "=>", label-pos: 0.2)
+		edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
+		edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
+	  
+		edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
+		edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
+		edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "-||->", label-pos: 0.2)
+	  
+		// acrosses
+		edge(v000, c(1,0,0), $lambda_g$, "->")
+		edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
+	  
+		edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
+		edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
+	  
+		edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
+	  
+		edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
+		edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
+
+		edge(c(1,1,1), c(2,1,1), $Ω$, "<..>", bend: 40deg)
+	})
+	#v(1cm)
+
+	#v(1fr)
+
 	#{
 		set text(white, font: "Fira Sans")
 		let colors = (maroon, olive, eastern)
 		fletcher.diagram(
 			edge-stroke: 1pt,
 			node-corner-radius: 5pt,
-			axes: (ltr, btt),
+			edge-corner-radius: 8pt,
+			mark-scale: 80%,
 			node((0,0), [input], fill: colors.at(0)),
-			edge((0,0), (1,0), "-"),
-			edge((1,0), (2,+1), "-|>", corner: right),
-			edge((1,0), (2,-1), corner: left),
-			node((2,+1), [control unit (CU)], fill: colors.at(1)),
-			edge((2,+1), (2,0), "<|-|>"),
+			node((2,+1), [memory unit (MU)], fill: colors.at(1)),
 			node((2, 0), align(center)[arithmetic & logic \ unit (ALU)], fill: colors.at(1)),
-			edge((2, 0), (2,-1), "<|-|>"),
-			node((2,-1), [memory unit (MU)], fill: colors.at(1)),
-			edge((2,+1), (3,0), corner: right),
-			edge((2,-1), (3,0), "<|-", corner: left),
-			edge((3,0), (4,0), "-|>"),
-			node((4,0), [output], fill: colors.at(2))
+			node((2,-1), [control unit (CU)], fill: colors.at(1)),
+			node((4,0), [output], fill: colors.at(2), shape: fletcher.shapes.hexagon),
+
+			edge((0,0), "r,u,r", "-}>"),
+			edge((2,-1), "r,d,r", "-}>"),
+			edge((2,-1), "r,dd,l", "--}>"),
+			edge((2,1), "l", (1,-.5), marks: ((kind: "}>", pos: 0.65, rev: false),)),
+
+			for i in range(-1, 2) {
+				edge((2,0), (2,1), "<{-}>", shift: i*5mm, bend: i*20deg)
+			},
+
+			edge((2,-1), (2,0), "<{-}>"),
 		)
 	}
 ]
 
-
+]
 
 #pagebreak()
 
@@ -391,7 +398,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 
 == Fractional coordinates
 
-So far, this is just like a table. However, coordinates can also be fractional.
+So far, this is just like a table --- however, coordinates can be fractional.
 These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down.
 // Both the node's position and its influence on row/column sizes are interpolated.
 
@@ -420,7 +427,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. They automatically scale to the size of their label (with an #param[node][inset] and #param[node][outset]), but can be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
+Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. Nodes automatically fit the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
 #fletcher.diagram(
@@ -753,39 +760,6 @@ However, an escape hatch is provided with #the-param[diagram][render] so you can
 == Bézier edges
 
 Here is an example of how you might hack together a Bézier edge using the same functions that `fletcher` uses internally to anchor edges to nodes:
-
-// #stack(dir: ltr, spacing: 1fr, ..code-example(```typ
-// #fletcher.diagram(
-// 	node((0,1), $A$),
-// 	node((2,0), [Bézier], fill: purple.lighten(80%)),
-// 	render: (grid, nodes, edges, options) => {
-// 		// cetz is also exported as fletcher.cetz
-// 		cetz.canvas({
-// 			// this is the default code to render the diagram
-// 			fletcher.draw-diagram(grid, nodes, edges, options)
-
-// 			// retrieve node data by coordinates
-// 			let n1 = fletcher.find-node-at(nodes, (0,1))
-// 			let n2 = fletcher.find-node-at(nodes, (2,0))
-
-// 			// get anchor points for the connector
-// 			let p1 = fletcher.get-node-anchor(n1, 0deg)
-// 			let p2 = fletcher.get-node-anchor(n2, -90deg)
-
-// 			// make some control points
-// 			let c1 = cetz.vector.add(p1, (20pt, 0pt))
-// 			let c2 = cetz.vector.add(p2, (0pt, -80pt))
-
-// 			cetz.draw.bezier(p1, p2, c1, c2)
-
-// 			// place an arrow head at a given point and angle
-// 			fletcher.draw-arrow-cap(p2,  90deg, 1pt + black, ">>")
-// 			fletcher.draw-arrow-cap(p1, 180deg, 1pt + black,
-// 				(kind: "hook'", outer-len: 0))
-// 		})
-// 	}
-// )
-// ```))
 
 #code-example-row(```typ
 #fletcher.diagram(

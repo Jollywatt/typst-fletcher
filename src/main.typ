@@ -582,8 +582,14 @@
 ///   	(-3pt), label-side: right) & B
 ///   $)
 ///
-/// - snap-to (pair of coords): The coordinates of the nodes to whose outlines 
-///  the edge should snap to.
+/// - snap-to (pair of coords): The coordinates of the nodes to whose outlines
+///   the start and end of an edge should snap to.
+///
+///   By default, an edge snaps to the nodes closest to the first and last
+///   #param[edge][vertices]. This option is useful in some cases where
+///   automatic snapping fails (if there are many nodes close together, for
+///   example.)
+///
 #let edge(
 	..args,
 	vertices: (),
