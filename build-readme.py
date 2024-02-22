@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Generate `/README.md` from the template, inserting code blocks and images to examples.
+# Compiles both light- and dark-mode versions of the examples.
 # Should be run from repo root.
 
 REPO_URL = "https://github.com/Jollywatt/typst-fletcher/raw/master"
@@ -10,8 +11,8 @@ from pip._vendor import tomli
 
 src_template = """
 #import "/src/exports.typ" as fletcher: node, edge
-#let fg = {fg}
-#let bg = {bg}
+#let fg = {fg} // foreground color
+#let bg = {bg} // background color
 
 #set page(width: auto, height: auto, margin: 1em)
 #set text(fill: fg)
@@ -43,7 +44,7 @@ readme_template = """
 ```
 """
 
-comments_pattern = re.compile(r"/\*<\*/.*?/\*>\*/", flags=re.DOTALL)
+comments_pattern = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
 readme_pattern = re.compile(r"{{([a-z\-]+)}}")
 
 
@@ -55,6 +56,11 @@ def compile_example(example_name, darkmode=False):
 		src = file.read()
 
 		fg, bg = ('white', 'black') if darkmode else ('black', 'white')
+
+		# light mode version should compile as seen in readme, with theme code removed
+		if not darkmode:
+			src = re.sub(comments_pattern, "", src)
+
 		src = src_template.format(src=src, fg=fg, bg=bg)
 
 		with open("tmp.typ", 'w') as tmp:
@@ -65,14 +71,10 @@ def compile_example(example_name, darkmode=False):
 		os.system(cmd)
 
 
-
 def clean_example(example_name):
 	srcpath = f"docs/example-gallery/{example_name}.typ"
 	with open(srcpath, 'r') as file:
-		lines = file.readlines()
-		lines = [line for line in lines if not line.strip().endswith("// hide")]
-		src = ''.join(lines)
-		return re.sub(comments_pattern, "", src)
+		return re.sub(comments_pattern, "", file.read())
 
 
 def insert_md_example(match):
