@@ -435,7 +435,7 @@
 /// - marks (array): The marks (arrowheads) to draw along an edge's stroke. This
 ///   may be:
 ///
-///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically, 
+///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$,
 ///     where
 ///     $
@@ -964,7 +964,7 @@
 ///   that nodes at adjacent grid points are at least this far apart (measured as
 ///   the space between their bounding boxes).
 ///
-///   Separate horizontal/vertical gutters can be specified with `(x, y)`. A 
+///   Separate horizontal/vertical gutters can be specified with `(x, y)`. A
 ///   single length `d` is short for `(d, d)`.
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
@@ -1118,7 +1118,7 @@
 	)
 
 	let (nodes, edges) = interpret-diagram-args(args)
-	
+
 	box(style(styles => {
 		let options = options
 
@@ -1134,7 +1134,7 @@
 		let grid = compute-grid(nodes, edges, options)
 
 		options.get-coord = grid.get-coord
-		
+
 		let (nodes, edges) = compute-final-coordinates(nodes, edges, grid, options)
 
 		render(grid, nodes, edges, options)

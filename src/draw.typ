@@ -122,7 +122,7 @@
 		if edge.label-anchor == auto {
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
-	
+
 		let label-pos = vector.add(
 			vector.lerp(from, to, edge.label-pos),
 			vector-polar(edge.label-sep, θ + label-dir*90deg),
@@ -198,7 +198,7 @@
 			let θ = vector-angle(vector.sub(to, from))
 			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
 		}
-		
+
 		let label-pos = vector.add(
 			center,
 			vector-polar(
@@ -269,7 +269,7 @@
 	if edge.corner-radius != none {
 		rounded-corners = range(1, θs.len()).map(calculate-rounded-corner)
 	}
-	
+
 	let lerp-scale(t, i) = {
 		let τ = t*n-segments - i
 		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
@@ -297,7 +297,7 @@
 
 			// add phantom marks to ensure segment joins are clean
 			if i > 0 {
-				let Δθ = θs.at(i) - θs.at(i - 1) 
+				let Δθ = θs.at(i) - θs.at(i - 1)
 				marks.push((
 					kind: "bar",
 					pos: 0,
@@ -407,7 +407,7 @@
 #let find-farthest-intersection(objects, target, callback) = {
 
 	if objects == none { return callback(target) }
-	
+
 	let node-name = "intersection-finder"
 	cetz.draw.hide(cetz.draw.intersections(node-name, objects))
 
@@ -436,7 +436,7 @@
 			callback((from-anchor, to-anchor))
 		})
 	})
-	
+
 }
 
 /// Get the anchor point around a node outline at a certain angle.
@@ -467,7 +467,7 @@
 		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
 		calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
 	)
-	
+
 }
 
 #let draw-anchored-line(edge, nodes, debug: 0) = {

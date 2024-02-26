@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
 	if len(args) == 0:
 		args = ['compile', 'build']
-		
+
 	if not set(args).issubset(['compile', 'build']):
 		print("""Usage:
   ./build-readme.py compile

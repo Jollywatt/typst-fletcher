@@ -133,7 +133,7 @@
 ///
 /// The bend angle is the angle between chord of the arc (line connecting the
 /// points) and the tangent to the arc and the first point.
-/// 
+///
 /// Returns a dictionary containing:
 /// - `center`: the center of the arc's curvature
 /// - `radius`

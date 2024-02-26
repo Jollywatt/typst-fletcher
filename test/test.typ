@@ -541,7 +541,7 @@ $ b^2 $
 
 = Axes configuration
 
-#for axes in ((ltr, btt), (ltr, ttb), (rtl, btt), (rtl, ttb)) {	
+#for axes in ((ltr, btt), (ltr, ttb), (rtl, btt), (rtl, ttb)) {
 	for axes in (axes, axes.rev()) {
 		diagram(
 			axes: axes,
