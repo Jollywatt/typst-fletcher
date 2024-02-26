@@ -1,5 +1,6 @@
+#import "deps.typ": cetz
+#import cetz: vector
 #import calc: floor, ceil, min, max
-#import "@preview/cetz:0.2.0": vector
 
 #let DEBUG_COLOR = rgb("f008")
 

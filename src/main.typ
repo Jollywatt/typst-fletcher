@@ -1140,4 +1140,3 @@
 		render(grid, nodes, edges, options)
 	}))
 }
-
