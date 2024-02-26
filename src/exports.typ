@@ -1,4 +1,4 @@
-#import "@preview/cetz:0.2.0" as cetz
+#import "deps.typ": cetz
 
 #import "marks.typ": *
 #import "draw.typ": *

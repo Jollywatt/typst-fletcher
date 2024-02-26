@@ -1,4 +1,5 @@
-#import "@preview/cetz:0.2.0" as cetz: draw, vector
+#import "deps.typ": cetz
+#import cetz: draw, vector
 
 #let rect(node, extrude) = {
 	let r = node.corner-radius
