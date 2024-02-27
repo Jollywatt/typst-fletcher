@@ -737,7 +737,6 @@
 		stroke-to-dict(edge.stroke)
 	)
 	edge.stroke.thickness = to-pt(edge.stroke.thickness)
-	edge.stroke = as-stroke(edge.stroke)
 
 	edge.extrude = edge.extrude.map(d => {
 		if type(d) == length { to-pt(d) }
@@ -757,6 +756,8 @@
 		edge.marks = (none, none)
 		edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 	}
+	
+	edge.stroke = as-stroke(edge.stroke)
 
 	if edge.kind == auto {
 		if edge.vertices.len() > 2 { edge.kind = "poly" }
