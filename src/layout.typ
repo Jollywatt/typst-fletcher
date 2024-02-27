@@ -56,7 +56,7 @@
 
 /// Convert an array of rects with fractional positions into rects with integral
 /// positions.
-/// 
+///
 /// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
 /// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
 /// total width of the original rect is split across the two new rects according

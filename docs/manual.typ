@@ -187,42 +187,42 @@
 		node(c(0,1,0), $J P$)
 		node(c(1,1,0), $J P$)
 		node(c(2,1,0), $J X$)
-	  
+
 		node(c(0,0,1), $pi^*(T X times.circle T^* X)$)
 		node(c(1,0,1), $pi^*(T X times.circle T^* X)$)
 		node(c(2,0,1), $T X times.circle T^* X$)
 		node(c(0,1,1), $T P times.circle pi^* T^* X$)
 		node(c(1,1,1), $T P times.circle pi^* T^* X$)
 		node(c(2,1,1), $T_G P times.circle T^* X$)
-	  
+
 
 		// aways
 		edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
 		edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
 		edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
-	  
+
 		edge(c(0,1,0), c(0,1,1), $i_J$, "hook->")
 		edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
 		edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
-	  
+
 		// downs
 		edge(c(0,1,0), v000, $pi_J$, "=>", label-pos: 0.2)
 		edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
 		edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
-	  
+
 		edge(c(0,1,1), c(0,0,1), $c_pi$, "..>", label-pos: 0.2)
 		edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
 		edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "-||->", label-pos: 0.2)
-	  
+
 		// acrosses
 		edge(v000, c(1,0,0), $lambda_g$, "->")
 		edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
-	  
+
 		edge(c(0,0,1), c(1,0,1), $lambda_g times 1$, "..>", label-pos: 0.2)
 		edge(c(1,0,1), c(2,0,1), $pi^G$, "..>", label-pos: 0.2)
-	  
+
 		edge(c(0,1,0), c(1,1,0), $j lambda_g$, "->", label-pos: 0.7)
-	  
+
 		edge(c(0,1,1), c(1,1,1), $dif lambda_g times.circle (lambda_g times 1)$, "->")
 		edge(c(1,1,1), c(2,1,1), $pi^G$, "->")
 
@@ -351,7 +351,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 		node-fill: gradient.radial(white, blue, center: (40%, 20%),
 		                           radius: 150%),
 		spacing: (15mm, 8mm),
-		node((0,0), [1], extrude: (0, -4)), // double stroke effect 
+		node((0,0), [1], extrude: (0, -4)), // double stroke effect
 		node((1,0), [2]),
 		node((2,-1), [3a]),
 		node((2,+1), [3b]),

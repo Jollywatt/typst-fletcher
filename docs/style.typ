@@ -51,14 +51,14 @@
   if not inline { ",\n" } + ")"
 
   if fn.return-types != none {
-    " -> " 
+    " -> "
     fn.return-types.map(show-type).join(" ")
   }
 }
 
 
 
-// Create a parameter description block, containing name, type, description and optionally the default value. 
+// Create a parameter description block, containing name, type, description and optionally the default value.
 #let show-parameter-block(
   fn, name, types, content,
   show-default: false,
@@ -107,12 +107,12 @@
       #heading(raw(fn.name + "()"), level: style-args.first-heading-level + 1)
       #fn-label(fn.name)
     ]
-    
+
     #tidy.utilities.eval-docstring(fn.description, style-args)
 
     #show-parameter-list(fn)
   ]
-  
+
 
   for (name, info) in fn.args {
     let types = info.at("types", default: ())
@@ -123,9 +123,9 @@
       fn,
       name,
       types,
-      tidy.utilities.eval-docstring(description, style-args), 
+      tidy.utilities.eval-docstring(description, style-args),
       is-long: description.len() > 500, // approximate
-      show-default: "default" in info, 
+      show-default: "default" in info,
       default: info.at("default", default: none),
     )
   }
@@ -138,7 +138,7 @@
   var, style-args,
 ) = {
   if style-args.colors == auto { style-args.colors = colors }
-  let type = if "type" not in var { none } 
+  let type = if "type" not in var { none }
       else { show-type(var.type, style-args: style-args) }
 
   stack(dir: ltr, spacing: 1.2em,
@@ -148,7 +148,7 @@
     ],
     type
   )
-  
+
   eval-docstring(var.description, style-args)
   v(4.8em, weak: true)
 }

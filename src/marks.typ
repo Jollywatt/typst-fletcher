@@ -63,7 +63,7 @@
 	cross: (size: 4, angle: 45deg),
 
 	hook: (size: 2.88, rim: 0.85, outer-len: 3),
-	
+
 )
 #{MARK_DEFAULTS.harpoon = MARK_DEFAULTS.head}
 
@@ -164,7 +164,7 @@
 	if type(mark) == str { mark = (kind: mark) }
 
 	mark = defaults + mark
-	
+
 	if mark.kind.at(-1) == "'" {
 		mark.flip = -mark.at("flip", default: +1)
 		mark.kind = mark.kind.slice(0, -1)
