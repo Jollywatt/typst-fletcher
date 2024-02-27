@@ -7,8 +7,8 @@
 
 _**Fletcher** (noun) a maker of arrows_
 
-A [Typst]("https://typst.app/") package for drawing diagrams with arrows,
-built on top of [CeTZ]("https://github.com/johannes-wolf/cetz").
+A [Typst](https://typst.app/) package for drawing diagrams with arrows,
+built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 
 
