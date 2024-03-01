@@ -747,10 +747,6 @@
 	debug: 0,
 ) = {
 
-	for node in nodes {
-		draw-node(node, debug: debug)
-	}
-
 	for edge in edges {
 		// find start/end notes to snap to (each can be none!)
 		let nodes = (
@@ -759,6 +755,10 @@
 			map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
 		).map(find-node-at.with(nodes))
 		draw-edge(edge, nodes, debug: debug)
+	}
+
+	for node in nodes {
+		draw-node(node, debug: debug)
 	}
 
 	if debug >= 1 {
