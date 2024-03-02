@@ -59,6 +59,25 @@
 /// - defocus (number): Strength of the "defocus" adjustment for connectors
 ///   incident with this node.
 ///
+///   This affects how connectors attach to non-square nodes. If `0`, the
+///   adjustment is disabled and connectors are always directed at the node's
+///   exact center.
+///
+///   #stack(
+///   	dir: ltr,
+///   	spacing: 1fr,
+///   	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
+///   		fletcher.diagram(spacing: 8mm, {
+///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
+///   			for y in (-1, +1) {
+///   				edge((i - 1, y), (i, 0))
+///   				edge((i, y), (i, 0))
+///   				edge((i + 1, y), (i, 0))
+///   			}
+///   		})
+///   	})
+///   )
+///
 ///   Defaults to #the-param[diagram][node-defocus].
 ///
 /// - extrude (array): Draw strokes around the node at the given offsets to
@@ -296,7 +315,7 @@
 ///   form `(rel: (Δx, Δy))` or a string containing the characters
 ///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
 ///
-///   Some named arguments, including `marks`, `label`, and `vertices` can be
+///   Some named arguments, including #param[edge][marks], #param[edge][label], and #param[edge][vertices] can be
 ///   also be specified as positional arguments. For example, the following are
 ///   equivalent:
 ///
@@ -312,16 +331,16 @@
 ///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
 ///   last: [, and ]).
 ///
-/// - vertices (array): Any coordinates for the edge in additional to the start
-///   and end coordinates.
+/// - vertices (array): Array of (at least two) coordinates for the edge.
 ///
-///   These can also be positional arguments, e.g.,
-///   `edge(A, D, vertices: (B, C))` is the same as `edge(A, B, C, D)`.
-///   If the number of vertices is non-zero, the edge `kind` defaults to `"poly"`.
+///   Vertices can also be specified as leading positional arguments, but if so,
+///   the `vertices` option must be unspecified. If the number of vertices is
+///   greater than two, #param[edge][kind] defaults to `"poly"`.
 ///
 /// - kind (string): The kind of the edge, one of `"line"`, `"arc"`, or `"poly"`.
-///   This is chosen automatically based on the presence of other options (`bend`
-///   implies `"arc"`, `corner` or additional vertices implies `"poly"`).
+///   This is chosen automatically based on the presence of other options
+///   (#param[edge][bend] implies `"arc"`, #param[edge][corner] or additional
+///   vertices implies `"poly"`).
 ///
 /// - corner (none, left, right): Whether to create a right-angled corner,
 ///   turning `left` or `right`.
@@ -337,7 +356,7 @@
 /// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
 ///   positive angles bend clockwise.
 ///
-///   #fletcher.diagram(debug: 0, crossing-fill: luma(248), {
+///   #fletcher.diagram(debug: 0, {
 ///   	node((0,0), $A$)
 ///   	node((1,1), $B$)
 ///   	let N = 4
@@ -346,6 +365,20 @@
 ///   		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
 ///   		.join()
 ///   })
+///
+/// - label (content): Content for the edge label. See the
+///   #param[edge][label-pos] and #param[edge][label-side] options to control
+///   the position (and #param[edge][label-sep] and #param[edge][label-anchor]
+///   for finer control).
+///
+/// - label-side (left, right, center): Which side of the edge to place the
+///   label on, viewed as you walk along it from base to tip.
+///
+///   If `center`, then the label is placed directly on the edge and
+///   #param[edge][label-fill] defaults to `true`. When `auto`, a value of
+///   `left` or `right` is  automatically chosen so that the label is:
+///    - roughly above the connector, in the case of straight lines; or
+///    - on the outside of the curve, in the case of arcs.
 ///
 /// - label-pos (number): Position of the label along the connector, from the
 ///   start to end (from `0` to `1`).
@@ -372,7 +405,7 @@
 ///   		}
 ///   })
 ///
-///   With `label-anchor: "center"`:
+///   With #param[edge][label-anchor] set to `"center"`:
 ///
 ///   #fletcher.diagram(
 ///   	debug: 2,
@@ -383,31 +416,21 @@
 ///   		}
 ///   })
 ///
-///   Set `debug` to `2` or higher to see label anchors and outlines as seen
-///   here.
-///
-/// - label (content): Content for the edge label. See the `label-pos` and
-///   `label-side` options to control the position (and `label-sep` and
-///   `label-anchor` for finer control).
-///
-/// - label-side (left, right, center): Which side of the edge to place the
-///   label on, viewed as you walk along it from base to tip. If `center`, then
-///   the label is placed directly on the edge. When `auto`, a value of `left` or
-///   `right` is automatically chosen so that the label is:
-///    - roughly above the connector, in the case of straight lines; or
-///    - on the outside of the curve, in the case of arcs.
+///   Set #param[diagram][debug] to `2` or higher to see label anchors and
+///   outlines as seen here.
 ///
 /// - label-anchor (anchor): The anchor point to place the label at, such as
 ///   `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
-///   automatically chosen based on `label-side` and the angle of the connector.
+///   automatically chosen based on #param[edge][label-side] and the angle of
+///   the connector.
 ///
 /// - label-fill (bool, paint): The background fill for the label. If `true`,
-///   defaults to the value of `crossing-fill`. If `false` or `none`, no fill is
-///   used. If `auto`, then defaults to `true` if the label is covering the edge
-///   (`label-side: center`).
+///   defaults to the value of #param[edge][crossing-fill]. If `false` or
+///   `none`, no fill is used. If `auto`, then defaults to `true` if the label
+///   is covering the edge (#param[edge][label-side]`: center`).
 ///
-/// - stroke (stroke): Stroke style of the edge. Arrows scale with the stroke
-///   thickness.
+/// - stroke (stroke): Stroke style of the edge. Arrows/marks scale with the
+///   stroke thickness (and with #param[edge][mark-scale]).
 ///
 /// - dash (string): The stroke's dash style. This is also set by some mark
 ///   styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
@@ -477,7 +500,8 @@
 ///   	)).join()
 ///   )
 ///
-/// - mark-scale (percent): Scale factor for marks or arrowheads.
+/// - mark-scale (percent): Scale factor for marks or arrowheads, relative to
+///   the #param[edge][stroke] thickness.
 ///
 ///   #fletcher.diagram(
 ///   	label-sep: 10pt,
@@ -521,10 +545,11 @@
 ///   mark. For basic arrow heads, this offset is computed with
 ///   `round-arrow-cap-offset()`.
 ///
-/// - crossing (bool): If `true`, draws a backdrop of color `crossing-fill` to
-///   give the illusion of lines crossing each other.
+/// - crossing (bool): If `true`, draws a backdrop of color
+///   #param[edge][crossing-fill] to give the illusion of lines crossing each
+///    other.
 ///
-///   #fletcher.diagram(crossing-fill: luma(98%), {
+///   #fletcher.diagram({
 ///   	edge((0,1), (1,0), stroke: 1pt)
 ///   	edge((0,0), (1,1), stroke: 1pt)
 ///   	edge((2,1), (3,0), stroke: 1pt)
@@ -534,11 +559,12 @@
 ///   You can also pass `"crossing"` as a positional argument as a shorthand for
 ///   `crossing: true`.
 ///
-/// - crossing-thickness (number): Thickness of the "crossing" background
-///   stroke, if `crossing: true`, in multiples of the normal stroke's thickness.
-///   Defaults to #the-param[diagram][crossing-thickness].
+/// - crossing-thickness (number): Thickness of the "crossing" background stroke
+///   (applicable if #param[edge][crossing] is `true`) in multiples of the
+///   normal stroke's thickness. Defaults to
+///   #the-param[diagram][crossing-thickness].
 ///
-///   #fletcher.diagram(crossing-fill: luma(98%), {
+///   #fletcher.diagram({
 ///   	(1, 2, 4, 8).enumerate().map(((i, x)) => {
 ///   		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
 ///   		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
@@ -557,7 +583,6 @@
 ///   #fletcher.diagram(crossing-thickness: 5, {
 ///   	cross(0, white)
 ///   	cross(1, blue.lighten(50%))
-///   	cross(2, luma(248))
 ///   })
 ///
 /// - corner-radius (length, none): Radius of rounded corners for edges with
@@ -972,49 +997,34 @@
 ///   A single length `d` is short for `(d, d)`.
 ///
 /// - node-inset (length, pair of lengths): Default value of
-///   #param[node][inset].
+///   #the-param[node][inset].
+///
 /// - node-outset (length, pair of lengths): Default value of
-///   #param[node][outset].
+///   #the-param[node][outset].
+///
 /// - node-stroke (stroke, none): Default value of #the-param[node][stroke].
 ///
 ///   The default stroke is folded with the stroke specified for the node. For
-///   example, if `node-stroke` is `1pt` and the node option `stroke` is `red`,
+///   example, if `node-stroke` is `1pt` and #the-param[node][stroke] is `red`,
 ///   then the resulting stroke is `1pt + red`.
+///
 /// - node-fill (paint): Default value of #the-param[node][fill].
 ///
-/// - edge-stroke (stroke): Default value of the #param[edge][stroke].
-///   By default, this is chosen to match the thickness of mathematical arrows
-///   such as $A -> B$ in the current font size.
+/// - edge-stroke (stroke): Default value of #the-param[edge][stroke]. By
+///   default, this is chosen to match the thickness of mathematical arrows such
+///   as $A -> B$ in the current font size.
 ///
 ///   The default stroke is folded with the stroke specified for the edge. For
-///   example, if `edge-stroke` is `1pt` and the edge option `stroke` is `red`,
+///   example, if `edge-stroke` is `1pt` and #the-param[edge][stroke] is `red`,
 ///   then the resulting stroke is `1pt + red`.
 ///
 /// - node-corner-radius (length, none): Default value of
-///   #param[node][corner-radius].
+///   #the-param[node][corner-radius].
 ///
 /// - edge-corner-radius (length, none): Default value of
-///   #param[edge][corner-radius].
+///   #the-param[edge][corner-radius].
 ///
-/// - node-defocus (number): Default strength of the "defocus" adjustment for
-///   nodes. This affects how connectors attach to non-square nodes. If
-///   `0`, the adjustment is disabled and connectors are always directed at the
-///   node's exact center.
-///
-///   #stack(
-///   	dir: ltr,
-///   	spacing: 1fr,
-///   	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
-///   		fletcher.diagram(spacing: 8mm, {
-///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
-///   			for y in (-1, +1) {
-///   				edge((i - 1, y), (i, 0))
-///   				edge((i, y), (i, 0))
-///   				edge((i + 1, y), (i, 0))
-///   			}
-///   		})
-///   	})
-///   )
+/// - node-defocus (number): Default value of #the-param[node][defocus]. 
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
 /// - mark-scale (length): Default value of #the-param[edge][mark-scale].
