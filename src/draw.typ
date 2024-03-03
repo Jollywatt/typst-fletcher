@@ -789,29 +789,15 @@
 /// - bounds (bool): If `false`, layout is as if the objects were never there;
 ///   if `true`, the layout treats the objects is present but invisible.
 #let hide(objects, bounds: true) = {
-	let objects = if type(objects) == array { objects.join() } else { objects}
-	// let seq = if type(objects) == array {
-	// 	objects
-	// } else if type(objects) == content {
-	// 	(objects + []).children
-	// }
-	// let seq = if type(objects) == array { objects.join() } else { objects + [] }
-
-	let seq = (objects + []).children
-	let x = seq.map(child => {
+	if type(objects) == array { objects = objects.join() }
+	let seq = objects + []
+	seq.children.map(child => {
 		if child.func() == metadata {
 			let value = child.value
-			// value.post = x=>cetz.draw.hide(x, bounds: true)
-			value.post = x => cetz.draw.hide(cetz.draw.group(x), bounds: true)
-			// metadata(value)
-			value.hidden = true
+			value.post = cetz.draw.hide.with(bounds: bounds)
 			metadata(value)
 		} else {
-			panic(child)
 			child
 		}
-	}).flatten().join()
-	x
-	// panic(x)
-
+	}).join()
 }
