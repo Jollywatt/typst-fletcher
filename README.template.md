@@ -42,6 +42,8 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 ## Change log
 
+### 0.4.3
+
 ### 0.4.2
 
 - Improve edge-to-node snapping. Edges can terminate anywhere near a node (not just at its center) and will automatically snap to the node outline. Added `snap-to` option to `edge()`.

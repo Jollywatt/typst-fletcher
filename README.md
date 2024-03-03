@@ -13,7 +13,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 
 ```typ
-#import "@preview/fletcher:0.4.2" as fletcher: node, edge
+#import "@preview/fletcher:0.4.3" as fletcher: node, edge
 ```
 
 
@@ -157,6 +157,8 @@ $)
 - [x] Zig-zags and waves
 
 ## Change log
+
+### 0.4.3
 
 ### 0.4.2
 
