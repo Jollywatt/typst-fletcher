@@ -44,6 +44,9 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 ### 0.4.3
 
+- Fixed edge crossing backgrounds being drawn above nodes (#14).
+- Added `fletcher.hide()` to hide elements with/without affecting layout, useful for incremental diagrams in slides (#15).
+
 ### 0.4.2
 
 - Improve edge-to-node snapping. Edges can terminate anywhere near a node (not just at its center) and will automatically snap to the node outline. Added `snap-to` option to `edge()`.
