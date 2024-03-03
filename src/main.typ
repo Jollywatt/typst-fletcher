@@ -102,6 +102,14 @@
 ///   node shape.
 ///
 ///   Defaults to #the-param[diagram][node-corner-radius].
+///
+/// - post (function): Callback function to intercept `cetz` objects before they
+///   are drawn to the canvas.
+///
+///   This can be used to hide elements without affecting layout (for use with
+///   #link("https://github.com/touying-typ/touying")[Touying], for example).
+///   The `hide()` function also helps for this purpose.
+///   
 #let node(
 	..args,
 	pos: auto,
@@ -117,6 +125,7 @@
 	shape: auto,
 	extrude: (0,),
 	defocus: auto,
+	post: x => x,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
 
@@ -148,6 +157,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
+		post: post,
 	))
 }
 
@@ -619,6 +629,13 @@
 ///   automatic snapping fails (if there are many nodes close together, for
 ///   example.)
 ///
+/// - post (function): Callback function to intercept `cetz` objects before they
+///   are drawn to the canvas.
+///
+///   This can be used to hide elements without affecting layout (for use with
+///   #link("https://github.com/touying-typ/touying")[Touying], for example).
+///   The `hide()` function also helps for this purpose.
+///
 #let edge(
 	..args,
 	vertices: (),
@@ -643,6 +660,7 @@
 	crossing-thickness: auto,
 	crossing-fill: auto,
 	snap-to: (auto, auto),
+	post: x => x,
 ) = {
 
 	let options = (
@@ -668,6 +686,7 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 		snap-to: snap-to,
+		post: post,
 	)
 
 	options += interpret-edge-args(args, options)

@@ -53,8 +53,6 @@
 	let decor = edge.decorations.with(stroke: edge.stroke)
 
 	// TODO: should this be an absolute offset, not 10% the path length?
-	// if has-mark-at(0) { decor = decor.with(start: 10%) }
-	// if has-mark-at(1) { decor = decor.with(stop: 90%) }
 	let ε = 1e-3 // cetz assertions sometimes fail from floating point errors
 	decor = decor.with(
 		start: if has-mark-at(0) { 0.1 } else { ε } * 100%,
@@ -500,9 +498,10 @@
 
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-line(edge + (
+		let obj = draw-edge-line(edge + (
 			final-vertices: anchors,
 		), debug: debug)
+		(edge.post)(obj) // post-process (e.g., hide)
 	})
 
 }
@@ -534,7 +533,8 @@
 	})
 
 	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		draw-edge-arc(edge + (final-vertices: anchors), debug: debug)
+		let obj = draw-edge-arc(edge + (final-vertices: anchors), debug: debug)
+		(edge.post)(obj) // post-process (e.g., hide)
 	})
 }
 
@@ -584,7 +584,8 @@
 		let edge = edge
 		edge.final-vertices.at(0) = anchors.at(0)
 		edge.final-vertices.at(-1) = anchors.at(1)
-		draw-edge-polyline(edge, debug: debug)
+		let obj = draw-edge-polyline(edge, debug: debug)
+		(edge.post)(obj) // post-process (e.g., hide)
 	})
 
 }
@@ -638,24 +639,28 @@
 
 #let draw-node(node, debug: 0) = {
 
-	if node.stroke != none or node.fill != none {
+	let result = {
+		if node.stroke != none or node.fill != none {
 
-		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
-			for (i, extrude) in node.extrude.enumerate() {
-				cetz.draw.set-style(
-					fill: if i == 0 { node.fill },
-					stroke: node.stroke,
-				)
-				(node.shape)(node, extrude)
-			}
+			cetz.draw.group({
+				cetz.draw.translate(node.final-pos)
+				for (i, extrude) in node.extrude.enumerate() {
+					cetz.draw.set-style(
+						fill: if i == 0 { node.fill },
+						stroke: node.stroke,
+					)
+					(node.shape)(node, extrude)
+				}
+			})
 
-		})
+		}
+
+		if node.label != none {
+			cetz.draw.content(node.final-pos, node.label, anchor: "center")
+		}
+
 	}
-
-	if node.label != none {
-		cetz.draw.content(node.final-pos, node.label, anchor: "center")
-	}
+	(node.post)(result) // post-process (e.g., hide)
 
 	// Draw debug stuff
 	if debug >= 1 {
@@ -765,4 +770,35 @@
 		draw-debug-axes(grid)
 	}
 
+}
+
+/// Make diagram contents invisible, with or without affecting layout. Works by
+/// wrapping final drawing objects in `cetz.draw.hide`.
+///
+/// #example(```
+/// rect(diagram({
+/// 	fletcher.hide({
+/// 		node((0,0), [Can't see me])
+/// 		edge("->")
+/// 	})
+/// 	node((1,1), [Can see me])
+/// }))
+/// ```)
+///
+/// - content (content): Diagram objects to hide.
+/// - bounds (bool): If `false`, layout is as if the objects were never there;
+///   if `true`, the layout treats the objects is present but invisible.
+#let hide(content, bounds: true) = {
+	let seq = content + []
+	seq.children.map(child => {
+		if child.func() == metadata {
+			let value = child.value
+			// value.post = x=>cetz.draw.hide(x, bounds: true)
+			value.post = x => cetz.draw.hide(cetz.draw.group(x), bounds: true)
+			// metadata(value)
+			metadata(value)
+		} else {
+			child
+		}
+	}).join()
 }
