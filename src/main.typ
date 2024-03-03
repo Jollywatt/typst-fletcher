@@ -893,7 +893,7 @@
 		panic("Unexpected named argument(s) to diagram: " + args)
 	}
 
-	let positional-args = args.pos().join() + [] // join to ensure sequence
+	let positional-args = args.pos().flatten().join() + [] // join to ensure sequence
 	let objects = positional-args.children
 
 	let nodes = ()

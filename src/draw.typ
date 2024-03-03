@@ -785,20 +785,33 @@
 /// }))
 /// ```)
 ///
-/// - content (content): Diagram objects to hide.
+/// - objects (content, array): Diagram objects to hide.
 /// - bounds (bool): If `false`, layout is as if the objects were never there;
 ///   if `true`, the layout treats the objects is present but invisible.
-#let hide(content, bounds: true) = {
-	let seq = content + []
-	seq.children.map(child => {
+#let hide(objects, bounds: true) = {
+	let objects = if type(objects) == array { objects.join() } else { objects}
+	// let seq = if type(objects) == array {
+	// 	objects
+	// } else if type(objects) == content {
+	// 	(objects + []).children
+	// }
+	// let seq = if type(objects) == array { objects.join() } else { objects + [] }
+
+	let seq = (objects + []).children
+	let x = seq.map(child => {
 		if child.func() == metadata {
 			let value = child.value
 			// value.post = x=>cetz.draw.hide(x, bounds: true)
 			value.post = x => cetz.draw.hide(cetz.draw.group(x), bounds: true)
 			// metadata(value)
+			value.hidden = true
 			metadata(value)
 		} else {
+			panic(child)
 			child
 		}
-	}).join()
+	}).flatten().join()
+	x
+	// panic(x)
+
 }
