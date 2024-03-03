@@ -45,9 +45,6 @@
 
 #show heading.where(level: 1): it => it + v(0.5em)
 
-
-#show "CeTZ": it => link("https://github.com/johannes-wolf/cetz", it)
-
 #v(.2fr)
 
 #align(center)[
@@ -112,6 +109,9 @@
 
 
 
+// friends :)
+#show "CeTZ": it => link("https://github.com/johannes-wolf/cetz", it)
+#show "Touying": it => link("https://github.com/touying-typ/touying", it)
 
 
 
@@ -846,6 +846,38 @@ First, we find all nodes of a certain fill, obtain their final coordinates, and 
 
 #pagebreak()
 
+= Touying integration
+
+You can create incrementally-revealed diagrams in Touying presentation slides by defining the following `touying-reducer`:
+
+```
+#import "@preview/touying:0.2.1": *
+#let diagram = touying-reducer.with(reduce: fletcher.diagram, cover: fletcher.hide)
+#let (init, slide) = utils.methods(s)
+#show: init
+
+#slide[
+	Slide with animated figure:
+	#diagram(
+		node-stroke: .1em,
+		node-fill: gradient.radial(blue.lighten(80%), blue,
+			center: (30%, 20%), radius: 80%),
+		spacing: 4em,
+		edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
+		node((0,0), `reading`, radius: 2em),
+		pause,
+		edge((0,0), (0,0), `read()`, "--|>", bend: 130deg),
+		edge(`read()`, "-|>"),
+		node((1,0), `eof`, radius: 2em),
+		pause,
+		edge(`close()`, "-|>"),
+		node((2,0), `closed`, radius: 2em, extrude: (-2.5, 0)),
+		edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
+	)
+]
+```
+
+#pagebreak(weak: true)
 = Main functions <func-ref>
 
 
