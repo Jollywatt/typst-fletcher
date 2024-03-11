@@ -828,6 +828,11 @@
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
 	if edge.label-fill == false { edge.label-fill = none }
 
+	edge.snap-to = (
+		map-auto(edge.snap-to.at(0), edge.vertices.at(0)),
+		map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
+	)
+
 	edge
 }
 
