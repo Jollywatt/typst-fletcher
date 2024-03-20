@@ -95,6 +95,26 @@
 }
 
 
+// TODO: this should replace grid.get-coord
+#let to-final-coord(grid, coord) = {
+	let coord = if grid.flip { coord.rev() } else { coord }
+	coord
+		.zip(grid.centers, grid.sizes, grid.spacing, grid.origin, grid.scale)
+		.map(((x, c, w, gap, o, s)) => {
+			let t = x - o
+			let t-max = c.len() - 1
+			s*if t < 0 {
+				c.at(0) + w.at(0)/2*calc.max(t, -1) + gap*t
+			} else if t > t-max {
+				c.at(-1) + w.at(-1)/2*calc.min(t - t-max, 1) + gap*(t - t-max)
+			} else {
+				lerp-at(c, x - o)
+			}
+		})
+
+}
+
+
 /// Determine the number, sizes and relative positions of rows and columns in
 /// the diagram's coordinate grid.
 ///
@@ -110,6 +130,10 @@
 
 	if points.len() == 0 { points.push((0,0)) }
 
+	assert(options.axes.at(0).axis() != options.axes.at(1).axis(), message: "Axes cannot both be in the same direction; try `(ltr, ttb)`.")
+
+	let flip = options.axes.map(a => a.axis()) == ("vertical", "horizontal")
+
 	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
 	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
 	let (y-min, y-max) = min-max-int(points.map(p => p.at(1)))
@@ -124,6 +148,7 @@
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
 		for axis in (0, 1) {
+			let size = if flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -143,30 +168,31 @@
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
-	assert(options.axes.at(0).axis() != options.axes.at(1).axis(), message: "Axes cannot both be in the same direction; try `(ltr, ttb)`.")
-
-	let flip = options.axes.map(a => a.axis()) == ("vertical", "horizontal")
 
 	if flip { options.axes = options.axes.rev() }
+	// if flip { origin = origin.rev() }
 
 	let scale = (
 		if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
 		if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
 	)
 
-	let get-coord(coord) = {
-		zip(if flip { coord.rev() } else { coord }, cell-centers, origin, scale)
-			.map(((x, c, o, s)) => s*lerp-at(c, x - o))
-	}
+	// let get-coord(coord) = {
+	// 	zip(if flip { coord.rev() } else { coord }, cell-centers, origin, scale)
+	// 		.map(((x, c, o, s)) => s*lerp-at(c, x - o))
+	// }
 
-	(
+	let grid = (
 		centers: cell-centers,
 		sizes: cell-sizes,
+		spacing: options.spacing,
 		origin: origin,
 		bounding-size: total-size,
 		scale: scale,
-		get-coord: get-coord,
+		flip: flip,
 	)
+	grid.get-coord = to-final-coord.with(grid)
+	grid
 }
 
 

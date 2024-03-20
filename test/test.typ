@@ -1,4 +1,4 @@
-#import "/src/exports.typ" as fletcher: diagram, node, edge
+#import "/src/exports.typ" as fletcher: diagram, node, edge, cetz
 
 #set page(width: 10cm, height: auto)
 #show heading.where(level: 1): it => pagebreak(weak: true) + it
@@ -7,6 +7,41 @@
 #let todo = highlight[TODO!]
 
 #outline()
+
+= Coordinates
+
+#align(left)[
+// #diagram(
+// 	node((0,0), [ABC]),
+// 	node((1,1), [X\ Y\ Z]),
+// 	node-fill: luma(90%),
+// 	axes: (ttb, rtl),
+// 	render: (grid, nodes, edges, options) => {
+// 		cetz.canvas({
+// 			fletcher.draw-diagram(grid, nodes, edges, debug: 1)
+// 			// fletcher.draw-debug-axes(grid)
+// 			cetz.draw.circle(fletcher.to-final-coord(grid, (0,1)), radius: 2pt)
+// 			cetz.draw.circle(fletcher.to-final-coord(grid, (1,-1)), radius: 2pt)
+// 		})
+// 	}
+// )
+#diagram(
+	node((0,1), [ABC]),
+	node((1,0), [X\ Y\ Z]),
+	node((0,-2), [(0,-2)]),
+	node-fill: luma(90%),
+	axes: (ttb, rtl),
+	render: (grid, nodes, edges, options) => {
+		cetz.canvas({
+			fletcher.draw-diagram(grid, nodes, edges)
+			fletcher.draw-debug-axes(grid)
+			cetz.draw.circle(fletcher.to-final-coord(grid, (0,1)), radius: 2pt)
+			cetz.draw.circle(fletcher.to-final-coord(grid, (1,-1)), radius: 2pt)
+		})
+	}
+)
+
+]
 
 = Arc edges
 

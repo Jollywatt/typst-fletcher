@@ -1,5 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
+#import "layout.typ": to-final-coord
 
 
 #let draw-edge-label(edge, label-pos, debug: 0) = {
@@ -734,6 +735,25 @@
 			)
 		}
 	}
+}
+
+#let draw-debug-axes(grid) = {
+
+	let (n-x, n-y) = grid.centers.map(array.len)
+	let (o-x, o-y) = grid.origin
+
+	for x in range(o-x, o-x + n-x) {
+		for y in range(o-y, o-y + n-y) {
+			let coord = to-final-coord(grid, (x, y))
+			cetz.draw.circle(coord, radius: 1pt, fill: blue, stroke: none)
+			cetz.draw.content(
+				coord,
+				text(red, 0.6em)[(#x, #y)],
+			)
+
+		}
+	}
+
 }
 
 #let find-node-at(nodes, pos) = {
