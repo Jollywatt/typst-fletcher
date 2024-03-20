@@ -145,16 +145,9 @@ $)
 
 ## Todo/wishlist
 
-- [x] Mathematical arrow styles
-- [x] Also allow `&`-delimited equations for specifying nodes
-- [ ] Support CeTZ arrowheads
-- [x] Support arbitrary node shapes drawn with CeTZ
-- [ ] Allow referring to node coordinates by their content?
-- [ ] Support loops connecting a node to itself
-- [x] More ergonomic syntax to avoid repeating coordinates?
-- [x] Poly-edges with multiple segments
-- [x] Add way to adjust edge connection points while still having them snap to node edges
-- [x] Zig-zags and waves
+- Support CeTZ arrowheads
+- Allow nodes (and edges) to be referred to by a name or label
+- Better support for loops connecting a node to itself
 
 ## Change log
 
