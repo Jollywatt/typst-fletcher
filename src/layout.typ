@@ -120,21 +120,32 @@
 
 }
 
+#let interpret-axes(axes) = {
+	let dirs = axes.map(direction.axis)
+	let flip
+	if dirs == ("horizontal", "vertical") {
+		flip = false
+	} else if dirs == ("vertical", "horizontal") {
+		flip = true
+	} else {
+		panic("Invalid axes pair:", axes)
+	}
+	(
+		xy-flip: flip,
+		x-flip: axes.at(0) in (rtl, ttb),
+		y-flip: axes.at(1) in (rtl, ttb),
+	)
+}
+
 #let uv-to-xy(grid, uv-coord) = {
-	let flip = grid.axes.at(0) in (btt, ttb)
-
-	let ij = vector.sub(uv-coord, grid.origin)
-	if flip { ij = ij.rev() }
+	let (i, j) = vector.sub(uv-coord, grid.origin)
 	let (n-x, n-y) = grid.centers.map(array.len)
+	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
+	if grid.x-flip { i = (n-x - 1) - i }
+	if grid.y-flip { j = (n-y - 1) - j }
+	if grid.xy-flip { (i, j) = (j, i) }
 
-	let x-flip = rtl in grid.axes
-	let y-flip = ttb in grid.axes
-
-	if x-flip { ij.at(0) = (n-x - 1) - ij.at(0) }
-	if y-flip { ij.at(1) = (n-y - 1) - ij.at(1) }
-
-
-	ij.zip(grid.centers).map(((t, c)) => {
+	(i, j).zip(grid.centers).map(((t, c)) => {
 		lerp-at(c, t)	
 	})
 }
