@@ -748,55 +748,26 @@
 ///   - `sizes: (x-sizes, y-sizes)`, the physical sizes of each row and each column.
 #let draw-debug-axes(grid) = {
 
-	let (n-x, n-y) = grid.centers.map(array.len)
+	let (x-lims, y-lims) = range(2).map(axis => (
+		grid.centers.at(axis).at( 0) - grid.sizes.at(axis).at( 0)/2,
+		grid.centers.at(axis).at(-1) + grid.sizes.at(axis).at(-1)/2,
+	))
 
-	let (x-min, x-max) = (
-		grid.centers.at(0).at( 0) - grid.sizes.at(0).at( 0)/2,
-		grid.centers.at(0).at(-1) + grid.sizes.at(0).at(-1)/2,
-	)
-	let (y-min, y-max) = (
-		grid.centers.at(1).at( 0) - grid.sizes.at(1).at( 0)/2,
-		grid.centers.at(1).at(-1) + grid.sizes.at(1).at(-1)/2,
-	)
+	let (u-min, v-min) = grid.origin
 
-	let flip = grid.axes.map(a => a.axis()) == ("vertical", "horizontal")
+	let xy-lens = grid.centers.map(array.len)
+	let (u-len, v-len) = if grid.xy-flip { xy-lens.rev() } else { xy-lens }
+	let v-range = range(v-min, v-min + v-len)
+	let u-range = range(u-min, u-min + u-len)
 
-	let u-range = if flip {
-		let o = grid.origin.at(1)
-		let n = grid.centers.at(0).len()
-		let v = range(o, o + n)
-		assert(grid.axes.at(1).axis() == "horizontal")
-		if grid.axes.at(1) == rtl { v = v.rev() }
-		v
-	} else {
-		let o = grid.origin.at(0)
-		let n = grid.centers.at(0).len()
-		let v = range(o, o + n)
-		assert(grid.axes.at(0).axis() == "horizontal")
-		if grid.axes.at(0) == rtl { v = v.rev() }
-		v
-	}
-	let v-range = if flip {
-		let o = grid.origin.at(0)
-		let n = grid.centers.at(1).len()
-		let v = range(o, o + n)
-		assert(grid.axes.at(0).axis() == "vertical")
-		if grid.axes.at(0) == ttb { v = v.rev() }
-		v
-	} else {
-		let o = grid.origin.at(1)
-		let n = grid.centers.at(1).len()
-		let v = range(o, o + n)
-		assert(grid.axes.at(1).axis() == "vertical")
-		if grid.axes.at(1) == ttb { v = v.rev() }
-		v
-	}
+	if grid.x-flip { u-range = u-range.rev() }
+	if grid.y-flip { v-range = v-range.rev() }
+	if grid.xy-flip { (u-range, v-range) = (v-range, u-range) }
 
 	import cetz.draw
 	draw.group({
 		draw.rect(
-			(x-min, y-min),
-			(x-max, y-max),
+			..array.zip(x-lims, y-lims),
 			stroke: DEBUG_COLOR + .5pt,
 		)
 
@@ -806,58 +777,44 @@
 			dash: "densely-dotted",
 		))
 
-		for (i, u) in u-range.enumerate() {
-			// coordinate line
-			draw.line(
-				(grid.centers.at(0).at(i), y-min),
-				(grid.centers.at(0).at(i), y-max),
-			)
-			// size bracket
-			let size = grid.sizes.at(0).at(i)
-			draw.rect(
-				(to: (grid.centers.at(0).at(i), y-min), rel: (-size/2, 0)),
-				(to: (grid.centers.at(0).at(i), y-min), rel: (+size/2, -1pt)),
-				fill: DEBUG_COLOR,
-				stroke: none,
-			)
-			// coordinate label
-			draw.content(
-				(to: (grid.centers.at(0).at(i), y-min), rel: (0, -.2em)),
-				text(fill: DEBUG_COLOR, size: .7em)[#u],
-				anchor: "north"
-			)
-		}
-		for (i, v) in v-range.enumerate() {
-			// coordinate line
-			draw.line(
-				(x-min, grid.centers.at(1).at(i)),
-				(x-max, grid.centers.at(1).at(i)),
-			)
-			// size bracket
-			let size = grid.sizes.at(1).at(i)
-			draw.rect(
-				(to: (x-min, grid.centers.at(1).at(i)), rel: (0, -size/2)),
-				(to: (x-min, grid.centers.at(1).at(i)), rel: (-1pt, +size/2)),
-				fill: DEBUG_COLOR,
-				stroke: none,
-			)
-			// coordinate label
-			draw.content(
-				(to: (x-min, grid.centers.at(1).at(i)), rel: (-.2em, 0)),
-				text(fill: DEBUG_COLOR, size: .7em)[#v],
-				anchor: "east",
-			)
+		for axis in range(2) {
+			let swap(a, b) = if axis != 1 { (a, b) } else { (b, a) }
+			let x-range = (u-range, v-range).at(axis)
+			let (min, max) = (y-lims, x-lims).at(axis)
+			for (i, x) in x-range.enumerate() {
+				// coordinate line
+				draw.line(
+					swap(grid.centers.at(axis).at(i), min),
+					swap(grid.centers.at(axis).at(i), max),
+				)
+				// size bracket
+				let size = grid.sizes.at(axis).at(i)
+				draw.rect(
+					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(-size/2, 0)),
+					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(+size/2, -1pt)),
+					fill: DEBUG_COLOR,
+					stroke: none,
+				)
+				// coordinate label
+				draw.content(
+					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(0, -.2em)),
+					text(fill: DEBUG_COLOR, size: .7em)[#x],
+					anchor: if axis == 0 { "north" } else { "east" },
+				)
+			}
 		}
 
-		let (u-label, v-label) = if flip { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
+		let (u-label, v-label) = if grid.xy-flip { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
 
-		let dir-to-arrow(dir) = if dir == ltr { $arrow.r$ }
+		let dir-to-arrow(dir) = {
+			     if dir == ltr { $arrow.r$ }
 			else if dir == rtl { $arrow.l$ }
 			else if dir == ttb { $arrow.b$ }
 			else if dir == btt { $arrow.t$ }
+		}
 
 		draw.content(
-			(x-min, y-min),
+			(x-lims.at(0), y-lims.at(0)),
 			pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
 			anchor: "north-east"
 		)
