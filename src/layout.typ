@@ -97,21 +97,46 @@
 
 // TODO: this should replace grid.get-coord
 #let to-final-coord(grid, coord) = {
-	let coord = if grid.flip { coord.rev() } else { coord }
-	coord
-		.zip(grid.centers, grid.sizes, grid.spacing, grid.origin, grid.scale)
-		.map(((x, c, w, gap, o, s)) => {
-			let t = x - o
-			let t-max = c.len() - 1
-			s*if t < 0 {
-				c.at(0) + w.at(0)/2*calc.max(t, -1) + gap*t
-			} else if t > t-max {
-				c.at(-1) + w.at(-1)/2*calc.min(t - t-max, 1) + gap*(t - t-max)
-			} else {
-				lerp-at(c, x - o)
-			}
-		})
+	let flip = grid.axes.at(0) in (btt, ttb)
+	let scale = grid.axes.map(axis => if axis in (rtl, btt) { -1 } else { +1 })
+	let coord = if flip { coord.rev() } else { coord }
+	coord.zip(
+		grid.centers,
+		grid.sizes,
+		grid.spacing,
+		grid.origin,
+		scale,
+	).map(((x, c, w, gap, o, s)) => {
+		let t = x - o
+		let t-max = c.len() - 1
+		s*if t < 0 {
+			c.at(0) + w.at(0)/2*calc.max(t, -1) + gap*t
+		} else if t > t-max {
+			c.at(-1) + w.at(-1)/2*calc.min(t - t-max, 1) + gap*(t - t-max)
+		} else {
+			lerp-at(c, x - o)
+		}
+	})
 
+}
+
+#let uv-to-xy(grid, uv-coord) = {
+	let flip = grid.axes.at(0) in (btt, ttb)
+
+	let ij = vector.sub(uv-coord, grid.origin)
+	if flip { ij = ij.rev() }
+	let (n-x, n-y) = grid.centers.map(array.len)
+
+	let x-flip = rtl in grid.axes
+	let y-flip = ttb in grid.axes
+
+	if x-flip { ij.at(0) = (n-x - 1) - ij.at(0) }
+	if y-flip { ij.at(1) = (n-y - 1) - ij.at(1) }
+
+
+	ij.zip(grid.centers).map(((t, c)) => {
+		lerp-at(c, t)	
+	})
 }
 
 
@@ -190,6 +215,7 @@
 		bounding-size: total-size,
 		scale: scale,
 		flip: flip,
+		axes: options.axes,
 	)
 	grid.get-coord = to-final-coord.with(grid)
 	grid

@@ -704,6 +704,8 @@
 		)
 	}
 
+
+
 	let (σx, σy) = grid.scale
 	for (axis, coord) in ((0, (x,y) => (σx*x,σy*y)), (1, (y,x) => (σx*x,σy*y))) {
 
@@ -737,22 +739,131 @@
 	}
 }
 
+/// Draw diagram coordinate axes.
+///
+/// - grid (dictionary): Dictionary specifying the diagrams grid, containing:
+///   - `origin: (u-min, v-min)`, the minimum values of elastic coordinates,
+///   - `axes: (u-dir, v-dir)`, the directions in which elastic coordinates increase,
+///   - `centers: (x-centers, y-centers)`, the physical offsets of each row and each column,
+///   - `sizes: (x-sizes, y-sizes)`, the physical sizes of each row and each column.
 #let draw-debug-axes(grid) = {
 
 	let (n-x, n-y) = grid.centers.map(array.len)
-	let (o-x, o-y) = grid.origin
 
-	for x in range(o-x, o-x + n-x) {
-		for y in range(o-y, o-y + n-y) {
-			let coord = to-final-coord(grid, (x, y))
-			cetz.draw.circle(coord, radius: 1pt, fill: blue, stroke: none)
-			cetz.draw.content(
-				coord,
-				text(red, 0.6em)[(#x, #y)],
-			)
+	let (x-min, x-max) = (
+		grid.centers.at(0).at( 0) - grid.sizes.at(0).at( 0)/2,
+		grid.centers.at(0).at(-1) + grid.sizes.at(0).at(-1)/2,
+	)
+	let (y-min, y-max) = (
+		grid.centers.at(1).at( 0) - grid.sizes.at(1).at( 0)/2,
+		grid.centers.at(1).at(-1) + grid.sizes.at(1).at(-1)/2,
+	)
 
-		}
+	let flip = grid.axes.map(a => a.axis()) == ("vertical", "horizontal")
+
+	let u-range = if flip {
+		let o = grid.origin.at(1)
+		let n = grid.centers.at(0).len()
+		let v = range(o, o + n)
+		assert(grid.axes.at(1).axis() == "horizontal")
+		if grid.axes.at(1) == rtl { v = v.rev() }
+		v
+	} else {
+		let o = grid.origin.at(0)
+		let n = grid.centers.at(0).len()
+		let v = range(o, o + n)
+		assert(grid.axes.at(0).axis() == "horizontal")
+		if grid.axes.at(0) == rtl { v = v.rev() }
+		v
 	}
+	let v-range = if flip {
+		let o = grid.origin.at(0)
+		let n = grid.centers.at(1).len()
+		let v = range(o, o + n)
+		assert(grid.axes.at(0).axis() == "vertical")
+		if grid.axes.at(0) == ttb { v = v.rev() }
+		v
+	} else {
+		let o = grid.origin.at(1)
+		let n = grid.centers.at(1).len()
+		let v = range(o, o + n)
+		assert(grid.axes.at(1).axis() == "vertical")
+		if grid.axes.at(1) == ttb { v = v.rev() }
+		v
+	}
+
+	import cetz.draw
+	draw.group({
+		draw.rect(
+			(x-min, y-min),
+			(x-max, y-max),
+			stroke: DEBUG_COLOR + .5pt,
+		)
+
+		draw.set-style(stroke: (
+			paint: DEBUG_COLOR,
+			thickness: .3pt,
+			dash: "densely-dotted",
+		))
+
+		for (i, u) in u-range.enumerate() {
+			// coordinate line
+			draw.line(
+				(grid.centers.at(0).at(i), y-min),
+				(grid.centers.at(0).at(i), y-max),
+			)
+			// size bracket
+			let size = grid.sizes.at(0).at(i)
+			draw.rect(
+				(to: (grid.centers.at(0).at(i), y-min), rel: (-size/2, 0)),
+				(to: (grid.centers.at(0).at(i), y-min), rel: (+size/2, -1pt)),
+				fill: DEBUG_COLOR,
+				stroke: none,
+			)
+			// coordinate label
+			draw.content(
+				(to: (grid.centers.at(0).at(i), y-min), rel: (0, -.2em)),
+				text(fill: DEBUG_COLOR, size: .7em)[#u],
+				anchor: "north"
+			)
+		}
+		for (i, v) in v-range.enumerate() {
+			// coordinate line
+			draw.line(
+				(x-min, grid.centers.at(1).at(i)),
+				(x-max, grid.centers.at(1).at(i)),
+			)
+			// size bracket
+			let size = grid.sizes.at(1).at(i)
+			draw.rect(
+				(to: (x-min, grid.centers.at(1).at(i)), rel: (0, -size/2)),
+				(to: (x-min, grid.centers.at(1).at(i)), rel: (-1pt, +size/2)),
+				fill: DEBUG_COLOR,
+				stroke: none,
+			)
+			// coordinate label
+			draw.content(
+				(to: (x-min, grid.centers.at(1).at(i)), rel: (-.2em, 0)),
+				text(fill: DEBUG_COLOR, size: .7em)[#v],
+				anchor: "east",
+			)
+		}
+
+		let (u-label, v-label) = if flip { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
+
+		let dir-to-arrow(dir) = if dir == ltr { $arrow.r$ }
+			else if dir == rtl { $arrow.l$ }
+			else if dir == ttb { $arrow.b$ }
+			else if dir == btt { $arrow.t$ }
+
+		draw.content(
+			(x-min, y-min),
+			pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
+			anchor: "north-east"
+		)
+
+
+	})
 
 }
 
