@@ -60,6 +60,7 @@ $)
 </picture>
 
 ```typ
+#set text(10pt)
 #fletcher.diagram(
   node-stroke: .1em,
   node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
@@ -95,14 +96,14 @@ Pull requests are most welcome!
 
 <table>
   <tr>
-    <td>
+    <td style="background: white;">
       <a href="docs/gallery/commutative.typ">
         <center>
           <img src="docs/gallery/commutative.svg" width="100%"/>
         </center>
       </a>
     </td>
-    <td>
+    <td style="background: white;">
       <a href="docs/gallery/algebra-cube.typ">
         <center>
           <img src="docs/gallery/algebra-cube.svg" width="100%"/>
@@ -111,14 +112,14 @@ Pull requests are most welcome!
     </td>
   </tr>
   <tr>
-    <td>
+    <td style="background: white;">
       <a href="docs/gallery/ml-architecture.typ">
         <center>
           <img src="docs/gallery/ml-architecture.svg" width="100%"/>
         </center>
       </a>
     </td>
-    <td>
+    <td style="background: white;">
       <a href="docs/gallery/io-flowchart.typ">
         <center>
           <img src="docs/gallery/io-flowchart.svg" width="100%"/>

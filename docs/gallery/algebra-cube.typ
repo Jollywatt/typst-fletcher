@@ -1,5 +1,5 @@
 #import "@preview/fletcher:0.4.2" as fletcher: diagram, node, edge
-#set page(width: auto, height: auto, margin: 5mm)
+#set page(width: auto, height: auto, margin: 5mm, fill: white)
 
 #diagram(
 	node-defocus: 0,

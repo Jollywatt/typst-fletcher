@@ -93,7 +93,7 @@ def insert_example_table(items):
 		if i >= cols:
 			tr = ET.SubElement(table, "tr")
 			i = 0
-		td = ET.SubElement(tr, "td")
+		td = ET.SubElement(tr, "td", style="background: white;")
 		a = ET.SubElement(td, "a", href=f"docs/gallery/{item}.typ")
 		ET.SubElement(ET.SubElement(a, "center"), "img", src=f"docs/gallery/{item}.svg", width="100%")
 		i += 1
