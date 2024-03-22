@@ -5,3 +5,9 @@ example PATTERN="":
 
 readme *ARGS:
 	./build-readme.py {{ARGS}}
+
+test PATTERN="":
+	typst-test run {{PATTERN}}
+
+fix PATTERN:
+	typst-test update {{PATTERN}} --exact

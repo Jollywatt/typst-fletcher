@@ -14,7 +14,6 @@ A diagram node with `5mm` inset:
 A diagram node with `5mm` outset:
 
 #diagram(
-	debug: 2,
 	spacing: 1cm,
 	node((0,0), cm-square, shape: rect, inset: 0pt, outset: 5mm, fill: blue),
 	edge("->"),

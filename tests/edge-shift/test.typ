@@ -29,7 +29,7 @@
 
 = Off-center edges
 
-#diagram(debug: 3, {
+#diagram({
 	node((0,0), $A$)
 	node((1,0), $B$)
 	for y in (.1, 0, -.1) {
