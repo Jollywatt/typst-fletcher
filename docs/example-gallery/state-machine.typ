@@ -1,3 +1,4 @@
+#set text(10pt)
 #fletcher.diagram(
 	node-stroke: .1em/*<*/ + fg/*>*/,
 	edge-stroke: fg, // hide
