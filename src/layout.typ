@@ -128,7 +128,7 @@
 	} else if dirs == ("vertical", "horizontal") {
 		flip = true
 	} else {
-		panic("Invalid axes pair:", axes)
+		panic("Axes cannot both be in the same direction. Got `" + repr(axes) + "`, try `axes: (ltr, ttb)`.")
 	}
 	(
 		xy-flip: flip,
@@ -166,9 +166,7 @@
 
 	if points.len() == 0 { points.push((0,0)) }
 
-	assert(options.axes.at(0).axis() != options.axes.at(1).axis(), message: "Axes cannot both be in the same direction; try `(ltr, ttb)`.")
-
-	let flip = options.axes.map(a => a.axis()) == ("vertical", "horizontal")
+	let axes = interpret-axes(options.axes)
 
 	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
 	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
@@ -183,8 +181,10 @@
 	// Expand cells to fit rects
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
+		if axes.x-flip { indices.at(0) = -1 - indices.at(0) }
+		if axes.y-flip { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
+			let size = if axes.xy-flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -192,6 +192,7 @@
 
 		}
 	}
+
 
 	// (x: (c1x, c2x, ...), y: ...)
 	let cell-centers = zip(cell-sizes, options.spacing)
@@ -204,31 +205,15 @@
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
-
-	if flip { options.axes = options.axes.rev() }
-	// if flip { origin = origin.rev() }
-
-	let scale = (
-		if options.axes.at(0) == ltr { +1 } else if options.axes.at(0) == rtl { -1 },
-		if options.axes.at(1) == btt { +1 } else if options.axes.at(1) == ttb { -1 },
-	)
-
-	// let get-coord(coord) = {
-	// 	zip(if flip { coord.rev() } else { coord }, cell-centers, origin, scale)
-	// 		.map(((x, c, o, s)) => s*lerp-at(c, x - o))
-	// }
-
 	let grid = (
 		centers: cell-centers,
 		sizes: cell-sizes,
 		spacing: options.spacing,
 		origin: origin,
 		bounding-size: total-size,
-		scale: scale,
-		flip: flip,
 		axes: options.axes,
-	)
-	grid.get-coord = to-final-coord.with(grid)
+	) + interpret-axes(options.axes)
+	grid.get-coord = uv-to-xy.with(grid)
 	grid
 }
 

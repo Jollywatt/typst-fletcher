@@ -10,6 +10,7 @@
 // Make a function propagate `auto`
 #let pass-auto(f) = x => if x == auto { x } else { f(x) }
 
+// Make a function propagage `none`
 #let pass-none(f) = x => if x == none { x } else { f(x) }
 
 // for when `stroke` is already in namespace
