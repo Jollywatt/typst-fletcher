@@ -17,6 +17,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 ```
 
 
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/first-isomorphism-theorem-dark.svg">
   <img src="docs/example-gallery/first-isomorphism-theorem-light.svg">

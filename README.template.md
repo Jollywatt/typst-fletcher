@@ -11,20 +11,33 @@ A [Typst](https://typst.app/) package for drawing diagrams with arrows,
 built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 
-
+````python
+f"""
 ```typ
-#import "@preview/fletcher:{{VERSION}}" as fletcher: node, edge
+#import "@preview/fletcher:{get_version()}" as fletcher: node, edge
+```
+"""
+````
+
+```python
+insert_example_block("first-isomorphism-theorem")
 ```
 
-{{first-isomorphism-theorem}}
+```python
+insert_example_block("flowchart-trap")
+```
 
-{{flowchart-trap}}
+```python
+insert_example_block("state-machine")
+```
 
-{{state-machine}}
+```python
+insert_example_block("feynman-diagram")
+```
 
-{{feynman-diagram}}
-
-{{ml-architecture}}
+```python
+insert_example_block("ml-architecture")
+```
 
 
 ## Todo/wishlist

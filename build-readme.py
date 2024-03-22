@@ -7,7 +7,7 @@ import os
 import re
 import tomllib
 
-src_template = """
+TYP_TEMPLATE = """
 #import "/src/exports.typ" as fletcher: node, edge
 #let fg = {fg} // foreground color
 #let bg = {bg} // background color
@@ -43,7 +43,7 @@ README_TEMPLATE = """
 """
 
 COMMENTS_PATTERN = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
-README_PATTERN = re.compile(r"{{([a-z\-]+)}}")
+README_PATTERN = re.compile(r"(```+)python\s*\n(.*?)\n\1", flags=re.DOTALL)
 
 EXAMPLES_PATH = "docs/example-gallery"
 
@@ -61,7 +61,7 @@ def compile_example(example_name, darkmode=False):
 		if not darkmode:
 			src = re.sub(COMMENTS_PATTERN, "", src)
 
-		src = src_template.format(src=src, fg=fg, bg=bg)
+		src = TYP_TEMPLATE.format(src=src, fg=fg, bg=bg)
 
 		with open("tmp.typ", 'w') as tmp:
 			tmp.write(src)
@@ -77,8 +77,7 @@ def clean_example(example_name):
 		return re.sub(COMMENTS_PATTERN, "", file.read())
 
 
-def insert_md_example(match):
-	example_name = match[1]
+def insert_example_block(example_name):
 	url = f"{EXAMPLES_PATH}/{example_name}"
 	return README_TEMPLATE.format(
 		src = clean_example(example_name),
@@ -90,8 +89,8 @@ def get_version():
 
 def build_readme():
 	with open("README.template.md", 'r') as file:
-		src = file.read().replace("{{VERSION}}", get_version())
-		out = re.sub(README_PATTERN, insert_md_example, src)
+		src = file.read()
+		out = re.sub(README_PATTERN, lambda match: eval(match[2]), src)
 		with open("README.md", 'w') as newfile:
 			print("Writing README.md")
 			newfile.write(out)
@@ -109,7 +108,7 @@ if __name__ == '__main__':
 	args = os.sys.argv[1:]
 
 	if len(args) == 0:
-		args = ['compile', 'build']
+		args = ['build']
 
 	if not set(args).issubset(['compile', 'build']):
 		print(f"""Usage:
