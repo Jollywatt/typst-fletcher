@@ -31,7 +31,6 @@ $)
 ```
 
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/flowchart-trap-dark.svg">
   <img src="docs/example-gallery/flowchart-trap-light.svg">
@@ -53,7 +52,6 @@ $)
   edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
 )
 ```
-
 
 
 <picture>
@@ -78,7 +76,6 @@ $)
 ```
 
 
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/feynman-diagram-dark.svg">
   <img src="docs/example-gallery/feynman-diagram-light.svg">
@@ -93,54 +90,43 @@ $)
 ```
 
 
+# More examples
+Pull requests are most welcome!
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/ml-architecture-dark.svg">
-  <img src="docs/example-gallery/ml-architecture-light.svg">
-</picture>
-
-```typ
-#import fletcher.shapes: house, hexagon
-#set text(font: "Fira Sans")
-
-#let blob(pos, label, tint: white, ..args) = node(
-  pos, align(center, label),
-  width: 25mm,
-  fill: tint.lighten(60%),
-  stroke: 1pt + tint.darken(20%),
-  corner-radius: 5pt,
-  ..args,
-)
-
-#fletcher.diagram(
-  spacing: 8pt,
-  cell-size: (8mm, 10mm),
-  edge-stroke: 1pt,
-  edge-corner-radius: 5pt,
-  mark-scale: 70%,
-
-  blob((0,1), [Add & Norm], tint: yellow, shape: hexagon),
-  edge(),
-  blob((0,2), [Multi-Head\ Attention], tint: orange),
-  blob((0,4), [Input], shape: house.with(angle: 30deg),
-    width: auto, tint: red),
-
-  for x in (-.3, -.1, +.1, +.3) {
-    edge((0,2.8), (x,2.8), (x,2), "-|>")
-  },
-  edge((0,2.8), (0,4)),
-
-  edge((0,3), "l,uu,r", "--|>"),
-  edge((0,1), (0, 0.35), "r", (1,3), "r,u", "-|>"),
-  edge((1,2), "d,rr,uu,l", "--|>"),
-
-  blob((2,0), [Softmax], tint: green),
-  edge("<|-"),
-  blob((2,1), [Add & Norm], tint: yellow, shape: hexagon),
-  edge(),
-  blob((2,2), [Feed\ Forward], tint: blue),
-)
-```
+<table>
+  <tr>
+    <td>
+      <a href="docs/gallery/commutative.typ">
+        <center>
+          <img src="docs/gallery/commutative.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td>
+      <a href="docs/gallery/algebra-cube.typ">
+        <center>
+          <img src="docs/gallery/algebra-cube.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="docs/gallery/ml-architecture.typ">
+        <center>
+          <img src="docs/gallery/ml-architecture.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td>
+      <a href="docs/gallery/io-flowchart.typ">
+        <center>
+          <img src="docs/gallery/io-flowchart.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
+</table>
 
 
 

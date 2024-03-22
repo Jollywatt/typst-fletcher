@@ -1,7 +1,7 @@
 gallery_dir := "docs/gallery/"
 
-examples:
-	for f in "{{gallery_dir}}"/*.typ; do typst c "$f" "${f/typ/svg}"; done
+example PATTERN="":
+	for f in "{{gallery_dir}}"*{{PATTERN}}*.typ; do echo $f; typst c "$f" "${f/typ/svg}"; done
 
 readme *ARGS:
 	./build-readme.py {{ARGS}}

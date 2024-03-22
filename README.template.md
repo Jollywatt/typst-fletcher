@@ -20,23 +20,26 @@ f"""
 ````
 
 ```python
-insert_example_block("first-isomorphism-theorem")
+# These are examples in `docs/example-gallery/*.typ`
+'\n'.join(map(insert_example_block, [
+  "first-isomorphism-theorem",
+  "flowchart-trap",
+  "state-machine",
+  "feynman-diagram",
+]))
 ```
 
-```python
-insert_example_block("flowchart-trap")
-```
+# More examples
+Pull requests are most welcome!
 
 ```python
-insert_example_block("state-machine")
-```
-
-```python
-insert_example_block("feynman-diagram")
-```
-
-```python
-insert_example_block("ml-architecture")
+# These are examples in `docs/gallery/*.typ`
+insert_example_table([
+  "commutative",
+  "algebra-cube",
+  "ml-architecture",
+  "io-flowchart",
+])
 ```
 
 

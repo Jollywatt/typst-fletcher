@@ -6,6 +6,8 @@
 import os
 import re
 import tomllib
+import lxml.etree as ET
+
 
 TYP_TEMPLATE = """
 #import "/src/exports.typ" as fletcher: node, edge
@@ -83,6 +85,20 @@ def insert_example_block(example_name):
 		src = clean_example(example_name),
 		url = url,
 	).replace('\t', ' '*2)
+
+def insert_example_table(items):
+	table = ET.Element("table")
+	i = cols = 2
+	for item in items:
+		if i >= cols:
+			tr = ET.SubElement(table, "tr")
+			i = 0
+		td = ET.SubElement(tr, "td")
+		a = ET.SubElement(td, "a", href=f"docs/gallery/{item}.typ")
+		ET.SubElement(ET.SubElement(a, "center"), "img", src=f"docs/gallery/{item}.svg", width="100%")
+		i += 1
+
+	return ET.tostring(table, encoding="unicode", pretty_print=True)
 
 def get_version():
 	return tomllib.load(open("typst.toml", 'rb'))['package']['version']
