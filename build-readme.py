@@ -3,8 +3,6 @@
 # Compiles both light- and dark-mode versions of the examples.
 # Should be run from repo root.
 
-REPO_URL = "https://github.com/Jollywatt/typst-fletcher/raw/master"
-
 import os
 import re
 import tomllib
@@ -47,7 +45,7 @@ README_TEMPLATE = """
 COMMENTS_PATTERN = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
 README_PATTERN = re.compile(r"{{([a-z\-]+)}}")
 
-EXAMPLES_PATH = "docs/readme-examples"
+EXAMPLES_PATH = "docs/example-gallery"
 
 
 def compile_example(example_name, darkmode=False):
@@ -81,7 +79,7 @@ def clean_example(example_name):
 
 def insert_md_example(match):
 	example_name = match[1]
-	url = f"{REPO_URL}/{EXAMPLES_PATH}/{example_name}"
+	url = f"{EXAMPLES_PATH}/{example_name}"
 	return README_TEMPLATE.format(
 		src = clean_example(example_name),
 		url = url,
