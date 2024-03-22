@@ -18,8 +18,8 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/first-isomorphism-theorem-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/first-isomorphism-theorem-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/first-isomorphism-theorem-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/first-isomorphism-theorem-light.svg">
 </picture>
 
 ```typ
@@ -32,8 +32,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/flowchart-trap-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/flowchart-trap-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/flowchart-trap-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/flowchart-trap-light.svg">
 </picture>
 
 ```typ
@@ -56,8 +56,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/state-machine-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/state-machine-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/state-machine-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/state-machine-light.svg">
 </picture>
 
 ```typ
@@ -79,8 +79,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/feynman-diagram-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/feynman-diagram-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/feynman-diagram-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/feynman-diagram-light.svg">
 </picture>
 
 ```typ
@@ -94,8 +94,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/ml-architecture-dark.svg">
-  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/example-gallery/ml-architecture-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/ml-architecture-dark.svg">
+  <img src="https://github.com/Jollywatt/typst-fletcher/raw/master/docs/readme-examples/ml-architecture-light.svg">
 </picture>
 
 ```typ

@@ -33,7 +33,7 @@ src_template = """
 {src}
 """
 
-readme_template = """
+README_TEMPLATE = """
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="{url}-dark.svg">
   <img src="{url}-light.svg">
@@ -44,13 +44,15 @@ readme_template = """
 ```
 """
 
-comments_pattern = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
-readme_pattern = re.compile(r"{{([a-z\-]+)}}")
+COMMENTS_PATTERN = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
+README_PATTERN = re.compile(r"{{([a-z\-]+)}}")
+
+EXAMPLES_PATH = "docs/readme-examples"
 
 
 def compile_example(example_name, darkmode=False):
-	srcpath = f"docs/example-gallery/{example_name}.typ"
-	destpath = f"docs/example-gallery/{example_name}{'-dark' if darkmode else '-light'}.svg"
+	srcpath = f"{EXAMPLES_PATH}/{example_name}.typ"
+	destpath = f"{EXAMPLES_PATH}/{example_name}{'-dark' if darkmode else '-light'}.svg"
 
 	with open(srcpath, 'r') as file:
 		src = file.read()
@@ -59,7 +61,7 @@ def compile_example(example_name, darkmode=False):
 
 		# light mode version should compile as seen in readme, with theme code removed
 		if not darkmode:
-			src = re.sub(comments_pattern, "", src)
+			src = re.sub(COMMENTS_PATTERN, "", src)
 
 		src = src_template.format(src=src, fg=fg, bg=bg)
 
@@ -72,15 +74,15 @@ def compile_example(example_name, darkmode=False):
 
 
 def clean_example(example_name):
-	srcpath = f"docs/example-gallery/{example_name}.typ"
+	srcpath = f"{EXAMPLES_PATH}/{example_name}.typ"
 	with open(srcpath, 'r') as file:
-		return re.sub(comments_pattern, "", file.read())
+		return re.sub(COMMENTS_PATTERN, "", file.read())
 
 
 def insert_md_example(match):
 	example_name = match[1]
-	url = f"{REPO_URL}/docs/example-gallery/{example_name}"
-	return readme_template.format(
+	url = f"{REPO_URL}/{EXAMPLES_PATH}/{example_name}"
+	return README_TEMPLATE.format(
 		src = clean_example(example_name),
 		url = url,
 	).replace('\t', ' '*2)
@@ -91,14 +93,14 @@ def get_version():
 def build_readme():
 	with open("README.template.md", 'r') as file:
 		src = file.read().replace("{{VERSION}}", get_version())
-		out = re.sub(readme_pattern, insert_md_example, src)
+		out = re.sub(README_PATTERN, insert_md_example, src)
 		with open("README.md", 'w') as newfile:
 			print("Writing README.md")
 			newfile.write(out)
 
 
 def compile_all_examples():
-	paths = map(os.path.splitext, os.listdir("docs/example-gallery"))
+	paths = map(os.path.splitext, os.listdir(EXAMPLES_PATH))
 	names = [name for name, ext in paths if ext == ".typ"]
 
 	for name in names:
@@ -112,13 +114,13 @@ if __name__ == '__main__':
 		args = ['compile', 'build']
 
 	if not set(args).issubset(['compile', 'build']):
-		print("""Usage:
-  ./build-readme.py compile
-    Generate SVGs for all examples in /docs/example-gallery/*.typ
-  ./build-readme.py build
-    Generate README.md from template
-  ./build-readme.py compile build
-    Do both of the above
+		print(f"""Usage:
+		  ./build-readme.py compile
+		    Generate SVGs for all examples in {EXAMPLES_PATH}/*.typ
+		  ./build-readme.py build
+		    Generate README.md from template
+		  ./build-readme.py compile build
+		    Do both of the above
 		""")
 
 	if 'compile' in args:
