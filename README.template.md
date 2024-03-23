@@ -21,12 +21,12 @@ f"""
 
 ```python
 # These are examples in `docs/example-gallery/*.typ`
-'\n'.join(map(insert_example_block, [
+'\n'.join(insert_example_block(name) for name in [
   "first-isomorphism-theorem",
   "flowchart-trap",
   "state-machine",
   "feynman-diagram",
-]))
+])
 ```
 
 # More examples

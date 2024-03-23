@@ -73,6 +73,16 @@ def compile_example(example_name, darkmode=False):
 		os.system(cmd)
 
 
+def compile_examples(pattern=''):
+	paths = map(os.path.splitext, os.listdir(EXAMPLES_PATH))
+	names = [name for name, ext in paths if ext == ".typ"]
+
+	for name in names:
+		if not pattern in name: continue
+		compile_example(name, darkmode=True)
+		compile_example(name, darkmode=False)
+
+
 def clean_example(example_name):
 	srcpath = f"{EXAMPLES_PATH}/{example_name}.typ"
 	with open(srcpath, 'r') as file:
@@ -86,6 +96,7 @@ def insert_example_block(example_name):
 		url = url,
 	).replace('\t', ' '*2)
 
+
 def insert_example_table(items):
 	table = ET.Element("table")
 	i = cols = 2
@@ -97,7 +108,6 @@ def insert_example_table(items):
 		a = ET.SubElement(td, "a", href=f"docs/gallery/{item}.typ")
 		ET.SubElement(ET.SubElement(a, "center"), "img", src=f"docs/gallery/{item}.svg", width="100%")
 		i += 1
-
 	return ET.tostring(table, encoding="unicode", pretty_print=True)
 
 def get_version():
@@ -111,32 +121,26 @@ def build_readme():
 			print("Writing README.md")
 			newfile.write(out)
 
-
-def compile_all_examples():
-	paths = map(os.path.splitext, os.listdir(EXAMPLES_PATH))
-	names = [name for name, ext in paths if ext == ".typ"]
-
-	for name in names:
-		compile_example(name, darkmode=True)
-		compile_example(name, darkmode=False)
+USAGE = f"""
+USAGE:
+	build
+		Create README.md from README.template.md
+	compile [pattern]
+		Generate light and dark themed SVGs for examples in {EXAMPLES_PATH} matching pattern
+"""
 
 if __name__ == '__main__':
 	args = os.sys.argv[1:]
 
-	if len(args) == 0:
-		args = ['build']
 
-	if not set(args).issubset(['compile', 'build']):
-		print(f"""Usage:
-		  ./build-readme.py compile
-		    Generate SVGs for all examples in {EXAMPLES_PATH}/*.typ
-		  ./build-readme.py build
-		    Generate README.md from template
-		  ./build-readme.py compile build
-		    Do both of the above
-		""")
+	if not 1 <= len(args) <= 2: exit(print(USAGE))
 
-	if 'compile' in args:
-		compile_all_examples()
-	if 'build' in args:
+	if args[0] == "compile":
+		if len(args) == 2:
+			compile_examples(args[1])
+		else:
+			compile_examples()
+	elif args[0] == "build":
 		build_readme()
+	else:
+		print(USAGE)
