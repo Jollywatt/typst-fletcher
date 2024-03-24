@@ -68,30 +68,48 @@
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
-/// Linearly interpolate an array with linear extrapolation at bounds
+/// Linearly interpolate an array with linear extrapolation outside bounds
 ///
-/// If the index `t` is fractional, adjacent values are linearly interpolated,
-/// and if the index is out of array bounds, the value is linearly extrapolated
-/// from the nearest two points. (This is kind of funky, but it's the padding
-/// style I wanted for coordinates going off-grid.)
-#let lerp-at(a, t) = {
-	let max-index = a.len() - 1
-
-	if a.len() >= 2 {
-		if t < 0 {
-			let Δ = a.at(1) - a.at(0)
-			return a.at(0) + Δ*t
-		} else if t > max-index {
-			let Δ = a.at(-1) - a.at(-2)
-			return a.at(-1) + Δ*(t - max-index)
-		}
+/// - values (array): Array of lengths defining interpolation function.
+/// - index (int, float): Index-coordinate to sample.
+/// - spacing (length): Gradient for linear extrapolation beyond array bounds.
+#let interp(values, index, spacing: 0pt) = {
+	let max-index = values.len() - 1
+	if index < 0 {
+		values.at(0) + spacing*index
+	} else if index > max-index {
+		values.at(-1) + spacing*(index - max-index)
+	} else {
+		lerp(
+			values.at(floor(index)),
+			values.at(ceil(index)),
+			calc.fract(index),
+		)
 	}
+}
 
-	lerp(
-		a.at(calc.clamp(floor(t), 0, max-index)),
-		a.at(calc.clamp(ceil(t), 0, max-index)),
-		calc.fract(t),
-	)
+
+/// Inverse of `interp()`.
+///
+/// - values (array): Array of lengths defining interpolation function.
+/// - value: Value to find the interpolated index of.
+/// - spacing (length): Gradient for linear extrapolation beyond array bounds.
+#let interp-inv(values, value, spacing: 0pt) = {
+	let i = 0
+	while i < values.len() {
+		if values.at(i) >= value { break }
+		i += 1
+	}
+	let (first, last) = (values.at(0), values.at(-1))
+	if value < first {
+		(value - first)/spacing
+	} else if value > last {
+		values.len() - 1 + (value - last)/spacing
+	} else {
+		let (prev, nearest) = (values.at(i - 1), values.at(i))
+		i - 1 + (value - prev)/(nearest - prev)
+
+	}
 }
 
 // Ensure angle is in range 0deg <= θ < 360deg

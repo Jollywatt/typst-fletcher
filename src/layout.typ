@@ -145,8 +145,8 @@
 	if grid.y-flip { j = (n-y - 1) - j }
 	if grid.xy-flip { (i, j) = (j, i) }
 
-	(i, j).zip(grid.centers).map(((t, c)) => {
-		lerp-at(c, t)	
+	(i, j).zip(grid.centers, grid.spacing).map(((t, c, s)) => {
+		interp(c, t, spacing: s)
 	})
 }
 
