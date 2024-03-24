@@ -1077,7 +1077,7 @@
 ///   		node((1,1), $(1,1)$),
 ///   		node((0.5,0.5), `axes: (ltr, ttb)`),
 ///   	),
-///   	move(dy: 0.7em, fletcher.diagram(
+///   	fletcher.diagram(
 ///   		axes: (ltr, btt),
 ///   		debug: 1,
 ///   		node((0,0), $(0,0)$),
@@ -1085,7 +1085,7 @@
 ///   		node((1,0), $(1,0)$),
 ///   		node((1,1), $(1,1)$),
 ///   		node((0.5,0.5), `axes: (ltr, btt)`),
-///   	)),
+///   	),
 ///   	fletcher.diagram(
 ///   		axes: (ttb, ltr),
 ///   		debug: 1,
