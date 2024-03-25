@@ -1,6 +1,54 @@
 #import "utils.typ": *
 #import "shapes.typ"
 
+
+/// Convert from elastic to absolute coordinates, $(u, v) |-> (x, y)$.
+///
+/// - grid (dictionary). Representation of the grid layout, including:
+///   - `origin`
+///   - `centers`
+///   - `spacing`
+///   - `x-flip`
+///   - `y-flip`
+///   - `xy-flip`
+/// -> coord
+#let uv-to-xy(grid, uv-coord) = {
+	let (i, j) = vector.sub(uv-coord, grid.origin)
+
+	let (n-x, n-y) = grid.centers.map(array.len)
+	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
+	if grid.x-flip { i = (n-x - 1) - i }
+	if grid.y-flip { j = (n-y - 1) - j }
+	if grid.xy-flip { (i, j) = (j, i) }
+
+	(i, j).zip(grid.centers, grid.spacing)
+		.map(((t, c, s)) => interp(c, t, spacing: s))
+}
+
+/// Convert from absolute to elastic coordinates, $(x, y) |-> (u, v)$.
+///
+/// - grid (dictionary). Representation of the grid layout, including:
+///   - `origin`
+///   - `centers`
+///   - `spacing`
+///   - `x-flip`
+///   - `y-flip`
+///   - `xy-flip`
+/// -> coord
+#let xy-to-uv(grid, xy-coord) = {
+	let (i, j) = xy-coord.zip(grid.centers, grid.spacing)
+		.map(((x, c, s)) => interp-inv(c, x, spacing: s))
+
+	let (n-x, n-y) = grid.centers.map(array.len)
+	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
+	if grid.xy-flip { (i, j) = (j, i) }
+	if grid.x-flip { i = (n-x - 1) - i }
+	if grid.y-flip { j = (n-y - 1) - j }
+
+	vector.add((i, j), grid.origin)
+}
+
+
 /// Resolve the sizes of nodes.
 ///
 /// Widths and heights that are `auto` are determined by measuring the size of
@@ -95,31 +143,6 @@
 }
 
 
-// TODO: this should replace grid.get-coord
-#let to-final-coord(grid, coord) = {
-	let flip = grid.axes.at(0) in (btt, ttb)
-	let scale = grid.axes.map(axis => if axis in (rtl, btt) { -1 } else { +1 })
-	let coord = if flip { coord.rev() } else { coord }
-	coord.zip(
-		grid.centers,
-		grid.sizes,
-		grid.spacing,
-		grid.origin,
-		scale,
-	).map(((x, c, w, gap, o, s)) => {
-		let t = x - o
-		let t-max = c.len() - 1
-		s*if t < 0 {
-			c.at(0) + w.at(0)/2*calc.max(t, -1) + gap*t
-		} else if t > t-max {
-			c.at(-1) + w.at(-1)/2*calc.min(t - t-max, 1) + gap*(t - t-max)
-		} else {
-			lerp-at(c, x - o)
-		}
-	})
-
-}
-
 #let interpret-axes(axes) = {
 	let dirs = axes.map(direction.axis)
 	let flip
@@ -137,39 +160,12 @@
 	)
 }
 
-#let uv-to-xy(grid, uv-coord) = {
-	let (i, j) = vector.sub(uv-coord, grid.origin)
-
-	let (n-x, n-y) = grid.centers.map(array.len)
-	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
-	if grid.x-flip { i = (n-x - 1) - i }
-	if grid.y-flip { j = (n-y - 1) - j }
-	if grid.xy-flip { (i, j) = (j, i) }
-
-	(i, j).zip(grid.centers, grid.spacing).map(((t, c, s)) => {
-		interp(c, t, spacing: s)
-	})
-}
-
-
-#let xy-to-uv(grid, xy-coord) = {
-	let (i, j) = xy-coord.zip(grid.centers, grid.spacing)
-		.map(((x, c, s)) => interp-inv(c, x, spacing: s))
-
-	let (n-x, n-y) = grid.centers.map(array.len)
-	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
-	if grid.xy-flip { (i, j) = (j, i) }
-	if grid.x-flip { i = (n-x - 1) - i }
-	if grid.y-flip { j = (n-y - 1) - j }
-
-	vector.add((i, j), grid.origin)
-}
 
 
 /// Determine the sizes of grid cells from nodes and edges.
 ///
 /// Returns a dictionary with:
-/// - `origin: (u-min, v-min)` Coordinate at the grid corner where elastic/`uv``
+/// - `origin: (u-min, v-min)` Coordinate at the grid corner where elastic/`uv`
 ///   coordinates are minimised.
 /// - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
 ///   column.

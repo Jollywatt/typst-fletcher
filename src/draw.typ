@@ -1,6 +1,5 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "layout.typ": to-final-coord
 
 
 #let draw-edge-label(edge, label-pos, debug: 0) = {
