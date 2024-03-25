@@ -8,18 +8,16 @@
 ///   - `origin`
 ///   - `centers`
 ///   - `spacing`
-///   - `x-flip`
-///   - `y-flip`
-///   - `xy-flip`
+///   - `flip`
 /// -> coord
 #let uv-to-xy(grid, uv-coord) = {
 	let (i, j) = vector.sub(uv-coord, grid.origin)
 
 	let (n-x, n-y) = grid.centers.map(array.len)
-	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
-	if grid.x-flip { i = (n-x - 1) - i }
-	if grid.y-flip { j = (n-y - 1) - j }
-	if grid.xy-flip { (i, j) = (j, i) }
+	if grid.flip.xy { (n-x, n-y) = (n-y, n-x) }
+	if grid.flip.x { i = (n-x - 1) - i }
+	if grid.flip.y { j = (n-y - 1) - j }
+	if grid.flip.xy { (i, j) = (j, i) }
 
 	(i, j).zip(grid.centers, grid.spacing)
 		.map(((t, c, s)) => interp(c, t, spacing: s))
@@ -31,19 +29,17 @@
 ///   - `origin`
 ///   - `centers`
 ///   - `spacing`
-///   - `x-flip`
-///   - `y-flip`
-///   - `xy-flip`
+///   - `flip`
 /// -> coord
 #let xy-to-uv(grid, xy-coord) = {
 	let (i, j) = xy-coord.zip(grid.centers, grid.spacing)
 		.map(((x, c, s)) => interp-inv(c, x, spacing: s))
 
 	let (n-x, n-y) = grid.centers.map(array.len)
-	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
-	if grid.xy-flip { (i, j) = (j, i) }
-	if grid.x-flip { i = (n-x - 1) - i }
-	if grid.y-flip { j = (n-y - 1) - j }
+	if grid.flip.xy { (n-x, n-y) = (n-y, n-x) }
+	if grid.flip.xy { (i, j) = (j, i) }
+	if grid.flip.x { i = (n-x - 1) - i }
+	if grid.flip.y { j = (n-y - 1) - j }
 
 	vector.add((i, j), grid.origin)
 }
@@ -154,9 +150,11 @@
 		panic("Axes cannot both be in the same direction. Got `" + repr(axes) + "`, try `axes: (ltr, ttb)`.")
 	}
 	(
-		xy-flip: flip,
-		x-flip: axes.at(0) in (rtl, ttb),
-		y-flip: axes.at(1) in (rtl, ttb),
+		flip: (
+			xy: flip,
+			x: axes.at(0) in (rtl, ttb),
+			y: axes.at(1) in (rtl, ttb),
+		)
 	)
 }
 
@@ -171,10 +169,7 @@
 ///   column.
 ///
 /// - grid (dicitionary): Representation of the grid layout, including:
-///   - `x-flip`
-///   - `y-flip`
-///   - `xy-flip`
-/// -> dictionary
+///   - `flip`
 #let compute-cell-sizes(grid, nodes, edges) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
@@ -197,10 +192,10 @@
 	// Expand cells to fit rects
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
-		if grid.x-flip { indices.at(0) = -1 - indices.at(0) }
-		if grid.y-flip { indices.at(1) = -1 - indices.at(1) }
+		if grid.flip.x { indices.at(0) = -1 - indices.at(0) }
+		if grid.flip.y { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if grid.xy-flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
+			let size = if grid.flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -263,7 +258,6 @@
 		
 	grid += compute-cell-centers(grid)
 
-	grid.get-coord = uv-to-xy.with(grid)
 	grid
 }
 
@@ -275,11 +269,11 @@
 /// coordinates).
 #let compute-final-coordinates(nodes, edges, grid, options) = (
 	nodes: nodes.map(node => {
-		node.final-pos = (options.get-coord)(node.pos)
+		node.final-pos = uv-to-xy(grid, node.pos)
 		node
 	}),
 	edges: edges.map(edge => {
-		edge.final-vertices = edge.vertices.map(options.get-coord)
+		edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
 		edge
 	}),
 )

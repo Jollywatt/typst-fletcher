@@ -755,13 +755,13 @@
 	let (u-min, v-min) = grid.origin
 
 	let xy-lens = grid.centers.map(array.len)
-	let (u-len, v-len) = if grid.xy-flip { xy-lens.rev() } else { xy-lens }
+	let (u-len, v-len) = if grid.flip.xy { xy-lens.rev() } else { xy-lens }
 	let v-range = range(v-min, v-min + v-len)
 	let u-range = range(u-min, u-min + u-len)
 
-	if grid.x-flip { u-range = u-range.rev() }
-	if grid.y-flip { v-range = v-range.rev() }
-	if grid.xy-flip { (u-range, v-range) = (v-range, u-range) }
+	if grid.flip.x { u-range = u-range.rev() }
+	if grid.flip.y { v-range = v-range.rev() }
+	if grid.flip.xy { (u-range, v-range) = (v-range, u-range) }
 
 	import cetz.draw
 	draw.group({
@@ -803,7 +803,7 @@
 			}
 		}
 
-		let (u-label, v-label) = if grid.xy-flip { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
+		let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
 
 		let dir-to-arrow(dir) = {
 			     if dir == ltr { $arrow.r$ }

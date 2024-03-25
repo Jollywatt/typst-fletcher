@@ -1168,8 +1168,6 @@
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 
-		options.get-coord = grid.get-coord
-
 		let (nodes, edges) = compute-final-coordinates(nodes, edges, grid, options)
 
 		render(grid, nodes, edges, options)
