@@ -139,6 +139,7 @@
 
 #let uv-to-xy(grid, uv-coord) = {
 	let (i, j) = vector.sub(uv-coord, grid.origin)
+
 	let (n-x, n-y) = grid.centers.map(array.len)
 	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
 	if grid.x-flip { i = (n-x - 1) - i }
@@ -148,6 +149,20 @@
 	(i, j).zip(grid.centers, grid.spacing).map(((t, c, s)) => {
 		interp(c, t, spacing: s)
 	})
+}
+
+
+#let xy-to-uv(grid, xy-coord) = {
+	let (i, j) = xy-coord.zip(grid.centers, grid.spacing)
+		.map(((x, c, s)) => interp-inv(c, x, spacing: s))
+
+	let (n-x, n-y) = grid.centers.map(array.len)
+	if grid.xy-flip { (n-x, n-y) = (n-y, n-x) }
+	if grid.xy-flip { (i, j) = (j, i) }
+	if grid.x-flip { i = (n-x - 1) - i }
+	if grid.y-flip { j = (n-y - 1) - j }
+
+	vector.add((i, j), grid.origin)
 }
 
 
