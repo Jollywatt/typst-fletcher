@@ -151,12 +151,20 @@
 }
 
 
-/// Determine the number, sizes and relative positions of rows and columns in
-/// the diagram's coordinate grid.
+/// Determine the sizes of grid cells from nodes and edges.
 ///
-/// Rows and columns are sized to fit nodes. Coordinates are not required to
-/// start at the origin, `(0,0)`.
-#let compute-grid(nodes, edges, options) = {
+/// Returns a dictionary with:
+/// - `origin: (u-min, v-min)` Coordinate at the grid corner where elastic/`uv``
+///   coordinates are minimised.
+/// - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
+///   column.
+///
+/// - grid (dicitionary): Representation of the grid layout, including:
+///   - `x-flip`
+///   - `y-flip`
+///   - `xy-flip`
+/// -> dictionary
+#let compute-cell-sizes(grid, nodes, edges) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
@@ -166,25 +174,22 @@
 
 	if points.len() == 0 { points.push((0,0)) }
 
-	let axes = interpret-axes(options.axes)
-
 	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
 	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
 	let (y-min, y-max) = min-max-int(points.map(p => p.at(1)))
 	let origin = (x-min, y-min)
 	let bounding-dims = (x-max - x-min + 1, y-max - y-min + 1)
 
-	// Initialise row and column sizes to minimum size
-	let cell-sizes = zip(options.cell-size, bounding-dims)
-		.map(((min-size, n)) => range(n).map(_ => min-size))
+	// Initialise row and column sizes
+	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
 
 	// Expand cells to fit rects
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
-		if axes.x-flip { indices.at(0) = -1 - indices.at(0) }
-		if axes.y-flip { indices.at(1) = -1 - indices.at(1) }
+		if grid.x-flip { indices.at(0) = -1 - indices.at(0) }
+		if grid.y-flip { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if axes.xy-flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
+			let size = if grid.xy-flip { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -193,26 +198,60 @@
 		}
 	}
 
+	(origin: origin, cell-sizes: cell-sizes)
+}
 
+/// Determine the centers of grid cells from their sizes and spacing between
+/// them.
+///
+/// Returns the a dictionary with:
+/// - `centers: (x-centers, y-centers)` Positions of each row and column,
+///   measured from the corner of the bounding box.
+/// - `bounding-size: (x-size, y-size)` Dimensions of the bounding box.
+///
+/// - grid (dictionary): Representation of the grid layout, including:
+///   - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
+///     column.
+///   - `spacing: (x-spacing, y-spacing)` Gap to leave between cells.
+/// -> dictionary
+#let compute-cell-centers(grid) = {
 	// (x: (c1x, c2x, ...), y: ...)
-	let cell-centers = zip(cell-sizes, options.spacing)
+	let centers = zip(grid.cell-sizes, grid.spacing)
 		.map(((sizes, spacing)) => {
 			zip(cumsum(sizes), sizes, range(sizes.len()))
 				.map(((end, size, i)) => end - size/2 + spacing*i)
 		})
 
-	let total-size = cell-centers.zip(cell-sizes).map(((centers, sizes)) => {
+	let bounding-size = zip(centers, grid.cell-sizes).map(((centers, sizes)) => {
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
+	(
+		centers: centers,
+		bounding-size: bounding-size,
+	)
+}
+
+/// Determine the number, sizes and relative positions of rows and columns in
+/// the diagram's coordinate grid.
+///
+/// Rows and columns are sized to fit nodes. Coordinates are not required to
+/// start at the origin, `(0,0)`.
+#let compute-grid(nodes, edges, options) = {
+
 	let grid = (
-		centers: cell-centers,
-		sizes: cell-sizes,
-		spacing: options.spacing,
-		origin: origin,
-		bounding-size: total-size,
 		axes: options.axes,
-	) + interpret-axes(options.axes)
+		spacing: options.spacing,
+	)
+	grid += interpret-axes(grid.axes)
+	grid += compute-cell-sizes(grid, nodes, edges)
+
+	// ensure minimum cell size
+	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
+		.map(((sizes, min-size)) => sizes.map(calc.max.with(min-size)))
+		
+	grid += compute-cell-centers(grid)
+
 	grid.get-coord = uv-to-xy.with(grid)
 	grid
 }

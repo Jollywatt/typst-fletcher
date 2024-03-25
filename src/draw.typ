@@ -710,7 +710,7 @@
 	for (axis, coord) in ((0, (x,y) => (σx*x,σy*y)), (1, (y,x) => (σx*x,σy*y))) {
 
 		for (i, x) in grid.centers.at(axis).enumerate() {
-			let size = grid.sizes.at(axis).at(i)
+			let size = grid.cell-sizes.at(axis).at(i)
 
 			// coordinate label
 			cetz.draw.content(
@@ -749,8 +749,8 @@
 #let draw-debug-axes(grid) = {
 
 	let (x-lims, y-lims) = range(2).map(axis => (
-		grid.centers.at(axis).at( 0) - grid.sizes.at(axis).at( 0)/2,
-		grid.centers.at(axis).at(-1) + grid.sizes.at(axis).at(-1)/2,
+		grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
+		grid.centers.at(axis).at(-1) + grid.cell-sizes.at(axis).at(-1)/2,
 	))
 
 	let (u-min, v-min) = grid.origin
@@ -788,7 +788,7 @@
 					swap(grid.centers.at(axis).at(i), max),
 				)
 				// size bracket
-				let size = grid.sizes.at(axis).at(i)
+				let size = grid.cell-sizes.at(axis).at(i)
 				draw.rect(
 					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(-size/2, 0)),
 					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(+size/2, -1pt)),

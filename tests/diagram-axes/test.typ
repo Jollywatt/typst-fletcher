@@ -9,7 +9,7 @@
 		(0cm, 1cm, 2cm, 4cm, 5cm),
 		(0cm, 1cm, 2cm),
 	),
-	sizes: (
+	cell-sizes: (
 		(5mm, 10mm, 0mm, 5mm, 5mm),
 		(5mm, 10mm, 0mm),	
 	),
