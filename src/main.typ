@@ -1168,7 +1168,15 @@
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 
-		let (nodes, edges) = compute-final-coordinates(nodes, edges, grid, options)
+		// add xy (absolute) coordinates from uv (elastic) coordinates
+		nodes = nodes.map(node => {
+			node.final-pos = uv-to-xy(grid, node.pos)
+			node
+		})
+		edges = edges.map(edge => {
+			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
+			edge
+		})
 
 		render(grid, nodes, edges, options)
 	}))

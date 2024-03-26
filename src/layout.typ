@@ -4,6 +4,10 @@
 
 /// Convert from elastic to absolute coordinates, $(u, v) |-> (x, y)$.
 ///
+/// _Elastic coordinates_ are specific to the diagram and adapt to row/column
+/// sizes; _absolute coordinates_ are the final, physical lengths which are
+/// passed to `cetz`.
+///
 /// - grid (dictionary). Representation of the grid layout, including:
 ///   - `origin`
 ///   - `centers`
@@ -24,6 +28,10 @@
 }
 
 /// Convert from absolute to elastic coordinates, $(x, y) |-> (u, v)$.
+///
+/// _Absolute coordinates_ are the final, physical lengths which are passed to
+/// `cetz`; _elastic coordinates_ are specific to the diagram and adapt to
+/// row/column sizes.
 ///
 /// - grid (dictionary). Representation of the grid layout, including:
 ///   - `origin`
@@ -187,7 +195,7 @@
 	let bounding-dims = (x-max - x-min + 1, y-max - y-min + 1)
 
 	// Initialise row and column sizes
-	let cell-sizes = bounding-dims.map(n => range(n).map(_ => 0pt))
+	let cell-sizes = bounding-dims.map(n => (0pt,)*n)
 
 	// Expand cells to fit rects
 	for rect in rects {
@@ -244,15 +252,15 @@
 /// Rows and columns are sized to fit nodes. Coordinates are not required to
 /// start at the origin, `(0,0)`.
 #let compute-grid(nodes, edges, options) = {
-
 	let grid = (
 		axes: options.axes,
 		spacing: options.spacing,
 	)
+
 	grid += interpret-axes(grid.axes)
 	grid += compute-cell-sizes(grid, nodes, edges)
 
-	// ensure minimum cell size
+	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
 		.map(((sizes, min-size)) => sizes.map(calc.max.with(min-size)))
 		
@@ -260,20 +268,3 @@
 
 	grid
 }
-
-
-/// Convert elastic diagram coordinates in nodes and edges to canvas coordinates
-///
-/// Nodes have a `pos` (elastic coordinates) and `final-pos` (canvas
-/// coordinates), and edges have `from`, `to`, and `vertices` (all canvas
-/// coordinates).
-#let compute-final-coordinates(nodes, edges, grid, options) = (
-	nodes: nodes.map(node => {
-		node.final-pos = uv-to-xy(grid, node.pos)
-		node
-	}),
-	edges: edges.map(edge => {
-		edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
-		edge
-	}),
-)
