@@ -468,14 +468,15 @@
 
 }
 
+
 #let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
 
-	// apply edge shift
-	let (δ-from, δ-to) = edge.shift
+	// // apply edge shift
+	// let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
-	from = vector.add(from, vector-polar(δ-from, θ))
-	to = vector.add(to, vector-polar(δ-to, θ))
+	// from = vector.add(from, vector-polar(δ-from, θ))
+	// to = vector.add(to, vector-polar(δ-to, θ))
 
 	// TODO: do defocus adjustment sensibly
 	from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
@@ -513,9 +514,9 @@
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
 
-	let (δ-from, δ-to) = edge.shift
-	from = vector.add(from, vector-polar(δ-from, θs.at(0) + 90deg))
-	to = vector.add(to, vector-polar(δ-to, θs.at(1) - 90deg))
+	// let (δ-from, δ-to) = edge.shift
+	// from = vector.add(from, vector-polar(δ-from, θs.at(0) + 90deg))
+	// to = vector.add(to, vector-polar(δ-to, θs.at(1) - 90deg))
 
 	let dummy-lines = (from, to).zip(θs)
 		.map(((point, φ)) => cetz.draw.line(
@@ -549,24 +550,24 @@
 		edge.final-vertices.slice(-2), // last two vertices
 	)
 
-	let θs = (
-		vector-angle(vector.sub(..end-segments.at(0))),
-		vector-angle(vector.sub(..end-segments.at(1))),
-	)
+	// let θs = (
+	// 	vector-angle(vector.sub(..end-segments.at(0))),
+	// 	vector-angle(vector.sub(..end-segments.at(1))),
+	// )
 
-	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
+	// let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
 
-	end-segments = end-segments.zip(δs).map(((segment, δ)) => {
-		segment.map(point => vector.add(point, δ))
-	})
+	// end-segments = end-segments.zip(δs).map(((segment, δ)) => {
+	// 	segment.map(point => vector.add(point, δ))
+	// })
 
-	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
-	// first segment
-	edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
-	edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
-	// last segment
-	edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
-	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
+	// // the `shift` option is nicer if it shifts the entire segment, not just the first vertex
+	// // first segment
+	// edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
+	// edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
+	// // last segment
+	// edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
+	// edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
 
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))

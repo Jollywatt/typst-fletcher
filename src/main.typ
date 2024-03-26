@@ -1175,6 +1175,7 @@
 		})
 		edges = edges.map(edge => {
 			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
+			edge = apply-edge-shift(grid, edge)
 			edge
 		})
 

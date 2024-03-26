@@ -278,3 +278,76 @@
 
 	grid
 }
+
+
+
+#let apply-edge-shift-line(grid, edge) = {
+	// apply edge shift
+	let (from-xy, to-xy) = edge.final-vertices
+	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
+
+	let (δ-from, δ-to) = edge.shift
+	let δ⃗-from = vector-polar(δ-from, θ)
+	let δ⃗-to = vector-polar(δ-to, θ)
+
+	edge.final-vertices.at( 0) = uv-to-xy-shifted(grid, edge.vertices.at( 0), δ⃗-from)
+	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δ⃗-to)
+
+	edge
+
+}
+
+#let apply-edge-shift-arc(grid, edge) = {
+	let (from, to) = edge.vertices
+	let (from-xy, to-xy) = edge.final-vertices
+
+	let θ = vector-angle(vector.sub(to-xy, from-xy))
+	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
+
+	let (δ-from, δ-to) = edge.shift
+	let δ⃗-from = vector-polar(δ-from, θs.at(0) + 90deg)
+	let δ⃗-to = vector-polar(δ-to, θs.at(1) - 90deg)
+
+	edge.final-vertices.at( 0) = uv-to-xy-shifted(grid, edge.vertices.at( 0), δ⃗-from)
+	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δ⃗-to)
+
+	edge
+
+}
+
+#let apply-edge-shift-poly(grid, edge) = {
+	let end-segments = (
+		edge.final-vertices.slice(0, 2), // first two vertices
+		edge.final-vertices.slice(-2), // last two vertices
+	)
+
+	let θs = (
+		vector-angle(vector.sub(..end-segments.at(0))),
+		vector-angle(vector.sub(..end-segments.at(1))),
+	)
+
+	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
+
+	end-segments = end-segments.zip(δs).map(((segment, δ)) => {
+		segment.map(point => vector.add(point, δ))
+	})
+
+	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
+	// first segment
+	edge.final-vertices.at(0) = uv-to-xy-shifted(grid, edge.vertices.at(0), δs.at(0))
+	edge.final-vertices.at(1) = uv-to-xy-shifted(grid, edge.vertices.at(1), δs.at(0))
+	// last segment
+	edge.final-vertices.at(-2) = uv-to-xy-shifted(grid, edge.vertices.at(-2), δs.at(1))
+	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δs.at(1))
+
+	edge
+
+
+}
+
+#let apply-edge-shift(grid, edge) = {
+	if edge.kind == "line" { apply-edge-shift-line(grid, edge) }
+	else if edge.kind == "arc" { apply-edge-shift-arc(grid, edge) }
+	else if edge.kind == "poly" { apply-edge-shift-poly(grid, edge) }
+	else { edge }
+}
