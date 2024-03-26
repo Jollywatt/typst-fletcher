@@ -47,8 +47,7 @@
 ///
 /// Used to convert a "nudge" in $u v$ coordinates to a "nudge" in $x y$
 /// coordinates. This is needed because $u v$ coordinates are non-linear
-/// (they're elastic).
-/// Uses a balanced finite differences approximation.
+/// (they're elastic). Uses a balanced finite differences approximation.
 ///
 /// - grid (dictionary): Representation of the grid layout.
 /// - uv (array): The point `(float, float)` in the $u v$-manifold where the shift tangent vector
@@ -72,11 +71,6 @@
 }
 
 
-// #let shift-to-dxy(grid, uv, d) = {
-// 	let duv = d.map(δ => if type(δ) == length { 0 } else { δ })
-// 	let dxy = duv-to-dxy(grid, uv, duv)
-// 	vector.add(dxy, d.map(δ => if type(δ) == length { δ } else { 0pt }))
-// }
 
 /// Resolve the sizes of nodes.
 ///
@@ -266,13 +260,13 @@
 /// -> dictionary
 #let compute-cell-centers(grid) = {
 	// (x: (c1x, c2x, ...), y: ...)
-	let centers = zip(grid.cell-sizes, grid.spacing)
+	let centers = array.zip(grid.cell-sizes, grid.spacing)
 		.map(((sizes, spacing)) => {
-			zip(cumsum(sizes), sizes, range(sizes.len()))
+			array.zip(cumsum(sizes), sizes, range(sizes.len()))
 				.map(((end, size, i)) => end - size/2 + spacing*i)
 		})
 
-	let bounding-size = zip(centers, grid.cell-sizes).map(((centers, sizes)) => {
+	let bounding-size = array.zip(centers, grid.cell-sizes).map(((centers, sizes)) => {
 		centers.at(-1) + sizes.at(-1)/2
 	})
 
@@ -317,7 +311,6 @@
 }
 
 #let apply-edge-shift-line(grid, edge) = {
-	// apply edge shift
 	let (from-xy, to-xy) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
 
@@ -325,15 +318,14 @@
 	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ)
 	let δ⃗-to = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ)
 
-	edge.final-vertices.at( 0) = vector.add(edge.final-vertices.at( 0), δ⃗-from)
-	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δ⃗-to)
+	edge.final-vertices.at( 0) = vector.add(from-xy, δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
 
 	edge
 
 }
 
 #let apply-edge-shift-arc(grid, edge) = {
-	let (from, to) = edge.vertices
 	let (from-xy, to-xy) = edge.final-vertices
 
 	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
@@ -343,8 +335,8 @@
 	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ-from)
 	let δ⃗-to   = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ-to)
 
-	edge.final-vertices.at( 0) = vector.add(edge.final-vertices.at( 0), δ⃗-from)
-	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δ⃗-to)
+	edge.final-vertices.at( 0) = vector.add(from-xy, δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
 
 	edge
 

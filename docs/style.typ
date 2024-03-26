@@ -6,7 +6,7 @@
 #let default-type-color = tidy.styles.default.default-type-color
 #let colors = tidy.styles.default.colors
 #let colors-dark = tidy.styles.default.colors-dark
-#let show-outline = tidy.styles.default.show-outline
+#let show-outline(..a) = tidy.styles.default.show-outline(..a) + v(2em)
 
 #let show-type(type, style-args: (:)) = {
   h(2pt)

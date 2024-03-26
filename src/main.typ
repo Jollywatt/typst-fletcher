@@ -3,7 +3,6 @@
 #import "draw.typ": *
 #import "marks.typ": *
 
-
 /// Draw a labelled node in a diagram which can connect to edges.
 ///
 /// - pos (coordinate): Dimensionless "elastic coordinates" `(x, y)` of the
@@ -109,7 +108,7 @@
 ///   This can be used to hide elements without affecting layout (for use with
 ///   #link("https://github.com/touying-typ/touying")[Touying], for example).
 ///   The `hide()` function also helps for this purpose.
-///   
+///
 #let node(
 	..args,
 	pos: auto,

@@ -33,14 +33,26 @@
 
 )
 
-#let show-fns(file, only: none, exclude: ()) = {
+#let show-fns(file, only: none, exclude: (), level: 1, outline: false) = {
 	let module-doc = tidy.parse-module(read(file), scope: scope)
 
-	module-doc.functions = module-doc.functions.filter(fn => {
-		(only == none or fn.name in only ) and fn.name not in exclude
-	})
 
-	tidy.show-module(module-doc, show-outline: false, style: style)
+	if only != none {
+		let ordered-fns = only.map(fn-name => {
+			module-doc.functions.find(fn => fn.name == fn-name)
+		})
+		module-doc.functions = ordered-fns
+	}
+
+	module-doc.functions = module-doc.functions.filter(fn => fn.name not in exclude)
+
+	tidy.show-module(
+		module-doc,
+		show-outline: outline,
+		sort-functions: none,
+		first-heading-level: level,
+		style: style,
+	)
 }
 
 #show heading.where(level: 1): it => it + v(0.5em)
@@ -100,7 +112,8 @@
 #columns(2)[
 	#outline(title: [Guide], indent: 1em, target: selector(heading).before(<func-ref>, inclusive: false))
 	#colbreak()
-	#outline(title: [Reference], indent: 1em, target: selector(heading).after(<func-ref>, inclusive: true))
+	#outline(title: [Reference], indent: 1em, target:
+		selector(heading.where(level: 1)).or(heading.where(level: 2)).after(<func-ref>, inclusive: true))
 
 ]
 
@@ -885,16 +898,22 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 	"diagram",
 	"node",
 	"edge",
-))
+), level: 1)
 
 
 = Behind the scenes
+
+== `main.typ`
 #show-fns("/src/main.typ", exclude: (
 	"diagram",
 	"node",
 	"edge",
-))
-#show-fns("/src/marks.typ")
-#show-fns("/src/utils.typ")
-#show-fns("/src/layout.typ")
-#show-fns("/src/draw.typ")
+), level: 2, outline: true)
+== `marks.typ`
+#show-fns("/src/marks.typ", level: 2, outline: true)
+== `utils.typ`
+#show-fns("/src/utils.typ", level: 2, outline: true)
+== `layout.typ`
+#show-fns("/src/layout.typ", level: 2, outline: true)
+== `draw.typ`
+#show-fns("/src/draw.typ", level: 2, outline: true)

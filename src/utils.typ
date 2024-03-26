@@ -37,11 +37,6 @@
 	d
 }
 
-#let zip(a, ..others) = if others.pos().len() == 0 {
-	a.map(i => (i,))
-} else {
-	a.zip(..others)
-}
 
 #let to-abs-length(len, em-size) = len.abs + len.em*em-size
 
@@ -68,7 +63,7 @@
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
-/// Linearly interpolate an array with linear extrapolation outside bounds
+/// Linearly interpolate an array with linear behaviour outside bounds
 ///
 /// - values (array): Array of lengths defining interpolation function.
 /// - index (int, float): Index-coordinate to sample.
@@ -108,7 +103,6 @@
 	} else {
 		let (prev, nearest) = (values.at(i - 1), values.at(i))
 		i - 1 + (value - prev)/(nearest - prev)
-
 	}
 }
 
@@ -121,14 +115,14 @@
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)
 	(
-	  "east",
-	  "north-east",
-	  "north",
-	  "north-west",
-	  "west",
-	  "south-west",
-	  "south",
-	  "south-east",
+		"east",
+		"north-east",
+		"north",
+		"north-west",
+		"west",
+		"south-west",
+		"south",
+		"south-east",
 	).at(int(calc.round(i)))
 
 }
@@ -138,13 +132,13 @@
 })
 
 #let bounding-rect(points) = {
-  let (xs, ys) = array.zip(..points)
-  let p1 = (calc.min(..xs), calc.min(..ys))
-  let p2 = (calc.max(..xs), calc.max(..ys))
-  (
-    center: vector.scale(vector.add(p1, p2), 0.5),
-    size: vector.sub(p2, p1)
-  )
+	let (xs, ys) = array.zip(..points)
+	let p1 = (calc.min(..xs), calc.min(..ys))
+	let p2 = (calc.max(..xs), calc.max(..ys))
+	(
+		center: vector.scale(vector.add(p1, p2), 0.5),
+		size: vector.sub(p2, p1)
+	)
 }
 
 
