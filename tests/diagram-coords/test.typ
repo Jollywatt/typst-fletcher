@@ -1,7 +1,7 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 #import fletcher.vector
-#import fletcher: interp, interp-inv, xy-to-uv, uv-to-xy, uv-to-xy-shifted
+#import fletcher: interp, interp-inv, xy-to-uv, uv-to-xy
 
 // test `interp()` and `interp-inv()` are inverses
 
@@ -50,9 +50,9 @@
 		assert(xy == uv-to-xy(grid, uv))
 
 
-		assert(vector.add(uv-to-xy(grid, uv), (0pt, 10pt)) ==
-			uv-to-xy-shifted(grid, uv, (0pt, 10pt)))
-		assert(uv-to-xy(grid, vector.add(uv, (0, 1))) ==
-			uv-to-xy-shifted(grid, uv, (0, 1)))
+		// assert(vector.add(uv-to-xy(grid, uv), (0pt, 10pt)) ==
+		// 	uv-to-xy-shifted(grid, uv, (0pt, 10pt)))
+		// assert(uv-to-xy(grid, vector.add(uv, (0, 1))) ==
+		// 	uv-to-xy-shifted(grid, uv, (0, 1)))
 	}
 }

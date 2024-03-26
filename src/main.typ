@@ -1175,6 +1175,9 @@
 		})
 		edges = edges.map(edge => {
 			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
+			if edge.kind == "corner" {
+				edge = convert-edge-corner-to-poly(edge)
+			}
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})

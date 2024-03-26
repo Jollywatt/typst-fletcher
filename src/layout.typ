@@ -52,15 +52,26 @@
 	vector.add((i, j), grid.origin)
 }
 
+/// Pushforward of the coordinate map `uv-to-xy()`.
+///
+/// Used to convert a "nudge" in $u v$ coordinates to a "nudge" in $x y$
+/// coordinates. This is needed because $u v$ coordinates are non-linear
+/// (they're elastic). So we're borrowing the idea of tangent vectors from
+/// differential geometry.
+///
+/// - grid (dictionary): Representation of the grid layout.
+/// - uv (array): The point in the $u v$-manifold where the shift tangent vector
+///   is rooted.
+/// - duv (array): The shift tangent vector in $u v$ coordinates.
+#let duv-to-dxy(grid, uv, duv) = {
+	vector.sub(uv-to-xy(grid, vector.add(uv, duv)), uv-to-xy(grid, uv))
+}
 
-#let uv-to-xy-shifted(grid, uv-coord, shift) = {
-	uv-coord = uv-coord.zip(shift).map(((u, δ)) => {
-		if type(δ) in (int, float) { u + δ } else { u }
-	})
-	let xy-coord = uv-to-xy(grid, uv-coord)
-	xy-coord.zip(shift).map(((x, δ)) => {
-		if type(δ) == length { x + δ } else { x }
-	})
+
+#let shift-to-dxy(grid, uv, d) = {
+	let duv = d.map(δ => if type(δ) == length { 0 } else { δ })
+	let dxy = duv-to-dxy(grid, uv, duv)
+	vector.add(dxy, d.map(δ => if type(δ) == length { δ } else { 0pt }))
 }
 
 /// Resolve the sizes of nodes.
@@ -290,8 +301,14 @@
 	let δ⃗-from = vector-polar(δ-from, θ)
 	let δ⃗-to = vector-polar(δ-to, θ)
 
-	edge.final-vertices.at( 0) = uv-to-xy-shifted(grid, edge.vertices.at( 0), δ⃗-from)
-	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δ⃗-to)
+	edge.final-vertices.at( 0) = vector.add(
+		edge.final-vertices.at( 0),
+		shift-to-dxy(grid, edge.vertices.at( 0), δ⃗-from),
+	)
+	edge.final-vertices.at(-1) = vector.add(
+		edge.final-vertices.at(-1),
+		shift-to-dxy(grid, edge.vertices.at(-1), δ⃗-to),
+	)
 
 	edge
 
@@ -308,8 +325,14 @@
 	let δ⃗-from = vector-polar(δ-from, θs.at(0) + 90deg)
 	let δ⃗-to = vector-polar(δ-to, θs.at(1) - 90deg)
 
-	edge.final-vertices.at( 0) = uv-to-xy-shifted(grid, edge.vertices.at( 0), δ⃗-from)
-	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δ⃗-to)
+	edge.final-vertices.at( 0) = vector.add(
+		edge.final-vertices.at( 0),
+		shift-to-dxy(grid, edge.vertices.at( 0), δ⃗-from),
+	)
+	edge.final-vertices.at(-1) = vector.add(
+		edge.final-vertices.at(-1),
+		shift-to-dxy(grid, edge.vertices.at(-1), δ⃗-to),
+	)
 
 	edge
 
@@ -334,11 +357,23 @@
 
 	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
 	// first segment
-	edge.final-vertices.at(0) = uv-to-xy-shifted(grid, edge.vertices.at(0), δs.at(0))
-	edge.final-vertices.at(1) = uv-to-xy-shifted(grid, edge.vertices.at(1), δs.at(0))
+	edge.final-vertices.at(0) = vector.add(
+		edge.final-vertices.at(0),
+		shift-to-dxy(grid, edge.vertices.at(0), δs.at(0)),
+	)
+	edge.final-vertices.at(1) = vector.add(
+		edge.final-vertices.at(1),
+		shift-to-dxy(grid, edge.vertices.at(1), δs.at(0)),
+	)
 	// last segment
-	edge.final-vertices.at(-2) = uv-to-xy-shifted(grid, edge.vertices.at(-2), δs.at(1))
-	edge.final-vertices.at(-1) = uv-to-xy-shifted(grid, edge.vertices.at(-1), δs.at(1))
+	edge.final-vertices.at(-2) = vector.add(
+		edge.final-vertices.at(-2),
+		shift-to-dxy(grid, edge.vertices.at(-2), δs.at(1)),
+	)
+	edge.final-vertices.at(-1) = vector.add(
+		edge.final-vertices.at(-1),
+		shift-to-dxy(grid, edge.vertices.at(-1), δs.at(1)),
+	)
 
 	edge
 

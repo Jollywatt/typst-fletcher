@@ -592,7 +592,7 @@
 }
 
 
-#let draw-anchored-corner(edge, nodes, debug: 0) = {
+#let convert-edge-corner-to-poly(edge) = {
 
 	let (from, to) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to, from))
@@ -617,12 +617,13 @@
 		(from.at(0), to.at(1))
 	}
 
-	let edge-options = (
+	edge + (
+		kind: "poly",
 		final-vertices: (from, corner-point, to),
 		label-side: if bend-dir { left } else { right },
 	)
 
-	draw-anchored-polyline(edge + edge-options, nodes, debug: debug)
+	// draw-anchored-polyline(edge + edge-options, nodes, debug: debug)
 
 }
 
@@ -631,9 +632,9 @@
 	edge.marks = interpret-marks(edge.marks)
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, ..args) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, ..args) }
-	else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, ..args) }
 	else if edge.kind == "poly" { draw-anchored-polyline(edge, nodes, ..args) }
 	else { panic(edge.kind) }
+	// else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, ..args) }
 }
 
 
