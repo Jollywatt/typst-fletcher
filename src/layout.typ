@@ -52,27 +52,41 @@
 	vector.add((i, j), grid.origin)
 }
 
-/// Pushforward of the coordinate map `uv-to-xy()`.
+/// Jacobian of the coordinate map `uv-to-xy()`.
 ///
 /// Used to convert a "nudge" in $u v$ coordinates to a "nudge" in $x y$
 /// coordinates. This is needed because $u v$ coordinates are non-linear
-/// (they're elastic). So we're borrowing the idea of tangent vectors from
-/// differential geometry.
+/// (they're elastic).
+///
+/// Uses a balanced finite differences approximation.
 ///
 /// - grid (dictionary): Representation of the grid layout.
 /// - uv (array): The point in the $u v$-manifold where the shift tangent vector
 ///   is rooted.
 /// - duv (array): The shift tangent vector in $u v$ coordinates.
 #let duv-to-dxy(grid, uv, duv) = {
-	vector.sub(uv-to-xy(grid, vector.add(uv, duv)), uv-to-xy(grid, uv))
+	let duv = vector.scale(duv, 0.5)
+	vector.sub(
+		uv-to-xy(grid, vector.add(uv, duv)),
+		uv-to-xy(grid, vector.sub(uv, duv)),
+	)
+}
+
+/// Jacobian of the coordinate map `xy-to-uv()`.
+#let dxy-to-duv(grid, xy, dxy) = {
+	let dxy = vector.scale(dxy, 0.5)
+	vector.sub(
+		xy-to-uv(grid, vector.add(xy, dxy)),
+		xy-to-uv(grid, vector.sub(xy, dxy)),
+	)
 }
 
 
-#let shift-to-dxy(grid, uv, d) = {
-	let duv = d.map(δ => if type(δ) == length { 0 } else { δ })
-	let dxy = duv-to-dxy(grid, uv, duv)
-	vector.add(dxy, d.map(δ => if type(δ) == length { δ } else { 0pt }))
-}
+// #let shift-to-dxy(grid, uv, d) = {
+// 	let duv = d.map(δ => if type(δ) == length { 0 } else { δ })
+// 	let dxy = duv-to-dxy(grid, uv, duv)
+// 	vector.add(dxy, d.map(δ => if type(δ) == length { δ } else { 0pt }))
+// }
 
 /// Resolve the sizes of nodes.
 ///
@@ -291,6 +305,15 @@
 }
 
 
+#let vector-polar-with-xy-or-uv-length(grid, xy, target-length, θ) = {
+	if type(target-length) == length {
+		vector-polar(target-length, θ)
+	} else {
+		let unit = vector-polar(1pt, θ)
+		let det = vector.len(dxy-to-duv(grid, xy, unit))
+		vector.scale(unit, target-length/det)
+	}
+}
 
 #let apply-edge-shift-line(grid, edge) = {
 	// apply edge shift
@@ -298,17 +321,11 @@
 	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
 
 	let (δ-from, δ-to) = edge.shift
-	let δ⃗-from = vector-polar(δ-from, θ)
-	let δ⃗-to = vector-polar(δ-to, θ)
+	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ)
+	let δ⃗-to = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ)
 
-	edge.final-vertices.at( 0) = vector.add(
-		edge.final-vertices.at( 0),
-		shift-to-dxy(grid, edge.vertices.at( 0), δ⃗-from),
-	)
-	edge.final-vertices.at(-1) = vector.add(
-		edge.final-vertices.at(-1),
-		shift-to-dxy(grid, edge.vertices.at(-1), δ⃗-to),
-	)
+	edge.final-vertices.at( 0) = vector.add(edge.final-vertices.at( 0), δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δ⃗-to)
 
 	edge
 
@@ -318,21 +335,15 @@
 	let (from, to) = edge.vertices
 	let (from-xy, to-xy) = edge.final-vertices
 
-	let θ = vector-angle(vector.sub(to-xy, from-xy))
-	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
+	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
+	let (θ-from, θ-to) = (θ + edge.bend, θ - edge.bend)
 
 	let (δ-from, δ-to) = edge.shift
-	let δ⃗-from = vector-polar(δ-from, θs.at(0) + 90deg)
-	let δ⃗-to = vector-polar(δ-to, θs.at(1) - 90deg)
+	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ-from)
+	let δ⃗-to   = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ-to)
 
-	edge.final-vertices.at( 0) = vector.add(
-		edge.final-vertices.at( 0),
-		shift-to-dxy(grid, edge.vertices.at( 0), δ⃗-from),
-	)
-	edge.final-vertices.at(-1) = vector.add(
-		edge.final-vertices.at(-1),
-		shift-to-dxy(grid, edge.vertices.at(-1), δ⃗-to),
-	)
+	edge.final-vertices.at( 0) = vector.add(edge.final-vertices.at( 0), δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δ⃗-to)
 
 	edge
 
@@ -349,27 +360,18 @@
 		vector-angle(vector.sub(..end-segments.at(1))),
 	)
 
-	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
+	let ends = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
+	let δs = edge.shift.zip(ends, θs).map(((d, xy, θ)) => {
+		vector-polar-with-xy-or-uv-length(grid, xy, d, θ + 90deg)
+	})
 
 	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
 	// first segment
-	edge.final-vertices.at(0) = vector.add(
-		edge.final-vertices.at(0),
-		shift-to-dxy(grid, edge.vertices.at(0), δs.at(0)),
-	)
-	edge.final-vertices.at(1) = vector.add(
-		edge.final-vertices.at(1),
-		shift-to-dxy(grid, edge.vertices.at(1), δs.at(0)),
-	)
+	edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
+	edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
 	// last segment
-	edge.final-vertices.at(-2) = vector.add(
-		edge.final-vertices.at(-2),
-		shift-to-dxy(grid, edge.vertices.at(-2), δs.at(1)),
-	)
-	edge.final-vertices.at(-1) = vector.add(
-		edge.final-vertices.at(-1),
-		shift-to-dxy(grid, edge.vertices.at(-1), δs.at(1)),
-	)
+	edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
+	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
 
 	edge
 

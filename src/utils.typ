@@ -103,7 +103,7 @@
 	let (first, last) = (values.at(0), values.at(-1))
 	if value < first {
 		(value - first)/spacing
-	} else if value > last {
+	} else if value >= last {
 		values.len() - 1 + (value - last)/spacing
 	} else {
 		let (prev, nearest) = (values.at(i - 1), values.at(i))
