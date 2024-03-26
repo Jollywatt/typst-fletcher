@@ -351,10 +351,6 @@
 
 	let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
 
-	end-segments = end-segments.zip(δs).map(((segment, δ)) => {
-		segment.map(point => vector.add(point, δ))
-	})
-
 	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
 	// first segment
 	edge.final-vertices.at(0) = vector.add(
