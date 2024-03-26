@@ -742,11 +742,12 @@
 
 /// Draw diagram coordinate axes.
 ///
-/// - grid (dictionary): Dictionary specifying the diagrams grid, containing:
+/// - grid (dictionary): Dictionary specifying the diagram's grid, containing:
 ///   - `origin: (u-min, v-min)`, the minimum values of elastic coordinates,
-///   - `axes: (u-dir, v-dir)`, the directions in which elastic coordinates increase,
+///   - `flip: (x, y, xy)`, the axes orientation (see `interpret-axes()`),
 ///   - `centers: (x-centers, y-centers)`, the physical offsets of each row and each column,
-///   - `sizes: (x-sizes, y-sizes)`, the physical sizes of each row and each column.
+///   - `cell-sizes: (x-sizes, y-sizes)`, the physical sizes of each row and
+///     each column.
 #let draw-debug-axes(grid) = {
 
 	let (x-lims, y-lims) = range(2).map(axis => (

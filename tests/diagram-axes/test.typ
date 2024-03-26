@@ -11,7 +11,7 @@
 	),
 	cell-sizes: (
 		(5mm, 10mm, 0mm, 5mm, 5mm),
-		(5mm, 10mm, 0mm),	
+		(5mm, 10mm, 0mm),
 	),
 	spacing: (1cm, 1cm),
 )

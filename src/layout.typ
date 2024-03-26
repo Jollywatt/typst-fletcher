@@ -4,18 +4,18 @@
 
 /// Convert from elastic to absolute coordinates, $(u, v) |-> (x, y)$.
 ///
-/// _Elastic coordinates_ are specific to the diagram and adapt to row/column
-/// sizes; _absolute coordinates_ are the final, physical lengths which are
+/// _Elastic_ coordinates are specific to the diagram and adapt to row/column
+/// sizes; _absolute_ coordinates are the final, physical lengths which are
 /// passed to `cetz`.
 ///
-/// - grid (dictionary). Representation of the grid layout, including:
+/// - grid (dictionary): Representation of the grid layout, including:
 ///   - `origin`
 ///   - `centers`
 ///   - `spacing`
 ///   - `flip`
-/// -> coord
-#let uv-to-xy(grid, uv-coord) = {
-	let (i, j) = vector.sub(uv-coord, grid.origin)
+/// - uv (array): Elastic coordinate, `(float, float)`.
+#let uv-to-xy(grid, uv) = {
+	let (i, j) = vector.sub(uv, grid.origin)
 
 	let (n-x, n-y) = grid.centers.map(array.len)
 	if grid.flip.xy { (n-x, n-y) = (n-y, n-x) }
@@ -29,18 +29,9 @@
 
 /// Convert from absolute to elastic coordinates, $(x, y) |-> (u, v)$.
 ///
-/// _Absolute coordinates_ are the final, physical lengths which are passed to
-/// `cetz`; _elastic coordinates_ are specific to the diagram and adapt to
-/// row/column sizes.
-///
-/// - grid (dictionary). Representation of the grid layout, including:
-///   - `origin`
-///   - `centers`
-///   - `spacing`
-///   - `flip`
-/// -> coord
-#let xy-to-uv(grid, xy-coord) = {
-	let (i, j) = xy-coord.zip(grid.centers, grid.spacing)
+/// Inverse of `uv-to-xy()`.
+#let xy-to-uv(grid, xy) = {
+	let (i, j) = xy.zip(grid.centers, grid.spacing)
 		.map(((x, c, s)) => interp-inv(c, x, spacing: s))
 
 	let (n-x, n-y) = grid.centers.map(array.len)
@@ -57,13 +48,12 @@
 /// Used to convert a "nudge" in $u v$ coordinates to a "nudge" in $x y$
 /// coordinates. This is needed because $u v$ coordinates are non-linear
 /// (they're elastic).
-///
 /// Uses a balanced finite differences approximation.
 ///
 /// - grid (dictionary): Representation of the grid layout.
-/// - uv (array): The point in the $u v$-manifold where the shift tangent vector
+/// - uv (array): The point `(float, float)` in the $u v$-manifold where the shift tangent vector
 ///   is rooted.
-/// - duv (array): The shift tangent vector in $u v$ coordinates.
+/// - duv (array): The shift tangent vector `(float, float)` in $u v$ coordinates.
 #let duv-to-dxy(grid, uv, duv) = {
 	let duv = vector.scale(duv, 0.5)
 	vector.sub(
@@ -182,6 +172,17 @@
 }
 
 
+/// Interpret #the-param[diagram][axes].
+///
+/// Returns a dictionary with:
+/// - `x`: Whether $u$ is reversed
+/// - `y`: Whether $v$ is reversed
+/// - `xy`: Whether the axes are swapped
+/// 
+/// - axes (array): Pair of directions specifying the interpretation of $(u, v)$
+///   coordinates. For example, `(ltr, ttb)` means $u$ goes $arrow.r$ and $v$
+///   goes $arrow.b$.
+/// -> dictionary
 #let interpret-axes(axes) = {
 	let dirs = axes.map(direction.axis)
 	let flip
@@ -194,9 +195,9 @@
 	}
 	(
 		flip: (
-			xy: flip,
 			x: axes.at(0) in (rtl, ttb),
 			y: axes.at(1) in (rtl, ttb),
+			xy: flip,
 		)
 	)
 }
