@@ -1,6 +1,7 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge
-
+#import fletcher.vector
+#import fletcher: interp, interp-inv, xy-to-uv, uv-to-xy, uv-to-xy-shifted
 
 // test `interp()` and `interp-inv()` are inverses
 
@@ -8,14 +9,14 @@
 #let indices = (-1, 0, 0.5, 1, 1.75, 3, 4)
 
 #for i in indices {
-	let value = fletcher.interp(values, i, spacing: 10pt)
-	let i2 = fletcher.interp-inv(values, value, spacing: 10pt)
+	let value = interp(values, i, spacing: 10pt)
+	let i2 = interp-inv(values, value, spacing: 10pt)
 	assert(i == i2)
 }
 
 #for v in values {
-	let index = fletcher.interp-inv(values, v , spacing: 10pt)
-	let v2 = fletcher.interp(values, index, spacing: 10pt)
+	let index = interp-inv(values, v , spacing: 10pt)
+	let v2 = interp(values, index, spacing: 10pt)
 	assert(v == v2)
 }
 
@@ -44,8 +45,14 @@
 	grid += fletcher.compute-cell-centers(grid)
 
 	for uv in ((0,0), (1,2), (-5.5, 0.75), (3,1.125)) {
-		let xy = fletcher.uv-to-xy(grid, uv)
-		assert(uv == fletcher.xy-to-uv(grid, xy))
-		assert(xy == fletcher.uv-to-xy(grid, uv))
+		let xy = uv-to-xy(grid, uv)
+		assert(uv == xy-to-uv(grid, xy))
+		assert(xy == uv-to-xy(grid, uv))
+
+
+		assert(vector.add(uv-to-xy(grid, uv), (0pt, 10pt)) ==
+			uv-to-xy-shifted(grid, uv, (0pt, 10pt)))
+		assert(uv-to-xy(grid, vector.add(uv, (0, 1))) ==
+			uv-to-xy-shifted(grid, uv, (0, 1)))
 	}
 }

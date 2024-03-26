@@ -987,10 +987,10 @@
 ///   	node((0, 0), $A$),
 ///   	node((1, 0), $B$),
 ///   	{
-///   	  // multiple objects in a block
-///   	  // can use scripting, loops, etc
-///   	  node((2, 0), $C$)
-///   	  node((3, 0), $D$)
+///   		// multiple objects in a block
+///   		// can use scripting, loops, etc
+///   		node((2, 0), $C$)
+///   		node((3, 0), $D$)
 ///   	},
 ///   	for x in range(4) { node((x, 1) [#x]) },
 ///   )

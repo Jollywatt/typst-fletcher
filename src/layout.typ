@@ -53,6 +53,16 @@
 }
 
 
+#let uv-to-xy-shifted(grid, uv-coord, shift) = {
+	uv-coord = uv-coord.zip(shift).map(((u, δ)) => {
+		if type(δ) in (int, float) { u + δ } else { u }
+	})
+	let xy-coord = uv-to-xy(grid, uv-coord)
+	xy-coord.zip(shift).map(((x, δ)) => {
+		if type(δ) == length { x + δ } else { x }
+	})
+}
+
 /// Resolve the sizes of nodes.
 ///
 /// Widths and heights that are `auto` are determined by measuring the size of
