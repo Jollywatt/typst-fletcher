@@ -127,6 +127,7 @@
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+	if args.pos().len() > 2 { panic("Unexpected positional argument(s):", args.pos().slice(2)) }
 
 	// interpret first two positional arguments
 	if args.pos().len() == 2 {
@@ -238,7 +239,6 @@
 		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
 	}
 
-	// Up to the first two arguments may be coordinates
 	let first-coord = auto
 	let other-coords = ()
 	let found-coords = false
@@ -963,6 +963,9 @@
 		edge
 	})
 
+	for node in nodes {
+		assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
+	}
 
 	(
 		nodes: nodes,
