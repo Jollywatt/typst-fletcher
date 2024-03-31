@@ -300,6 +300,8 @@
 }
 
 
+// Return a vector in $x y$ coordinates with a given angle $θ$ in $x y$-space
+// but with a length specified in either $x y$-space or $u v$-space.
 #let vector-polar-with-xy-or-uv-length(grid, xy, target-length, θ) = {
 	if type(target-length) == length {
 		vector-polar(target-length, θ)
@@ -377,3 +379,5 @@
 	else if edge.kind == "poly" { apply-edge-shift-poly(grid, edge) }
 	else { edge }
 }
+
+

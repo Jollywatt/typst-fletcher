@@ -112,6 +112,7 @@
 #let node(
 	..args,
 	pos: auto,
+	name: none,
 	label: auto,
 	inset: auto,
 	outset: auto,
@@ -146,6 +147,7 @@
 	metadata((
 		class: "node",
 		pos: pos,
+		name: name,
 		label: label,
 		inset: inset,
 		outset: outset,
@@ -224,7 +226,7 @@
 	let pos = args.pos()
 
 	// predicates to detect the kind of a positional argument
-	let is-coord(arg) = type(arg) == array and arg.len() == 2
+	let is-coord(arg) = type(arg) == array and arg.len() == 2 or type(arg) == label
 	let is-rel-coord(arg) = is-coord(arg) or (
 		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
 		type(arg) == dictionary and "rel" in arg
@@ -959,7 +961,7 @@
 			edge.vertices.at(-1) = vector.add(edge.vertices.at(-2), (1,0))
 		}
 
-		assert(edge.vertices.all(v => type(v) == array), message: repr(edge))
+		// assert(edge.vertices.all(v => type(v) == array), message: repr(edge))
 		edge
 	})
 
@@ -1167,6 +1169,15 @@
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
+		nodes = nodes.map(node => {
+			node.pos = resolve-coordinate(nodes, node.pos)
+			node
+		})
+		edges = edges.map(edge => {
+			edge.vertices = edge.vertices.map(resolve-coordinate.with(nodes))
+			edge
+		})
+
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 
@@ -1183,6 +1194,8 @@
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})
+
+		assert(nodes.all(node => type(node.pos) == array))
 
 		render(grid, nodes, edges, options)
 	}))

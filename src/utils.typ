@@ -194,3 +194,18 @@
 	if repr(el.func()) == "sequence" { return el.children.all(is-space) }
 	return false
 }
+
+
+
+// TODO: move to coord.typ?
+#let resolve-coordinate(nodes, coord) = {
+	if type(coord) == label {
+		let node = nodes.find(node => node.name == coord)
+		assert(node != none, message: "Couldn't find label " + repr(coord))
+		node.pos
+	} else if type(coord) == array {
+		coord
+	} else {
+		panic("What is this?", coord)
+	}
+}
