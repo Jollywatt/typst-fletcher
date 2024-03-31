@@ -1,6 +1,7 @@
 #import "utils.typ": *
 #import "marks.typ": *
 
+#let DEBUG_COLOR = rgb("f008")
 
 #let draw-edge-label(edge, label-pos, debug: 0) = {
 	cetz.draw.content(

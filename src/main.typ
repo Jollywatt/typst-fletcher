@@ -1,4 +1,5 @@
 #import "utils.typ": *
+#import "coords.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
 #import "marks.typ": *

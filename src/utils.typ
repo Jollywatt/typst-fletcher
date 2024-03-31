@@ -2,7 +2,6 @@
 #import cetz: vector
 #import calc: floor, ceil, min, max
 
-#let DEBUG_COLOR = rgb("f008")
 
 // Replace `auto` with a value
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
@@ -196,16 +195,3 @@
 }
 
 
-
-// TODO: move to coord.typ?
-#let resolve-coordinate(nodes, coord) = {
-	if type(coord) == label {
-		let node = nodes.find(node => node.name == coord)
-		assert(node != none, message: "Couldn't find label " + repr(coord))
-		node.pos
-	} else if type(coord) == array {
-		coord
-	} else {
-		panic("What is this?", coord)
-	}
-}
