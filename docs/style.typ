@@ -6,7 +6,14 @@
 #let default-type-color = tidy.styles.default.default-type-color
 #let colors = tidy.styles.default.colors
 #let colors-dark = tidy.styles.default.colors-dark
-#let show-outline(..a) = tidy.styles.default.show-outline(..a) + v(2em)
+
+#let show-outline(module-doc, style-args: (:)) = box({
+  let prefix = module-doc.label-prefix
+  for fn in module-doc.functions [
+    - #link(label(prefix + fn.name + "()"), raw(fn.name + "()"))
+  ]
+  v(2em)
+})
 
 #let show-type(type, style-args: (:)) = {
   h(2pt)
@@ -129,7 +136,7 @@
       default: info.at("default", default: none),
     )
   }
-  v(4.8em, weak: true)
+  v(4em, weak: true)
 }
 
 

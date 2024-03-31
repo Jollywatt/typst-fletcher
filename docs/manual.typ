@@ -110,10 +110,17 @@
 // #block(height: 40%, columns(2, outline(indent: 1em, title: none)))
 
 #columns(2)[
-	#outline(title: [Guide], indent: 1em, target: selector(heading).before(<func-ref>, inclusive: false))
+	#outline(
+		title: align(center, box(width: 100%)[Guide]),
+		indent: 1em,
+		target: selector(heading).before(<func-ref>, inclusive: false),
+	)
 	#colbreak()
-	#outline(title: [Reference], indent: 1em, target:
-		selector(heading.where(level: 1)).or(heading.where(level: 2)).after(<func-ref>, inclusive: true))
+	#outline(
+		title: align(center, box(width: 100%)[Reference]),
+		indent: 1em,
+		target: selector(heading.where(level: 1)).or(heading.where(level: 2)).after(<func-ref>, inclusive: true),
+	)
 
 ]
 
@@ -909,11 +916,18 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 	"node",
 	"edge",
 ), level: 2, outline: true)
-== `marks.typ`
-#show-fns("/src/marks.typ", level: 2, outline: true)
-== `utils.typ`
-#show-fns("/src/utils.typ", level: 2, outline: true)
+
+== `coords.typ`
+#show-fns("/src/coords.typ", level: 2, outline: true)
+
 == `layout.typ`
 #show-fns("/src/layout.typ", level: 2, outline: true)
+
+== `marks.typ`
+#show-fns("/src/marks.typ", level: 2, outline: true)
+
 == `draw.typ`
 #show-fns("/src/draw.typ", level: 2, outline: true)
+
+== `utils.typ`
+#show-fns("/src/utils.typ", level: 2, outline: true)

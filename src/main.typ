@@ -12,6 +12,30 @@
 ///   See the options of `diagram()` to control the physical scale of elastic
 ///   coordinates.
 ///
+/// - name (label, none): An optional name to give the node.
+///
+///   Names can sometimes be used in place of coordinates. For example:
+///
+///   #example(```
+///   fletcher.diagram(
+///   	node((0,0), $A$, name: <A>),
+///   	node((1,0.6), $B$, name: <B>),
+///   	edge(<A>, <B>, "->"),
+///   )
+///   ```)
+///
+///   Note that you can also just use variables to refer to coordinates:
+///
+///   #example(```
+///   fletcher.diagram({
+///   	let A = (0,0)
+///   	let B = (1,0.6)
+///   	node(A, $A$)
+///   	node(B, $B$)
+///   	edge(A, B, "->")
+///   })
+///   ```)
+///
 /// - label (content): Content to display inside the node.
 ///
 /// - inset (length, auto): Padding between the node's content and its bounding
@@ -96,10 +120,10 @@
 ///   	node((3,0), `(0, -2.5, 2mm)`, extrude: (0, -2.5, 2mm)),
 ///   )
 ///
-///   See also #param[edge][extrude].
+///   See also #the-param[edge][extrude].
 ///
 /// - corner-radius (length): Radius of rounded corners, if supported by the
-///   node shape.
+///   node #param[node][shape].
 ///
 ///   Defaults to #the-param[diagram][node-corner-radius].
 ///
@@ -309,13 +333,13 @@
 /// Draw a connecting line or arc in an arrow diagram.
 ///
 ///
-/// - ..args (any): Positional arguments may specify the edge's:
-///   - start and end nodes
-///   - any additional vertices
-///   - label
-///   - marks
+/// - ..args (any): An edge's positional arguments may specify:
+///   - the edge's #param[edge][vertices]
+///   - the #param[edge][label] content
+///   - #param[edge][marks] and other style options
 ///
-///   The start and end nodes must come first, and are optional:
+///   Vertex coordinates must come first, and are optional:
+///
 ///   ```typc
 ///   edge(from, to, ..) // explicit start and end nodes
 ///   edge(to, ..) // start node chosen automatically based on last node specified
@@ -327,12 +351,13 @@
 ///   form `(rel: (Δx, Δy))` or a string containing the characters
 ///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
 ///
-///   Some named arguments, including #param[edge][marks], #param[edge][label], and #param[edge][vertices] can be
-///   also be specified as positional arguments. For example, the following are
-///   equivalent:
+///   An edge's #param[edge][marks] and #param[edge][label] can be also be
+///   specified as positional arguments. They are disambiguated by guessing
+///   based on the types. For example, the following are equivalent:
 ///
 ///   ```typc
 ///   edge((0,0), (1,0), $f$, "->")
+///   edge((0,0), (1,0), "->", $f$)
 ///   edge((0,0), (1,0), $f$, marks: "->")
 ///   edge((0,0), (1,0), "->", label: $f$)
 ///   edge((0,0), (1,0), label: $f$, marks: "->")
@@ -340,14 +365,19 @@
 ///
 ///   Additionally, some common options are given flags that may be given as
 ///   string positional arguments. These are
-///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ],
-///   last: [, and ]).
+///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ], last: [, and ]).
+///   For example, the following are equivalent:
+///
+///   ```typc
+///   edge((0,0), (1,0), $f$, "wave", "crossing")
+///   edge((0,0), (1,0), $f$, decorations: "wave", crossing: true)
+///   ```
 ///
 /// - vertices (array): Array of (at least two) coordinates for the edge.
 ///
 ///   Vertices can also be specified as leading positional arguments, but if so,
-///   the `vertices` option must be unspecified. If the number of vertices is
-///   greater than two, #param[edge][kind] defaults to `"poly"`.
+///   the `vertices` option must be empty. If the number of vertices is greater
+///   than two, #param[edge][kind] defaults to `"poly"`.
 ///
 /// - kind (string): The kind of the edge, one of `"line"`, `"arc"`, or `"poly"`.
 ///   This is chosen automatically based on the presence of other options
@@ -557,6 +587,8 @@
 ///   mark. For basic arrow heads, this offset is computed with
 ///   `round-arrow-cap-offset()`.
 ///
+///   See also #the-param[node][extrude].
+///
 /// - crossing (bool): If `true`, draws a backdrop of color
 ///   #param[edge][crossing-fill] to give the illusion of lines crossing each
 ///    other.
@@ -614,22 +646,38 @@
 ///
 ///   If `auto`, defaults to #the-param[diagram][edge-corner-radius].
 ///
-/// - shift (length, pair of lengths): Amount to shift the edge sideways by,
-///   perpendicular to its direction. A pair of lenghts `(from, to)` controls
-///   the shifts at each end independently.
+/// - shift (length, number, pair): Amount to shift the edge sideways by,
+///   perpendicular to its direction. A pair `(from, to)` controls the shifts at
+///   each end of the edge independently, and a single shift `s` is short for
+///   `(s, s)`. Shifts can absolute lengths (e.g., `5pt`) or coordinate
+///   differences (e.g., `0.1`).
 ///
-///   #fletcher.diagram($
-///   	A edge(->, #`3pt`, shift: #3pt) #edge("->", `-3pt`, shift:
-///   	(-3pt), label-side: right) & B
-///   $)
+///   #fletcher.diagram(
+///   	node((0,0), $A$), node((1,0), $B$),
+///   	edge((0,0), (1,0), "->", `3pt`, shift: 3pt),
+///   	edge((0,0), (1,0), "->", `-3pt`, shift: -3pt, label-side: right),
+///   )
 ///
-/// - snap-to (pair of coords): The coordinates of the nodes to whose outlines
-///   the start and end of an edge should snap to.
+///   If an edge has many vertices, the shifts only affect the first and last
+///   segments of the edge.
 ///
-///   By default, an edge snaps to the nodes closest to the first and last
-///   #param[edge][vertices]. This option is useful in some cases where
-///   automatic snapping fails (if there are many nodes close together, for
-///   example.)
+///   #example(```
+///   diagram(
+///   	node-fill: luma(70%),
+///   	node((0,0), [Hello]),
+///   	edge("u,r,d", "->"),
+///   	edge("u,r,d", "-->", shift: 8pt),
+///   	node((1,0), [World]),
+///   )
+///   ```)
+///
+/// - snap-to (pair): The nodes the start and end of an edge should snap to.
+/// Each node can be a position or node #param[node][name], or `none` to disable
+/// snapping.
+///
+///   By default, an edge's first and last #param[edge][vertices] snap to nearby
+///   nodes. This option can be used in case automatic snapping fails (if there
+///   are many nodes close together, for example.)
 ///
 /// - post (function): Callback function to intercept `cetz` objects before they
 ///   are drawn to the canvas.
@@ -979,7 +1027,7 @@
 
 
 
-/// Draw a diagram of nodes and edges.
+/// Draw a diagram containing `node()`s and `edge()`s.
 ///
 /// - ..args (array): Content to draw in the diagram, including nodes and edges.
 ///
