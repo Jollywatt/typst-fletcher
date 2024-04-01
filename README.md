@@ -144,6 +144,7 @@ Pull requests are most welcome!
 - Fixed edge crossing backgrounds being drawn above nodes (#14).
 - Added `fletcher.hide()` to hide elements with/without affecting layout, useful for incremental diagrams in slides (#15).
 - Support `shift`ing edges by coordinate deltas as well as absolute lengths (#13).
+- Support node names (#8).
 
 ### 0.4.2
 
