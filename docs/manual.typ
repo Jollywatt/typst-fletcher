@@ -96,7 +96,8 @@
 
 #set raw(lang: "typc")
 #show raw.where(block: false): it => {
-	if it.text.ends-with("()") {
+	// if raw block is a funciton call, like `foo()`, make it a link
+	if it.text.match(regex("^[a-z-]+\(\)$")) != none {
 		return link(label(it.text), it)
 	} else {
 		it
