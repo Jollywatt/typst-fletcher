@@ -48,8 +48,8 @@
 /// (they're elastic). Uses a balanced finite differences approximation.
 ///
 /// - grid (dictionary): Representation of the grid layout.
-/// - uv (array): The point `(float, float)` in the $u v$-manifold where the shift tangent vector
-///   is rooted.
+/// - uv (array): The point `(float, float)` in the $u v$-manifold where the
+///   shift tangent vector is rooted.
 /// - duv (array): The shift tangent vector `(float, float)` in $u v$ coordinates.
 #let duv-to-dxy(grid, uv, duv) = {
 	let duv = vector.scale(duv, 0.5)
@@ -68,8 +68,8 @@
 	)
 }
 
-// Return a vector in $x y$ coordinates with a given angle $θ$ in $x y$-space
-// but with a length specified in either $x y$-space or $u v$-space.
+/// Return a vector in $x y$ coordinates with a given angle $θ$ in $x y$-space
+/// but with a length specified in either $x y$-space or $u v$-space.
 #let vector-polar-with-xy-or-uv-length(grid, xy, target-length, θ) = {
 	if type(target-length) == length {
 		vector-polar(target-length, θ)
@@ -80,16 +80,30 @@
 	}
 }
 
-#let resolve-coordinate(nodes, coord) = {
+/// Convert labels into the coordinates of a node with that label, leaving
+/// anything else unchanged.
+#let resolve-label-coordinate(nodes, coord) = {
 	if type(coord) == label {
 		let node = nodes.find(node => node.name == coord)
 		assert(node != none, message: "Couldn't find label " + repr(coord))
 		node.pos
-	} else if type(coord) == array {
-		coord
-	} else if type(coord) == dictionary and "rel" in coord {
-		coord
 	} else {
-		panic("Could not resolve coordinate " + repr(coord))
+		coord
 	}
+}
+
+/// Given a sequence of coordinates of the form `(x, y)` or `(rel: (Δx, Δy))`,
+/// return a sequence in the form `(x, y)` where relative coordinates are
+/// applied relative to the previous coordinate in the sequence.
+///
+/// The first coordinate must be of the form `(x, y)`.
+#let resolve-relative-coordinates(coords) = {
+	let resolved = coords
+	for i in range(1, coords.len()) {
+		let prev = resolved.at(i - 1)
+		if type(coords.at(i)) == dictionary and "rel" in coords.at(i) {
+			resolved.at(i) = vector.add(coords.at(i).rel, prev)
+		}
+	}
+	resolved
 }

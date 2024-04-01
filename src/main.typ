@@ -1199,33 +1199,28 @@
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
 
+		// resolve options and fancy coordinates in nodes and edges
+
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
 		nodes = nodes.map(node => {
-			node.pos = resolve-coordinate(nodes, node.pos)
+			node.pos = resolve-label-coordinate(nodes, node.pos)
 			node
 		})
 		edges = edges.map(edge => {
-			edge.vertices = edge.vertices.map(resolve-coordinate.with(nodes))
-
-			// resolve relative coordinates
-			for i in range(1, edge.vertices.len()) {
-				let prev = edge.vertices.at(i - 1)
-				if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
-					edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
-				}
-			}
-
-
-
+			let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
+			edge.vertices = resolve-relative-coordinates(verts)
 			edge
 		})
+
+		// measure node sizes and determine diagram layout
 
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 
-		// add xy (absolute) coordinates from uv (elastic) coordinates
+		// compute final/cetz coordinates for nodes and edges
+
 		nodes = nodes.map(node => {
 			node.final-pos = uv-to-xy(grid, node.pos)
 			node
@@ -1238,8 +1233,6 @@
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})
-
-		assert(nodes.all(node => type(node.pos) == array))
 
 		render(grid, nodes, edges, options)
 	}))

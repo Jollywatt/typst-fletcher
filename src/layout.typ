@@ -3,8 +3,7 @@
 #import "shapes.typ"
 
 
-
-/// Resolve the sizes of nodes.
+/// Measure node labels with the style context and resolve node shapes.
 ///
 /// Widths and heights that are `auto` are determined by measuring the size of
 /// the node's label.
@@ -57,8 +56,8 @@
 
 
 
-/// Convert an array of rects with fractional positions into rects with integral
-/// positions.
+/// Convert an array of rects `(center: (x, y), size: (w, h))` with fractional
+/// positions into rects with integral positions.
 ///
 /// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
 /// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
@@ -67,10 +66,9 @@
 /// new rect at `x = 0` has 75% the original width and the rect at `x = 1` has
 /// 25%.) The same splitting procedure is done for `y` positions and heights.
 ///
-/// - rects (array of rects): An array of rectangles of the form
-///   `(center: (x, y), size: (width, height))`. The coordinates `x` and `y` may be
-///   floats.
-/// -> array of rects
+/// - rects (array): An array of rects of the form `(center: (x, y), size:
+///   (width, height))`. The coordinates `x` and `y` may be floats.
+/// -> array
 #let expand-fractional-rects(rects) = {
 	let new-rects
 	for axis in (0, 1) {
@@ -104,7 +102,7 @@
 /// - `x`: Whether $u$ is reversed
 /// - `y`: Whether $v$ is reversed
 /// - `xy`: Whether the axes are swapped
-/// 
+///
 /// - axes (array): Pair of directions specifying the interpretation of $(u, v)$
 ///   coordinates. For example, `(ltr, ttb)` means $u$ goes $arrow.r$ and $v$
 ///   goes $arrow.b$.
@@ -130,7 +128,8 @@
 
 
 
-/// Determine the sizes of grid cells from nodes and edges.
+/// Determine the number and sizes of grid cells needed for a diagram with the
+/// given nodes and edges.
 ///
 /// Returns a dictionary with:
 /// - `origin: (u-min, v-min)` Coordinate at the grid corner where elastic/`uv`
@@ -297,6 +296,12 @@
 
 }
 
+
+/// Apply #the-param[edge][shift] by translating edge vertices.
+///
+/// - grid (dicitionary): Representation of the grid layout. This is needed to
+///   support shifts specified as coordinate lengths.
+/// - edge (dictionary): The edge with a `shift` entry.
 #let apply-edge-shift(grid, edge) = {
 	if edge.kind == "line" { apply-edge-shift-line(grid, edge) }
 	else if edge.kind == "arc" { apply-edge-shift-arc(grid, edge) }
