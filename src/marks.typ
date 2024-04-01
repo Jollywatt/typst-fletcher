@@ -444,7 +444,7 @@
 		)
 
 	} else {
-		panic("unknown mark kind:", mark)
+		panic("Unknown mark kind " + repr(mark))
 	}
 }
 

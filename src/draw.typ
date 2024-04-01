@@ -75,7 +75,6 @@
 ///   - `label-side`, `label-pos`, `label-sep`, and `label-anchor`.
 /// - debug (int): Level of debug details to draw.
 #let draw-edge-line(edge, debug: 0) = {
-	if edge.final-vertices.len() > 2 { panic(edge) }
 	let (from, to) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to, from))
 
@@ -623,9 +622,6 @@
 		final-vertices: (from, corner-point, to),
 		label-side: if bend-dir { left } else { right },
 	)
-
-	// draw-anchored-polyline(edge + edge-options, nodes, debug: debug)
-
 }
 
 #let draw-edge(edge, nodes, ..args) = {
@@ -634,8 +630,7 @@
 	if edge.kind == "line" { draw-anchored-line(edge, nodes, ..args) }
 	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, ..args) }
 	else if edge.kind == "poly" { draw-anchored-polyline(edge, nodes, ..args) }
-	else { panic(edge.kind) }
-	// else if edge.kind == "corner" { draw-anchored-corner(edge, nodes, ..args) }
+	else { panic("Invalid edge kind " + repr(edge.kind)) }
 }
 
 
@@ -844,7 +839,7 @@
 	} else if type(key) == array {
 		find-node-at(nodes, key)
 	} else {
-		panic("?", key)
+		panic("Couldn't find node corresponding to " + repr(key))
 	}
 }
 

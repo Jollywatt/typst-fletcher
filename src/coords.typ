@@ -90,6 +90,6 @@
 	} else if type(coord) == dictionary and "rel" in coord {
 		coord
 	} else {
-		panic("What is this?", coord)
+		panic("Could not resolve coordinate " + repr(coord))
 	}
 }
