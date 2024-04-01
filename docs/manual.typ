@@ -519,7 +519,9 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 })
 ```)
 
-== Implicit coordinates
+== Specifying edge vertices
+
+=== Implicit coordinates
 
 To specify the start and end points of an edge, you may provide both explicitly (like `edge(from, to)`); leave `from` implicit (like `edge(to)`); or leave both implicit.
 When `from` is implicit, it becomes the coordinate of the last `node`, and if `to` is implicit, the next `node`.
@@ -551,7 +553,7 @@ However, don't forget you can also use variables in code-mode, which is a more e
 ```)
 
 
-== Relative coordinates
+=== Relative coordinates
 
 You may specify an edge's direction instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`, or with string of _directions_ for short, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
 #strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you to do things like:
@@ -559,6 +561,22 @@ You may specify an edge's direction instead of its end coordinate. This can be d
 #code-example-row(```typ
 #fletcher.diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
 ```)
+
+=== Labelled coordinates
+
+Another way coordinates can be expressed is through node names.
+Nodes can be given a #param[node][name], which is a label (not a string) identifying that node.
+A label as an edge vertex is interpreted as the position of the node with that label.
+
+#code-example-row(```typ
+#fletcher.diagram(
+	node((0,0), $frak(A)$, name: <A>),
+	node((1,0), $frak(B)$, name: <B>),
+	edge(<A>, <B>, "-->")
+)
+```)
+
+Node names are labels instead of strings (like in CeTZ) so that positional arguments to `edge()` are easier to disambiguate by their type.
 
 == Edge types
 
