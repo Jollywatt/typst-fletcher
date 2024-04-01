@@ -15,6 +15,12 @@
 // for when `stroke` is already in namespace
 #let as-stroke(x) = stroke(x)
 
+#let as-label(x) = {
+	if type(x) == label { x }
+	else if type(x) == str { label(x) }
+	else { panic("Expected label or string, got " + repr(x)) }
+}
+
 #let stroke-to-dict(s) = {
 	let s = as-stroke(s)
 	let d = (

@@ -844,7 +844,7 @@
 	} else if type(key) == array {
 		find-node-at(nodes, key)
 	} else {
-		panic("?")
+		panic("?", key)
 	}
 }
 
@@ -857,7 +857,10 @@
 
 	for edge in edges {
 		// find start/end notes to snap to (each can be none!)
-		let nodes = edge.snap-to.map(find-node.with(nodes))
+		let nodes = (
+			map-auto(edge.snap-to.at(0), edge.vertices.at(0)),
+			map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
+		).map(find-node.with(nodes))
 		draw-edge(edge, nodes, debug: debug)
 	}
 

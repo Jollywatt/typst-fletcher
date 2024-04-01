@@ -172,7 +172,7 @@
 	metadata((
 		class: "node",
 		pos: pos,
-		name: name,
+		name: pass-none(as-label)(name),
 		label: label,
 		inset: inset,
 		outset: outset,
@@ -878,11 +878,6 @@
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
 	if edge.label-fill == false { edge.label-fill = none }
 
-	edge.snap-to = (
-		map-auto(edge.snap-to.at(0), edge.vertices.at(0)),
-		map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
-	)
-
 	edge
 }
 
@@ -996,21 +991,10 @@
 		}
 	}
 
-	// resolve relative coordinates
 	edges = edges.map(edge => {
-
-		for i in range(1, edge.vertices.len()) {
-			let prev = edge.vertices.at(i - 1)
-			if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
-				edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
-			}
-		}
-
 		if edge.vertices.at(-1) == auto {
 			edge.vertices.at(-1) = vector.add(edge.vertices.at(-2), (1,0))
 		}
-
-		// assert(edge.vertices.all(v => type(v) == array), message: repr(edge))
 		edge
 	})
 
@@ -1224,6 +1208,17 @@
 		})
 		edges = edges.map(edge => {
 			edge.vertices = edge.vertices.map(resolve-coordinate.with(nodes))
+
+			// resolve relative coordinates
+			for i in range(1, edge.vertices.len()) {
+				let prev = edge.vertices.at(i - 1)
+				if type(edge.vertices.at(i)) == dictionary and "rel" in edge.vertices.at(i) {
+					edge.vertices.at(i) = vector.add(edge.vertices.at(i).rel, prev)
+				}
+			}
+
+
+
 			edge
 		})
 

@@ -87,6 +87,8 @@
 		node.pos
 	} else if type(coord) == array {
 		coord
+	} else if type(coord) == dictionary and "rel" in coord {
+		coord
 	} else {
 		panic("What is this?", coord)
 	}

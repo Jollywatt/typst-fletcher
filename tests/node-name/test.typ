@@ -3,7 +3,7 @@
 
 #diagram(
 	node((0,0), [A], name: <a>),
-	node((2,0), [B], name: <b>),
+	node((2,0), [B], name: "b"),
 	edge(<a>, <b>, [by label], ">>-}>"),
-	edge(<a>, (3,0), "--", snap-to: (<b>, auto))
+	edge(<a>, "rrr", "--", snap-to: (<b>, auto))
 )
