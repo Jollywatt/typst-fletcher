@@ -43,12 +43,6 @@ insert_example_table([
 ```
 
 
-## Todo/wishlist
-
-- Support CeTZ arrowheads
-- Allow nodes (and edges) to be referred to by a name or label
-- Better support for loops connecting a node to itself
-
 ## Change log
 
 ### 0.4.3
