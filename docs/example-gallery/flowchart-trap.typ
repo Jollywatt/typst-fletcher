@@ -2,7 +2,7 @@
 #import fletcher.shapes: diamond
 #set text(font: "Comic Neue", weight: 600)
 
-#fletcher.diagram(
+#diagram(
 	node-stroke: 1pt/*<*/ + fg/*>*/,
 	edge-stroke: 1pt/*<*/ + fg/*>*/,
 	crossing-fill: bg, // hide

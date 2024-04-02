@@ -1,4 +1,4 @@
-#fletcher.diagram(cell-size: 15mm,/*<*/
+#diagram(cell-size: 15mm,/*<*/
 	edge-stroke: fg,
 	crossing-fill: none,/*>*/ $
 	G edge(f, ->) edge("d", pi, ->>) & im(f) \

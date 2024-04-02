@@ -164,7 +164,7 @@
 /// points) and the tangent to the arc and the first point.
 /// -> dictionary
 ///
-/// #fletcher.diagram(spacing: 2cm, {
+/// #diagram(spacing: 2cm, {
 ///	    for (i, θ) in (0deg, 45deg, -90deg).enumerate() {
 ///         edge((2*i, 0), (2*i + 1, 0), marks: (none, "head"), bend: θ)
 ///         edge((2*i, 0), (2*i + 1, 0), [#θ], label-side: center, dash:

@@ -111,7 +111,7 @@
 ///   The node's fill is drawn within the boundary defined by the first offset in
 ///   the array.
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	node-stroke: 1pt,
 ///   	node-fill: red.lighten(70%),
 ///   	node((0,0), `(0,)`),
@@ -398,7 +398,7 @@
 /// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
 ///   positive angles bend clockwise.
 ///
-///   #fletcher.diagram(debug: 0, {
+///   #diagram(debug: 0, {
 ///   	node((0,0), $A$)
 ///   	node((1,1), $B$)
 ///   	let N = 4
@@ -438,7 +438,7 @@
 ///
 ///   With the default anchor (automatically set to `"bottom"` in this case):
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	debug: 2,
 ///   	cell-size: 8mm,
 ///   	{
@@ -449,7 +449,7 @@
 ///
 ///   With #param[edge][label-anchor] set to `"center"`:
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	debug: 2,
 ///   	cell-size: 8mm,
 ///   	{
@@ -545,7 +545,7 @@
 /// - mark-scale (percent): Scale factor for marks or arrowheads, relative to
 ///   the #param[edge][stroke] thickness.
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	label-sep: 10pt,
 ///   	edge-stroke: 1pt,
 ///   	for i in range(3) {
@@ -557,7 +557,7 @@
 ///   Note that the default arrowheads scale automatically with double and
 ///   triple strokes:
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	label-sep: 10pt,
 ///   	edge-stroke: 1pt,
 ///   	for (i, s) in ("->", "=>", "==>").enumerate() {
@@ -569,7 +569,7 @@
 ///   obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
 ///   of the stroke's thickness) or lengths.
 ///
-///   #fletcher.diagram({
+///   #diagram({
 ///   	(
 ///   		(0,),
 ///   		(-1.5,+1.5),
@@ -593,7 +593,7 @@
 ///   #param[edge][crossing-fill] to give the illusion of lines crossing each
 ///    other.
 ///
-///   #fletcher.diagram({
+///   #diagram({
 ///   	edge((0,1), (1,0), stroke: 1pt)
 ///   	edge((0,0), (1,1), stroke: 1pt)
 ///   	edge((2,1), (3,0), stroke: 1pt)
@@ -608,7 +608,7 @@
 ///   normal stroke's thickness. Defaults to
 ///   #the-param[diagram][crossing-thickness].
 ///
-///   #fletcher.diagram({
+///   #diagram({
 ///   	(1, 2, 4, 8).enumerate().map(((i, x)) => {
 ///   		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
 ///   		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
@@ -624,7 +624,7 @@
 ///   	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
 ///   	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill, label-fill: true)
 ///   }
-///   #fletcher.diagram(crossing-thickness: 5, {
+///   #diagram(crossing-thickness: 5, {
 ///   	cross(0, white)
 ///   	cross(1, blue.lighten(50%))
 ///   })
@@ -652,7 +652,7 @@
 ///   `(s, s)`. Shifts can absolute lengths (e.g., `5pt`) or coordinate
 ///   differences (e.g., `0.1`).
 ///
-///   #fletcher.diagram(
+///   #diagram(
 ///   	node((0,0), $A$), node((1,0), $B$),
 ///   	edge((0,0), (1,0), "->", `3pt`, shift: 3pt),
 ///   	edge((0,0), (1,0), "->", `-3pt`, shift: -3pt, label-side: right),
@@ -1019,7 +1019,7 @@
 ///   specify them as separate arguments, or in a block:
 ///
 ///   ```typ
-///   #fletcher.diagram(
+///   #diagram(
 ///   	// one object per argument
 ///   	node((0, 0), $A$),
 ///   	node((1, 0), $B$),
@@ -1036,7 +1036,7 @@
 ///   Nodes and edges can also be specified in math-mode.
 ///
 ///   ```typ
-///   #fletcher.diagram($
+///   #diagram($
 ///   	A & B \          // two nodes at (0,0) and (1,0)
 ///   	C edge(->) & D \ // an edge from (0,1) to (1,1)
 ///   	node(sqrt(pi), stroke: #1pt) // a node with options

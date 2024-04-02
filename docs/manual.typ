@@ -1,5 +1,5 @@
 #import "@preview/tidy:0.2.0"
-#import "/src/exports.typ" as fletcher: node, edge
+#import "/src/exports.typ" as fletcher: diagram, node, edge
 #import "/docs/style.typ"
 
 #set page(numbering: "1")
@@ -146,7 +146,7 @@
 
 #align(center)[
 
-	#fletcher.diagram(
+	#diagram(
 		node-defocus: 0,
 		spacing: (1cm, 2cm),
 		edge-stroke: 1pt,
@@ -193,7 +193,7 @@
 
 	#v(1fr)
 
-	#fletcher.diagram(
+	#diagram(
 		spacing: (40mm, 35mm),
 		node-defocus: 0,
 		axes: (ltr, btt),
@@ -290,7 +290,7 @@
 
 Avoid importing everything with `*` as many internal functions are also exported.
 
-#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: node, edge")
+#raw(lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: diagram, node, edge")
 
 
 #let code-example(src) = (
@@ -319,7 +319,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	// You can specify nodes in math-mode, separated by `&`:
-	#fletcher.diagram($
+	#diagram($
 		G edge(f, ->) edge("d", pi, ->>) & im(f) \
 		G slash ker(f) edge("ur", tilde(f), "hook-->")
 	$)
@@ -327,7 +327,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	// Or you can use code-mode, with variables, loops, etc:
-	#fletcher.diagram(spacing: 2cm, {
+	#diagram(spacing: 2cm, {
 		let (A, B) = ((0,0), (1,0))
 		node(A, $cal(A)$)
 		node(B, $cal(B)$)
@@ -339,7 +339,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 	```),
 
 	..code-example(```typ
-	#fletcher.diagram(
+	#diagram(
 		debug: true,          // show a coordinate grid
 		spacing: (10mm, 5mm), // wide columns, narrow rows
 		node-stroke: 1pt,     // outline node shapes
@@ -358,7 +358,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	An equation $f: A -> B$ and \
-	an inline diagram #fletcher.diagram(
+	an inline diagram #diagram(
 		node-inset: 2pt,
 		label-sep: 0pt,
 		$A edge(->, text(#0.8em, f)) & B$
@@ -367,7 +367,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 
 	..code-example(```typ
-	#fletcher.diagram(
+	#diagram(
 		node-stroke: black + 0.5pt,
 		node-fill: gradient.radial(white, blue, center: (40%, 20%),
 		                           radius: 150%),
@@ -403,7 +403,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
-#fletcher.diagram(
+#diagram(
 	debug: true,
 	spacing: 10pt,
 	node-corner-radius: 3pt,
@@ -451,7 +451,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. Nodes automatically fit the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	debug: true, // show a coordinate grid
 	spacing: (5pt, 4em), // small column gaps, large row spacing
 	node((0,0), $f$),
@@ -479,7 +479,7 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 #code-example-row(```typ
 #import fletcher.shapes: pill, parallelogram, diamond, hexagon
 #let theme = rgb("8cf")
-#fletcher.diagram(
+#diagram(
 	node-fill: gradient.radial(white, theme, radius: 100%),
 	node-stroke: theme,
 	(
@@ -502,7 +502,7 @@ Custom CeTZ shapes are possible by passing a callback to `shape`, but it is up t
 Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's `outset`). Edges can have `label`s, can #param[edge][bend] into arcs, and can have various arrow #param[edge][marks].
 
 #code-example-row(```typ
-#fletcher.diagram(spacing: (12mm, 6mm), {
+#diagram(spacing: (12mm, 6mm), {
 	let (a, b, c, abc) = ((-1,0), (0,1), (1,0), (0,-1))
 	node(abc, $A times B times C$)
 	node(a, $A$)
@@ -528,7 +528,7 @@ To specify the start and end points of an edge, you may provide both explicitly 
 When `from` is implicit, it becomes the coordinate of the last `node`, and if `to` is implicit, the next `node`.
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	node((0,0), [London]),
 	edge("..|>", bend: 20deg),
 	node((1,1), [Paris]),
@@ -539,13 +539,13 @@ Implicit coordinates can be handy for diagrams in math-mode:
 
 
 #code-example-row(```typ
-#fletcher.diagram($ L edge("->", bend: #30deg) & P $)
+#diagram($ L edge("->", bend: #30deg) & P $)
 ```)
 
 However, don't forget you can also use variables in code-mode, which is a more explicit and flexible way to reduce repetition of coordinates.
 
 #code-example-row(```typ
-#fletcher.diagram(node-fill: blue, {
+#diagram(node-fill: blue, {
 	let (dep, arv) = ((0,0), (1,1))
 	node(dep, text(white)[London])
 	node(arv, text(white)[Paris])
@@ -560,7 +560,7 @@ You may specify an edge's direction instead of its end coordinate. This can be d
 #strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you to do things like:
 
 #code-example-row(```typ
-#fletcher.diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
+#diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
 ```)
 
 === Labelled coordinates
@@ -570,7 +570,7 @@ Nodes can be given a #param[node][name], which is a label (not a string) identif
 A label as an edge vertex is interpreted as the position of the node with that label.
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	node((0,0), $frak(A)$, name: <A>),
 	node((1,0), $frak(B)$, name: <B>),
 	edge(<A>, <B>, "-->")
@@ -587,7 +587,7 @@ In unspecified, `kind` is chosen based on `bend` and the number of `vertices`.
 
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	edge((0,0), (1,1), "->", `line`),
 	edge((2,0), (3,1), "->", bend: -30deg, `arc`),
 	edge((4,0), (4,1), (5,1), (6,0), "->", `poly`),
@@ -612,7 +612,7 @@ A node's #param[node][outset] controls how close edges connect to the node's bou
 To adjust where along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	node-stroke: (thickness: .5pt, dash: "dashed"),
 	node((0,0), [no outset], outset: 0pt),
 	node((0,1), [big outset], outset: 10pt),
@@ -624,7 +624,7 @@ To adjust where along the boundary the edge connects, you can adjust the edge's 
 
 The `shift` option of `edge()` lets you shift edges sideways by an absolute length:
 #code-example-row(```typ
-#fletcher.diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
+#diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
 ```)
 
 By default, edges which are incident at an angle are automatically adjusted slightly, especially if the node is wide or tall.
@@ -710,7 +710,7 @@ All the mark shorthands are defined in `fletcher.MARK_ALIASES` and `fletcher.MAR
 While shorthands exist for specifying marks and stroke styles, finer control is possible.
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	edge-stroke: 1.5pt,
 	spacing: 3cm,
 	edge((0,0), (-0.1,-1), bend: -10deg, marks: (
@@ -756,7 +756,7 @@ For example:
 #let my-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
 #let my-bar = (kind: "bar", extrude: (0, -3, -6))
 #let my-solid = (kind: "solid", sharpness: 45deg)
-#fletcher.diagram(
+#diagram(
 	edge-stroke: 1.4pt,
 	spacing: (3cm, 1cm),
 	edge((0,0), (1,0), marks: (my-head, my-head + (sharpness: 20deg))),
@@ -772,7 +772,7 @@ However, you are encouraged to use the functions `interpret-marks-arg()` and `in
 
 All marks accept an `outer-len` parameter, the effect of which can be seen below:
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	edge-stroke: 2pt,
 	spacing: 2cm,
 	debug: 4,
@@ -801,7 +801,7 @@ However, an escape hatch is provided with #the-param[diagram][render] so you can
 Here is an example of how you might hack together a Bézier edge using the same functions that `fletcher` uses internally to anchor edges to nodes:
 
 #code-example-row(```typ
-#fletcher.diagram(
+#diagram(
 	node((0,1), $A$, stroke: 1pt, shape: fletcher.shapes.diamond),
 	node((2,0), [Bézier], fill: purple.lighten(80%)),
 
@@ -863,7 +863,7 @@ First, we find all nodes of a certain fill, obtain their final coordinates, and 
 	)
 }
 
-#fletcher.diagram(
+#diagram(
   node((-1,0), `α`, fill: out-group, radius: 5mm),
   edge("o-o"),
   node((0, 0), `β`, fill: in-group, radius: 5mm),

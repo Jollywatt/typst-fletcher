@@ -13,7 +13,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 
 
 ```typ
-#import "@preview/fletcher:0.4.3" as fletcher: node, edge
+#import "@preview/fletcher:0.4.3" as fletcher: diagram, node, edge
 ```
 
 
@@ -24,7 +24,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 </picture>
 
 ```typ
-#fletcher.diagram(cell-size: 15mm, $
+#diagram(cell-size: 15mm, $
   G edge(f, ->) edge("d", pi, ->>) & im(f) \
   G slash ker(f) edge("ur", tilde(f), "hook-->")
 $)
@@ -41,7 +41,7 @@ $)
 #import fletcher.shapes: diamond
 #set text(font: "Comic Neue", weight: 600)
 
-#fletcher.diagram(
+#diagram(
   node-stroke: 1pt,
   edge-stroke: 1pt,
   node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
@@ -61,7 +61,7 @@ $)
 
 ```typ
 #set text(10pt)
-#fletcher.diagram(
+#diagram(
   node-stroke: .1em,
   node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
   spacing: 4em,
@@ -83,7 +83,7 @@ $)
 </picture>
 
 ```typ
-#fletcher.diagram($
+#diagram($
   e^- edge("rd", "-<|-") & & & edge("ld", "-|>-") e^+ \
   & edge(gamma, "wave") \
   e^+ edge("ru", "-|>-") & & & edge("lu", "-<|-") e^- \

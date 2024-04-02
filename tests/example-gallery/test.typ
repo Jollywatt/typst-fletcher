@@ -14,7 +14,7 @@
 	#import fletcher.shapes: diamond
 	#set text(font: "Comic Neue", weight: 600)
 
-	#fletcher.diagram(
+	#diagram(
 		node-stroke: 1pt,
 		edge-stroke: 1pt,
 		node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
@@ -29,7 +29,7 @@
 #pagebreak()
 
 #[
-	#fletcher.diagram(
+	#diagram(
 		node-stroke: .1em,
 		node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
 		spacing: 4em,
@@ -47,7 +47,7 @@
 #pagebreak()
 
 #[
-	#fletcher.diagram($
+	#diagram($
 		e^- edge("rd", "-<|-") & & & edge("ld", "-|>-") e^+ \
 		& edge(gamma, "wave") \
 		e^+ edge("ru", "-|>-") & & & edge("lu", "-<|-") e^- \
@@ -69,7 +69,7 @@
 		..args,
 	)
 
-	#fletcher.diagram(
+	#diagram(
 		spacing: 8pt,
 		cell-size: (8mm, 10mm),
 		edge-stroke: 1pt,

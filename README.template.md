@@ -14,7 +14,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 ````python
 f"""
 ```typ
-#import "@preview/fletcher:{get_version()}" as fletcher: node, edge
+#import "@preview/fletcher:{get_version()}" as fletcher: diagram, node, edge
 ```
 """
 ````

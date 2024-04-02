@@ -11,7 +11,7 @@
 	..args,
 )
 
-#fletcher.diagram(
+#diagram(
 	spacing: 8pt,
 	cell-size: (8mm, 10mm),
 	edge-stroke: 1pt/*<*/ + fg/*>*/,
