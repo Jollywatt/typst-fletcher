@@ -2,7 +2,6 @@
 #import "coords.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
-#import "marks.typ": *
 
 /// Draw a labelled node in a diagram which can connect to edges.
 ///

@@ -1,6 +1,5 @@
 #import "deps.typ": cetz
 #import "utils.typ": *
-#import calc: sqrt, abs, sin, cos, max, pow
 
 
 #let EDGE_ARGUMENT_SHORTHANDS = (
@@ -121,7 +120,7 @@
 ///  line to the arrow's edge.
 /// - y (length): Lateral offset from the central stroke line.
 #let round-arrow-cap-offset(r, θ, y) = {
-	r*(sin(θ) - sqrt(1 - pow(cos(θ) - abs(y)/r, 2)))
+	r*(calc.sin(θ) - calc.sqrt(1 - calc.pow(calc.cos(θ) - calc.abs(y)/r, 2)))
 }
 
 #let cap-offset(mark, y) = {
@@ -133,7 +132,7 @@
 	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
 	else if mark.kind == "circle" {
 		let r = mark.size
-		-sqrt(max(0, r*r - y*y)) - r
+		-calc.sqrt(calc.max(0, r*r - y*y)) - r
 	} else if mark.kind == "solid" {
 	-mark.outer-len/4
 
