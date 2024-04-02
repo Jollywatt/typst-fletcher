@@ -20,4 +20,4 @@ keywords = [
 	"node",
 	"arrow",
 ]
-exclude = ["docs/", "test/"]
+exclude = ["docs/", "tests/"]
