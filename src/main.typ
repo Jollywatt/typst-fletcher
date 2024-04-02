@@ -322,7 +322,7 @@
 	}
 
 	if pos.len() > 0 {
-		panic("Could not interpret `edge()` argument(s):", pos, "Other arguments were:", new-options)
+		panic("Couldn't understand `node()` positional argument(s):", pos, "Try using named arguments. Interpreted other arguments as:", new-options)
 	}
 
 	new-options

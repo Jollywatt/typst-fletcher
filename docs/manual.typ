@@ -372,14 +372,14 @@ Avoid importing everything with `*` as many internal functions are also exported
 		node-fill: gradient.radial(white, blue, center: (40%, 20%),
 		                           radius: 150%),
 		spacing: (15mm, 8mm),
-		node((0,0), [1], extrude: (0, -4)), // double stroke effect
-		node((1,0), [2]),
-		node((2,-1), [3a]),
-		node((2,+1), [3b]),
-		edge((0,0), (1,0), [go], "->"),
-		edge((1,0), (2,-1), "->", bend: -15deg),
-		edge((1,0), (2,+1), "->", bend: +15deg),
-		edge((2,+1), (2,+1), "->", bend: -130deg, label: [loop!]),
+		node((0,0), [1], name: <1>, extrude: (0, -4)), // double stroke
+		node((1,0), [2], name: <2>),
+		node((2,-1), [3a], name: <3a>),
+		node((2,+1), [3b], name: <3b>),
+		edge(<1>, <2>, [go], "->"),
+		edge(<2>, <3a>, "->", bend: -15deg),
+		edge(<2>, <3b>, "->", bend: +15deg),
+		edge(<3b>, <3b>, "->", bend: -130deg, label: [loop!]),
 	)
 	```)
 )
@@ -563,7 +563,7 @@ You may specify an edge's direction instead of its end coordinate. This can be d
 #diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
 ```)
 
-=== Labelled coordinates
+=== Named or labelled coordinates
 
 Another way coordinates can be expressed is through node names.
 Nodes can be given a #param[node][name], which is a label (not a string) identifying that node.
@@ -578,6 +578,7 @@ A label as an edge vertex is interpreted as the position of the node with that l
 ```)
 
 Node names are labels instead of strings (like in CeTZ) so that positional arguments to `edge()` are easier to disambiguate by their type.
+(Node labels are not inserted into the final outout, so they do not interfere with other labels in the document.)
 
 == Edge types
 
@@ -608,8 +609,8 @@ Only the first and last `vertices` of an edge snap to node outlines.
 
 == Tweaking where edges connect
 
-A node's #param[node][outset] controls how close edges connect to the node's boundary.
-To adjust where along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
+A node's #param[node][outset] controls how _close_ edges connect to the node's boundary.
+To adjust _where_ along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
 
 #code-example-row(```typ
 #diagram(
@@ -622,7 +623,7 @@ To adjust where along the boundary the edge connects, you can adjust the edge's 
 )
 ```)
 
-The `shift` option of `edge()` lets you shift edges sideways by an absolute length:
+Alternatively, the `shift` option of `edge()` lets you shift edges sideways by an absolute length:
 #code-example-row(```typ
 #diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
 ```)
@@ -654,7 +655,7 @@ The strength of this adjustment is controlled by the `defocus` option of `node()
 = Marks and arrows
 
 Edges can be arrows.
-Marks can be specified by shorthands like  `edge(a, b, "-->")` or with the `marks` option of `edge()`.
+Arrow marks can be specified like  `edge(a, b, "-->")` or with the `marks` option of `edge()`.
 Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$.
 #align(center, fletcher.diagram(
 	debug: 0,
@@ -725,8 +726,16 @@ While shorthands exist for specifying marks and stroke styles, finer control is 
 
 Shorthands like `"<->"` expand into specific `edge()` options.
 For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`.
-Mark names such as `"bar"` or `"doublehead"` are themselves shorthands for dictionaries defining the marks' parameters.
-These can be retrieved from the mark name as follows:
+These mark names (`"bar"` or `"doublehead"`) are themselves shorthands for dictionaries with the marks' parameters.
+To see how these shorthands expand, you can use `interpret-marks-arg()`.
+
+#code-example-row(```typ
+#fletcher.interpret-marks-arg("|=>")
+
+// `edge(..args, marks: "|=>")` is equivalent to:
+// `edge(..args, ..fletcher.interpret-marks-arg("|=>"))`
+```)
+You can get also get the default parameters for an individual mark as follows:
 #code-example-row(```typ
 #fletcher.interpret-mark("doublehead")
 // In this particular example:
@@ -739,14 +748,6 @@ These can be retrieved from the mark name as follows:
 //    correction to the arrowhead's bearing for tightly curved edges.
 // Distances are multiples of the stroke thickness.
 ```)
-Finally, the fully expanded version of a mark shorthand can be obtained with `interpret-marks-arg()`:
-#code-example-row(```typ
-#fletcher.interpret-marks-arg("|=>")
-
-// `edge(..args, marks: "|=>")` is equivalent to
-// `edge(..args, ..fletcher.interpret-marks-arg("|=>"))`
-```)
-
 
 
 You can customise the basic marks somewhat by adjusting these parameters.
@@ -764,8 +765,8 @@ For example:
 )
 ```))
 
-The particular marks and parameters are hard-wired and will likely change as this package is updated (so they are not documented).
-However, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover the parameters for finer control.
+Currently, supported marks and parameters are hard-wired and will likely change as this package is updated (so they are not documented).
+Meanwhile, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover what the parameters are so you can play around.
 
 #box[
 == Hanging tail correction
@@ -917,6 +918,10 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 ```
 
 #pagebreak(weak: true)
+
+#align(center, text(2em)[*Reference*])
+#v(1em)
+
 = Main functions <func-ref>
 
 
