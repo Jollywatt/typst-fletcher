@@ -13,7 +13,7 @@ See the [manual](https://github.com/Jollywatt/typst-fletcher/raw/latest/docs/man
 
 
 ```typ
-#import "@preview/fletcher:0.4.3" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.4.4" as fletcher: diagram, node, edge
 ```
 
 
