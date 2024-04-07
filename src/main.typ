@@ -169,6 +169,10 @@
 		}
 	}
 
+	let extrude = as-array(extrude).map(as-number-or-length.with(
+		message: "`extrude` must be a number, length, or an array of those"
+	))
+
 	metadata((
 		class: "node",
 		pos: pos,
@@ -176,7 +180,7 @@
 		label: label,
 		inset: inset,
 		outset: outset,
-		enclose: enclose,
+		enclose: as-array(enclose),
 		size: (width, height),
 		radius: radius,
 		shape: shape,
@@ -192,7 +196,7 @@
 
 
 #let resolve-node-options(node, options) = {
-	let to-pt(len) = to-abs-length(len, options.em-size)
+	let to-pt(len) = to-abs-length(as-length(len), options.em-size)
 
 	node.stroke = map-auto(node.stroke, options.node-stroke)
 	if node.stroke != none {
@@ -323,7 +327,7 @@
 	}
 
 	if pos.len() > 0 {
-		panic("Couldn't understand `node()` positional argument(s):", pos, "Try using named arguments. Interpreted other arguments as:", new-options)
+		panic("Couldn't understand `edge()` positional argument(s):", pos, "Try using named arguments. Interpreted other arguments as:", new-options)
 	}
 
 	new-options
@@ -736,7 +740,7 @@
 		crossing: crossing,
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
-		snap-to: snap-to,
+		snap-to: as-pair(snap-to),
 		post: post,
 	)
 
@@ -833,7 +837,9 @@
 	)
 	edge.stroke.thickness = to-pt(edge.stroke.thickness)
 
-	edge.extrude = edge.extrude.map(d => {
+	edge.extrude = as-array(edge.extrude).map(as-number-or-length.with(
+		message: "`extrude` must be a number, length, or an array of those"
+	)).map(d => {
 		if type(d) == length { to-pt(d) }
 		else { d*edge.stroke.thickness }
 	})
@@ -941,7 +947,7 @@
 
 	if args.named().len() > 0 {
 		let args = args.named().keys().join(", ")
-		panic("Unexpected named argument(s) to diagram: " + args)
+		panic("Unexpected named argument(s) to `diagram()`: " + args)
 	}
 
 	let positional-args = args.pos().flatten().join() + [] // join to ensure sequence
@@ -988,7 +994,7 @@
 			edges += result.edges
 
 		} else {
-			panic("Unrecognised value passed to diagram", obj)
+			panic("Unrecognised value passed to diagram:", obj)
 		}
 	}
 

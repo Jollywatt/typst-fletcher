@@ -18,7 +18,26 @@
 #let as-label(x) = {
 	if type(x) == label { x }
 	else if type(x) == str { label(x) }
-	else { panic("Expected label or string, got " + repr(x)) }
+	else { panic("Expected label or string; got " + repr(x)) }
+}
+
+#let as-pair(obj, message: "") = {
+	if type(obj) == array {
+		if obj.len() == 2 { obj }
+		else { panic("Expected a pair (array of length 2); got " + repr(obj))}
+	} else { (obj, obj) }
+}
+
+#let as-array(obj) = if type(obj) == array { obj } else { (obj,) }
+
+#let as-number-or-length(obj, message: "Expected a number or length") = {
+	if type(obj) in (int, float, length) { obj }
+	else { panic(message + "; got " + repr(obj)) }
+}
+
+#let as-length(obj, message: "Expected a length") = {
+	if type(obj) == length { obj }
+	else { panic(message + "; got " + repr(obj)) }
 }
 
 #let stroke-to-dict(s) = {

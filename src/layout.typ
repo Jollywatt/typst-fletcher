@@ -77,12 +77,8 @@
 		let (center, size) = bounding-rect(enclosed-vertices)
 
 		node.final-pos = center
-
-		// node.pos = bounding-rect(enclosed-centers).center
 		node.size = size.map(d => d + node.inset*2)
 		node.shape = shapes.rect
-
-		// panic(node)
 
 		node
 	})
