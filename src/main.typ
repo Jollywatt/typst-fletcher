@@ -324,6 +324,7 @@
 	}
 
 
+
 	// accept (mark, label), (label, mark) or just either one
 	if peek(pos, maybe-marks, maybe-label) {
 		new-options.marks = pos.remove(0)
@@ -1029,8 +1030,7 @@
 	nodes = nodes.map(node => {
 		if node.enclose.len() > 0 and node.pos == auto {
 			let enclosed-centers = node.enclose
-				.map(find-node.with(nodes))
-				.map(node => node.pos)
+				.map(resolve-label-coordinate.with(nodes))
 			node.pos = bounding-rect(enclosed-centers).center
 		}
 		node

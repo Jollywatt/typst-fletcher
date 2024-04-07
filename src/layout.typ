@@ -59,18 +59,22 @@
 	let nodes = nodes.map(node => {
 		if node.enclose.len() == 0 { return node }
 
-		let enclosed-nodes = node.enclose.map(find-node.with(nodes))
-		let enclosed-centers = enclosed-nodes.map(node => node.pos)
+		let enclosed-vertices = node.enclose.map(key => {
 
-		let enclosed-vertices = enclosed-nodes.map(node => {
-			let (x, y) = node.final-pos
-			let (w, h) = node.size
-			(
-				(x - w/2, y - h/2),
-				(x - w/2, y + h/2),
-				(x + w/2, y - h/2),
-				(x + w/2, y + h/2),
-			)
+			let node = find-node(nodes, key)
+
+			if node == none {
+				(uv-to-xy(grid, key),)
+			} else {
+				let (x, y) = node.final-pos
+				let (w, h) = node.size
+				(
+					(x - w/2, y - h/2),
+					(x - w/2, y + h/2),
+					(x + w/2, y - h/2),
+					(x + w/2, y + h/2),
+				)
+			}
 		}).join()
 
 
