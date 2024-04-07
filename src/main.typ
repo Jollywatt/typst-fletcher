@@ -46,6 +46,26 @@
 ///   This does not affect node layout, only how closely edges connect to the
 ///   node.
 ///
+/// - enclose (array): Positions or names of other nodes to enclose by enlarging
+///   this node.
+///
+///   If given, causes the node to resize so that its bounding rectangle
+///   surrounds the given nodes. The center #param[node][pos] does not affect
+///   the node's position if `enclose` is given, but still affects connecting 
+///   edges.
+///
+///   #box(example(```
+///   diagram(
+///   	node-stroke: 1pt,
+///   	node((0,0), [ABC], name: <A>),
+///   	node((1,1), [XYZ], name: <Z>),
+///   	node(
+///   		text(teal)[Node group], stroke: teal,
+///   		enclose: (<A>, <Z>), name: <group>),
+///   	edge(<group>, (3,0.5), stroke: teal),
+///   )
+///   ```))
+///
 /// - shape (rect, circle, function, auto): Shape to draw for the node. If
 ///   `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
 ///   of the node's label.
@@ -1253,6 +1273,11 @@
 
 		// measure node sizes and determine diagram layout
 
+		for edge in edges {
+			if not edge.vertices.all(i => type(i) == array) {
+				panic(edge)
+			}
+		}
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
 
