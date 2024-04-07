@@ -133,6 +133,10 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.4.4
+
+- Add node groups via the `enclose` option of `node()`.
+
 ### 0.4.3
 
 - Fixed edge crossing backgrounds being drawn above nodes (#14).
