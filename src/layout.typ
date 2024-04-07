@@ -173,12 +173,13 @@
 ///
 /// - grid (dicitionary): Representation of the grid layout, including:
 ///   - `flip`
-#let compute-cell-sizes(grid, nodes) = {
+#let compute-cell-sizes(grid, edges, nodes) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
 	let points = rects.map(r => r.center)
+	points += edges.map(edge => edge.vertices).join()
 
 	if points.len() == 0 { points.push((0,0)) }
 
@@ -245,14 +246,14 @@
 ///
 /// Rows and columns are sized to fit nodes. Coordinates are not required to
 /// start at the origin, `(0,0)`.
-#let compute-grid(nodes, options) = {
+#let compute-grid(nodes, edges, options) = {
 	let grid = (
 		axes: options.axes,
 		spacing: options.spacing,
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, nodes)
+	grid += compute-cell-sizes(grid, edges, nodes)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)

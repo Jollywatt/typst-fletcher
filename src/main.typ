@@ -1220,21 +1220,6 @@
 			node.pos = resolve-label-coordinate(nodes, node.pos)
 			node
 		})
-
-		// measure node sizes and determine diagram layout
-
-		let nodes = compute-node-sizes(nodes, styles)
-		let grid = compute-grid(nodes, options)
-
-		// compute final/cetz coordinates for nodes and edges
-
-		nodes = nodes.map(node => {
-			node.final-pos = uv-to-xy(grid, node.pos)
-			node
-		})
-
-		nodes = compute-node-enclosures(nodes, grid)
-
 		edges = edges.map(edge => {
 
 			let first-last-labels = (0, -1).map(i => {
@@ -1259,6 +1244,21 @@
 
 			edge
 		})
+
+		// measure node sizes and determine diagram layout
+
+		let nodes = compute-node-sizes(nodes, styles)
+		let grid = compute-grid(nodes, edges, options)
+
+		// compute final/cetz coordinates for nodes and edges
+
+		nodes = nodes.map(node => {
+			node.final-pos = uv-to-xy(grid, node.pos)
+			node
+		})
+
+		nodes = compute-node-enclosures(nodes, grid)
+
 		edges = edges.map(edge => {
 			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
 			if edge.kind == "corner" {
