@@ -137,11 +137,12 @@
 	..args,
 	pos: auto,
 	name: none,
-	label: auto,
+	label: none,
 	inset: auto,
 	outset: auto,
 	stroke: auto,
 	fill: auto,
+	enclose: (),
 	width: auto,
 	height: auto,
 	radius: auto,
@@ -175,6 +176,7 @@
 		label: label,
 		inset: inset,
 		outset: outset,
+		enclose: enclose,
 		size: (width, height),
 		radius: radius,
 		shape: shape,
@@ -997,6 +999,17 @@
 		edge
 	})
 
+	// allow nodes which enclose other nodes to have pos: auto
+	nodes = nodes.map(node => {
+		if node.enclose.len() > 0 and node.pos == auto {
+			let enclosed-centers = node.enclose
+				.map(find-node.with(nodes))
+				.map(node => node.pos)
+			node.pos = bounding-rect(enclosed-centers).center
+		}
+		node
+	})
+
 	for node in nodes {
 		assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
 	}
@@ -1207,22 +1220,30 @@
 			node.pos = resolve-label-coordinate(nodes, node.pos)
 			node
 		})
-		edges = edges.map(edge => {
-			let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
-			edge.vertices = resolve-relative-coordinates(verts)
-			edge
-		})
 
 		// measure node sizes and determine diagram layout
 
 		let nodes = compute-node-sizes(nodes, styles)
-		let grid = compute-grid(nodes, edges, options)
+		let grid = compute-grid(nodes, options)
 
 		// compute final/cetz coordinates for nodes and edges
 
 		nodes = nodes.map(node => {
 			node.final-pos = uv-to-xy(grid, node.pos)
 			node
+		})
+
+		nodes = compute-node-enclosures(nodes, grid)
+
+		edges = edges.map(edge => {
+			edge.snap-to = (
+				map-auto(edge.snap-to.at(0), edge.vertices.at(0)),
+				map-auto(edge.snap-to.at(1), edge.vertices.at(-1)),
+			)
+
+			let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
+			edge.vertices = resolve-relative-coordinates(verts)
+			edge
 		})
 		edges = edges.map(edge => {
 			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))

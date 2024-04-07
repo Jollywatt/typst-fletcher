@@ -201,3 +201,23 @@
 }
 
 
+#let find-node-at(nodes, pos) = {
+	nodes.filter(node => {
+		// node must be within a one-unit block around pos
+		vector.sub(node.pos, pos).all(Δ => calc.abs(Δ) < 1)
+	})
+		.sorted(key: node => vector.len(vector.sub(node.pos, pos)))
+		.at(0, default: none)
+}
+
+#let find-node(nodes, key) = {
+	if type(key) == label {
+		let node = nodes.find(node => node.name == key)
+		assert(node != none, message: "Couldn't resolve name " + repr(key))
+		node
+	} else if type(key) == array {
+		find-node-at(nodes, key)
+	} else {
+		panic("Couldn't find node corresponding to " + repr(key))
+	}
+}

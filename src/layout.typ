@@ -55,6 +55,40 @@
 })
 
 
+#let compute-node-enclosures(nodes, grid) = {
+	let nodes = nodes.map(node => {
+		if node.enclose.len() == 0 { return node }
+
+		let enclosed-nodes = node.enclose.map(find-node.with(nodes))
+		let enclosed-centers = enclosed-nodes.map(node => node.pos)
+
+		let enclosed-vertices = enclosed-nodes.map(node => {
+			let (x, y) = node.final-pos
+			let (w, h) = node.size
+			(
+				(x - w/2, y - h/2),
+				(x - w/2, y + h/2),
+				(x + w/2, y - h/2),
+				(x + w/2, y + h/2),
+			)
+		}).join()
+
+
+		let (center, size) = bounding-rect(enclosed-vertices)
+
+		node.final-pos = center
+
+		// node.pos = bounding-rect(enclosed-centers).center
+		node.size = size.map(d => d + node.inset*2)
+		node.shape = shapes.rect
+
+		// panic(node)
+
+		node
+	})
+
+	nodes
+}
 
 /// Convert an array of rects `(center: (x, y), size: (w, h))` with fractional
 /// positions into rects with integral positions.
@@ -139,13 +173,12 @@
 ///
 /// - grid (dicitionary): Representation of the grid layout, including:
 ///   - `flip`
-#let compute-cell-sizes(grid, nodes, edges) = {
+#let compute-cell-sizes(grid, nodes) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
 	let points = rects.map(r => r.center)
-	points += edges.map(e => e.vertices).join()
 
 	if points.len() == 0 { points.push((0,0)) }
 
@@ -212,14 +245,14 @@
 ///
 /// Rows and columns are sized to fit nodes. Coordinates are not required to
 /// start at the origin, `(0,0)`.
-#let compute-grid(nodes, edges, options) = {
+#let compute-grid(nodes, options) = {
 	let grid = (
 		axes: options.axes,
 		spacing: options.spacing,
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, nodes, edges)
+	grid += compute-cell-sizes(grid, nodes)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
