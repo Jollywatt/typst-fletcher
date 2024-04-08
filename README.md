@@ -127,6 +127,15 @@ Pull requests are most welcome!
       </a>
     </td>
   </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/node-groups.typ">
+        <center>
+          <img src="docs/gallery/node-groups.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
 </table>
 
 

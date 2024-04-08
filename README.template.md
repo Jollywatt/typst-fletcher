@@ -39,6 +39,7 @@ insert_example_table([
   "algebra-cube",
   "ml-architecture",
   "io-flowchart",
+  "node-groups",
 ])
 ```
 
