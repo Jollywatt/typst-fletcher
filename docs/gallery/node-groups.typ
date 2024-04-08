@@ -1,4 +1,4 @@
-#import "/src/exports.typ" as fletcher: diagram, node, edge, shapes
+#import "@preview/fletcher:0.4.4" as fletcher: diagram, node, edge, shapes
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 
 
