@@ -9,6 +9,16 @@
 /// the node's label.
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
+	let inner-size = node.size.map(pass-auto(i => i - 2*node.inset))
+
+	let (width, height) = measure(box(
+		node.label,
+		width:  inner-size.at(0),
+		height: inner-size.at(1),
+	), styles)
+	
+	node.label-size = (width, height)
+
 	// Width and height explicitly given
 	if auto not in node.size {
 		let (width, height) = node.size
@@ -24,7 +34,7 @@
 	} else {
 
 		// Determine physical size of node content
-		let (width, height) = measure(node.label, styles)
+		let (width, height) = node.label-size
 		let radius = vector-len((width/2, height/2)) // circumcircle
 
 		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }

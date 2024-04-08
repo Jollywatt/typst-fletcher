@@ -654,7 +654,22 @@
 		}
 
 		if node.label != none {
-			cetz.draw.content(node.final-pos, node.label, anchor: "center")
+			
+			let inner-size = node.size.map(i => i - 2*node.inset)
+			cetz.draw.content(
+				node.final-pos,
+				box(
+					// wrapping label in a box allows user to control its alignment
+					align(center + horizon, node.label),
+					stroke: if debug >= 3 { DEBUG_COLOR + 0.25pt },
+					// width:  calc.max(inner-size.at(0), node.label-size.at(0)),
+					// height: calc.max(inner-size.at(1), node.label-size.at(1)),
+					width:  node.label-size.at(0),
+					height: node.label-size.at(1),
+				),
+				anchor: "center",
+			)
+			
 		}
 
 	}
