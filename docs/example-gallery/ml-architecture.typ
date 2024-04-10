@@ -4,7 +4,7 @@
 
 #let blob(pos, label, tint: white, ..args) = node(
 	pos, align(center, label),
-	width: 25mm,
+	width: 26mm,
 	fill: tint.lighten(60%),
 	stroke: 1pt + tint.darken(20%),
 	corner-radius: 5pt,
@@ -20,7 +20,7 @@
 
 	blob((0,1), [Add & Norm], tint: yellow, shape: hexagon),
 	edge(),
-	blob((0,2), [Multi-Head\ Attention], tint: orange),
+	blob((0,2), [Multi-Head Attention], tint: orange),
 	blob((0,4), [Input], shape: house.with(angle: 30deg),
 		width: auto, tint: red),
 
@@ -37,5 +37,5 @@
 	edge("<|-"),
 	blob((2,1), [Add & Norm], tint: yellow, shape: hexagon),
 	edge(),
-	blob((2,2), [Feed\ Forward], tint: blue),
+	blob((2,2), [Feed Forward], tint: blue),
 )

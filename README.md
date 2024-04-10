@@ -145,6 +145,8 @@ Pull requests are most welcome!
 ### 0.4.4
 
 - Add node groups via the `enclose` option of `node()`.
+- Node labels can be aligned inside the node with `align()`.
+- Node labels wrap naturally when label text is wider than the node. **Note:** This may change diagram layout from previous versions.
 
 ### 0.4.3
 
