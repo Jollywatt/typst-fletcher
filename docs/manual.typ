@@ -97,18 +97,22 @@
 #set raw(lang: "typc")
 #show raw.where(block: false): it => {
 	// if raw block is a funciton call, like `foo()`, make it a link
-	if it.text.match(regex("^[a-z-]+\(\)$")) != none {
-		return link(label(it.text), it)
-	} else {
-		it
+	if it.text.match(regex("^[a-z-]+\(\)$")) == none { it }
+	else {
+		let l = label(it.text)
+		locate(loc => {
+			if query(l, loc).len() > 0 {
+				link(l, it)
+			} else {
+				it
+			}
+		})
 	}
 }
 
 
 #v(1fr)
 
-// #heading(outlined: false)[Contents]
-// #block(height: 40%, columns(2, outline(indent: 1em, title: none)))
 
 #columns(2)[
 	#outline(
@@ -491,8 +495,40 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 )
 ```)
 
-Custom CeTZ shapes are possible by passing a callback to `shape`, but it is up to the user implement outline extrusion; see the `shape` option of `node()` for details.
+Custom CeTZ shapes are possible by passing a callback to #param[node][shape], but it is up to the user implement outline extrusion; see #the-param[node][shape] for details.
 
+== Node groups
+
+Nodes are usually centered at a particular coordinate, but they can also #param[node][enclose] multiple centers.
+When #the-param[node][enclose] is given, the node automatically resizes.
+
+#code-example-row(```typ
+#diagram(
+	node-stroke: 0.6pt,
+	node($Sigma$, enclose: ((1,1), (1,2)), // a node spanning multiple centers
+	    inset: 10pt, stroke: teal, name: <bar>),
+	node((2,1), [X]),
+	node((2,2), [Y]),
+	edge((1,1), "r", "->", snap-to: (<bar>, auto)),
+	edge((1,2), "r", "->", snap-to: (<bar>, auto)),
+)
+```)
+
+You can also #param[node][enclose] other nodes by coordinate or #param[node][name] to create node groups:
+
+#code-example-row(```typ
+#diagram(
+	spacing: 20pt,
+	node-stroke: 0.6pt,
+	node((0,1), [X]),
+	edge("->-", bend: 40deg),
+	node((1,0), [Y], name: <y>),
+	node($Sigma$, enclose: ((0,1), <y>), // a node enclosing other nodes
+	     inset: 10pt, stroke: teal, name: <group>),
+	node((2.5,0.5), [Z], name: <z>),
+	edge(<group>, <z>, "->"),
+)
+```)
 
 
 = Edges

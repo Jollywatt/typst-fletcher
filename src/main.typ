@@ -37,6 +37,9 @@
 ///
 /// - label (content): Content to display inside the node.
 ///
+///   If a node is larger than its label, you can wrap the label in `align()` to
+///   control the label alignment within the node.
+///
 /// - inset (length, auto): Padding between the node's content and its bounding
 ///   box or bounding circle.
 ///
@@ -1275,7 +1278,7 @@
 
 		for edge in edges {
 			if not edge.vertices.all(i => type(i) == array) {
-				panic(edge)
+				panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
 			}
 		}
 		let nodes = compute-node-sizes(nodes, styles)
