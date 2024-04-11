@@ -2,6 +2,76 @@
 #import "marks.typ": *
 
 #let DEBUG_COLOR = rgb("f008")
+#let DEBUG_COLOR2 = rgb("0f08")
+
+
+#let draw-node(node, debug: 0) = {
+
+	let result = {
+		if node.stroke != none or node.fill != none {
+
+			cetz.draw.group({
+				cetz.draw.translate(node.final-pos)
+				for (i, extrude) in node.extrude.enumerate() {
+					cetz.draw.set-style(
+						fill: if i == 0 { node.fill },
+						stroke: node.stroke,
+					)
+					(node.shape)(node, extrude)
+				}
+			})
+
+		}
+
+		if node.label != none {
+			
+			cetz.draw.content(
+				node.final-pos,
+				box(
+					// wrapping label in a box allows user to control its alignment
+					align(center + horizon, node.label),
+					stroke: if debug >= 3 { DEBUG_COLOR2 + 0.25pt },
+					width:  node.size.at(0) - 2*node.inset,
+					height: node.size.at(1) - 2*node.inset,
+				),
+				anchor: "center",
+			)
+			
+		}
+
+	}
+	(node.post)(result) // post-process (e.g., hide)
+
+	// Draw debug stuff
+	if debug >= 1 {
+		// dot at node anchor
+		cetz.draw.circle(
+			node.final-pos,
+			radius: 0.5pt,
+			fill: DEBUG_COLOR,
+			stroke: none,
+		)
+	}
+
+	// Show anchor outline
+	if debug >= 2 and node.radius != 0pt {
+		cetz.draw.group({
+			cetz.draw.translate(node.final-pos)
+			cetz.draw.set-style(
+				stroke: DEBUG_COLOR + .1pt,
+				fill: none,
+			)
+			(node.shape)(node, node.outset)
+		})
+
+		cetz.draw.rect(
+			..rect-at(node.final-pos, node.size),
+			stroke: DEBUG_COLOR + .1pt,
+		)
+	}
+}
+
+
 
 #let draw-edge-label(edge, label-pos, debug: 0) = {
 	cetz.draw.content(
@@ -635,74 +705,6 @@
 
 
 
-#let draw-node(node, debug: 0) = {
-
-	let result = {
-		if node.stroke != none or node.fill != none {
-
-			cetz.draw.group({
-				cetz.draw.translate(node.final-pos)
-				for (i, extrude) in node.extrude.enumerate() {
-					cetz.draw.set-style(
-						fill: if i == 0 { node.fill },
-						stroke: node.stroke,
-					)
-					(node.shape)(node, extrude)
-				}
-			})
-
-		}
-
-		if node.label != none {
-			
-			let inner-size = node.size.map(i => i - 2*node.inset)
-			cetz.draw.content(
-				node.final-pos,
-				box(
-					// wrapping label in a box allows user to control its alignment
-					align(center + horizon, node.label),
-					stroke: if debug >= 3 { DEBUG_COLOR + 0.25pt },
-					// width:  calc.max(inner-size.at(0), node.label-size.at(0)),
-					// height: calc.max(inner-size.at(1), node.label-size.at(1)),
-					width:  node.label-size.at(0),
-					height: node.label-size.at(1),
-				),
-				anchor: "center",
-			)
-			
-		}
-
-	}
-	(node.post)(result) // post-process (e.g., hide)
-
-	// Draw debug stuff
-	if debug >= 1 {
-		// dot at node anchor
-		cetz.draw.circle(
-			node.final-pos,
-			radius: 0.5pt,
-			fill: DEBUG_COLOR,
-			stroke: none,
-		)
-	}
-
-	// Show anchor outline
-	if debug >= 2 and node.radius != 0pt {
-		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
-			cetz.draw.set-style(
-				stroke: DEBUG_COLOR + .1pt,
-				fill: none,
-			)
-			(node.shape)(node, node.outset)
-		})
-
-		cetz.draw.rect(
-			..rect-at(node.final-pos, node.size),
-			stroke: DEBUG_COLOR + .1pt,
-		)
-	}
-}
 
 
 #let draw-debug-axes(grid) = {
