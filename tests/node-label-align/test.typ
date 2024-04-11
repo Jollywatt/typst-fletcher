@@ -3,7 +3,6 @@
 
 #diagram(
 	spacing: 5pt,
-	// node-inset: 0pt,
 	node((0,0), [Hi], height: 15mm, stroke: 1pt + red),
 	node((1,0), align(top)[Hi], height: 15mm, stroke: 1pt + green),
 	node((2,0), align(bottom)[Hi], height: 15mm, stroke: 1pt + blue),
@@ -18,11 +17,18 @@
 #pagebreak()
 
 #diagram(
-	// debug: 3,
 	spacing: 5pt,
 	node-fill: yellow,
 	node((0,0), [Automatic width]),
 	node((0,1), align(left)[Explicit width causes wrapping], width: 35mm),
+)
+
+#pagebreak()
+
+#diagram(
+	node(align(top + left, box(fill: orange)[aligned \ content]), enclose: ((0,1), (1,0)), fill: yellow, inset: 0pt),
+	node((1,0), [node], fill: green),
+	node((0,1), [x \ y], fill: green),
 )
 
 #pagebreak()
