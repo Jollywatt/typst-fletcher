@@ -71,13 +71,13 @@
 
 		let enclosed-vertices = node.enclose.map(key => {
 
-			let node = find-node(nodes, key)
+			let near-node = find-node(nodes, key)
 
-			if node == none {
+			if near-node == none or near-node == node {
 				(uv-to-xy(grid, key),)
 			} else {
-				let (x, y) = node.final-pos
-				let (w, h) = node.size
+				let (x, y) = near-node.final-pos
+				let (w, h) = near-node.size
 				(
 					(x - w/2, y - h/2),
 					(x - w/2, y + h/2),
@@ -87,11 +87,13 @@
 			}
 		}).join()
 
-
 		let (center, size) = bounding-rect(enclosed-vertices)
 
 		node.final-pos = center
-		node.size = size.map(d => d + node.inset*2)
+		node.size = vector-max(
+			size.map(d => d + node.inset*2),
+			node.size,
+		)
 		node.shape = shapes.rect
 
 		node

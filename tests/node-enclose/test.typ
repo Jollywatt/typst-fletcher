@@ -19,23 +19,23 @@
 #pagebreak()
 
 #diagram(
-  node-stroke: .7pt,
-  edge-stroke: .7pt,
-  spacing: 10pt,
+	node-stroke: .7pt,
+	edge-stroke: .7pt,
+	spacing: 10pt,
 
-  node((0,1), [volume]),
-  node((0,2), [gain]),
-  node((0,3), [fine]),
+	node((0,1), [volume]),
+	node((0,2), [gain]),
+	node((0,3), [fine]),
 
-  edge((0,1), "r", "->", snap-to: (auto, <bar>)),
-  edge((0,2), "r", "->", snap-to: (auto, <bar>)),
-  edge((0,3), "r", "->", snap-to: (auto, <bar>)),
+	edge((0,1), "r", "->", snap-to: (auto, <bar>)),
+	edge((0,2), "r", "->", snap-to: (auto, <bar>)),
+	edge((0,3), "r", "->", snap-to: (auto, <bar>)),
 
-  // a node that encloses/spans multiple grid points,
-  node($Sigma$, enclose: ((1,1), (1,3)), inset: 10pt, name: <bar>),
+	// a node that encloses/spans multiple grid points,
+	node($Sigma$, enclose: ((1,1), (1,3)), inset: 10pt, name: <bar>),
 
-  edge((1,1), "r,u", "->", snap-to: (<bar>, auto)),
-  node((2,0), $ times $, radius: 8pt),
+	edge((1,1), "r,u", "->", snap-to: (<bar>, auto)),
+	node((2,0), $ times $, radius: 8pt),
 )
 
 #pagebreak()
@@ -50,3 +50,20 @@
 	edge("o-o")
 	node(`L7`, enclose: ((0,0), (1,0)), stroke: red + 0.5pt, extrude: (0,2))
 })
+
+#pagebreak()
+
+#diagram(
+	node-stroke: .7pt,
+	edge-stroke: .7pt,
+	// node(enclose: ((2,1), (2,2)), corner-radius: 15pt, inset: 5pt, fill: green),
+	node((0,1), $ a $, radius: 10pt),
+	node((0,2), $ b $, radius: 10pt),
+	edge((0,1), "r", "->", snap-to: (auto, <bar>)),
+	edge((0,2), "r", "->", snap-to: (auto, <bar>)),
+	node($ Sigma $, enclose: ((1,1), (1,2)), name: <bar>),
+	edge((1,1), "r", "->", snap-to: (<bar>, auto)),
+	edge((1,2), "r", "->", snap-to: (<bar>, auto)),
+	node((2,1), $ x $, radius: 10pt),
+	node((2,2), $ y $, radius: 10pt),
+)
