@@ -110,6 +110,14 @@
 	}
 }
 
+// bug in typst v0.11.0
+// https://github.com/typst/typst/pull/3847
+// remove once fixed
+#show raw.where(block: true): it => {
+	set text(1.25em)
+	raw(it.text.replace("\t", "  "), lang: it.lang)
+}
+
 
 #v(1fr)
 
@@ -926,7 +934,7 @@ First, we find all nodes of a certain fill, obtain their final coordinates, and 
 
 You can create incrementally-revealed diagrams in Touying presentation slides by defining the following `touying-reducer`:
 
-```
+```typ
 #import "@preview/touying:0.2.1": *
 #let diagram = touying-reducer.with(reduce: fletcher.diagram, cover: fletcher.hide)
 #let (init, slide) = utils.methods(s)
