@@ -58,7 +58,7 @@
 
 #let hexagon(node, extrude, angle: 30deg) = {
 	let (w, h) = node.size
-	let (x, y) = (w/2 , h/2 + extrude)
+	let (x, y) = (w/2, h/2 + extrude)
 	let δ = y*calc.tan(angle)
 	x += extrude*calc.tan(45deg - angle/2)
 	draw.line(
@@ -83,6 +83,29 @@
 		(0pt, b),
 		(+x,  a),
 		(+x, -y),
+		close: true,
+	)
+}
+
+
+#let octagon(node, extrude, truncate: 0.5) = {
+	let (w, h) = node.size
+	let (x, y) = (w/2 + extrude, h/2 + extrude)
+
+	let d
+	if type(truncate) == length { d = truncate }
+	else { d = truncate*calc.min(w/2, h/2)}
+	d += extrude*0.5857864376 // (1 - calc.tan(calc.pi/8))
+
+	draw.line(
+		(-x + d, -y    ),
+		(-x    , -y + d),
+		(-x    , +y - d),
+		(-x + d, +y    ),
+		(+x - d, +y    ),
+		(+x    , +y - d),
+		(+x    , -y + d),
+		(+x - d, -y    ),
 		close: true,
 	)
 }
