@@ -75,13 +75,11 @@
 ///
 ///   Some other shape functions are provided in the `fletcher.shapes`
 ///   submodule, including
-///   #(
-///   	fletcher.shapes.diamond,
-///   	fletcher.shapes.pill,
-///   	fletcher.shapes.parallelogram,
-///   	fletcher.shapes.hexagon,
-///   	fletcher.shapes.house,
-///   ).map(i => [#i]).join([, ], last: [, and ]).
+///   #{
+///   	dictionary(fletcher.shapes).keys()
+///   	.filter(i => i not in ("cetz", "draw", "vector"))
+///   	.map(i => [- #raw(i)]).join()
+///   }
 ///
 ///   Custom shapes should be specified as a function `(node, extrude) => (..)`
 ///   returning `cetz` objects.
@@ -92,6 +90,7 @@
 ///     extruded outwards by. This serves two functions: to support automatic
 ///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
 ///     effects using the `extrude` node option.
+///   See the ```plain ./src/shapes.typ``` source file for examples.
 ///
 /// - stroke (stroke): Stroke style for the node outline.
 ///

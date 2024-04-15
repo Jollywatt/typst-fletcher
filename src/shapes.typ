@@ -12,6 +12,13 @@
 
 #let circle(node, extrude) = draw.circle((0, 0), radius: node.radius + extrude)
 
+#let ellipse(node, extrude) = {
+	draw.circle(
+		(0, 0),
+		radius: vector.scale(node.size, 0.5).map(x => x + extrude),
+	)
+}
+
 #let diamond(node, extrude, scale: 1.5) = {
 	let (w, h) = node.size
 	let φ = calc.atan2(w/1pt, h/1pt)
