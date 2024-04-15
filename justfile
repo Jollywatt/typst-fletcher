@@ -14,3 +14,6 @@ test PATTERN="":
 
 fix PATTERN:
 	typst-test update {{PATTERN}} --exact
+
+watch PATH="docs/manual.typ":
+	typst watch --root . {{PATH}}
