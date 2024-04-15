@@ -149,6 +149,15 @@
 ///
 ///   Defaults to #the-param[diagram][node-corner-radius].
 ///
+/// - layer (number, auto): Layer on which to draw the node.
+///
+///   Objects on a higher `layer` are drawn on top of objects on a lower
+///   `layer`. Objects on the same layer are drawn in the order they are passed
+///   to `diagram()`.
+///
+///   By default, nodes are drawn on layer `0` unless they #param[node][enclose]
+///   points, in which case `layer` defaults to `-1`.
+///
 /// - post (function): Callback function to intercept `cetz` objects before they
 ///   are drawn to the canvas.
 ///
@@ -712,6 +721,12 @@
 ///   By default, an edge's first and last #param[edge][vertices] snap to nearby
 ///   nodes. This option can be used in case automatic snapping fails (if there
 ///   are many nodes close together, for example.)
+///
+/// - layer (number): Layer on which to draw the edge.
+///
+///   Objects on a higher `layer` are drawn on top of objects on a lower
+///   `layer`. Objects on the same layer are drawn in the order they are passed
+///   to `diagram()`.
 ///
 /// - post (function): Callback function to intercept `cetz` objects before they
 ///   are drawn to the canvas.
