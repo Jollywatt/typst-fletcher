@@ -173,6 +173,7 @@
 	shape: auto,
 	extrude: (0,),
 	defocus: auto,
+	layer: 0,
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
@@ -212,6 +213,7 @@
 		corner-radius: corner-radius,
 		defocus: defocus,
 		extrude: extrude,
+		layer: layer,
 		post: post,
 	))
 }
@@ -739,6 +741,7 @@
 	crossing-thickness: auto,
 	crossing-fill: auto,
 	snap-to: (auto, auto),
+	layer: 0,
 	post: x => x,
 ) = {
 
@@ -765,6 +768,7 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 		snap-to: as-pair(snap-to),
+		layer: layer,
 		post: post,
 	)
 

@@ -40,6 +40,9 @@
 		}
 
 	}
+
+	if node.layer != 0 { result = cetz.draw.on-layer(node.layer, result) }
+	
 	(node.post)(result) // post-process (e.g., hide)
 
 	// Draw debug stuff
@@ -697,10 +700,17 @@
 #let draw-edge(edge, nodes, ..args) = {
 	if edge.extrude.len() == 0 { return } // no line to draw
 	edge.marks = interpret-marks(edge.marks)
-	if edge.kind == "line" { draw-anchored-line(edge, nodes, ..args) }
-	else if edge.kind == "arc" { draw-anchored-arc(edge, nodes, ..args) }
-	else if edge.kind == "poly" { draw-anchored-polyline(edge, nodes, ..args) }
-	else { panic("Invalid edge kind " + repr(edge.kind)) }
+	let obj = if edge.kind == "line" {
+		draw-anchored-line(edge, nodes, ..args)
+	} else if edge.kind == "arc" {
+		draw-anchored-arc(edge, nodes, ..args)
+	} else if edge.kind == "poly" {
+		draw-anchored-polyline(edge, nodes, ..args)
+	} else { panic("Invalid edge kind " + repr(edge.kind)) }
+
+	if edge.layer != 0 { obj = cetz.draw.on-layer(edge.layer, obj)}
+
+	obj
 }
 
 
