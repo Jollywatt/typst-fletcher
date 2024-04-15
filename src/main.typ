@@ -173,7 +173,7 @@
 	shape: auto,
 	extrude: (0,),
 	defocus: auto,
-	layer: 0,
+	layer: auto,
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
@@ -256,6 +256,9 @@
 	if type(node.outset) in (int, float) {
 		node.outset *= thickness
 	}
+
+	let default-layer = if node.enclose.len() > 0 { -1 } else { 0 }
+	node.layer = map-auto(node.layer, default-layer)
 
 	node
 }

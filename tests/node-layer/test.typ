@@ -19,6 +19,5 @@
 		fill: rgb("fa6c"),
 		stroke: none,
 		inset: 10pt,
-		layer: -1,
 	),
 )
