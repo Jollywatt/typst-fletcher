@@ -882,53 +882,6 @@ Here is an example of how you might hack together a Bézier edge using the same 
 
 #pagebreak(weak: true)
 
-== Node groups
-
-Here is another example of how you could automatically draw "node groups" around selected nodes.
-First, we find all nodes of a certain fill, obtain their final coordinates, and then draw a rectangle around their bounding box.
-
-#code-example-row(```typ
-#let in-group = orange.lighten(60%)
-#let out-group = blue.lighten(60%)
-
-// draw a blob around nodes
-#let enclose-nodes(nodes, clearance: 8mm) = {
-	let points = nodes.map(node => node.final-pos)
-	let (center, size) = fletcher.bounding-rect(points)
-
-	cetz.draw.content(
-		center,
-		rect(
-			width: size.at(0) + 2*clearance,
-			height: size.at(1) + 2*clearance,
-			radius: clearance,
-			stroke: in-group,
-			fill: in-group.lighten(85%),
-		)
-	)
-}
-
-#diagram(
-  node((-1,0), `α`, fill: out-group, radius: 5mm),
-  edge("o-o"),
-  node((0, 0), `β`, fill: in-group, radius: 5mm),
-  edge("o-o"),
-  node((1,.5), `γ`, fill: in-group, radius: 5mm),
-  edge("o-o"),
-  node((1,-1), `δ`, fill: out-group, radius: 5mm),
-
-  render: (grid, nodes, edges, options) => {
-    // find nodes by color
-    let group = nodes.filter(node => node.fill == in-group)
-    cetz.canvas({
-      enclose-nodes(group) // draw a node group in the background
-      fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
-    })
-  }
-)
-```)
-
-#pagebreak()
 
 = Touying integration
 
