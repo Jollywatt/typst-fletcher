@@ -40,6 +40,13 @@
 ///   If a node is larger than its label, you can wrap the label in `align()` to
 ///   control the label alignment within the node.
 ///
+///   #example(```typc
+///   diagram(
+///   	node((0,0), align(bottom + left)[¡Hola!],
+///   		width: 3cm, height: 2cm, fill: yellow),
+///   )
+///   ```)
+///
 /// - inset (length, auto): Padding between the node's content and its bounding
 ///   box or bounding circle.
 ///
@@ -48,6 +55,16 @@
 ///
 ///   This does not affect node layout, only how closely edges connect to the
 ///   node.
+///
+/// - width (length, auto): Width of the node. If `auto`, the node's width is 
+///   the width of the node #param[node][label], plus twice the
+///   #param[node][inset].
+///
+///   If the width is not `auto`, you can use `align` to control the placement of the node's #param[node][label].
+///
+/// - height (length, auto): Height of the node. If `auto`, the node's height is the height of the node #param[node][label], plus twice the #param[node][inset].
+///
+///   If the height is not `auto`, you can use `align` to control the placement of the node's #param[node][label].
 ///
 /// - enclose (array): Positions or names of other nodes to enclose by enlarging
 ///   this node.
