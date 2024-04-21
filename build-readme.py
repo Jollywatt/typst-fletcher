@@ -5,7 +5,7 @@
 
 import os
 import re
-import tomllib
+import tomli
 import lxml.etree as ET
 
 
@@ -111,7 +111,7 @@ def insert_example_table(items):
 	return ET.tostring(table, encoding="unicode", pretty_print=True)
 
 def get_version():
-	return tomllib.load(open("typst.toml", 'rb'))['package']['version']
+	return tomli.load(open("typst.toml", 'rb'))['package']['version']
 
 def build_readme():
 	with open("README.template.md", 'r') as file:

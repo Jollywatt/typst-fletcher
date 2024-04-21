@@ -1,7 +1,7 @@
 # fletcher
 
-[![Manual](https://img.shields.io/badge/latest-manual.pdf-green)](https://github.com/Jollywatt/typst-fletcher/raw/latest/docs/manual.pdf)
-![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Flatest%2Ftypst.toml&query=package.version&label=latest&color=green)
+[![Manual](https://img.shields.io/badge/latest-manual.pdf-green)](docs/manual.pdf?raw=true)
+![Version](https://img.shields.io/badge/latest-0.4.4-green)
 ![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Fmaster%2Ftypst.toml&query=package.version&label=dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
@@ -9,7 +9,7 @@ _**fletcher** (noun) a maker of arrows_
 
 A [Typst](https://typst.app/) package for drawing diagrams with arrows,
 built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
-See the [manual](https://github.com/Jollywatt/typst-fletcher/raw/latest/docs/manual.pdf) for documentation.
+See the [manual](docs/manual.pdf?raw=true) for documentation.
 
 
 ```typ
