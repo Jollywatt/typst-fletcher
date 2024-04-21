@@ -938,6 +938,9 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 	"edge",
 ), level: 2, outline: true)
 
+== `shapes.typ`
+#show-fns("/src/shapes.typ", level: 2, outline: true)
+
 == `coords.typ`
 #show-fns("/src/coords.typ", level: 2, outline: true)
 
