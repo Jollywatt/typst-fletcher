@@ -104,17 +104,24 @@
 }
 
 // Get the arrow head adjustment for a given extrusion distance.
+//
+// Returns a pair `(from, to)` of distances.
+// If `from < 0pt` and `to > 0pt`, the path length of the edge increases.
 #let cap-offsets(edge, y) = {
 	(0, 1).map(pos => {
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
+
 		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
+		// if pos == 0 { mark.rev = not mark.rev }
 
-		let rev = mark.at("rev", default: false)
-		if pos == int(rev) { x -= mark.at("inner-len", default: 0) }
-		if rev { x = -x - mark.at("outer-len", default: 0) }
-		if pos == 0 { x += mark.at("outer-len", default: 0) }
+		// let rev = mark.at("rev", default: false)
+		// if pos == int(rev) { x -= mark.at("inner-len", default: 0) }
+		// if rev { x = -x - mark.at("outer-len", default: 0) }
+		// if pos == 0 { x += mark.at("outer-len", default: 0) }
+		// x = 10
 
+		if pos == 0 { x *= -1 }
 		x*edge.stroke.thickness
 	})
 }
@@ -176,7 +183,8 @@
 	// Draw marks
 	let curve(t) = vector.lerp(from, to, t)
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		// place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke)
 	}
 
 	// Draw label
@@ -251,7 +259,8 @@
 	// Draw marks
 	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		// place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke)
 	}
 
 
@@ -699,7 +708,7 @@
 
 #let draw-edge(edge, nodes, ..args) = {
 	if edge.extrude.len() == 0 { return } // no line to draw
-	edge.marks = interpret-marks(edge.marks)
+	// edge.marks = interpret-marks(edge.marks)
 	let obj = if edge.kind == "line" {
 		draw-anchored-line(edge, nodes, ..args)
 	} else if edge.kind == "arc" {

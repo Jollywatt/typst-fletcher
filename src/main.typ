@@ -919,7 +919,7 @@
 		edge.marks = (none, none)
 		edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 	}
-	
+
 	edge.stroke = as-stroke(edge.stroke)
 
 	if edge.kind == auto {
