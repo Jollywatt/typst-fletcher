@@ -137,7 +137,7 @@
 	-mark.outer-len/4
 
 	} else if mark.kind == "bar" {
-		 -calc.tan(mark.angle)*y
+		-calc.tan(mark.angle)*y
 	} else { 0 }
 }
 

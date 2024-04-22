@@ -56,7 +56,7 @@
 ///   This does not affect node layout, only how closely edges connect to the
 ///   node.
 ///
-/// - width (length, auto): Width of the node. If `auto`, the node's width is 
+/// - width (length, auto): Width of the node. If `auto`, the node's width is
 ///   the width of the node #param[node][label], plus twice the
 ///   #param[node][inset].
 ///
@@ -71,7 +71,7 @@
 ///
 ///   If given, causes the node to resize so that its bounding rectangle
 ///   surrounds the given nodes. The center #param[node][pos] does not affect
-///   the node's position if `enclose` is given, but still affects connecting 
+///   the node's position if `enclose` is given, but still affects connecting
 ///   edges.
 ///
 ///   #box(example(```
@@ -1164,7 +1164,7 @@
 /// - edge-corner-radius (length, none): Default value of
 ///   #the-param[edge][corner-radius].
 ///
-/// - node-defocus (number): Default value of #the-param[node][defocus]. 
+/// - node-defocus (number): Default value of #the-param[node][defocus].
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
 /// - mark-scale (length): Default value of #the-param[edge][mark-scale].
