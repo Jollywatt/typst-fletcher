@@ -916,7 +916,7 @@
 			paint: edge.crossing-fill,
 			cap: "round",
 		)
-		edge.marks = (none, none)
+		edge.marks = ()
 		edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
 	}
 

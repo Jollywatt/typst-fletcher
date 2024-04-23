@@ -9,14 +9,14 @@
 			(">->->->",),
 			("<<->>",),
 			(">>-<<",),
-			(marks: ((kind: "hook", rev: true), "head")),
-			(marks: ((kind: "hook", rev: true), "hook'")),
+			(marks: ((inherit: "hook", rev: true), "head")),
+			(marks: ((inherit: "hook", rev: true), "hook'")),
 			(marks: ("bar", "bar", "bar")),
 			(marks: ("||", "||")),
 			("<=>",),
 			("triple",),
 			(marks: ("o", "O")),
-			(marks: ((kind: "solid", rev: true), "solid")),
+			(marks: ((inherit: "solid", rev: true), "solid")),
 		).enumerate().map(((i, args)) => {
 			edge((x, i), (x + 1, i), ..args, bend: bend)
 		}).join()

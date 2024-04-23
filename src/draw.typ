@@ -113,13 +113,7 @@
 		if mark == none { return 0pt }
 
 		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
-		// if pos == 0 { mark.rev = not mark.rev }
 
-		// let rev = mark.at("rev", default: false)
-		// if pos == int(rev) { x -= mark.at("inner-len", default: 0) }
-		// if rev { x = -x - mark.at("outer-len", default: 0) }
-		// if pos == 0 { x += mark.at("outer-len", default: 0) }
-		// x = 10
 
 		if pos == 0 { x *= -1 }
 		x*edge.stroke.thickness
@@ -379,18 +373,18 @@
 			if i > 0 {
 				let Δθ = θs.at(i) - θs.at(i - 1)
 				marks.push((
-					kind: "bar",
+					inherit: "bar",
 					pos: 0,
-					angle: Δθ/2,
+					angle: 90deg + Δθ/2,
 					hide: true,
 				))
 			}
 			if i < θs.len() - 1 {
 				let Δθ = θs.at(i + 1) - θs.at(i)
 				marks.push((
-					kind: "bar",
+					inherit: "bar",
 					pos: 1,
-					angle: Δθ/2,
+					angle: 90deg + Δθ/2,
 					hide: true,
 				))
 			}
@@ -454,7 +448,7 @@
 			edge + (
 				kind: "line",
 				final-vertices: (from, to),
-				marks: marks,
+				marks: interpret-marks(marks),
 				stroke: stroke-with-phase(phase),
 			) + label-options,
 			debug: debug,

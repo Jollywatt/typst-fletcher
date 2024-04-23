@@ -4,6 +4,8 @@
 
 
 
+
+// TODO: move these to edge.typ
 #let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
@@ -13,6 +15,33 @@
 	"wave": (decorations: "wave"),
 	"zigzag": (decorations: "zigzag"),
 	"coil": (decorations: "coil"),
+)
+#let MARK_SYMBOL_ALIASES = (
+	(sym.arrow.r): "->",
+	(sym.arrow.l): "<-",
+	(sym.arrow.r.l): "<->",
+	(sym.arrow.long.r): "->",
+	(sym.arrow.long.l): "<-",
+	(sym.arrow.long.r.l): "<->",
+	(sym.arrow.double.r): "=>",
+	(sym.arrow.double.l): "<=",
+	(sym.arrow.double.r.l): "<=>",
+	(sym.arrow.double.long.r): "=>",
+	(sym.arrow.double.long.l): "<=",
+	(sym.arrow.double.long.r.l): "<=>",
+	(sym.arrow.r.tail): ">->",
+	(sym.arrow.l.tail): "<-<",
+	(sym.arrow.twohead): "->>",
+	(sym.arrow.twohead.r): "->>",
+	(sym.arrow.twohead.l): "<<-",
+	(sym.arrow.bar): "|->",
+	(sym.arrow.bar.double): "|=>",
+	(sym.arrow.hook.r): "hook->",
+	(sym.arrow.hook.l): "<-hook'",
+	(sym.arrow.squiggly.r): "~>",
+	(sym.arrow.squiggly.l): "<~",
+	(sym.arrow.long.squiggly.r): "~>",
+	(sym.arrow.long.squiggly.l): "<~",
 )
 
 
@@ -261,6 +290,7 @@
 	angle: 0deg,
 ) = {
 	mark = resolve-mark(mark)
+	stroke = as-stroke(stroke)
 
 	let fill = mark.at("fill", default: auto)
 	fill = map-auto(fill, map-auto(stroke.paint, black))
@@ -443,7 +473,6 @@
 
 	marks = marks.map(mark => {
 		mark.tip = (mark.pos == 0) == mark.rev
-
 		if mark.pos == 0 { mark.rev = not mark.rev }
 		mark
 	})
@@ -451,6 +480,7 @@
 
 	assert(type(marks) == array)
 	assert(marks.all(mark => type(mark) == dictionary), message: repr(marks))
+
 	marks
 }
 
@@ -466,7 +496,7 @@
 ///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
 /// -> dictiony
 #let interpret-marks-arg(arg) = {
-	if type(arg) == array { return panic(marks: interpret-marks(arg)) }
+	if type(arg) == array { return (marks: interpret-marks(arg)) }
 
 	if type(arg) == symbol {
 		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
