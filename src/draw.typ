@@ -114,8 +114,11 @@
 
 		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
 
-
+		x -= if mark.tip { mark.tip-origin } else { mark.tail-origin }
+		if mark.rev { x *= -1 }
 		if pos == 0 { x *= -1 }
+
+
 		x*edge.stroke.thickness
 	})
 }
@@ -165,12 +168,20 @@
 				)
 			))
 
+		let offsets = cap-offsets(edge, shift)
+		let points = (from, to).zip(offsets)
+			.map(((point, offset)) => {
+				point = (rel: (θ + 90deg, shift), to: point)
+				point = (rel: (θ, offset), to: point)
+				point
+			})
 
-		with-decorations(edge, cetz.draw.line(
-			..shifted-line-points,
+		let obj = cetz.draw.line(
+			..points,
 			stroke: edge.stroke,
-		))
+		)
 
+		with-decorations(edge, obj)
 
 	}
 

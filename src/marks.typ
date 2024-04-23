@@ -41,9 +41,7 @@
 			import calc: sin, sqrt, pow, cos, abs, max
 			let r = mark.size
 			let θ = mark.sharpness
-			let p = 1 - pow(cos(θ) - abs(y)/r, 2)
-			let o = r*(sin(θ) - sqrt(max(0, p)))
-			if mark.at("tip", default: true) { o } else { -o + mark.tail-origin - calc.min(..mark.extrude) }
+			r*(sin(θ) - sqrt(max(0, 1 - pow(cos(θ) - abs(y)/r, 2))))
 		},
 
 	),
@@ -76,7 +74,9 @@
 				(0, 0),
 				(180deg - mark.sharpness, mark.size),
 			)
-		}
+		},
+
+		cap-offset: (mark, y) => calc.tan(mark.sharpness + 90deg)*calc.abs(y),
 	),
 
 	solid: (
@@ -91,14 +91,13 @@
 	),
 
 	stealth: (
-		size: 8,
+		size: 6,
 		stealth: 0.3,
 		angle: 25deg,
 
 		tip-origin: 0,
-		tail-origin: mark => mark.size*(mark.stealth/2 - 1)*calc.cos(mark.angle),
+		tail-origin: mark => -mark.size*calc.cos(mark.angle),
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
-		tail-end: mark => -mark.size*calc.tan(mark.angle)/2,
 
 		draw: mark => {
 			draw.line(
@@ -106,9 +105,14 @@
 				(180deg + mark.angle, mark.size),
 				(mark.tip-end, 0),
 				(180deg - mark.angle, mark.size),
-				stroke: none,
 				close: true,
 			)
+		},
+
+		cap-offset: (mark, y) => if mark.tip {
+			-mark.stealth/calc.tan(mark.angle)*calc.abs(y)
+		} else {
+			calc.tan(mark.angle + 90deg)*calc.abs(y)
 		},
 	),
 
@@ -123,15 +127,22 @@
 		fill: none,
 
 		draw: mark => draw.circle((0,0), radius: mark.size, fill: mark.fill),
+
+		cap-offset: (mark, y) => {
+			let r = mark.size
+			r - calc.sqrt(calc.max(0, r*r - y*y))
+		},
 	),
 
 	bar: (
 		size: 4.9,
 		angle: 90deg,
+		tail-origin: mark => calc.min(..mark.extrude),
 		draw: mark => draw.line(
 			(mark.angle, -mark.size),
 			(mark.angle, +mark.size),
 		),
+		cap-offset: (mark, y) => y*calc.tan(mark.angle - 90deg),
 	),
 
 	cross: (
@@ -141,6 +152,8 @@
 			draw.line((+mark.angle, -mark.size), (+mark.angle, +mark.size))
 			draw.line((-mark.angle, -mark.size), (-mark.angle, +mark.size))
 		},
+
+		cap-offset: (mark, y) => calc.tan(mark.angle + 90deg)*calc.abs(y),
 	),
 
 	hook: (
@@ -192,8 +205,8 @@
 	"||": (inherit: "bar", extrude: (-3, 0)),
 	"|||": (inherit: "bar", extrude: (-6, -3, 0)),
 
-	"/": (inherit: "bar", angle: -60deg),
-	"\\": (inherit: "bar", angle: +60deg),
+	"/": (inherit: "bar", angle: +60deg, rev: false),
+	"\\": (inherit: "bar", angle: -60deg, rev: false),
 
 	"x": (inherit: "cross"),
 	"X": (inherit: "cross", size: 7),
@@ -206,17 +219,25 @@
 
 
 
-
-#let cap-offset(mark, y) = {
+/// Determine amount that the end of a stroke should be offset to accommodate
+/// for a mark, as a function of the shift.
+///
+/// Imagine the tip origin of the mark is at $(x, y) = (0, 0)$. A stroke along
+/// the line $y = "shift"$ coming from $x = -oo$ terminates at $x = o$, where
+/// $o$ is the result of this function.
+///
+/// Units are in multiples of stroke thickness.
+#let cap-offset(mark, shift) = {
+	let o = 0
 	if "cap-offset" in mark {
-		return (mark.cap-offset)(mark, y)
+		o = (mark.cap-offset)(mark, shift)
 	}
 
 	mark = MARK_REQUIRED_DEFAULTS + mark
-	if mark.at("tip", default: true) {
-		mark.tip-end - mark.tip-origin
+	if mark.tip {
+		mark.tip-end + o
 	} else {
-		mark.tail-origin - mark.tail-end
+		mark.tail-end + o
 	}
 }
 
@@ -280,7 +301,8 @@
 
 	if "stroke" in mark {
 		if mark.stroke == none { stroke = none }
-		else { stroke += mark.stroke }
+		else if mark.stroke == auto { }
+		else { stroke += stroke-to-dict(mark.stroke) }
 	}
 
 	assert("draw" in mark)
@@ -322,30 +344,66 @@
 	})
 }
 
-#let mark-debug(mark, stroke: 5pt) = {
+#let mark-debug(mark, stroke: 5pt, labels: false, offsets: not false) = {
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
 
 	let t = stroke.thickness*float(mark.scale)
+
+	let ymax = 1cm
+	let samples = 100
+	let ys = range(samples + 1)
+		.map(n => n/samples)
+		.map(y => (2*y - 1)*ymax/t)
+
+
 	cetz.canvas({
 
 		draw-mark(mark, stroke: stroke)
 		draw.translate(x: -t*mark.tip-origin)
 
-		for (i, (item, y, color)) in (
-			("tip-end",     +0.75, "0f0"),
-			("tail-end",    -0.75, "f00"),
-			("tip-origin",  +0.5,  "0ff"),
-			("tail-origin", -0.5,  "f0f"),
-		).enumerate() {
-			let x = mark.at(item)
-			let c = rgb(color)
-			draw.line((t*x, 0), (t*x, y), stroke: 0.5pt + c)
-			draw.content(
-				(t*x, y),
-				pad(2pt, text(0.75em, fill: c, raw(item))),
-				anchor: if y < 0 { "north" } else { "south" },
+		if offsets {
+
+			let tip-points = ys.map(y => {
+				let o = cap-offset(mark + (tip: true), y)
+				(o*t, y*t)
+			})
+
+			let tail-points = ys.map(y => {
+				let o = cap-offset(mark + (tip: false), y)
+				(o*t, y*t)
+			})
+
+			draw.line(
+				..tip-points,
+				stroke: rgb("0f0") + 0.5pt,
 			)
+			draw.line(
+				..tail-points,
+				stroke: rgb("f00") + 0.5pt,
+			)
+
+
+		}
+
+
+
+		if labels {
+			for (i, (item, y, color)) in (
+				("tip-end",     +1.00, "0f0"),
+				("tail-end",    -1.00, "f00"),
+				("tip-origin",  +0.75,  "0ff"),
+				("tail-origin", -0.75,  "f0f"),
+			).enumerate() {
+				let x = mark.at(item)
+				let c = rgb(color)
+				draw.line((t*x, 0), (t*x, y), stroke: 0.5pt + c)
+				draw.content(
+					(t*x, y),
+					pad(2pt, text(0.75em, fill: c, raw(item))),
+					anchor: if y < 0 { "north" } else { "south" },
+				)
+			}
 		}
 
 		let (min, max) = min-max((
@@ -366,6 +424,15 @@
 			(t*(max + l), 0),
 			stroke: rgb("f006") + t,
 		)
+
+
+		draw.circle(
+			(0, 0),
+			radius: t/8,
+			stroke: rgb("00f") + 0.5pt,
+			fill: white,
+		)
+
 
 	})
 }
@@ -436,7 +503,7 @@
 
 
 
-#let place-mark-on-curve(mark, path, stroke: 1pt + black) = {
+#let place-mark-on-curve(mark, path, stroke: 1pt + black, debug: false) = {
 	if mark.at("hide", default: false) { return }
 
 	let ε = 1e-4
@@ -457,24 +524,24 @@
 
 	let θ = vector-angle(vector.sub(head-point, tail-point))
 
-	if mark.pos == 0 {
+	if calc.abs(mark.pos) < ε {
 		mark.rev = not mark.rev
-		// θ += 180deg
-		// (head-point, tail-point) = (tail-point, head-point)
 	}
 	draw-mark(mark, origin: head-point, angle: θ, stroke: stroke)
 
-	// draw.circle(
-	// 	head-point,
-	// 	radius: .2pt,
-	// 	fill: red,
-	// 	stroke: none
-	// )
-	// draw.circle(
-	// 	tail-point,
-	// 	radius: .2pt,
-	// 	fill: blue,
-	// 	stroke: none
-	// )
+	if debug {
+		draw.circle(
+			head-point,
+			radius: .2pt,
+			fill: red,
+			stroke: none
+		)
+		draw.circle(
+			tail-point,
+			radius: .2pt,
+			fill: blue,
+			stroke: none
+		)
+	}
 
 }
