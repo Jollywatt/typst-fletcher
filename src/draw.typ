@@ -24,7 +24,7 @@
 		}
 
 		if node.label != none {
-			
+
 			cetz.draw.content(
 				node.final-pos,
 				box(
@@ -36,13 +36,13 @@
 				),
 				anchor: "center",
 			)
-			
+
 		}
 
 	}
 
 	if node.layer != 0 { result = cetz.draw.on-layer(node.layer, result) }
-	
+
 	(node.post)(result) // post-process (e.g., hide)
 
 	// Draw debug stuff
@@ -448,7 +448,7 @@
 			edge + (
 				kind: "line",
 				final-vertices: (from, to),
-				marks: interpret-marks(marks),
+				marks: marks,
 				stroke: stroke-with-phase(phase),
 			) + label-options,
 			debug: debug,

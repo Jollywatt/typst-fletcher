@@ -2,56 +2,14 @@
 #import "deps.typ": cetz
 #import cetz.draw
 
-
-
-
-// TODO: move these to edge.typ
-#let EDGE_ARGUMENT_SHORTHANDS = (
-	"dashed": (dash: "dashed"),
-	"dotted": (dash: "dotted"),
-	"double": (extrude: (-2, +2)),
-	"triple": (extrude: (-4, 0, +4)),
-	"crossing": (crossing: true),
-	"wave": (decorations: "wave"),
-	"zigzag": (decorations: "zigzag"),
-	"coil": (decorations: "coil"),
-)
-#let MARK_SYMBOL_ALIASES = (
-	(sym.arrow.r): "->",
-	(sym.arrow.l): "<-",
-	(sym.arrow.r.l): "<->",
-	(sym.arrow.long.r): "->",
-	(sym.arrow.long.l): "<-",
-	(sym.arrow.long.r.l): "<->",
-	(sym.arrow.double.r): "=>",
-	(sym.arrow.double.l): "<=",
-	(sym.arrow.double.r.l): "<=>",
-	(sym.arrow.double.long.r): "=>",
-	(sym.arrow.double.long.l): "<=",
-	(sym.arrow.double.long.r.l): "<=>",
-	(sym.arrow.r.tail): ">->",
-	(sym.arrow.l.tail): "<-<",
-	(sym.arrow.twohead): "->>",
-	(sym.arrow.twohead.r): "->>",
-	(sym.arrow.twohead.l): "<<-",
-	(sym.arrow.bar): "|->",
-	(sym.arrow.bar.double): "|=>",
-	(sym.arrow.hook.r): "hook->",
-	(sym.arrow.hook.l): "<-hook'",
-	(sym.arrow.squiggly.r): "~>",
-	(sym.arrow.squiggly.l): "<~",
-	(sym.arrow.long.squiggly.r): "~>",
-	(sym.arrow.long.squiggly.l): "<~",
-)
-
-
-#let LINE_ALIASES = (
-	"-": (:),
-	"=": EDGE_ARGUMENT_SHORTHANDS.double,
-	"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
-	"~": EDGE_ARGUMENT_SHORTHANDS.wave,
+#let MARK_REQUIRED_DEFAULTS = (
+	flip: false,
+	scale: 100%,
+	extrude: (0,),
+	tip-end: 0,
+	tail-end: 0,
+	tip-origin: 0,
+	tail-origin: 0,
 )
 
 
@@ -62,8 +20,8 @@
 		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
 		delta: 53.5deg, // angle spanned by arc of curved arrow edge
 
-		tail-origin: mark => mark.tail-end - mark.size*mark.delta/2rad*(calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)),
 		tail-end: mark => calc.min(..mark.extrude),
+		tail-origin: mark => mark.tail-end - mark.size*mark.delta/2rad*(calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)),
 
 		stroke: (cap: "round"),
 
@@ -77,6 +35,29 @@
 					fill: none,
 				)
 			}
+		},
+
+		cap-offset: (mark, y) => {
+			import calc: sin, sqrt, pow, cos, abs, max
+			let r = mark.size
+			let θ = mark.sharpness
+			let p = 1 - pow(cos(θ) - abs(y)/r, 2)
+			let o = r*(sin(θ) - sqrt(max(0, p)))
+			if mark.at("tip", default: true) { o } else { -o + mark.tail-origin - calc.min(..mark.extrude) }
+		},
+
+	),
+
+	harpoon: (
+		inherit: "head",
+		draw: mark => {
+			draw.arc(
+				(0, 0),
+				radius: mark.size,
+				start: -(90deg + mark.sharpness),
+				delta: -mark.delta,
+				fill: none,
+			)
 		},
 	),
 
@@ -108,20 +89,6 @@
 		stroke: none,
 		fill: auto,
 	),
-
-	harpoon: (
-		inherit: "head",
-		draw: mark => {
-			draw.arc(
-				(0, 0),
-				radius: mark.size,
-				start: -(90deg + mark.sharpness),
-				delta: -mark.delta,
-				fill: none,
-			)
-		},
-	),
-
 
 	stealth: (
 		size: 8,
@@ -215,6 +182,12 @@
 	">>>": (inherit: "head", extrude: (-6, -3, 0), rev: false),
 	"<<<": (inherit: "head", extrude: (-6, -3, 0), rev: true),
 
+	"|>": (inherit: "solid", rev: false),
+	"<|": (inherit: "solid", rev: true),
+
+	"}>": (inherit: "stealth", rev: false),
+	"<{": (inherit: "stealth", rev: true),
+
 	"|": (inherit: "bar"),
 	"||": (inherit: "bar", extrude: (-3, 0)),
 	"|||": (inherit: "bar", extrude: (-6, -3, 0)),
@@ -229,14 +202,25 @@
 	"O": (inherit: "circle", size: 4),
 	"*": (inherit: "circle", fill: auto),
 	"@": (inherit: "circle", size: 4, fill: auto),
-
-	"|>": (inherit: "solid", rev: false),
-	"<|": (inherit: "solid", rev: true),
-
-	"}>": (inherit: "stealth", rev: false),
-	"<{": (inherit: "stealth", rev: true),
-
 )
+
+
+
+
+#let cap-offset(mark, y) = {
+	if "cap-offset" in mark {
+		return (mark.cap-offset)(mark, y)
+	}
+
+	mark = MARK_REQUIRED_DEFAULTS + mark
+	if mark.at("tip", default: true) {
+		mark.tip-end - mark.tip-origin
+	} else {
+		mark.tail-origin - mark.tail-end
+	}
+}
+
+
 
 #let apply-mark-inheritances(mark) = {
 	while "inherit" in mark {
@@ -254,27 +238,20 @@
 	mark
 }
 
+
 #let resolve-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
 
 	if type(mark) == str { mark = (inherit: mark) }
 
-
 	mark = apply-mark-inheritances(mark)
 
-	let required-defaults = (
-		flip: false,
-		scale: 100%,
-		extrude: (0,),
-		tip-end: 0,
-		tail-end: 0,
-		tip-origin: 0,
-		tail-origin: 0,
-	)
 
-	mark = required-defaults + defaults + mark
+	mark = MARK_REQUIRED_DEFAULTS + defaults + mark
 
 	for (key, value) in mark {
+		if key == "cap-offset" { continue }
+
 		if type(value) == function {
 			mark.at(key) = value(mark)
 		}
@@ -292,25 +269,21 @@
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
 
-	let fill = mark.at("fill", default: auto)
-	fill = map-auto(fill, map-auto(stroke.paint, black))
 	let thickness = stroke.thickness
 
-	let stroke = stroke-to-dict(stroke)
+	let fill = mark.at("fill", default: auto)
+	fill = map-auto(fill, stroke.paint)
+	fill = map-auto(fill, black)
 
+	let stroke = stroke-to-dict(stroke)
 	stroke.dash = none
 
 	if "stroke" in mark {
 		if mark.stroke == none { stroke = none }
-		else {
-			stroke += mark.stroke
-			stroke = as-stroke(stroke)
-		}
+		else { stroke += mark.stroke }
 	}
 
-	if "draw" not in mark {
-		panic(mark)
-	}
+	assert("draw" in mark)
 
 	draw.group({
 		draw.set-style(
@@ -462,153 +435,10 @@
 }
 
 
-#let interpret-marks(marks) = {
-	marks = marks.enumerate().map(((i, mark)) => {
-		resolve-mark(mark, defaults: (
-			pos: i/calc.max(1, marks.len() - 1),
-			rev: i == 0,
-			// rev: false,
-		))
-	}).filter(mark => mark != none) // drop empty marks
-
-	marks = marks.map(mark => {
-		mark.tip = (mark.pos == 0) == mark.rev
-		if mark.pos == 0 { mark.rev = not mark.rev }
-		mark
-	})
-
-
-	assert(type(marks) == array)
-	assert(marks.all(mark => type(mark) == dictionary), message: repr(marks))
-
-	marks
-}
-
-/// Parse and interpret the marks argument provided to `edge()`. Returns a
-/// dictionary of processed `edge()` arguments.
-///
-/// - arg (string, array):
-/// Can be a string, (e.g. `"->"`, `"<=>"`), etc, or an array of marks.
-/// A mark can be a string (e.g., `">"` or `"head"`, `"x"` or `"cross"`) or a dictionary containing the keys:
-///   - `kind` (required) the mark name, e.g. `"solid"` or `"bar"`
-///   - `pos` the position along the edge to place the mark, from 0 to 1
-///   - `rev` whether to reverse the direction
-///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
-/// -> dictiony
-#let interpret-marks-arg(arg) = {
-	if type(arg) == array { return (marks: interpret-marks(arg)) }
-
-	if type(arg) == symbol {
-		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
-		else { panic("Unrecognised marks symbol '" + arg + "'.") }
-	}
-
-	assert(type(arg) == str)
-	let text = arg
-
-	let mark-names = MARKS.keys().sorted(key: i => -i.len())
-	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
-
-	let eat(arg, options) = {
-		for option in options {
-			if arg.starts-with(option) {
-				return (arg.slice(option.len()), option)
-			}
-		}
-		return (arg, none)
-	}
-
-	let marks = ()
-	let lines = ()
-
-	let mark
-	let line
-	let flip
-
-	// first mark, [<]-x->>
-	(text, mark) = eat(text, mark-names)
-
-	// flip modifier, hook[']
-	(text, flip) = eat(text, ("'",))
-	if flip != none { mark += flip }
-
-	marks.push(mark)
-
-	let parse-error(suggestion) = panic(
-		"Invalid marks shorthand '" + arg + "'. Try '" + suggestion + "'."
-	)
-
-	while true {
-		// line, <[-]x->>
-		(text, line) = eat(text, LINES)
-		if line == none {
-			let suggestion = arg.slice(0, -text.len()) + "-" + text
-			parse-error(suggestion)
-		}
-		lines.push(line)
-
-		// subsequent mark, <-[x]->>
-		(text, mark) = eat(text, mark-names)
-
-		// flip modifier, hook[']
-		(text, flip) = eat(text, ("'",))
-		if flip != none { mark += flip }
-
-		marks.push(mark)
-
-		if text == "" { break }
-		if mark == none {
-			// text remains that was not recognised as mark
-			let suggestion = marks.intersperse(lines.at(0)).join()
-			parse-error(suggestion)
-		}
-	}
-
-
-	if lines.dedup().len() > 1 {
-		// different line styles were mixed
-		let suggestion = marks.intersperse(lines.at(0)).join()
-		parse-error(suggestion)
-	}
-	let line = lines.at(0)
-
-
-	// make classic math arrows slightly larger on double/triple stroked lines
-	// if line == "=" {
-	// 	marks = marks.map(mark => {
-	// 		if mark != none and mark.kind == "head" {
-	// 			mark += MARK_ALIASES.doublehead
-	// 		}
-	// 		mark
-	// 	})
-	// } else if line == "==" {
-	// 	marks = marks.map(mark => {
-	// 		if mark != none and mark.kind == "head" {
-	// 			mark += MARK_ALIASES.triplehead
-	// 		}
-	// 		mark
-	// 	})
-	// }
-
-	return (
-		marks: interpret-marks(marks),
-		..LINE_ALIASES.at(lines.at(0))
-	)
-}
-
-
-
-
-#let cap-offset(mark, y) = {
-	if mark.tip {
-		mark.tip-end - mark.tip-origin
-	} else {
-		mark.tail-origin - mark.tail-end
-	}
-}
-
 
 #let place-mark-on-curve(mark, path, stroke: 1pt + black) = {
+	if mark.at("hide", default: false) { return }
+
 	let ε = 1e-4
 
 	// calculate velocity of parametrised path at point

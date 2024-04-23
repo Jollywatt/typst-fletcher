@@ -1,7 +1,5 @@
 #import "deps.typ": cetz
 #import cetz: vector
-#import calc: floor, ceil, min, max
-
 
 // Replace `auto` with a value
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
@@ -101,8 +99,8 @@
 		values.at(-1) + spacing*(index - max-index)
 	} else {
 		lerp(
-			values.at(floor(index)),
-			values.at(ceil(index)),
+			values.at(calc.floor(index)),
+			values.at(calc.ceil(index)),
 			calc.fract(index),
 		)
 	}
