@@ -62,7 +62,7 @@
 
 	marks = marks.map(mark => {
 		mark.tip = (mark.pos == 0) == mark.rev
-		if mark.pos == 0 { mark.rev = not mark.rev }
+		if (mark.pos not in (0, 1)) { mark.tip = none }
 		mark
 	})
 

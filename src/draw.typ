@@ -112,12 +112,11 @@
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
 
-		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
+		let s = if mark.tip { +1 } else { -1 } // not completely sure why this is needed
+		let x = cap-offset(mark, s*(2*pos - 1)*y/edge.stroke.thickness)
 
 		x -= if mark.tip { mark.tip-origin } else { mark.tail-origin }
 		if mark.rev { x *= -1 }
-		if pos == 0 { x *= -1 }
-
 
 		x*edge.stroke.thickness
 	})
@@ -188,8 +187,7 @@
 	// Draw marks
 	let curve(t) = vector.lerp(from, to, t)
 	for mark in edge.marks {
-		// place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
-		place-mark-on-curve(mark, curve, stroke: edge.stroke)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
 
 	// Draw label
@@ -264,8 +262,7 @@
 	// Draw marks
 	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
-		// place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
-		place-mark-on-curve(mark, curve, stroke: edge.stroke)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
 
 

@@ -1,6 +1,7 @@
 #import "utils.typ": *
 #import "deps.typ": cetz
 #import cetz.draw
+#import "default-marks.typ": MARKS
 
 #let MARK_REQUIRED_DEFAULTS = (
 	flip: false,
@@ -13,209 +14,6 @@
 )
 
 
-#let MARKS = (
-
-	head: (
-		size: 7, // radius of curvature, multiples of stroke thickness
-		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
-		delta: 53.5deg, // angle spanned by arc of curved arrow edge
-
-		tail-end: mark => calc.min(..mark.extrude),
-		tail-origin: mark => mark.tail-end - mark.size*mark.delta/2rad*(calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)),
-
-		stroke: (cap: "round"),
-
-		draw: mark => {
-			for flip in (+1, -1) {
-				draw.arc(
-					(0, 0),
-					radius: mark.size,
-					start: flip*(90deg + mark.sharpness),
-					delta: flip*mark.delta,
-					fill: none,
-				)
-			}
-		},
-
-		cap-offset: (mark, y) => {
-			import calc: sin, sqrt, pow, cos, abs, max
-			let r = mark.size
-			let θ = mark.sharpness
-			r*(sin(θ) - sqrt(max(0, 1 - pow(cos(θ) - abs(y)/r, 2))))
-		},
-
-	),
-
-	harpoon: (
-		inherit: "head",
-		draw: mark => {
-			draw.arc(
-				(0, 0),
-				radius: mark.size,
-				start: -(90deg + mark.sharpness),
-				delta: -mark.delta,
-				fill: none,
-			)
-		},
-	),
-
-	straight: (
-		size: 8,
-		sharpness: 20deg,
-
-		tip-origin: mark => 0.5/calc.sin(mark.sharpness),
-		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
-
-		fill: none,
-
-		draw: mark => {
-			draw.line(
-				(180deg + mark.sharpness, mark.size),
-				(0, 0),
-				(180deg - mark.sharpness, mark.size),
-			)
-		},
-
-		cap-offset: (mark, y) => calc.tan(mark.sharpness + 90deg)*calc.abs(y),
-	),
-
-	solid: (
-		inherit: "straight",
-
-		tip-origin: 0,
-		tip-end: mark => -0.5/calc.sin(mark.sharpness),
-		tail-end: mark => -0.5/calc.sin(mark.sharpness),
-
-		stroke: none,
-		fill: auto,
-	),
-
-	stealth: (
-		size: 6,
-		stealth: 0.3,
-		angle: 25deg,
-
-		tip-origin: 0,
-		tail-origin: mark => -mark.size*calc.cos(mark.angle),
-		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
-
-		draw: mark => {
-			draw.line(
-				(0,0),
-				(180deg + mark.angle, mark.size),
-				(mark.tip-end, 0),
-				(180deg - mark.angle, mark.size),
-				close: true,
-			)
-		},
-
-		cap-offset: (mark, y) => if mark.tip {
-			-mark.stealth/calc.tan(mark.angle)*calc.abs(y)
-		} else {
-			calc.tan(mark.angle + 90deg)*calc.abs(y)
-		},
-	),
-
-	circle: (
-		size: 3,
-
-		tip-end: mark => -mark.size,
-		tail-end: mark => mark.size,
-		tip-origin: mark => mark.size,
-		tail-origin: mark => -mark.size,
-
-		fill: none,
-
-		draw: mark => draw.circle((0,0), radius: mark.size, fill: mark.fill),
-
-		cap-offset: (mark, y) => {
-			let r = mark.size
-			r - calc.sqrt(calc.max(0, r*r - y*y))
-		},
-	),
-
-	bar: (
-		size: 4.9,
-		angle: 90deg,
-		tail-origin: mark => calc.min(..mark.extrude),
-		draw: mark => draw.line(
-			(mark.angle, -mark.size),
-			(mark.angle, +mark.size),
-		),
-		cap-offset: (mark, y) => y*calc.tan(mark.angle - 90deg),
-	),
-
-	cross: (
-		size: 4,
-		angle: 45deg,
-		draw: mark => {
-			draw.line((+mark.angle, -mark.size), (+mark.angle, +mark.size))
-			draw.line((-mark.angle, -mark.size), (-mark.angle, +mark.size))
-		},
-
-		cap-offset: (mark, y) => calc.tan(mark.angle + 90deg)*calc.abs(y),
-	),
-
-	hook: (
-		size: 2.88,
-		rim: 0.85,
-		tip-origin: mark => mark.size,
-		draw: mark => {
-			draw.arc(
-				(0,0),
-				start: -90deg,
-				stop: +90deg,
-				radius: mark.size,
-				fill: none,
-			)
-		},
-	),
-
-	hooks: (
-		inherit: "hook",
-		draw: mark => {
-			for flip in (-1, +1) {
-				draw.arc(
-					(0,0),
-					start: -flip*90deg,
-					stop: +flip*90deg,
-					radius: mark.size,
-					fill: none,
-				)
-			}
-		},
-	),
-
-	">": (inherit: "head", rev: false),
-	"<": (inherit: "head", rev: true),
-
-	">>": (inherit: "head", extrude: (-3, 0), rev: false),
-	"<<": (inherit: "head", extrude: (-3, 0), rev: true),
-
-	">>>": (inherit: "head", extrude: (-6, -3, 0), rev: false),
-	"<<<": (inherit: "head", extrude: (-6, -3, 0), rev: true),
-
-	"|>": (inherit: "solid", rev: false),
-	"<|": (inherit: "solid", rev: true),
-
-	"}>": (inherit: "stealth", rev: false),
-	"<{": (inherit: "stealth", rev: true),
-
-	"|": (inherit: "bar"),
-	"||": (inherit: "bar", extrude: (-3, 0)),
-	"|||": (inherit: "bar", extrude: (-6, -3, 0)),
-
-	"/": (inherit: "bar", angle: +60deg, rev: false),
-	"\\": (inherit: "bar", angle: -60deg, rev: false),
-
-	"x": (inherit: "cross"),
-	"X": (inherit: "cross", size: 7),
-
-	"o": (inherit: "circle"),
-	"O": (inherit: "circle", size: 4),
-	"*": (inherit: "circle", fill: auto),
-	"@": (inherit: "circle", size: 4, fill: auto),
-)
 
 
 
@@ -286,6 +84,7 @@
 	stroke: 1pt,
 	origin: (0,0),
 	angle: 0deg,
+	debug: false
 ) = {
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
@@ -320,7 +119,9 @@
 		if mark.at("rev", default: false) {
 			draw.translate(x: mark.tail-origin)
 			draw.scale(x: -1)
-			// draw.content((0,10), text(0.5em, red)[R])
+			if debug {
+				draw.content((0,10), text(0.25em, red)[rev])
+			}
 		} else {
 			draw.translate(x: -mark.tip-origin)
 		}
@@ -336,33 +137,48 @@
 			})
 		}
 
-		// if mark.at("tip", default: true) {
-		// 	draw.content((0,0), text(0.5em, green)[tip])
-		// } else {
-		// 	draw.content((0,0), text(0.5em, orange)[tail])
-		// }
+		if debug {
+			let tip = mark.at("tip", default: none)
+			if tip == true {
+				draw.content((0,-10), text(0.25em, green)[tip])
+			} else if tip == false {
+				draw.content((0,-10), text(0.25em, orange)[tail])
+			}
+		}
+
 	})
 }
 
-#let mark-debug(mark, stroke: 5pt, labels: false, offsets: not false) = {
+#let mark-debug(
+	mark,
+	stroke: 5pt,
+	show-labels: true,
+	show-offsets: true,
+	offset-range: 5
+) = {
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
 
 	let t = stroke.thickness*float(mark.scale)
 
-	let ymax = 1cm
-	let samples = 100
-	let ys = range(samples + 1)
-		.map(n => n/samples)
-		.map(y => (2*y - 1)*ymax/t)
-
 
 	cetz.canvas({
 
 		draw-mark(mark, stroke: stroke)
-		draw.translate(x: -t*mark.tip-origin)
 
-		if offsets {
+		if mark.at("rev", default: false) {
+			draw.scale(x: -1)
+			draw.translate(x: -t*mark.tail-origin)
+		} else {
+			draw.translate(x: -t*mark.tip-origin)
+		}
+
+		if show-offsets {
+
+			let samples = 100
+			let ys = range(samples + 1)
+				.map(n => n/samples)
+				.map(y => (2*y - 1)*offset-range)
 
 			let tip-points = ys.map(y => {
 				let o = cap-offset(mark + (tip: true), y)
@@ -376,19 +192,25 @@
 
 			draw.line(
 				..tip-points,
-				stroke: rgb("0f0") + 0.5pt,
+				stroke: (
+					paint: rgb("0f0"),
+					thickness: 0.4pt,
+					dash: (array: (3pt, 3pt), phase: 0pt),
+				),
 			)
 			draw.line(
 				..tail-points,
-				stroke: rgb("f00") + 0.5pt,
+				stroke: (
+					paint: rgb("f00"),
+					thickness: 0.4pt,
+					dash: (array: (3pt, 3pt), phase: 3pt),
+				),
 			)
 
 
 		}
 
-
-
-		if labels {
+		if show-labels {
 			for (i, (item, y, color)) in (
 				("tip-end",     +1.00, "0f0"),
 				("tail-end",    -1.00, "f00"),
@@ -406,12 +228,14 @@
 			}
 		}
 
+		// draw tip/tail stroke previews
 		let (min, max) = min-max((
 			"tip-end",
 			"tail-end",
 			"tip-origin",
 			"tail-origin",
 		).map(i => mark.at(i)))
+
 		let l = calc.max(5, max - min)
 
 		draw.line(
@@ -425,17 +249,16 @@
 			stroke: rgb("f006") + t,
 		)
 
-
+		// draw true origin dot
 		draw.circle(
 			(0, 0),
 			radius: t/8,
 			stroke: rgb("00f") + 0.5pt,
 			fill: white,
 		)
-
-
 	})
 }
+
 
 #let mark-demo(
 	mark,
@@ -445,6 +268,8 @@
 ) = {
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
+
+	let t = stroke.thickness
 
 	cetz.canvas({
 
@@ -456,18 +281,19 @@
 			)
 		}
 
-		let x = (mark.tip-origin - mark.tip-end)*stroke.thickness
+		let x = t*(mark.tip-origin - mark.tip-end)
 		draw.line(
 			(x, 0),
 			(rel: (-x, 0), to: (width, 0)),
 			stroke: stroke,
 		)
 
+		let mark-length = t*(mark.tip-origin - mark.tail-origin)
 		draw-mark(
-			mark + (rev: false),
+			mark + (rev: true),
 			stroke: stroke,
-			origin: (0, 0),
-			angle: 180deg,
+			origin: (mark-length, 0),
+			angle: 0deg,
 		)
 		draw-mark(
 			mark + (rev: false),
@@ -478,7 +304,7 @@
 
 		draw.translate((0, -height))
 
-		let x = (mark.tail-end - mark.tail-origin)*stroke.thickness
+		let x = t*(mark.tail-end - mark.tail-origin)
 		draw.line(
 			(x, 0),
 			(rel: (-x, 0), to: (width, 0)),
@@ -492,15 +318,14 @@
 			angle: 180deg,
 		)
 		draw-mark(
-			mark + (rev: true),
+			mark + (rev: false),
 			stroke: stroke,
-			origin: (width, 0),
-			angle: 0deg,
+			origin: (width - mark-length, 0),
+			angle: 180deg,
 		)
 
 	})
 }
-
 
 
 #let place-mark-on-curve(mark, path, stroke: 1pt + black, debug: false) = {
@@ -514,32 +339,28 @@
 	let grad = vector-len(vector.sub(point-plus-ε, point))/ε
 	if grad == 0pt { grad = ε*1pt }
 
-	let outer-len = mark.at("tip-origin", default: 0) - mark.at("tail-origin", default: 0)
-	let Δt = outer-len*stroke.thickness/grad
+	let mark-length = mark.at("tip-origin", default: 0) - mark.at("tail-origin", default: 0)
+	let Δt = mark-length*stroke.thickness/grad
 	if Δt == 0 { Δt = ε } // avoid Δt = 0 so the two points are distinct
 
 	let t = lerp(Δt, 1, mark.pos)
-	let head-point = path(t)
+	let tip-point = path(t)
 	let tail-point = path(t - Δt)
+	let θ = vector-angle(vector.sub(tip-point, tail-point))
 
-	let θ = vector-angle(vector.sub(head-point, tail-point))
-
-	if calc.abs(mark.pos) < ε {
-		mark.rev = not mark.rev
-	}
-	draw-mark(mark, origin: head-point, angle: θ, stroke: stroke)
+	draw-mark(mark, origin: tip-point, angle: θ, stroke: stroke)
 
 	if debug {
 		draw.circle(
-			head-point,
+			tip-point,
 			radius: .2pt,
-			fill: red,
+			fill: rgb("0f0"),
 			stroke: none
 		)
 		draw.circle(
 			tail-point,
 			radius: .2pt,
-			fill: blue,
+			fill: rgb("f00"),
 			stroke: none
 		)
 	}
