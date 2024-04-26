@@ -3,7 +3,7 @@
 #import "/src/marks.typ": *
 
 #for scale in (100%, 200%) [
-	#pagebreak()
+	#pagebreak(weak: true)
 
 	#let mark = MARKS.head
 	#mark-debug(mark + (scale: scale))
