@@ -165,21 +165,21 @@
 
 
 	// make classic math arrows slightly larger on double/triple stroked lines
-	// if line == "=" {
-	// 	marks = marks.map(mark => {
-	// 		if mark != none and mark.kind == "head" {
-	// 			mark += MARK_ALIASES.doublehead
-	// 		}
-	// 		mark
-	// 	})
-	// } else if line == "==" {
-	// 	marks = marks.map(mark => {
-	// 		if mark != none and mark.kind == "head" {
-	// 			mark += MARK_ALIASES.triplehead
-	// 		}
-	// 		mark
-	// 	})
-	// }
+	if line == "=" {
+		marks = marks.map(mark => {
+			if mark == none { return }
+			(
+				">": (inherit: "doublehead", rev: false),
+				"<": (inherit: "doublehead", rev: true),
+			).at(mark, default: mark)
+		})
+	} else if line == "==" {
+		marks = marks.map(mark => {
+			if mark == ">" { (inherit: "triplehead", rev: false) }
+			else if mark == "<" { (inherit: "triplehead", rev: true) }
+			else {mark}
+		})
+	}
 
 	return (
 		marks: interpret-marks(marks),
@@ -827,12 +827,8 @@
 
 	// Scale marks
 	edge.mark-scale *= options.mark-scale
-	let scale = edge.mark-scale/100%
 	edge.marks = edge.marks.map(mark => {
-		if mark == none { return }
-		for k in ("size", "inner-len", "outer-len") {
-			if k in mark { mark.at(k) *= scale }
-		}
+		mark.scale = edge.mark-scale
 		mark
 	})
 

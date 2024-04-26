@@ -319,7 +319,7 @@
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
 
-	let t = stroke.thickness
+	let t = stroke.thickness*float(mark.scale)
 
 	cetz.canvas({
 
@@ -390,6 +390,7 @@
 	if grad == 0pt { grad = ε*1pt }
 
 	let mark-length = mark.at("tip-origin", default: 0) - mark.at("tail-origin", default: 0)
+	mark-length *= float(mark.scale)
 	let Δt = mark-length*stroke.thickness/grad
 	if Δt == 0 { Δt = ε } // avoid Δt = 0 so the two points are distinct
 

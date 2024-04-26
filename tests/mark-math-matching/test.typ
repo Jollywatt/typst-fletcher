@@ -15,17 +15,17 @@ Compare to $->$, $=>$, $arrow.triple$, $arrow.twohead$, $arrow.hook$, $|->$.
 	edge-stroke: result-color,
 	for (i, a) in (
 		("->", $->$,
-			0em, 0),
+			0em, 0.029),
 		("=>", $=>$,
-			0em, -0.01),
+			0em, 0.02),
 		("==>", $arrow.triple$,
-			0em, 0.017),
+			0em, 0.048),
 		("->>", $->>$,
-			0em, 0.021),
+			0em, 0.053),
 		("hook->", $arrow.hook$,
-			0.005em, 0.006),
+			0.024em, 0.057),
 		("|->", $|->$,
-			0em, -.023),
+			0em, 0.004),
 	).enumerate() {
 		let (marks, label, δl, δr) = a
 		edge(

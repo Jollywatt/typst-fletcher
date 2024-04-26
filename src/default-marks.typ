@@ -39,6 +39,20 @@
 
 	),
 
+	doublehead: (
+		inherit: "head",
+		size: 9.6*1.1,
+		sharpness: 19.4deg,
+		delta: 43.5deg,
+	),
+
+	triplehead: (
+		inherit: "head",
+		size: 9*1.5,
+		sharpness: 25.5deg,
+		delta: 42.6deg,
+	),
+
 	harpoon: (
 		inherit: "head",
 		draw: mark => {
@@ -53,7 +67,7 @@
 	),
 
 	straight: (
-		size: 8,
+		size: 10,
 		sharpness: 20deg,
 
 		tip-origin: mark => 0.5/calc.sin(mark.sharpness),
@@ -162,6 +176,7 @@
 	hook: (
 		size: 2.88,
 		rim: 0.85,
+
 		tip-origin: mark => mark.size + 0.5,
 		draw: mark => {
 			draw.arc(
@@ -171,6 +186,7 @@
 				radius: mark.size,
 				fill: none,
 			)
+			draw.line((), (rel: (-mark.rim, 0)))
 		},
 	),
 
@@ -192,8 +208,8 @@
 	">": (inherit: "head", rev: false),
 	"<": (inherit: "head", rev: true),
 
-	">>": (inherit: "head", extrude: (-3, 0), rev: false),
-	"<<": (inherit: "head", extrude: (-3, 0), rev: true),
+	">>": (inherit: "head", extrude: (-2.88, 0), rev: false),
+	"<<": (inherit: "head", extrude: (-2.88, 0), rev: true),
 
 	">>>": (inherit: "head", extrude: (-6, -3, 0), rev: false),
 	"<<<": (inherit: "head", extrude: (-6, -3, 0), rev: true),
