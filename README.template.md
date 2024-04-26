@@ -102,3 +102,7 @@ insert_example_table([
 
 - Experimental support for customising arrowheads.
 - Add right-angled edges with `edge(..., corner: left/right)`.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jollywatt/typst-fletcher&type=Date)](https://star-history.com/#jollywatt/typst-fletcher&Date)
