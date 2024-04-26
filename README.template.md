@@ -105,4 +105,10 @@ insert_example_table([
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=jollywatt/typst-fletcher&type=Date)](https://star-history.com/#jollywatt/typst-fletcher&Date)
+<a href="https://star-history.com/#jollywatt/typst-fletcher&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=jollywatt/typst-fletcher&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=jollywatt/typst-fletcher&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=jollywatt/typst-fletcher&type=Date" />
+ </picture>
+</a>
