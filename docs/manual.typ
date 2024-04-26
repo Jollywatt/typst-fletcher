@@ -282,7 +282,7 @@
 			edge((0,0), "r,u,r", "-}>"),
 			edge((2,-1), "r,d,r", "-}>"),
 			edge((2,-1), "r,dd,l", "--}>"),
-			edge((2,1), "l", (1,-.5), marks: ((kind: "}>", pos: 0.65, rev: false),)),
+			edge((2,1), "l", (1,-.5), marks: ((inherit: "}>", pos: 0.65, rev: false),)),
 
 			for i in range(-1, 2) {
 				edge((2,0), (2,1), "<{-}>", shift: i*5mm, bend: i*20deg)
@@ -308,7 +308,8 @@ Avoid importing everything with `*` as many internal functions are also exported
 #let code-example(src) = (
 	{
 		set text(.85em)
-		box(src) // box to prevent pagebreaks
+		let code = src.text.replace(regex("(^|\n).*// hide\n|^[\s|\S]*// setup\n"), "")
+		box(raw(block: true, lang: src.lang, code)) // box to prevent pagebreaks
 	},
 	eval(
 		src.text,
@@ -409,7 +410,7 @@ Diagrams are a collection of nodes and edges rendered on a CeTZ canvas.
 Diagrams are laid out on a flexible coordinate grid, visible when the #param[diagram][debug] option is turned on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 
-By default, coordinates $(x, y)$ have $x$ going $arrow.r$ and $y$ going $arrow.b$.
+By default, coordinates $(u, v)$ have $u$ going $arrow.r$ and $v$ going $arrow.b$.
 This can be changed with #the-param[diagram][axes].
 The #param[diagram][cell-size] option is the minimum row and column width, and #param[diagram][spacing] is the gutter between rows and columns.
 
@@ -460,7 +461,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They can be circular, rectangular, or of any custom shape. Nodes automatically fit the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
+Nodes are content centered at a particular coordinate. They can be circular, rectangular, or any custom shape. Nodes automatically fit the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
 #diagram(
@@ -485,7 +486,7 @@ Nodes are content centered at a particular coordinate. They can be circular, rec
 
 == Node shapes
 
-By default, nodes are circular or rectangular depending on the aspect ratio of their label. The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the `fletcher.shapes` submodule, or a function.
+By default, nodes are circular or rectangular depending on the aspect ratio of their label. The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the #link(<shapes>, `fletcher.shapes`) submodule, or a function.
 
 
 #code-example-row(```typ
@@ -566,6 +567,8 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 
 == Specifying edge vertices
 
+Generally, the first few arguments to `edge()` specify its #param[edge][vertices].
+
 === Implicit coordinates
 
 To specify the start and end points of an edge, you may provide both explicitly (like `edge(from, to)`); leave `from` implicit (like `edge(to)`); or leave both implicit.
@@ -628,7 +631,7 @@ Node names are labels instead of strings (like in CeTZ) so that positional argum
 
 There are three `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
 All edges have at least two `vertices`, but `"poly"` edges can have more.
-In unspecified, `kind` is chosen based on `bend` and the number of `vertices`.
+In unspecified, `kind` is chosen based on #param[edge][bend] and the number of #param[edge][vertices].
 
 
 #code-example-row(```typ
@@ -639,8 +642,6 @@ In unspecified, `kind` is chosen based on `bend` and the number of `vertices`.
 )
 ```)
 
-
-Instead of as positional arguments, an array of coordinates may be also be passed the the edge option `vertices`.
 All vertices except the first can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
 
 ```typc
@@ -698,7 +699,7 @@ The strength of this adjustment is controlled by the `defocus` option of `node()
 
 = Marks and arrows
 
-Edges can be arrows.
+// Edges can be arrows.
 Arrow marks can be specified like  `edge(a, b, "-->")` or with the `marks` option of `edge()`.
 Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$.
 #align(center, fletcher.diagram(
@@ -732,7 +733,7 @@ A few other marks are supported, and can be placed anywhere along the edge.
 		"||-/-|>",
 		"o..O",
 		"hook'-x-}>",
-		"-*-harpoon'"
+		"-*-harpoon"
 	).enumerate() {
 		let label = raw("\""+str+"\"")
 		edge((2*i, 0), (2*i + 1, 0), str, stroke: 0.9pt,
@@ -740,98 +741,217 @@ A few other marks are supported, and can be placed anywhere along the edge.
 	}
 }))
 
-All the mark shorthands are defined in `fletcher.MARK_ALIASES` and `fletcher.MARK_DEFAULTS`:
+All the built-in marks are defined in `fletcher.MARKS`:
 
-#{(fletcher.MARK_ALIASES.keys() + fletcher.MARK_DEFAULTS.keys())
+#{fletcher.MARKS.keys()
 	.sorted(key: i => i.len())
 	.map(raw.with(lang: "none"))
-	.join([, ])
+	.join[, ]
 }
 
 
 
-== Adjusting marks
+== Custom marks
 
-While shorthands exist for specifying marks and stroke styles, finer control is possible.
+While shorthands like `"|==>"` exist for specifying marks and stroke styles, finer control is possible.
 
 #code-example-row(```typ
 #diagram(
 	edge-stroke: 1.5pt,
-	spacing: 3cm,
-	edge((0,0), (-0.1,-1), bend: -10deg, marks: (
-		(kind: ">>", size: 6, delta: 70deg, sharpness: 45deg),
-		(kind: "bar", size: 1, pos: 0.5),
-		(kind: "head", rev: true),
-		(kind: "solid", rev: true, stealth: 0.1, paint: red.mix(purple)),
-	), stroke: green.darken(50%))
+	spacing: 25mm,
+	node((0,1), [_tulip_]),
+	edge((-0.1,0), bend: -8deg, marks: (
+		(inherit: ">>", size: 6, delta: 70deg, sharpness: 65deg),
+		(inherit: "head", rev: true, pos: 0.8, sharpness: 0deg, size: 17),
+		(inherit: "bar", size: 1, pos: 0.3),
+		(inherit: "solid", size: 12, rev: true, stealth: 0.1, fill: red.mix(purple)),
+	), stroke: green.darken(50%)),
 )
 ```)
 
+When you specify a marks shorthand like `"|=>"`, it is expanded with `fletcher.interpret-marks-arg()`.
+In other words, `edge(from, to, "|=>")` is equivalent to:
 
-Shorthands like `"<->"` expand into specific `edge()` options.
-For example, `edge(a, b, "|=>")` is equivalent to `edge(a, b, marks: ("bar", "doublehead"), extrude: (−2, 2))`.
-These mark names (`"bar"` or `"doublehead"`) are themselves shorthands for dictionaries with the marks' parameters.
-To see how these shorthands expand, you can use `interpret-marks-arg()`.
+```typc
+edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
+```
+
+This does two things:
+- Passes an array of mark dictionaries to the #param[edge][marks] argument.
+- Passes any other stroke style options to `edge()`, like `"double"` (from the `"="` line style).
+
+=== Mark dictionaries
+
+A mark is a dictionary with a `draw` entry containing CeTZ objects.
+For example, a very basic circle mark could be:
 
 #code-example-row(```typ
-#fletcher.interpret-marks-arg("|=>")
-
-// `edge(..args, marks: "|=>")` is equivalent to:
-// `edge(..args, ..fletcher.interpret-marks-arg("|=>"))`
-```)
-You can get also get the default parameters for an individual mark as follows:
-#code-example-row(```typ
-#fletcher.interpret-mark("doublehead")
-// In this particular example:
-// - `kind` selects the type of arrow head
-// - `size` controls the radius of the arc
-// - `sharpness` is (half) the angle of the tip
-// - `delta` is the angle spanned by the arcs
-// - `tail` is approximately the distance from the cap's tip to
-//    the end of its arms. This is used to calculate a "tail hang"
-//    correction to the arrowhead's bearing for tightly curved edges.
-// Distances are multiples of the stroke thickness.
-```)
-
-
-You can customise the basic marks somewhat by adjusting these parameters.
-For example:
-
-#stack(dir: ltr, spacing: 1fr, ..code-example(```typ
-#let my-head = (kind: "head", sharpness: 4deg, size: 50, delta: 15deg)
-#let my-bar = (kind: "bar", extrude: (0, -3, -6))
-#let my-solid = (kind: "solid", sharpness: 45deg)
+#import cetz.draw
+#let my-mark = (
+	draw: draw.circle((0,0), radius: 2, fill: none)
+)
 #diagram(
-	edge-stroke: 1.4pt,
-	spacing: (3cm, 1cm),
-	edge((0,0), (1,0), marks: (my-head, my-head + (sharpness: 20deg))),
-	edge((0,1), (1,1), marks: (my-bar, my-solid + (pos: 0.8), my-solid)),
-)
-```))
-
-Currently, supported marks and parameters are hard-wired and will likely change as this package is updated (so they are not documented).
-Meanwhile, you are encouraged to use the functions `interpret-marks-arg()` and `interpret-mark()` to discover what the parameters are so you can play around.
-
-#box[
-== Hanging tail correction
-
-All marks accept an `outer-len` parameter, the effect of which can be seen below:
-#code-example-row(```typ
-#diagram(
-	edge-stroke: 2pt,
-	spacing: 2cm,
-	debug: 4,
-
-	edge((0,0), (1,0), stroke: gray, bend: 90deg, label-pos: 0.1, label: [without],
-		marks: (none, (kind: "solid", outer-len: 0))),
-	edge((0,1), (1,1), stroke: gray, bend: 90deg, label-pos: 0.1, label: [with],
-		marks: (none, (kind: "solid"))), // use default hang
+	edge((0,0), (1,0), stroke: 1pt, marks: (my-mark, my-mark), bend: 30deg),
+	edge((0,1), (1,1), stroke: 3pt + orange, marks: (none, my-mark)),
 )
 ```)
-]
-The tail length (specified in multiples of the stroke thickness) is the distance that the arrow head visually extends backwards over the stroke.
-This is visualised by the green line shown above.
-The mark is rotated so that the ends of the line both lie on the arc.
+
+Marks scale with the edge's stroke; one unit is equal to the stroke thickness.
+
+A mark dictionary can contain other parameters, and any subsequent entries may depend on them by being written as a function accepting the mark dictionary.
+For example, the `my-mark` above could also be implemented as:
+
+```typ
+#let mark = (
+	size: 2,
+	draw: mark => draw.circle((0,0), radius: mark.size, fill: none)
+)
+```
+
+This makes it easier to change the size without modifying `draw`:
+
+#code-example-row(```typ
+#import cetz.draw
+#let mark = (
+	size: 2,
+	draw: mark => draw.circle((0,0), radius: mark.size, fill: none)
+) // setup
+#diagram(edge(stroke: 3pt, marks: (mark + (size: 4), mark)))
+```)
+
+Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
+
+=== Special mark properties
+
+You can add any properties to a mark dictionary, but there are some with special functions.
+
+#{
+	show table.cell.where(y: 0): emph
+	let little-mark(..args) = diagram(spacing: 5mm, edge(..args, stroke: 0.5pt))
+
+	table(
+		columns: 4,
+
+		table.header([Name], [Description], [Required], [Default]),
+
+		`draw`,
+		[
+			As described above, this contains the final CeTZ objects to be drawn. Objects should be centered at $(0,0)$ and be scaled so that one unit is the stroke thickness.
+			The default `stroke` and `fill` is inherited from the edge.
+		],
+		`true`,
+		none,
+
+		`inherit`,
+		[
+			The name of a mark in `fletcher.MARKS` to inherit properties from.
+			This can be used to make mark aliases, for instance, `"<"` is defined as `(inherit: "head", rev: true)`.
+		],
+		`false`,
+		none,
+
+		`scale`,
+		[
+			Overall scaling factor. See also #the-param[edge][mark-scale].
+		],
+		`false`,
+		`100%`,
+
+		`rev`,
+		[
+			Whether to reverse the mark so it points backwards.
+
+		],
+		`false`,
+		`false`,
+
+		`flip`,
+		[
+			Whether to reflect the mark across the edge; the difference between
+			#diagram(spacing: 8mm, edge("hook-", stroke: 1pt))
+			and
+			#diagram(spacing: 8mm, edge("hook'-", stroke: 1pt)), for example.
+			A suffix `'` in the name, such as `"hook'"`, results in a flip.
+		],
+		`false`,
+		`false`,
+
+		`extrude`,
+		[
+			Whether to duplicate the mark and draw it offset at each extrude position.
+			For example, `(inherit: "head", extrude: (-5, 0, 5))` looks like
+			#diagram(spacing: 8mm, edge(marks: (none, (inherit: "head", extrude: (-5, 0, 5))), stroke: .7pt)).
+
+		],
+		`false`,
+		`(0,)`,
+
+		[`tip-origin`\ `tail-origin`],
+		[
+			These two properties control the $x$ coordinate of the point of the mark, relative to $(0, 0)$. If the mark is acting as a tip (#little-mark("->") or #little-mark("<-")) then `tip-origin` applies, and `tail-origin` applies when the mark is a tail (#little-mark("-<") or #little-mark(">-")).
+			See `mark-debug()`.
+		],
+		`false`,
+		`0`,
+
+		[`tip-end`\ `tail-end`],
+		[
+			These control the $x$ coordinate at which the edge's stroke terminates, relative to $(0, 0)$.
+			See `mark-debug()`.
+		],
+		`false`,
+		`0`,
+
+		`cap-offset`,
+		[
+			A function `(mark, y) => x` returning the $x$ coordinate at which the edge's stroke terminates relative to `tip-end` or `tail-end`, as a function of the $y$ coordinate.
+			This is relevant for #param[edge][extrude]d edges.
+			See `cap-offset()`.
+		],
+		`false`,
+		none,
+
+	)
+}
+
+The last few properties control the fine behaviours of how marks connect to the target point and to the edge's stroke.
+
+#grid(
+	columns: (1fr, 1fr),
+	align: center + horizon,
+	fletcher.mark-debug((inherit: "}>", fill: none), show-offsets: false),
+	fletcher.mark-demo((inherit: "}>", fill: none)),
+)
+
+See `mark-debug()` and `cap-offset()` for details.
+
+As a complete example, here is the implementation of a straight arrowhead in ```plain src/default-marks.typ```:
+
+#code-example-row(```typ
+#import cetz.draw
+#let straight = (
+	size: 8,
+	sharpness: 20deg,
+
+	tip-origin: mark => 0.5/calc.sin(mark.sharpness),
+	tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
+
+	fill: none,
+	draw: mark => {
+		draw.line(
+			(180deg + mark.sharpness, mark.size),
+			(0, 0),
+			(180deg - mark.sharpness, mark.size),
+		)
+	},
+
+	cap-offset: (mark, y) => calc.tan(mark.sharpness + 90deg)*calc.abs(y),
+)
+
+#set align(center)
+#fletcher.mark-debug(straight)
+#fletcher.mark-demo(straight)
+```)
 
 #pagebreak()
 
@@ -925,20 +1045,42 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 #show-fns("/src/main.typ", only: (
 	"diagram",
 	"node",
-	"edge",
 ), level: 1)
-
+#show-fns("/src/edge.typ", only: (
+	"edge",
+))
 
 = Behind the scenes
 
-== `main.typ`
-#show-fns("/src/main.typ", exclude: (
-	"diagram",
-	"node",
-	"edge",
-), level: 2, outline: true)
+// == `edge.typ`
+// #show-fns("/src/edge.typ", level: 2, outline: true, exclude: "edge")
 
-== `shapes.typ`
+== `marks.typ`
+
+The default marks are defined in the `fletcher.MARKS` dictionary with keys: #fletcher.MARKS.keys().map(raw).join(last: [, and ])[, ].
+
+#show-fns("/src/marks.typ", level: 2, outline: true)
+
+
+#pagebreak()
+== `shapes.typ` <shapes>
+
+To use these shapes in a diagram, import them with:
+
+```typ
+#import fletcher: shapes
+#diagram(node([Hello], stroke: 1pt, shape: shapes.hexagon))
+```
+
+or:
+
+```typ
+#import fletcher.shapes: hexagon
+#diagram(node([Hello], stroke: 1pt, shape: hexagon))
+```
+
+Built-in shapes:
+
 #show-fns("/src/shapes.typ", level: 2, outline: true)
 
 == `coords.typ`
@@ -946,9 +1088,6 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 
 == `layout.typ`
 #show-fns("/src/layout.typ", level: 2, outline: true)
-
-== `marks.typ`
-#show-fns("/src/marks.typ", level: 2, outline: true)
 
 == `draw.typ`
 #show-fns("/src/draw.typ", level: 2, outline: true)

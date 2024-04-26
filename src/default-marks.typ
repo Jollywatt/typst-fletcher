@@ -11,7 +11,10 @@
 
 		tip-origin: 0.5,
 		tail-end: mark => calc.min(..mark.extrude),
-		tail-origin: mark => mark.tail-end - mark.size*mark.delta/1.8rad*(calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)),
+		tail-origin: mark => {
+			let dx = calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)
+			mark.tail-end - mark.size*mark.delta/1.8rad*dx
+		},
 
 		stroke: (cap: "round"),
 
@@ -132,8 +135,7 @@
 		size: 4.9,
 		angle: 90deg,
 
-		tip-origin: 0.5,
-		tail-origin: mark => calc.min(..mark.extrude) - 0.5,
+		tail-origin: mark => calc.min(..mark.extrude),
 
 		draw: mark => draw.line(
 			(mark.angle, -mark.size),

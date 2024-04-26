@@ -48,14 +48,37 @@
 ///   )
 ///   ```)
 ///
-/// - inset (length, auto): Padding between the node's content and its bounding
-///   box or bounding circle.
+/// - inset (length, auto): Padding between the node's content and its outline.
+///
+///   In debug mode, the inset is visualised by a thin green outline.
+///
+///   #example(```
+///   diagram(
+///   	debug: 3,
+///   	node-stroke: 1pt,
+///   	node((0,0), [Hello,]),
+///   	edge(),
+///   	node((1,0), [World!], inset: 10pt),
+///   )
+///   ```)
 ///
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///   points for connecting edges.
 ///
 ///   This does not affect node layout, only how closely edges connect to the
 ///   node.
+///
+///   In debug mode, the outset is visualised by a thin green outline.
+///
+///   #example(```
+///   diagram(
+///   	debug: 3,
+///   	node-stroke: 1pt,
+///   	node((0,0), [Hello,]),
+///   	edge(),
+///   	node((1,0), [World!], outset: 10pt),
+///   )
+///   ```)
 ///
 /// - width (length, auto): Width of the node. If `auto`, the node's width is
 ///   the width of the node #param[node][label], plus twice the
@@ -108,7 +131,7 @@
 ///     extruded outwards by. This serves two functions: to support automatic
 ///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
 ///     effects using the `extrude` node option.
-///   See the ```plain ./src/shapes.typ``` source file for examples.
+///   See the ```plain src/shapes.typ``` source file for examples.
 ///
 /// - stroke (stroke): Stroke style for the node outline.
 ///
@@ -189,15 +212,15 @@
 	label: none,
 	inset: auto,
 	outset: auto,
-	stroke: auto,
 	fill: auto,
-	enclose: (),
+	stroke: auto,
+	extrude: (0,),
 	width: auto,
 	height: auto,
 	radius: auto,
+	enclose: (),
 	corner-radius: auto,
 	shape: auto,
-	extrude: (0,),
 	defocus: auto,
 	layer: auto,
 	post: x => x,
@@ -506,7 +529,7 @@
 /// - node-defocus (number): Default value of #the-param[node][defocus].
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
-/// - mark-scale (length): Default value of #the-param[edge][mark-scale].
+/// - mark-scale (percent): Default value of #the-param[edge][mark-scale].
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///   the illusion of crossing over other objects. See
 ///   #the-param[edge][crossing-fill].

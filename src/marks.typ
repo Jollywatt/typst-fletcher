@@ -4,6 +4,7 @@
 #import "default-marks.typ": MARKS
 
 #let MARK_REQUIRED_DEFAULTS = (
+	rev: false,
 	flip: false,
 	scale: 100%,
 	extrude: (0,),
@@ -17,14 +18,22 @@
 
 
 
-/// Determine amount that the end of a stroke should be offset to accommodate
-/// for a mark, as a function of the shift.
+/// For a given mark, determine where that the stroke should terminate at,
+/// relative to the mark's origin point, as a function of the shift.
 ///
-/// Imagine the tip origin of the mark is at $(x, y) = (0, 0)$. A stroke along
-/// the line $y = "shift"$ coming from $x = -oo$ terminates at $x = o$, where
-/// $o$ is the result of this function.
-///
+/// Imagine the tip-origin of the mark is at $(x, y) = (0, 0)$. A stroke along
+/// the line $y = "shift"$ coming from $x = -oo$ terminates at $x = "offset"$, where
+/// $"offset"$ is the result of this function.
 /// Units are in multiples of stroke thickness.
+///
+/// This is used to correctly implement multi-stroke marks, e.g.,
+/// #diagram(edge("<==>")). The function `fletcher.mark-debug()` can help
+/// visualise a mark's cap offset.
+///
+/// #example(`fletcher.mark-debug("O")`)
+///
+/// The dashed green line shows the stroke tip end as a function of $y$, and the
+/// dashed red line shows where the stroke ends if the mark is acting as a tail.
 #let cap-offset(mark, shift) = {
 	let o = 0
 	if "cap-offset" in mark {
@@ -58,6 +67,17 @@
 }
 
 
+
+/// Resolve a mark dictionary by applying inheritance, adding any required entries, and evaluating any closure entries.
+///
+/// #example(```
+/// fletcher.resolve-mark((
+/// 	a: 1,
+/// 	b: 2,
+/// 	c: mark => mark.a + mark.b,
+/// ))
+/// ```)
+///
 #let resolve-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
 
@@ -104,7 +124,7 @@
 		else { stroke += stroke-to-dict(mark.stroke) }
 	}
 
-	assert("draw" in mark)
+	assert("draw" in mark, message: repr(mark))
 
 	draw.group({
 		draw.set-style(
@@ -149,12 +169,43 @@
 	})
 }
 
+/// Visualise a mark's anatomy.
+///
+/// #example(```
+/// let mark = fletcher.MARKS.stealth
+/// // make a wide stealth arrow
+/// mark += (angle: 45deg)
+/// fletcher.mark-debug(mark)
+/// ```)
+///
+/// - Green/left stroke: the edge's stroke when the mark is at the tip.
+/// - Red/right stroke: edge's stroke if the mark is at the start acting as a
+///   tail.
+/// - Blue-white dot: the origin point $(0, 0)$ in the mark's coordinate frame.
+/// - `tip-origin`: the $x$-coordinate of the point of the mark's tip.
+/// - `tail-origin`: the $x$-coordinate of the mark's tip when it is acting as a
+///   reversed tail mark.
+/// - `tip-end`: The $x$-coordinate of the end point of the edge's stroke (
+///   green stroke).
+/// - `tail-end`: The $x$-coordinate of the end point of the edge's stroke when
+///   acting as a tail mark (red stroke).
+///
+/// This is mainly useful for designing your own marks.
+///
+/// - mark (string, dictionary): The mark name or dictionary.
+/// - stroke (stroke): The stroke style, whose paint and thickness applies both
+///   to the stroke and the mark itself.
+///
+/// - show-labels (bool): Whether to label the tip/tail origin/end points.
+/// - show-offsets (bool): Whether to visualise the `cap-offset()` values.
+/// - offset-range (number): The span above and below the stroke line to plot
+///   the cap offsets, in multiples of the stroke's thickness.
 #let mark-debug(
 	mark,
 	stroke: 5pt,
 	show-labels: true,
 	show-offsets: true,
-	offset-range: 5
+	offset-range: 6,
 ) = {
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
@@ -252,13 +303,12 @@
 		// draw true origin dot
 		draw.circle(
 			(0, 0),
-			radius: t/8,
-			stroke: rgb("00f") + 0.5pt,
+			radius: t/4,
+			stroke: rgb("00f") + 1pt,
 			fill: white,
 		)
 	})
 }
-
 
 #let mark-demo(
 	mark,

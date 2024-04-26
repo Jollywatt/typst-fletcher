@@ -61,7 +61,7 @@
 		cetz.draw.group({
 			cetz.draw.translate(node.final-pos)
 			cetz.draw.set-style(
-				stroke: DEBUG_COLOR + .1pt,
+				stroke: DEBUG_COLOR2 + 0.25pt,
 				fill: none,
 			)
 			(node.shape)(node, node.outset)
@@ -112,10 +112,15 @@
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
 
-		let s = if mark.tip { +1 } else { -1 } // not completely sure why this is needed
-		let x = cap-offset(mark, s*(2*pos - 1)*y/edge.stroke.thickness)
+		// let tip = mark.at("tip", default: false)
+		let tip = (pos == 0) == mark.rev
+		let s = if tip { +1 } else { -1 } // not completely sure why this is needed
+		let x = cap-offset(
+			mark + (tip: tip),
+			s*(2*pos - 1)*y/edge.stroke.thickness,
+		)
 
-		x -= if mark.tip { mark.tip-origin } else { mark.tail-origin }
+		x -= if tip { mark.tip-origin } else { mark.tail-origin }
 		if mark.rev { x *= -1 }
 
 		x*edge.stroke.thickness
@@ -383,7 +388,7 @@
 				marks.push((
 					inherit: "bar",
 					pos: 0,
-					angle: 90deg + Δθ/2,
+					angle: 90deg - Δθ/2,
 					hide: true,
 				))
 			}
@@ -440,6 +445,8 @@
 
 
 		}
+
+		marks = marks.map(resolve-mark)
 
 		// distribute original marks across segments
 		marks += edge.marks.map(mark => {

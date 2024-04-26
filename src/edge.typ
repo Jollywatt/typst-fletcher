@@ -195,6 +195,7 @@
 /// arguments based on the argument types.
 ///
 /// Generally, the following combinations are allowed:
+///
 /// ```
 /// edge(..<coords>, ..<marklabel>, ..<options>)
 /// <coords> = () or (to) or (from, to) or (from, ..vertices, to)
@@ -463,21 +464,16 @@
 ///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$,
 ///     where
-///     $
-///     M_i in {#fletcher.MARK_ALIASES.keys().filter(x => x.len() < 4).map(raw.with(lang: none)).join($,$)} union N
-///     $
-///     is a mark symbol and
-///     $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
+///     $ M_i in #`fletcher.MARKS` = {#fletcher.MARKS.keys().slice(10).map(raw).join($,$), ...} $
+///     is a mark name and
+///     $ L in #`fletcher.LINE_ALIASES` = {#fletcher.LINE_ALIASES.keys().map(raw.with(lang: none)).join($,$)} $
 ///     is the line style.
-///     The mark symbol can also be a name,
-///     $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$
-///     where a trailing `'` means to reflect the mark across the stroke.
 ///
 ///   - An array of marks, where each mark is specified by name or by a
 ///     dictionary of parameters.
 ///
 ///   Shorthands are expanded into other arguments. For example,
-///   `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.
+///   `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, the result of `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.
 ///
 ///   #table(
 ///   	columns: (1fr, 4fr),
@@ -494,8 +490,8 @@
 ///   		"hook->>",
 ///   		"hook'->>",
 ///   		"||-*-harpoon'",
-///         ("X", (kind: "head", size: 15, sharpness: 40deg),),
-///         ((kind: "circle", pos: 0.5, fill: true),),
+///         ("X", (inherit: "head", size: 15, sharpness: 40deg),), ((inherit:
+///         "circle", pos: 0.5, fill: auto),),
 ///   	).map(arg => (
 ///   		fletcher.diagram(edge((0,0), (1,0), marks: arg, stroke: 0.8pt)),
 ///   		raw(repr(arg)),
@@ -503,7 +499,7 @@
 ///   )
 ///
 /// - mark-scale (percent): Scale factor for marks or arrowheads, relative to
-///   the #param[edge][stroke] thickness.
+///   the #param[edge][stroke] thickness. See also #the-param[diagram][mark-scale].
 ///
 ///   #diagram(
 ///   	label-sep: 10pt,
@@ -544,8 +540,7 @@
 ///   })
 ///
 ///   Notice how the ends of the line need to shift a little depending on the
-///   mark. For basic arrow heads, this offset is computed with
-///   `round-arrow-cap-offset()`.
+///   mark. This offset is computed with `cap-offset()`.
 ///
 ///   See also #the-param[node][extrude].
 ///
@@ -655,8 +650,6 @@
 #let edge(
 	..args,
 	vertices: (),
-	extrude: (0,),
-	shift: 0pt,
 	label: none,
 	label-side: auto,
 	label-pos: 0.5,
@@ -666,6 +659,8 @@
 	stroke: auto,
 	dash: none,
 	decorations: none,
+	extrude: (0,),
+	shift: 0pt,
 	kind: auto,
 	bend: 0deg,
 	corner: none,

@@ -9,5 +9,5 @@
 		(0,0), (1,0),
 		marks: (mark, mark),
 		extrude: (-e,0,+e)
-	), debug: 3)
+	))
 }).join(linebreak()))
