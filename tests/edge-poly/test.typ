@@ -3,7 +3,6 @@
 
 #for radius in (none, 0pt, 10pt) {
 	diagram(
-		// debug: 4,
 		mark-scale: 150%,
 		node((0,0), $A$),
 		edge(">->", vertices: (

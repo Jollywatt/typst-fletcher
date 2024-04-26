@@ -2,12 +2,19 @@
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 #import "/src/marks.typ": *
 
-#for mark in ("head", (inherit: "head", scale: 200%)) [
+#for scale in (100%, 200%) [
+	#pagebreak()
 
-	#mark-debug(mark)
+	#let mark = MARKS.head
+	#mark-debug(mark + (scale: scale))
+	#mark-demo(mark + (scale: scale))
 
-	#mark-demo(mark)
+	#diagram(edge(marks: (mark + (scale: scale), mark + (scale: scale))))
+	#diagram(edge(marks: (mark, mark), mark-scale: scale))
+	#diagram(edge(marks: (mark, mark)), mark-scale: scale)
 
-	#diagram(edge(marks: (mark, mark)))
-	
+	#diagram(edge("triple", marks: (mark + (scale: scale), mark + (scale: scale))))
+	#diagram(edge("triple", marks: (mark, mark), mark-scale: scale))
+	#diagram(edge("triple", marks: (mark, mark)), mark-scale: scale)
+
 ]

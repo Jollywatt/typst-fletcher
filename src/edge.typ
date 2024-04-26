@@ -828,7 +828,7 @@
 	// Scale marks
 	edge.mark-scale *= options.mark-scale
 	edge.marks = edge.marks.map(mark => {
-		mark.scale = edge.mark-scale
+		mark.scale *= edge.mark-scale
 		mark
 	})
 

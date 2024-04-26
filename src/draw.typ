@@ -120,7 +120,7 @@
 			s*(2*pos - 1)*y/edge.stroke.thickness,
 		)
 
-		x -= if tip { mark.tip-origin } else { mark.tail-origin }
+		x -= if tip { mark.tip-origin } else { mark.tail-origin }*float(mark.scale)
 		if mark.rev { x *= -1 }
 
 		x*edge.stroke.thickness
@@ -161,21 +161,13 @@
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
-		let shifted-line-points = (from, to).zip(cap-offsets(edge, shift))
-			.map(((point, offset)) => vector.add(
-				point,
-				vector.add(
-					// Shift end points lengthways depending on markers
-					vector-polar(offset, θ),
-					// Shift line sideways (for double line effects, etc)
-					vector-polar(shift, θ + 90deg),
-				)
-			))
 
 		let offsets = cap-offsets(edge, shift)
 		let points = (from, to).zip(offsets)
 			.map(((point, offset)) => {
+				// Shift line sideways (for multi-stroke effect)
 				point = (rel: (θ + 90deg, shift), to: point)
+				// Shift end points lengthways depending on marks
 				point = (rel: (θ, offset), to: point)
 				point
 			})

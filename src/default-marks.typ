@@ -41,14 +41,14 @@
 
 	doublehead: (
 		inherit: "head",
-		size: 9.6*1.1,
+		size: 10.56,
 		sharpness: 19.4deg,
 		delta: 43.5deg,
 	),
 
 	triplehead: (
 		inherit: "head",
-		size: 9*1.5,
+		size: 13.5,
 		sharpness: 25.5deg,
 		delta: 42.6deg,
 	),

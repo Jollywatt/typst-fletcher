@@ -36,16 +36,19 @@
 /// dashed red line shows where the stroke ends if the mark is acting as a tail.
 #let cap-offset(mark, shift) = {
 	let o = 0
+		let scale = float(mark.scale)
 	if "cap-offset" in mark {
-		o = (mark.cap-offset)(mark, shift)
+		o = (mark.cap-offset)(mark, shift/scale)*scale
 	}
+	// if scale != 1 { panic(mark)}
 
-	mark = MARK_REQUIRED_DEFAULTS + mark
+	// mark = MARK_REQUIRED_DEFAULTS + mark
 	if mark.tip {
 		mark.tip-end + o
 	} else {
 		mark.tail-end + o
 	}
+
 }
 
 
@@ -210,7 +213,8 @@
 	mark = resolve-mark(mark)
 	stroke = as-stroke(stroke)
 
-	let t = stroke.thickness*float(mark.scale)
+	let t = stroke.thickness
+	let scale = float(mark.scale)
 
 
 	cetz.canvas({
@@ -219,10 +223,11 @@
 
 		if mark.at("rev", default: false) {
 			draw.scale(x: -1)
-			draw.translate(x: -t*mark.tail-origin)
+			draw.translate(x: -t*mark.tail-origin*scale)
 		} else {
-			draw.translate(x: -t*mark.tip-origin)
+			draw.translate(x: -t*mark.tip-origin*scale)
 		}
+
 
 		if show-offsets {
 
@@ -268,7 +273,7 @@
 				("tip-origin",  +0.75,  "0ff"),
 				("tail-origin", -0.75,  "f0f"),
 			).enumerate() {
-				let x = mark.at(item)
+				let x = mark.at(item)*float(mark.scale)
 				let c = rgb(color)
 				draw.line((t*x, 0), (t*x, y), stroke: 0.5pt + c)
 				draw.content(
