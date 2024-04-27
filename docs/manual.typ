@@ -745,7 +745,7 @@ A few other marks are supported, and can be placed anywhere along the edge.
 
 All the built-in marks are defined in `fletcher.MARKS`:
 
-#{fletcher.MARKS.keys()
+#{context fletcher.MARKS.get().keys()
 	.sorted(key: i => i.len())
 	.map(raw.with(lang: "none"))
 	.join[, ]
@@ -917,7 +917,7 @@ You can add any properties to a mark dictionary, but there are some with special
 
 The last few properties control the fine behaviours of how marks connect to the target point and to the edge's stroke.
 
-#grid(
+#context grid(
 	columns: (1fr, 1fr),
 	align: center + horizon,
 	fletcher.mark-debug((inherit: "}>", fill: none), show-offsets: false),
@@ -1060,7 +1060,8 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 
 == `marks.typ`
 
-The default marks are defined in the `fletcher.MARKS` dictionary with keys: #fletcher.MARKS.keys().map(raw).join(last: [, and ])[, ].
+The default marks are defined in the `fletcher.MARKS` dictionary with keys:
+#context fletcher.MARKS.get().keys().map(raw).join(last: [, and ])[, ].
 
 #show-fns("/src/marks.typ", level: 2, outline: true)
 

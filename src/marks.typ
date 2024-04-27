@@ -54,6 +54,7 @@
 
 
 #let apply-mark-inheritances(mark) = {
+	let marks = MARKS.get()
 	while "inherit" in mark {
 
 		if mark.inherit.at(-1) == "'" {
@@ -61,9 +62,9 @@
 			mark.inherit = mark.inherit.slice(0, -1)
 		}
 
-		assert(mark.inherit in MARKS, message: "Mark style " + repr(mark.inherit) + " not defined.")
+		assert(mark.inherit in marks, message: "Mark style " + repr(mark.inherit) + " not defined.")
 
-		let parent = MARKS.at(mark.remove("inherit"))
+		let parent = marks.at(mark.remove("inherit"))
 		mark = parent + mark
 	}
 	mark
@@ -74,7 +75,7 @@
 /// Resolve a mark dictionary by applying inheritance, adding any required entries, and evaluating any closure entries.
 ///
 /// #example(```
-/// fletcher.resolve-mark((
+/// context fletcher.resolve-mark((
 /// 	a: 1,
 /// 	b: 2,
 /// 	c: mark => mark.a + mark.b,
@@ -175,10 +176,12 @@
 /// Visualise a mark's anatomy.
 ///
 /// #example(```
-/// let mark = fletcher.MARKS.stealth
-/// // make a wide stealth arrow
-/// mark += (angle: 45deg)
-/// fletcher.mark-debug(mark)
+/// context {
+/// 	let mark = fletcher.MARKS.get().stealth
+/// 	// make a wide stealth arrow
+/// 	mark += (angle: 45deg)
+/// 	fletcher.mark-debug(mark)
+/// }
 /// ```)
 ///
 /// - Green/left stroke: the edge's stroke when the mark is at the tip.
@@ -209,9 +212,9 @@
 	show-labels: true,
 	show-offsets: true,
 	offset-range: 6,
-) = {
-	mark = resolve-mark(mark)
-	stroke = as-stroke(stroke)
+) = context {
+	let mark = resolve-mark(mark)
+	let stroke = as-stroke(stroke)
 
 	let t = stroke.thickness
 	let scale = float(mark.scale)
@@ -320,9 +323,9 @@
 	stroke: 2pt,
 	width: 3cm,
 	height: 1cm,
-) = {
-	mark = resolve-mark(mark)
-	stroke = as-stroke(stroke)
+) = context {
+	let mark = resolve-mark(mark)
+	let stroke = as-stroke(stroke)
 
 	let t = stroke.thickness*float(mark.scale)
 

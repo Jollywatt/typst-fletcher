@@ -2,10 +2,11 @@
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 #import "/src/marks.typ": *
 
-#for scale in (100%, 200%) [
+#context for scale in (100%, 200%) [
 	#pagebreak(weak: true)
 
-	#let mark = MARKS.head
+	#let mark = fletcher.MARKS.get().head
+
 	#mark-debug(mark + (scale: scale))
 	#mark-demo(mark + (scale: scale))
 

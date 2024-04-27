@@ -56,7 +56,6 @@
 		resolve-mark(mark, defaults: (
 			pos: i/calc.max(1, marks.len() - 1),
 			rev: i == 0,
-			// rev: false,
 		))
 	}).filter(mark => mark != none) // drop empty marks
 
@@ -97,7 +96,7 @@
 	assert(type(arg) == str)
 	let text = arg
 
-	let mark-names = MARKS.keys().sorted(key: i => -i.len())
+	let mark-names = MARKS.get().keys().sorted(key: i => -i.len())
 	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
 
 	let eat(arg, options) = {
@@ -464,7 +463,7 @@
 ///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
 ///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$,
 ///     where
-///     $ M_i in #`fletcher.MARKS` = {#fletcher.MARKS.keys().slice(10).map(raw).join($,$), ...} $
+///     $ M_i in #`fletcher.MARKS` = {#context fletcher.MARKS.get().keys().slice(10).map(raw).join($,$), ...} $
 ///     is a mark name and
 ///     $ L in #`fletcher.LINE_ALIASES` = {#fletcher.LINE_ALIASES.keys().map(raw.with(lang: none)).join($,$)} $
 ///     is the line style.
@@ -703,7 +702,7 @@
 	)
 
 	options += interpret-edge-args(args, options)
-	options += interpret-marks-arg(options.marks)
+	// options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
 	let interpret-coord-str(coord) = {
@@ -737,23 +736,6 @@
 
 	if type(options.shift) != array { options.shift = (options.shift, options.shift) }
 
-	if type(options.decorations) == str {
-		options.decorations = (
-			"wave": cetz.decorations.wave.with(
-				amplitude: .12,
-				segment-length: .2,
-			),
-			"zigzag": cetz.decorations.zigzag.with(
-				amplitude: .12,
-				segment-length: .2,
-			),
-			"coil": cetz.decorations.coil.with(
-				amplitude: .15,
-				segment-length: .15,
-				factor: 140%,
-			),
-		).at(options.decorations)
-	}
 
 	let obj = (
 		class: "edge",
@@ -776,6 +758,8 @@
 
 #let resolve-edge-options(edge, options) = {
 	let to-pt(len) = to-abs-length(len, options.em-size)
+
+	edge += interpret-marks-arg(edge.marks)
 
 	edge.stroke = pass-none(stroke)(edge.stroke)
 
@@ -801,6 +785,24 @@
 		if type(d) == length { to-pt(d) }
 		else { d*edge.stroke.thickness }
 	})
+
+	if type(edge.decorations) == str {
+		edge.decorations = (
+			"wave": cetz.decorations.wave.with(
+				amplitude: .12,
+				segment-length: .2,
+			),
+			"zigzag": cetz.decorations.zigzag.with(
+				amplitude: .12,
+				segment-length: .2,
+			),
+			"coil": cetz.decorations.coil.with(
+				amplitude: .15,
+				segment-length: .15,
+				factor: 140%,
+			),
+		).at(edge.decorations)
+	}
 
 	edge.crossing-fill = map-auto(edge.crossing-fill, options.crossing-fill)
 	edge.crossing-thickness = map-auto(edge.crossing-thickness, options.crossing-thickness)

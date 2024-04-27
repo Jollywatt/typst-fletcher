@@ -3,7 +3,7 @@
 #import "/src/marks.typ": *
 
 
-#align(center, MARKS.values().map(mark => {
+#context align(center, MARKS.get().values().map(mark => {
 	let e = 2.5
 	diagram(edge(
 		(0,0), (1,0),

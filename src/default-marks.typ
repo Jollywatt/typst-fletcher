@@ -1,7 +1,7 @@
 #import "deps.typ"
 #import deps.cetz.draw
 
-#let MARKS = (
+#let DEFAULT_MARKS = (
 	// all numbers are interpreted as multiples of stroke thickness
 
 	head: (
@@ -235,3 +235,5 @@
 	"*": (inherit: "circle", fill: auto),
 	"@": (inherit: "circle", size: 4, fill: auto),
 )
+
+#let MARKS = state("fletcher-marks", DEFAULT_MARKS)

@@ -608,8 +608,10 @@
 	},
 ) = {
 
-	if type(spacing) != array { spacing = (spacing, spacing) }
-	if type(cell-size) != array { cell-size = (cell-size, cell-size) }
+	let spacing = as-pair(spacing)
+	let cell-size = as-pair(cell-size)
+	// if type(spacing) != array { spacing = (spacing, spacing) }
+	// if type(cell-size) != array { cell-size = (cell-size, cell-size) }
 
 	let options = (
 		debug: int(debug),
@@ -635,7 +637,7 @@
 	box(style(styles => {
 		let options = options
 
-		options.em-size = measure(h(1em), styles).width
+		options.em-size = measure(h(1em)).width
 		let to-pt(len) = to-abs-length(len, options.em-size)
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
