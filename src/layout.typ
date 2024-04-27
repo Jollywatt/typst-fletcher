@@ -37,7 +37,7 @@
 		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
 		if node.shape == auto {
-			let is-roundish = max(node.aspect, 1/node.aspect) < 1.5
+			let is-roundish = calc.max(node.aspect, 1/node.aspect) < 1.5
 			node.shape = if is-roundish { "circle" } else { "rect" }
 		}
 
@@ -113,6 +113,8 @@
 ///   (width, height))`. The coordinates `x` and `y` may be floats.
 /// -> array
 #let expand-fractional-rects(rects) = {
+	import calc: trunc, floor, ceil
+
 	let new-rects
 	for axis in (0, 1) {
 		new-rects = ()
@@ -121,7 +123,7 @@
 			let size = rect.size.at(axis)
 
 			if calc.fract(coord) == 0 {
-				rect.center.at(axis) = calc.trunc(coord)
+				rect.center.at(axis) = trunc(coord)
 				new-rects.push(rect)
 			} else {
 				rect.center.at(axis) = floor(coord)
@@ -208,7 +210,7 @@
 		if grid.flip.y { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
 			let size = if grid.flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
-			cell-sizes.at(axis).at(indices.at(axis)) = max(
+			cell-sizes.at(axis).at(indices.at(axis)) = calc.max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
 			)

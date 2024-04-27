@@ -24,7 +24,7 @@
 		}
 
 		if node.label != none {
-			
+
 			cetz.draw.content(
 				node.final-pos,
 				box(
@@ -36,13 +36,13 @@
 				),
 				anchor: "center",
 			)
-			
+
 		}
 
 	}
 
 	if node.layer != 0 { result = cetz.draw.on-layer(node.layer, result) }
-	
+
 	(node.post)(result) // post-process (e.g., hide)
 
 	// Draw debug stuff
@@ -61,7 +61,7 @@
 		cetz.draw.group({
 			cetz.draw.translate(node.final-pos)
 			cetz.draw.set-style(
-				stroke: DEBUG_COLOR + .1pt,
+				stroke: DEBUG_COLOR2 + 0.25pt,
 				fill: none,
 			)
 			(node.shape)(node, node.outset)
@@ -104,16 +104,24 @@
 }
 
 // Get the arrow head adjustment for a given extrusion distance.
+//
+// Returns a pair `(from, to)` of distances.
+// If `from < 0pt` and `to > 0pt`, the path length of the edge increases.
 #let cap-offsets(edge, y) = {
 	(0, 1).map(pos => {
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
-		let x = cap-offset(mark, (2*pos - 1)*y/edge.stroke.thickness)
 
-		let rev = mark.at("rev", default: false)
-		if pos == int(rev) { x -= mark.at("inner-len", default: 0) }
-		if rev { x = -x - mark.at("outer-len", default: 0) }
-		if pos == 0 { x += mark.at("outer-len", default: 0) }
+		// let tip = mark.at("tip", default: false)
+		let tip = (pos == 0) == mark.rev
+		let s = if tip { +1 } else { -1 } // not completely sure why this is needed
+		let x = cap-offset(
+			mark + (tip: tip),
+			s*(2*pos - 1)*y/edge.stroke.thickness,
+		)
+
+		x -= if tip { mark.tip-origin } else { mark.tail-origin }*float(mark.scale)
+		if mark.rev { x *= -1 }
 
 		x*edge.stroke.thickness
 	})
@@ -153,30 +161,30 @@
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
-		let shifted-line-points = (from, to).zip(cap-offsets(edge, shift))
-			.map(((point, offset)) => vector.add(
-				point,
-				vector.add(
-					// Shift end points lengthways depending on markers
-					vector-polar(offset, θ),
-					// Shift line sideways (for double line effects, etc)
-					vector-polar(shift, θ + 90deg),
-				)
-			))
 
+		let offsets = cap-offsets(edge, shift)
+		let points = (from, to).zip(offsets)
+			.map(((point, offset)) => {
+				// Shift line sideways (for multi-stroke effect)
+				point = (rel: (θ + 90deg, shift), to: point)
+				// Shift end points lengthways depending on marks
+				point = (rel: (θ, offset), to: point)
+				point
+			})
 
-		with-decorations(edge, cetz.draw.line(
-			..shifted-line-points,
+		let obj = cetz.draw.line(
+			..points,
 			stroke: edge.stroke,
-		))
+		)
 
+		with-decorations(edge, obj)
 
 	}
 
 	// Draw marks
 	let curve(t) = vector.lerp(from, to, t)
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
 
 	// Draw label
@@ -251,7 +259,7 @@
 	// Draw marks
 	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
-		place-arrow-cap(curve, edge.stroke, mark, debug: debug >= 4)
+		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
 
 
@@ -370,18 +378,18 @@
 			if i > 0 {
 				let Δθ = θs.at(i) - θs.at(i - 1)
 				marks.push((
-					kind: "bar",
+					inherit: "bar",
 					pos: 0,
-					angle: Δθ/2,
+					angle: 90deg - Δθ/2,
 					hide: true,
 				))
 			}
 			if i < θs.len() - 1 {
 				let Δθ = θs.at(i + 1) - θs.at(i)
 				marks.push((
-					kind: "bar",
+					inherit: "bar",
 					pos: 1,
-					angle: Δθ/2,
+					angle: 90deg + Δθ/2,
 					hide: true,
 				))
 			}
@@ -429,6 +437,8 @@
 
 
 		}
+
+		marks = marks.map(resolve-mark)
 
 		// distribute original marks across segments
 		marks += edge.marks.map(mark => {
@@ -699,7 +709,7 @@
 
 #let draw-edge(edge, nodes, ..args) = {
 	if edge.extrude.len() == 0 { return } // no line to draw
-	edge.marks = interpret-marks(edge.marks)
+	// edge.marks = interpret-marks(edge.marks)
 	let obj = if edge.kind == "line" {
 		draw-anchored-line(edge, nodes, ..args)
 	} else if edge.kind == "arc" {
@@ -771,7 +781,7 @@
 ///   - `centers: (x-centers, y-centers)`, the physical offsets of each row and each column,
 ///   - `cell-sizes: (x-sizes, y-sizes)`, the physical sizes of each row and
 ///     each column.
-#let draw-debug-axes(grid) = {
+#let draw-debug-axes(grid, debug: false) = {
 
 	let (x-lims, y-lims) = range(2).map(axis => (
 		grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
@@ -829,20 +839,23 @@
 			}
 		}
 
-		let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
+		if debug {
+			let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
 
-		let dir-to-arrow(dir) = {
-			     if dir == ltr { $arrow.r$ }
-			else if dir == rtl { $arrow.l$ }
-			else if dir == ttb { $arrow.b$ }
-			else if dir == btt { $arrow.t$ }
+			let dir-to-arrow(dir) = {
+				     if dir == ltr { $arrow.r$ }
+				else if dir == rtl { $arrow.l$ }
+				else if dir == ttb { $arrow.b$ }
+				else if dir == btt { $arrow.t$ }
+			}
+
+			draw.content(
+				(x-lims.at(0), y-lims.at(0)),
+				pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
+				anchor: "north-east"
+			)
 		}
 
-		draw.content(
-			(x-lims.at(0), y-lims.at(0)),
-			pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
-			anchor: "north-east"
-		)
 
 
 	})
@@ -867,7 +880,7 @@
 	}
 
 	if debug >= 1 {
-		draw-debug-axes(grid)
+		draw-debug-axes(grid, debug: debug >= 2)
 	}
 
 }

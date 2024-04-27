@@ -1,0 +1,237 @@
+#import "deps.typ"
+#import deps.cetz.draw
+
+#let MARKS = (
+	// all numbers are interpreted as multiples of stroke thickness
+
+	head: (
+		size: 7, // radius of curvature
+		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
+		delta: 53.5deg, // angle spanned by arc of curved arrow edge
+
+		tip-origin: 0.5,
+		tail-end: mark => calc.min(..mark.extrude),
+		tail-origin: mark => {
+			let dx = calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)
+			mark.tail-end - mark.size*mark.delta/1.8rad*dx
+		},
+
+		stroke: (cap: "round"),
+
+		draw: mark => {
+			for flip in (+1, -1) {
+				draw.arc(
+					(0, 0),
+					radius: mark.size,
+					start: flip*(90deg + mark.sharpness),
+					delta: flip*mark.delta,
+					fill: none,
+				)
+			}
+		},
+
+		cap-offset: (mark, y) => {
+			import calc: sin, sqrt, pow, cos, abs, max
+			let r = mark.size
+			let θ = mark.sharpness
+			r*(sin(θ) - sqrt(max(0, 1 - pow(cos(θ) - abs(y)/r, 2))))
+		},
+
+	),
+
+	doublehead: (
+		inherit: "head",
+		size: 10.56,
+		sharpness: 19.4deg,
+		delta: 43.5deg,
+	),
+
+	triplehead: (
+		inherit: "head",
+		size: 13.5,
+		sharpness: 25.5deg,
+		delta: 42.6deg,
+	),
+
+	harpoon: (
+		inherit: "head",
+		draw: mark => {
+			draw.arc(
+				(0, 0),
+				radius: mark.size,
+				start: -(90deg + mark.sharpness),
+				delta: -mark.delta,
+				fill: none,
+			)
+		},
+	),
+
+	straight: (
+		size: 10,
+		sharpness: 20deg,
+
+		tip-origin: mark => 0.5/calc.sin(mark.sharpness),
+		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
+
+		fill: none,
+
+		draw: mark => {
+			draw.line(
+				(180deg + mark.sharpness, mark.size),
+				(0, 0),
+				(180deg - mark.sharpness, mark.size),
+			)
+		},
+
+		cap-offset: (mark, y) => calc.tan(mark.sharpness + 90deg)*calc.abs(y),
+	),
+
+	solid: (
+		inherit: "straight",
+
+		tip-origin: 0,
+		tip-end: mark => -0.5/calc.sin(mark.sharpness),
+		tail-end: mark => -0.5/calc.sin(mark.sharpness),
+
+		stroke: none,
+		fill: auto,
+	),
+
+	stealth: (
+		size: 6,
+		stealth: 0.3,
+		angle: 25deg,
+
+		tip-origin: mark => 0.5/calc.sin(mark.angle),
+		tail-origin: mark => -mark.size*calc.cos(mark.angle) - 1,
+		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
+
+		stroke: (miter-limit: 20),
+
+		draw: mark => {
+			draw.line(
+				(0,0),
+				(180deg + mark.angle, mark.size),
+				(mark.tip-end, 0),
+				(180deg - mark.angle, mark.size),
+				close: true,
+			)
+		},
+
+		cap-offset: (mark, y) => if mark.tip {
+			-mark.stealth/calc.tan(mark.angle)*calc.abs(y)
+		} else {
+			calc.tan(mark.angle + 90deg)*calc.abs(y)
+		},
+	),
+
+	circle: (
+		size: 3,
+
+		tip-end: mark => -mark.size,
+		tail-end: mark => mark.size,
+		tip-origin: mark => mark.size + 0.5,
+		tail-origin: mark => -(mark.size + 0.5),
+
+		fill: none,
+
+		draw: mark => draw.circle((0,0), radius: mark.size, fill: mark.fill),
+
+		cap-offset: (mark, y) => {
+			let r = mark.size
+			let o = r - calc.sqrt(calc.max(0, r*r - y*y))
+			if not mark.tip { o *= -1 }
+			o
+		},
+	),
+
+	bar: (
+		size: 4.9,
+		angle: 90deg,
+
+		tail-origin: mark => calc.min(..mark.extrude),
+
+		draw: mark => draw.line(
+			(mark.angle, -mark.size),
+			(mark.angle, +mark.size),
+		),
+		cap-offset: (mark, y) => {
+			let o = y*calc.tan(mark.angle - 90deg)
+			// if mark.tip { o *= -1 }
+			-o
+		},
+	),
+
+	cross: (
+		size: 4,
+		angle: 45deg,
+		draw: mark => {
+			draw.line((+mark.angle, -mark.size), (+mark.angle, +mark.size))
+			draw.line((-mark.angle, -mark.size), (-mark.angle, +mark.size))
+		},
+
+		cap-offset: (mark, y) => calc.tan(mark.angle + 90deg)*calc.abs(y),
+	),
+
+	hook: (
+		size: 2.88,
+		rim: 0.85,
+
+		tip-origin: mark => mark.size + 0.5,
+		draw: mark => {
+			draw.arc(
+				(0,0),
+				start: -90deg,
+				stop: +90deg,
+				radius: mark.size,
+				fill: none,
+			)
+			draw.line((), (rel: (-mark.rim, 0)))
+		},
+	),
+
+	hooks: (
+		inherit: "hook",
+		draw: mark => {
+			for flip in (-1, +1) {
+				draw.arc(
+					(0,0),
+					start: -flip*90deg,
+					stop: +flip*90deg,
+					radius: mark.size,
+					fill: none,
+				)
+			}
+		},
+	),
+
+	">": (inherit: "head", rev: false),
+	"<": (inherit: "head", rev: true),
+
+	">>": (inherit: "head", extrude: (-2.88, 0), rev: false),
+	"<<": (inherit: "head", extrude: (-2.88, 0), rev: true),
+
+	">>>": (inherit: "head", extrude: (-6, -3, 0), rev: false),
+	"<<<": (inherit: "head", extrude: (-6, -3, 0), rev: true),
+
+	"|>": (inherit: "solid", rev: false),
+	"<|": (inherit: "solid", rev: true),
+
+	"}>": (inherit: "stealth", rev: false),
+	"<{": (inherit: "stealth", rev: true),
+
+	"|": (inherit: "bar"),
+	"||": (inherit: "bar", extrude: (-3, 0)),
+	"|||": (inherit: "bar", extrude: (-6, -3, 0)),
+
+	"/": (inherit: "bar", angle: +60deg, rev: false),
+	"\\": (inherit: "bar", angle: -60deg, rev: false),
+
+	"x": (inherit: "cross"),
+	"X": (inherit: "cross", size: 7),
+
+	"o": (inherit: "circle"),
+	"O": (inherit: "circle", size: 4),
+	"*": (inherit: "circle", fill: auto),
+	"@": (inherit: "circle", size: 4, fill: auto),
+)

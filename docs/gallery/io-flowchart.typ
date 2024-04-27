@@ -18,7 +18,7 @@
 	edge((0,0), "r,u,r", "-}>"),
 	edge((2,-1), "r,d,r", "-}>"),
 	edge((2,-1), "r,dd,l", "--}>"),
-	edge((2,1), "l", (1,-.5), marks: ((kind: "}>", pos: 0.65, rev: false),)),
+	edge((2,1), "l", (1,-.5), marks: ((inherit: "}>", pos: 0.65, rev: false),)),
 
 	for i in range(-1, 2) {
 		edge((2,0), (2,1), "<{-}>", shift: i*5mm, bend: i*20deg)

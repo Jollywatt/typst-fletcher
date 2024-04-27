@@ -14,10 +14,10 @@
 			for c in around {
 				node(c, $#c$)
 				edge((0,0), c, $f$, marks: (
-					(kind: "head", rev: false, pos: 0),
-					(kind: "head", rev: false, pos: 0.33),
-					(kind: "head", rev: false, pos: 0.66),
-					(kind: "head", rev: false, pos: 1),
+					(inherit: "head", rev: false, pos: 0),
+					(inherit: "head", rev: false, pos: 0.33),
+					(inherit: "head", rev: false, pos: 0.66),
+					(inherit: "head", rev: false, pos: 1),
 				), "double", corner: dir)
 			}
 		}
@@ -34,10 +34,10 @@
 			for c in around {
 				node(c, $#c$)
 				edge((0,0), c, $f$, marks: (
-					(kind: "head", rev: false, pos: 0),
-					(kind: "head", rev: false, pos: 0.33),
-					(kind: "head", rev: false, pos: 0.66),
-					(kind: "head", rev: false, pos: 1),
+					(inherit: "head", rev: false, pos: 0),
+					(inherit: "head", rev: false, pos: 0.33),
+					(inherit: "head", rev: false, pos: 0.66),
+					(inherit: "head", rev: false, pos: 1),
 				), "double", corner: dir)
 			}
 		}

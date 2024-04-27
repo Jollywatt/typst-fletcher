@@ -1,472 +1,424 @@
-#import "deps.typ": cetz
 #import "utils.typ": *
+#import "deps.typ": cetz
+#import cetz.draw
+#import "default-marks.typ": MARKS
 
-
-#let EDGE_ARGUMENT_SHORTHANDS = (
-	"dashed": (dash: "dashed"),
-	"dotted": (dash: "dotted"),
-	"double": (extrude: (-2, +2)),
-	"triple": (extrude: (-4, 0, +4)),
-	"crossing": (crossing: true),
-	"wave": (decorations: "wave"),
-	"zigzag": (decorations: "zigzag"),
-	"coil": (decorations: "coil"),
-)
-
-#let MARK_SYMBOL_ALIASES = (
-	(sym.arrow.r): "->",
-	(sym.arrow.l): "<-",
-	(sym.arrow.r.l): "<->",
-	(sym.arrow.long.r): "->",
-	(sym.arrow.long.l): "<-",
-	(sym.arrow.long.r.l): "<->",
-	(sym.arrow.double.r): "=>",
-	(sym.arrow.double.l): "<=",
-	(sym.arrow.double.r.l): "<=>",
-	(sym.arrow.double.long.r): "=>",
-	(sym.arrow.double.long.l): "<=",
-	(sym.arrow.double.long.r.l): "<=>",
-	(sym.arrow.r.tail): ">->",
-	(sym.arrow.l.tail): "<-<",
-	(sym.arrow.twohead): "->>",
-	(sym.arrow.twohead.r): "->>",
-	(sym.arrow.twohead.l): "<<-",
-	(sym.arrow.bar): "|->",
-	(sym.arrow.bar.double): "|=>",
-	(sym.arrow.hook.r): "hook->",
-	(sym.arrow.hook.l): "<-hook'",
-	(sym.arrow.squiggly.r): "~>",
-	(sym.arrow.squiggly.l): "<~",
-	(sym.arrow.long.squiggly.r): "~>",
-	(sym.arrow.long.squiggly.l): "<~",
-)
-
-#let MARK_DEFAULTS = (
-	head: (
-		size: 7, // radius of curvature, multiples of stroke thickness
-		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
-		delta: 53.5deg, // angle spanned by arc of curved arrow edge
-		outer-len: 4,
-	),
-	solid: (
-		size: 10,
-		sharpness: 19deg,
-		fill: true,
-		stealth: 0,
-		outer-len: mark => mark.size*calc.cos(mark.sharpness)*(1 - mark.stealth),
-		inner-len: mark => mark.outer-len/2,
-	),
-
-	bar: (size: 4.9, angle: 0deg),
-	circle: (size: 2, fill: false, outer-len: mark => 2*mark.size),
-	cross: (size: 4, angle: 45deg),
-
-	hook: (size: 2.88, rim: 0.85, outer-len: 3),
-
-)
-#{MARK_DEFAULTS.harpoon = MARK_DEFAULTS.head}
-
-
-#let MARK_ALIASES = (
-	">": (kind: "head", rev: false),
-	"<": (kind: "head", rev: true),
-	">>": (kind: "head", rev: false, extrude: (-2.88, 0), inner-len: 3, outer-len: 7),
-	"<<": (kind: "head", rev: true,  extrude: (-2.88, 0), inner-len: 3, outer-len: 7),
-	">>>": (kind: "head", rev: false, extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
-	"<<<": (kind: "head", rev: true,  extrude: (-6, -3, 0), inner-len: 6, outer-len: 9),
-	"|>": (kind: "solid", rev: false),
-	"<|": (kind: "solid", rev: true),
-	"|": (kind: "bar"),
-	"||": (kind: "bar", extrude: (-3, 0), inner-len: 3),
-	"|||": (kind: "bar", extrude: (-6, -3, 0), inner-len: 4),
-	"/": (kind: "bar", angle: -30deg),
-	"\\": (kind: "bar", angle: +30deg),
-	"x": (kind: "cross"),
-	"X": (kind: "cross", size: 7),
-	"o": (kind: "circle"),
-	"O": (kind: "circle", size: 4),
-	"*": (kind: "circle", fill: true),
-	"@": (kind: "circle", size: 4, fill: true),
-	"}>": (kind: "solid", stealth: 0.25, rev: false),
-	"<{": (kind: "solid", stealth: 0.25, rev: true),
-
-	doublehead: (
-		kind: "head",
-		size: 9.6*1.1,
-		sharpness: 19.4deg,
-		delta: 43.5deg,
-		outer-len: 5.5,
-	),
-	triplehead: (
-		kind: "head",
-		size: 9*1.5,
-		sharpness: 25.5deg,
-		delta: 42.6deg,
-		outer-len: 6,
-	),
-
-	"hook'": (kind: "hook", flip: -1),
-	"harpoon'": (kind: "harpoon", flip: -1),
-	hooks: (kind: "hook", double: true),
-
+#let MARK_REQUIRED_DEFAULTS = (
+	rev: false,
+	flip: false,
+	scale: 100%,
+	extrude: (0,),
+	tip-end: 0,
+	tail-end: 0,
+	tip-origin: 0,
+	tail-origin: 0,
 )
 
 
-/// Calculate cap offset of round-style arrow cap,
-/// $r (sin θ - sqrt(1 - (cos θ - (|y|)/r)^2))$.
+
+
+
+/// For a given mark, determine where that the stroke should terminate at,
+/// relative to the mark's origin point, as a function of the shift.
 ///
-/// - r (length): Radius of curvature of arrow cap.
-/// - θ (angle): Angle made at the the arrow's vertex, from the central stroke
-///  line to the arrow's edge.
-/// - y (length): Lateral offset from the central stroke line.
-#let round-arrow-cap-offset(r, θ, y) = {
-	r*(calc.sin(θ) - calc.sqrt(1 - calc.pow(calc.cos(θ) - calc.abs(y)/r, 2)))
-}
-
-#let cap-offset(mark, y) = {
-	if mark == none { return 0 }
-
-	if mark.kind == "head" {
-		round-arrow-cap-offset(mark.size, mark.sharpness, y)
+/// Imagine the tip-origin of the mark is at $(x, y) = (0, 0)$. A stroke along
+/// the line $y = "shift"$ coming from $x = -oo$ terminates at $x = "offset"$, where
+/// $"offset"$ is the result of this function.
+/// Units are in multiples of stroke thickness.
+///
+/// This is used to correctly implement multi-stroke marks, e.g.,
+/// #diagram(edge("<==>")). The function `fletcher.mark-debug()` can help
+/// visualise a mark's cap offset.
+///
+/// #example(`fletcher.mark-debug("O")`)
+///
+/// The dashed green line shows the stroke tip end as a function of $y$, and the
+/// dashed red line shows where the stroke ends if the mark is acting as a tail.
+#let cap-offset(mark, shift) = {
+	let o = 0
+		let scale = float(mark.scale)
+	if "cap-offset" in mark {
+		o = (mark.cap-offset)(mark, shift/scale)*scale
 	}
-	else if mark.kind in ("hook", "hook'", "hooks") { -mark.outer-len }
-	else if mark.kind == "circle" {
-		let r = mark.size
-		-calc.sqrt(calc.max(0, r*r - y*y)) - r
-	} else if mark.kind == "solid" {
-	-mark.outer-len/4
+	// if scale != 1 { panic(mark)}
 
-	} else if mark.kind == "bar" {
-		 -calc.tan(mark.angle)*y
-	} else { 0 }
+	// mark = MARK_REQUIRED_DEFAULTS + mark
+	if mark.tip {
+		mark.tip-end + o
+	} else {
+		mark.tail-end + o
+	}
+
 }
 
 
-#let LINE_ALIASES = (
-	"-": (:),
-	"=": EDGE_ARGUMENT_SHORTHANDS.double,
-	"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
-	"~": EDGE_ARGUMENT_SHORTHANDS.wave,
-)
+
+#let apply-mark-inheritances(mark) = {
+	while "inherit" in mark {
+
+		if mark.inherit.at(-1) == "'" {
+			mark.flip = not mark.at("flip", default: false)
+			mark.inherit = mark.inherit.slice(0, -1)
+		}
+
+		assert(mark.inherit in MARKS, message: "Mark style " + repr(mark.inherit) + " not defined.")
+
+		let parent = MARKS.at(mark.remove("inherit"))
+		mark = parent + mark
+	}
+	mark
+}
 
 
 
-/// Take a string or dictionary specifying a mark and return a dictionary,
-/// adding defaults for any necessary missing parameters.
+/// Resolve a mark dictionary by applying inheritance, adding any required entries, and evaluating any closure entries.
 ///
-/// Ensures all required parameters except `rev` and `pos` are present.
-#let interpret-mark(mark, defaults: (:)) = {
+/// #example(```
+/// fletcher.resolve-mark((
+/// 	a: 1,
+/// 	b: 2,
+/// 	c: mark => mark.a + mark.b,
+/// ))
+/// ```)
+///
+#let resolve-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
 
-	if type(mark) == str { mark = (kind: mark) }
+	if type(mark) == str { mark = (inherit: mark) }
 
-	mark = defaults + mark
+	mark = apply-mark-inheritances(mark)
 
-	if mark.kind.at(-1) == "'" {
-		mark.flip = -mark.at("flip", default: +1)
-		mark.kind = mark.kind.slice(0, -1)
-	}
 
-	if mark.kind in MARK_ALIASES {
-		let new = MARK_ALIASES.at(mark.kind)
-		mark = new + mark
-		mark.kind = new.kind
-	}
+	mark = MARK_REQUIRED_DEFAULTS + defaults + mark
 
-	if mark.kind in MARK_DEFAULTS {
-		mark = MARK_DEFAULTS.at(mark.kind) + mark
-	} else {
-		panic("Couldn't interpret mark:", mark)
-	}
+	for (key, value) in mark {
+		if key == "cap-offset" { continue }
 
-	// evaluate "lazy parameters" which are functions of the mark
-	for (key, val) in mark {
-		if type(val) == function {
-			mark.at(key) = val(mark)
+		if type(value) == function {
+			mark.at(key) = value(mark)
 		}
 	}
 
-	assert(mark.kind in MARK_DEFAULTS, message: "Didn't work: " + repr(mark))
-
-	return mark
+	mark
 }
 
+#let draw-mark(
+	mark,
+	stroke: 1pt,
+	origin: (0,0),
+	angle: 0deg,
+	debug: false
+) = {
+	mark = resolve-mark(mark)
+	stroke = as-stroke(stroke)
 
-#let interpret-marks(marks) = {
+	let thickness = stroke.thickness
 
-	marks = marks.enumerate().map(((i, mark)) => {
-		interpret-mark(mark, defaults: (
-			pos: i/calc.max(1, marks.len() - 1),
-			rev: i == 0,
-		))
-	}).filter(mark => mark != none) // drop empty marks
+	let fill = mark.at("fill", default: auto)
+	fill = map-auto(fill, stroke.paint)
+	fill = map-auto(fill, black)
 
-	assert(type(marks) == array)
-	assert(marks.all(mark => type(mark) == dictionary), message: repr(marks))
-	marks
+	let stroke = stroke-to-dict(stroke)
+	stroke.dash = none
+
+	if "stroke" in mark {
+		if mark.stroke == none { stroke = none }
+		else if mark.stroke == auto { }
+		else { stroke += stroke-to-dict(mark.stroke) }
+	}
+
+	assert("draw" in mark, message: repr(mark))
+
+	draw.group({
+		draw.set-style(
+			stroke: stroke,
+			fill: fill,
+		)
+
+		draw.translate(origin)
+		draw.rotate(angle)
+		draw.scale(thickness/1cm*float(mark.scale))
+
+		if mark.at("rev", default: false) {
+			draw.translate(x: mark.tail-origin)
+			draw.scale(x: -1)
+			if debug {
+				draw.content((0,10), text(0.25em, red)[rev])
+			}
+		} else {
+			draw.translate(x: -mark.tip-origin)
+		}
+
+		if mark.flip {
+			draw.scale(y: -1)
+		}
+
+		for e in mark.extrude {
+			draw.group({
+				draw.translate(x: e)
+				mark.draw
+			})
+		}
+
+		if debug {
+			let tip = mark.at("tip", default: none)
+			if tip == true {
+				draw.content((0,-10), text(0.25em, green)[tip])
+			} else if tip == false {
+				draw.content((0,-10), text(0.25em, orange)[tail])
+			}
+		}
+
+	})
 }
 
-/// Parse and interpret the marks argument provided to `edge()`.
-/// Returns a dictionary of processed `edge()` arguments.
+/// Visualise a mark's anatomy.
 ///
-/// - arg (string, array):
-/// Can be a string, (e.g. `"->"`, `"<=>"`), etc, or an array of marks.
-/// A mark can be a string (e.g., `">"` or `"head"`, `"x"` or `"cross"`) or a dictionary containing the keys:
-///   - `kind` (required) the mark name, e.g. `"solid"` or `"bar"`
-///   - `pos` the position along the edge to place the mark, from 0 to 1
-///   - `rev` whether to reverse the direction
-///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
-/// -> dictiony
-#let interpret-marks-arg(arg) = {
-	if type(arg) == array { return (marks: interpret-marks(arg)) }
+/// #example(```
+/// let mark = fletcher.MARKS.stealth
+/// // make a wide stealth arrow
+/// mark += (angle: 45deg)
+/// fletcher.mark-debug(mark)
+/// ```)
+///
+/// - Green/left stroke: the edge's stroke when the mark is at the tip.
+/// - Red/right stroke: edge's stroke if the mark is at the start acting as a
+///   tail.
+/// - Blue-white dot: the origin point $(0, 0)$ in the mark's coordinate frame.
+/// - `tip-origin`: the $x$-coordinate of the point of the mark's tip.
+/// - `tail-origin`: the $x$-coordinate of the mark's tip when it is acting as a
+///   reversed tail mark.
+/// - `tip-end`: The $x$-coordinate of the end point of the edge's stroke (
+///   green stroke).
+/// - `tail-end`: The $x$-coordinate of the end point of the edge's stroke when
+///   acting as a tail mark (red stroke).
+///
+/// This is mainly useful for designing your own marks.
+///
+/// - mark (string, dictionary): The mark name or dictionary.
+/// - stroke (stroke): The stroke style, whose paint and thickness applies both
+///   to the stroke and the mark itself.
+///
+/// - show-labels (bool): Whether to label the tip/tail origin/end points.
+/// - show-offsets (bool): Whether to visualise the `cap-offset()` values.
+/// - offset-range (number): The span above and below the stroke line to plot
+///   the cap offsets, in multiples of the stroke's thickness.
+#let mark-debug(
+	mark,
+	stroke: 5pt,
+	show-labels: true,
+	show-offsets: true,
+	offset-range: 6,
+) = {
+	mark = resolve-mark(mark)
+	stroke = as-stroke(stroke)
 
-	if type(arg) == symbol {
-		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
-		else { panic("Unrecognised marks symbol '" + arg + "'.") }
-	}
+	let t = stroke.thickness
+	let scale = float(mark.scale)
 
-	assert(type(arg) == str)
-	let text = arg
 
-	let MARKS = (MARK_ALIASES.keys() + MARK_DEFAULTS.keys()).sorted(key: i => -i.len())
-	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
+	cetz.canvas({
 
-	let eat(arg, options) = {
-		for option in options {
-			if arg.starts-with(option) {
-				return (arg.slice(option.len()), option)
+		draw-mark(mark, stroke: stroke)
+
+		if mark.at("rev", default: false) {
+			draw.scale(x: -1)
+			draw.translate(x: -t*mark.tail-origin*scale)
+		} else {
+			draw.translate(x: -t*mark.tip-origin*scale)
+		}
+
+
+		if show-offsets {
+
+			let samples = 100
+			let ys = range(samples + 1)
+				.map(n => n/samples)
+				.map(y => (2*y - 1)*offset-range)
+
+			let tip-points = ys.map(y => {
+				let o = cap-offset(mark + (tip: true), y)
+				(o*t, y*t)
+			})
+
+			let tail-points = ys.map(y => {
+				let o = cap-offset(mark + (tip: false), y)
+				(o*t, y*t)
+			})
+
+			draw.line(
+				..tip-points,
+				stroke: (
+					paint: rgb("0f0"),
+					thickness: 0.4pt,
+					dash: (array: (3pt, 3pt), phase: 0pt),
+				),
+			)
+			draw.line(
+				..tail-points,
+				stroke: (
+					paint: rgb("f00"),
+					thickness: 0.4pt,
+					dash: (array: (3pt, 3pt), phase: 3pt),
+				),
+			)
+
+
+		}
+
+		if show-labels {
+			for (i, (item, y, color)) in (
+				("tip-end",     +1.00, "0f0"),
+				("tail-end",    -1.00, "f00"),
+				("tip-origin",  +0.75,  "0ff"),
+				("tail-origin", -0.75,  "f0f"),
+			).enumerate() {
+				let x = mark.at(item)*float(mark.scale)
+				let c = rgb(color)
+				draw.line((t*x, 0), (t*x, y), stroke: 0.5pt + c)
+				draw.content(
+					(t*x, y),
+					pad(2pt, text(0.75em, fill: c, raw(item))),
+					anchor: if y < 0 { "north" } else { "south" },
+				)
 			}
 		}
-		return (arg, none)
-	}
 
-	let marks = ()
-	let lines = ()
+		// draw tip/tail stroke previews
+		let (min, max) = min-max((
+			"tip-end",
+			"tail-end",
+			"tip-origin",
+			"tail-origin",
+		).map(i => mark.at(i)))
 
-	let mark
-	let line
+		let l = calc.max(5, max - min)
 
-	// first mark, [<]-x->>
-	(text, mark) = eat(text, MARKS)
-	marks.push(mark)
+		draw.line(
+			(t*mark.tip-end, 0),
+			(t*(min - l), 0),
+			stroke: rgb("0f06") + t,
+		)
+		draw.line(
+			(t*mark.tail-end, 0),
+			(t*(max + l), 0),
+			stroke: rgb("f006") + t,
+		)
 
-	let parse-error(suggestion) = panic(
-		"Invalid marks shorthand '" + arg + "'. Try '" + suggestion + "'."
-	)
+		// draw true origin dot
+		draw.circle(
+			(0, 0),
+			radius: t/4,
+			stroke: rgb("00f") + 1pt,
+			fill: white,
+		)
+	})
+}
 
-	while true {
-		// line, <[-]x->>
-		(text, line) = eat(text, LINES)
-		if line == none {
-			let suggestion = arg.slice(0, -text.len()) + "-" + text
-			parse-error(suggestion)
+#let mark-demo(
+	mark,
+	stroke: 2pt,
+	width: 3cm,
+	height: 1cm,
+) = {
+	mark = resolve-mark(mark)
+	stroke = as-stroke(stroke)
+
+	let t = stroke.thickness*float(mark.scale)
+
+	cetz.canvas({
+
+		for x in (0, width) {
+			draw.line(
+				(x, +0.5*height),
+				(x, -1.5*height),
+				stroke: red.transparentize(50%) + 0.5pt,
+			)
 		}
-		lines.push(line)
 
-		// subsequent mark, <-[x]->>
-		(text, mark) = eat(text, MARKS)
-		marks.push(mark)
+		let x = t*(mark.tip-origin - mark.tip-end)
+		draw.line(
+			(x, 0),
+			(rel: (-x, 0), to: (width, 0)),
+			stroke: stroke,
+		)
 
-		if text == "" { break }
-		if mark == none {
-			// text remains that was not recognised as mark
-			let suggestion = marks.intersperse(lines.at(0)).join()
-			parse-error(suggestion)
-		}
-	}
+		let mark-length = t*(mark.tip-origin - mark.tail-origin)
+		draw-mark(
+			mark + (rev: true),
+			stroke: stroke,
+			origin: (mark-length, 0),
+			angle: 0deg,
+		)
+		draw-mark(
+			mark + (rev: false),
+			stroke: stroke,
+			origin: (width, 0),
+			angle: 0deg,
+		)
 
+		draw.translate((0, -height))
 
-	if lines.dedup().len() > 1 {
-		// different line styles were mixed
-		let suggestion = marks.intersperse(lines.at(0)).join()
-		parse-error(suggestion)
-	}
-	let line = lines.at(0)
+		let x = t*(mark.tail-end - mark.tail-origin)
+		draw.line(
+			(x, 0),
+			(rel: (-x, 0), to: (width, 0)),
+			stroke: stroke,
+		)
 
+		draw-mark(
+			mark + (rev: true),
+			stroke: stroke,
+			origin: (0, 0),
+			angle: 180deg,
+		)
+		draw-mark(
+			mark + (rev: false),
+			stroke: stroke,
+			origin: (width - mark-length, 0),
+			angle: 180deg,
+		)
 
-
-	marks = marks.map(interpret-mark)
-
-	// make classic math arrows slightly larger on double/triple stroked lines
-	if line == "=" {
-		marks = marks.map(mark => {
-			if mark != none and mark.kind == "head" {
-				mark += MARK_ALIASES.doublehead
-			}
-			mark
-		})
-	} else if line == "==" {
-		marks = marks.map(mark => {
-			if mark != none and mark.kind == "head" {
-				mark += MARK_ALIASES.triplehead
-			}
-			mark
-		})
-	}
-
-	return (
-		marks: interpret-marks(marks),
-		..LINE_ALIASES.at(lines.at(0))
-	)
+	})
 }
 
 
-
-
-#let draw-arrow-cap(p, θ, stroke, mark, debug: false) = {
-	let stroke = as-stroke(stroke)
-
-	mark = interpret-mark(mark)
+#let place-mark-on-curve(mark, path, stroke: 1pt + black, debug: false) = {
 	if mark.at("hide", default: false) { return }
 
-	let inner-len = stroke.thickness*mark.at("inner-len", default: 0)
-	let outer-len = stroke.thickness*mark.at("outer-len", default: 0)
-
-	if mark.at("rev", default: false) {
-		θ += 180deg
-		mark.rev = false
-	}
-
-	mark.flip = mark.at("flip", default: +1)
-
-	if debug {
-		let dir = if mark.rev {1} else {-1}
-		let normal = vector-polar(stroke.thickness, θ - 90deg)
-		cetz.draw.on-layer(1, (
-			cetz.draw.circle(
-				p,
-				radius: stroke.thickness,
-				stroke: none,
-				fill: rgb("0f0a"),
-			),
-			cetz.draw.line(
-				vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
-				vector.add(p, vector-polar(outer-len*dir, θ)),
-				stroke: rgb("0f0a") + stroke.thickness,
-			),
-			cetz.draw.line(
-				vector.add(p, vector-polar(-stroke.thickness*mark.at("body", default: 0), θ)),
-				vector.add(p, vector-polar(inner-len*dir, θ)),
-				stroke: rgb("0f0a") + stroke.thickness*2,
-			),
-		).join())
-	}
-
-	let shift(p, x) = vector.add(p, vector-polar(stroke.thickness*x, θ))
-
-	// extrude draws multiple copies of the mark
-	// at shifted positions
-	if "extrude" in mark {
-		for x in mark.extrude {
-			let mark = mark
-			let _ = mark.remove("extrude")
-			draw-arrow-cap(shift(p, x), θ, stroke, mark)
-		}
-		return
-	}
-
-	let stroke = (
-		thickness: if "thickness" in mark { mark.thickness} else { stroke.thickness },
-		paint: if "paint" in mark { mark.paint } else { stroke.paint },
-		cap: "round",
-	)
-
-
-	if mark.kind == "harpoon" {
-		cetz.draw.arc(
-			p,
-			radius: mark.size*stroke.thickness,
-			start: θ + mark.flip*(90deg + mark.sharpness),
-			delta: mark.flip*mark.delta,
-			stroke: stroke,
-		)
-
-	} else if mark.kind == "head" {
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon"))
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "harpoon'"))
-
-	} else if mark.kind == "hook" {
-		if mark.at("double", default: false) {
-			draw-arrow-cap(p, θ, stroke, mark + (double: false, flip: -1))
-		}
-
-		p = shift(p, -mark.outer-len)
-		cetz.draw.arc(
-			p,
-			radius: mark.size*stroke.thickness,
-			start: θ + mark.flip*90deg,
-			delta: -mark.flip*180deg,
-			stroke: stroke,
-		)
-		let q = vector.add(p, vector-polar(2*mark.size*stroke.thickness, θ - mark.flip*90deg))
-		let rim = vector-polar(-mark.rim*stroke.thickness, θ)
-		cetz.draw.line(
-			q,
-			(rel: rim, to: q),
-			stroke: stroke
-		)
-
-
-	} else if mark.kind == "bar" {
-		let v = vector-polar(mark.size*stroke.thickness, θ + 90deg + mark.angle)
-		cetz.draw.line(
-			(to: p, rel: v),
-			(to: p, rel: vector.scale(v, -1)),
-			stroke: stroke,
-		)
-
-	} else if mark.kind == "cross" {
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "bar", angle: +mark.angle))
-		draw-arrow-cap(p, θ, stroke, mark + (kind: "bar", angle: -mark.angle))
-
-	} else if mark.kind == "circle" {
-		p = shift(p, -mark.size)
-		cetz.draw.circle(
-			p,
-			radius: mark.size*stroke.thickness,
-			stroke: stroke,
-			fill: if mark.fill { map-auto(stroke.paint, black) }
-		)
-
-	} else if mark.kind == "solid" {
-		let d = mark.size*stroke.thickness
-		cetz.draw.line(
-			(to: p, rel: vector-polar(-d, θ + mark.sharpness)),
-			p,
-			(to: p, rel: vector-polar(-d, θ - mark.sharpness)),
-			(to: p, rel: vector-polar(-d*calc.cos(mark.sharpness)*(1 - mark.stealth), θ)),
-			fill: if mark.fill { map-auto(stroke.paint, black) },
-			close: true,
-			stroke: if not mark.fill { stroke }
-		)
-
-	} else {
-		panic("Unknown mark kind " + repr(mark))
-	}
-}
-
-
-#let place-arrow-cap(path, stroke, mark, ..args) = {
 	let ε = 1e-4
 
 	// calculate velocity of parametrised path at point
-	let pt = path(mark.pos)
-	let pt-plus-ε = path(mark.pos + ε)
-	let grad = vector-len(vector.sub(pt-plus-ε, pt))/ε
+	let point = path(mark.pos)
+	let point-plus-ε = path(mark.pos + ε)
+	let grad = vector-len(vector.sub(point-plus-ε, point))/ε
 	if grad == 0pt { grad = ε*1pt }
 
-	let outer-len = mark.at("outer-len", default: 0)
-	let Δt = outer-len*stroke.thickness/grad
+	let mark-length = mark.at("tip-origin", default: 0) - mark.at("tail-origin", default: 0)
+	mark-length *= float(mark.scale)
+	let Δt = mark-length*stroke.thickness/grad
 	if Δt == 0 { Δt = ε } // avoid Δt = 0 so the two points are distinct
 
 	let t = lerp(Δt, 1, mark.pos)
-	let head-pt = path(t)
-	let tail-pt = path(t - Δt)
+	let tip-point = path(t)
+	let tail-point = path(t - Δt)
+	let θ = vector-angle(vector.sub(tip-point, tail-point))
 
-	let origin-pt = if mark.at("rev", default: false) { tail-pt } else { head-pt }
-	let θ = vector-angle(vector.sub(head-pt, tail-pt))
+	draw-mark(mark, origin: tip-point, angle: θ, stroke: stroke)
 
-	draw-arrow-cap(origin-pt, θ, stroke, mark, ..args)
+	if debug {
+		draw.circle(
+			tip-point,
+			radius: .2pt,
+			fill: rgb("0f0"),
+			stroke: none
+		)
+		draw.circle(
+			tail-point,
+			radius: .2pt,
+			fill: rgb("f00"),
+			stroke: none
+		)
+	}
+
 }

@@ -11,7 +11,7 @@
 /// 	node-fill: green.lighten(90%),
 /// 	node((0,0), `rect`, shape: fletcher.shapes.rect)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `corner-radius`
 ///   - `size`
@@ -35,7 +35,7 @@
 /// 	node-fill: red.lighten(90%),
 /// 	node((0,0), `circle`, shape: fletcher.shapes.circle)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `radius`
 /// - extrude (length): The extrude length.
@@ -48,7 +48,7 @@
 /// 	node-fill: orange.lighten(90%),
 /// 	node((0,0), `ellipse`, shape: fletcher.shapes.ellipse)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `node.size`
 /// - extrude (length): The extrude length.
@@ -66,7 +66,7 @@
 /// 	node-fill: purple.lighten(90%),
 /// 	node((0,0), `diamond`, shape: fletcher.shapes.diamond)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.
@@ -93,7 +93,7 @@
 /// 	node-fill: teal.lighten(90%),
 /// 	node((0,0), `pill`, shape: fletcher.shapes.pill)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.
@@ -113,7 +113,7 @@
 /// 	node-fill: olive.lighten(90%),
 /// 	node((0,0), `parallelogram`, shape: fletcher.shapes.parallelogram)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.
@@ -140,7 +140,7 @@
 /// 	node-fill: aqua.lighten(90%),
 /// 	node((0,0), `hexagon`, shape: fletcher.shapes.hexagon)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.
@@ -168,7 +168,7 @@
 /// 	node-fill: eastern.lighten(90%),
 /// 	node((0,0), `house`, shape: fletcher.shapes.house)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.
@@ -197,7 +197,7 @@
 /// 	node-fill: maroon.lighten(90%),
 /// 	node((0,0), `octagon`, shape: fletcher.shapes.octagon)
 /// )
-/// 
+///
 /// - node (dictionary): A node dictionary, containing:
 ///   - `size`
 /// - extrude (length): The extrude length.

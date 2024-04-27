@@ -2,6 +2,7 @@
 #import "coords.typ": *
 #import "layout.typ": *
 #import "draw.typ": *
+#import "edge.typ": *
 
 /// Draw a labelled node in a diagram which can connect to edges.
 ///
@@ -47,8 +48,19 @@
 ///   )
 ///   ```)
 ///
-/// - inset (length, auto): Padding between the node's content and its bounding
-///   box or bounding circle.
+/// - inset (length, auto): Padding between the node's content and its outline.
+///
+///   In debug mode, the inset is visualised by a thin green outline.
+///
+///   #example(```
+///   diagram(
+///   	debug: 3,
+///   	node-stroke: 1pt,
+///   	node((0,0), [Hello,]),
+///   	edge(),
+///   	node((1,0), [World!], inset: 10pt),
+///   )
+///   ```)
 ///
 /// - outset (length, auto): Margin between the node's bounds to the anchor
 ///   points for connecting edges.
@@ -56,7 +68,19 @@
 ///   This does not affect node layout, only how closely edges connect to the
 ///   node.
 ///
-/// - width (length, auto): Width of the node. If `auto`, the node's width is 
+///   In debug mode, the outset is visualised by a thin green outline.
+///
+///   #example(```
+///   diagram(
+///   	debug: 3,
+///   	node-stroke: 1pt,
+///   	node((0,0), [Hello,]),
+///   	edge(),
+///   	node((1,0), [World!], outset: 10pt),
+///   )
+///   ```)
+///
+/// - width (length, auto): Width of the node. If `auto`, the node's width is
 ///   the width of the node #param[node][label], plus twice the
 ///   #param[node][inset].
 ///
@@ -71,7 +95,7 @@
 ///
 ///   If given, causes the node to resize so that its bounding rectangle
 ///   surrounds the given nodes. The center #param[node][pos] does not affect
-///   the node's position if `enclose` is given, but still affects connecting 
+///   the node's position if `enclose` is given, but still affects connecting
 ///   edges.
 ///
 ///   #box(example(```
@@ -107,7 +131,7 @@
 ///     extruded outwards by. This serves two functions: to support automatic
 ///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
 ///     effects using the `extrude` node option.
-///   See the ```plain ./src/shapes.typ``` source file for examples.
+///   See the ```plain src/shapes.typ``` source file for examples.
 ///
 /// - stroke (stroke): Stroke style for the node outline.
 ///
@@ -188,15 +212,15 @@
 	label: none,
 	inset: auto,
 	outset: auto,
-	stroke: auto,
 	fill: auto,
-	enclose: (),
+	stroke: auto,
+	extrude: (0,),
 	width: auto,
 	height: auto,
 	radius: auto,
+	enclose: (),
 	corner-radius: auto,
 	shape: auto,
-	extrude: (0,),
 	defocus: auto,
 	layer: auto,
 	post: x => x,
@@ -286,668 +310,6 @@
 	node.layer = map-auto(node.layer, default-layer)
 
 	node
-}
-
-
-
-/// Interpret the positional arguments given to an `edge()`
-///
-/// Tries to intelligently distinguish the `from`, `to`, `marks`, and `label`
-/// arguments based on the argument types.
-///
-/// Generally, the following combinations are allowed:
-/// ```
-/// edge(..<coords>, ..<marklabel>, ..<options>)
-/// <coords> = () or (to) or (from, to) or (from, ..vertices, to)
-/// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
-/// <options> = any number of options specified as strings
-/// ```
-#let interpret-edge-args(args, options) = {
-	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
-
-	let new-options = (:)
-	let pos = args.pos()
-
-	// predicates to detect the kind of a positional argument
-	let is-coord(arg) = type(arg) == array and arg.len() == 2 or type(arg) == label
-	let is-rel-coord(arg) = is-coord(arg) or (
-		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
-		type(arg) == dictionary and "rel" in arg
-	)
-	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
-	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
-	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
-	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
-
-	let peek(x, ..predicates) = {
-		let preds = predicates.pos()
-		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
-	}
-
-	let first-coord = auto
-	let other-coords = ()
-	let found-coords = false
-
-	if peek(pos, is-coord) {
-		first-coord = pos.remove(0)
-		found-coords = true
-	}
-	while peek(pos, is-rel-coord) {
-		if type(pos.at(0)) == str {
-			other-coords += pos.remove(0).split(",")
-		} else {
-			other-coords.push(pos.remove(0))
-		}
-		found-coords = true
-	}
-
-
-	if options.vertices == () {
-		// vertices specified through positional arguments
-		if other-coords == () {
-			// if only one coord is given, it is the end point,
-			// with the start point implicit/auto
-			new-options.vertices = (auto, first-coord)
-		} else {
-			new-options.vertices = (first-coord, ..other-coords)
-		}
-	} else if found-coords {
-		// vertices explicitly set with named argument
-		panic("Vertices cannot be specified by both positional and named arguments.")
-	}
-
-
-
-	// accept (mark, label), (label, mark) or just either one
-	if peek(pos, maybe-marks, maybe-label) {
-		new-options.marks = pos.remove(0)
-		new-options.label = pos.remove(0)
-	} else if peek(pos, maybe-label, maybe-marks) {
-		new-options.label = pos.remove(0)
-		new-options.marks = pos.remove(0)
-	} else if peek(pos, maybe-label) {
-		new-options.label = pos.remove(0)
-	} else if peek(pos, maybe-marks) {
-		new-options.marks = pos.remove(0)
-	}
-
-	while peek(pos, is-edge-option) {
-		new-options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
-	}
-
-	// If label hasn't already been found, broaden search to accept strings as labels
-	if "label" not in new-options and peek(pos, x => type(x) == str) {
-		new-options.label = pos.remove(0)
-	}
-
-	if pos.len() > 0 {
-		panic("Couldn't understand `edge()` positional argument(s):", pos, "Try using named arguments. Interpreted other arguments as:", new-options)
-	}
-
-	new-options
-}
-
-
-
-/// Draw a connecting line or arc in an arrow diagram.
-///
-///
-/// - ..args (any): An edge's positional arguments may specify:
-///   - the edge's #param[edge][vertices]
-///   - the #param[edge][label] content
-///   - #param[edge][marks] and other style options
-///
-///   Vertex coordinates must come first, and are optional:
-///
-///   ```typc
-///   edge(from, to, ..) // explicit start and end nodes
-///   edge(to, ..) // start node chosen automatically based on last node specified
-///   edge(..) // both nodes chosen automatically depending on adjacent nodes
-///   edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
-///   ```
-///
-///   All coordinates except the start point can be relative (a dictionary of the
-///   form `(rel: (Δx, Δy))` or a string containing the characters
-///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
-///
-///   An edge's #param[edge][marks] and #param[edge][label] can be also be
-///   specified as positional arguments. They are disambiguated by guessing
-///   based on the types. For example, the following are equivalent:
-///
-///   ```typc
-///   edge((0,0), (1,0), $f$, "->")
-///   edge((0,0), (1,0), "->", $f$)
-///   edge((0,0), (1,0), $f$, marks: "->")
-///   edge((0,0), (1,0), "->", label: $f$)
-///   edge((0,0), (1,0), label: $f$, marks: "->")
-///   ```
-///
-///   Additionally, some common options are given flags that may be given as
-///   string positional arguments. These are
-///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ], last: [, and ]).
-///   For example, the following are equivalent:
-///
-///   ```typc
-///   edge((0,0), (1,0), $f$, "wave", "crossing")
-///   edge((0,0), (1,0), $f$, decorations: "wave", crossing: true)
-///   ```
-///
-/// - vertices (array): Array of (at least two) coordinates for the edge.
-///
-///   Vertices can also be specified as leading positional arguments, but if so,
-///   the `vertices` option must be empty. If the number of vertices is greater
-///   than two, #param[edge][kind] defaults to `"poly"`.
-///
-/// - kind (string): The kind of the edge, one of `"line"`, `"arc"`, or `"poly"`.
-///   This is chosen automatically based on the presence of other options
-///   (#param[edge][bend] implies `"arc"`, #param[edge][corner] or additional
-///   vertices implies `"poly"`).
-///
-/// - corner (none, left, right): Whether to create a right-angled corner,
-///   turning `left` or `right`.
-///   (Bending right means the corner sticks out to the left, and vice versa.)
-///
-///   #diagram(
-///   	node((0,1), `from`),
-///   	node((1,0), `to`),
-///   	edge((0,1), (1,0), `right`, "->", corner: right),
-///   	edge((0,1), (1,0), `left`, "->", corner: left),
-///   )
-///
-/// - bend (angle): Edge curvature. If `0deg`, the connector is a straight line;
-///   positive angles bend clockwise.
-///
-///   #diagram(debug: 0, {
-///   	node((0,0), $A$)
-///   	node((1,1), $B$)
-///   	let N = 4
-///   	range(N + 1)
-///   		.map(x => (x/N - 0.5)*2*100deg)
-///   		.map(θ => edge((0,0), (1,1), θ, bend: θ, ">->", label-side: center))
-///   		.join()
-///   })
-///
-/// - label (content): Content for the edge label. See the
-///   #param[edge][label-pos] and #param[edge][label-side] options to control
-///   the position (and #param[edge][label-sep] and #param[edge][label-anchor]
-///   for finer control).
-///
-/// - label-side (left, right, center): Which side of the edge to place the
-///   label on, viewed as you walk along it from base to tip.
-///
-///   If `center`, then the label is placed directly on the edge and
-///   #param[edge][label-fill] defaults to `true`. When `auto`, a value of
-///   `left` or `right` is  automatically chosen so that the label is:
-///    - roughly above the connector, in the case of straight lines; or
-///    - on the outside of the curve, in the case of arcs.
-///
-/// - label-pos (number): Position of the label along the connector, from the
-///   start to end (from `0` to `1`).
-///
-///   #stack(
-///   	dir: ltr,
-///   	spacing: 1fr,
-///   	..(0, 0.25, 0.5, 0.75, 1).map(p => fletcher.diagram(
-///   		cell-size: 1cm,
-///   		edge((0,0), (1,0), p, "->", label-pos: p))
-///   	),
-///   )
-///
-/// - label-sep (length): Separation between the connector and the label anchor.
-///
-///   With the default anchor (automatically set to `"bottom"` in this case):
-///
-///   #diagram(
-///   	debug: 2,
-///   	cell-size: 8mm,
-///   	{
-///   		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
-///   			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s)
-///   		}
-///   })
-///
-///   With #param[edge][label-anchor] set to `"center"`:
-///
-///   #diagram(
-///   	debug: 2,
-///   	cell-size: 8mm,
-///   	{
-///   		for (i, s) in (-5pt, 0pt, .4em, .8em).enumerate() {
-///   			edge((2*i,0), (2*i + 1,0), s, "->", label-sep: s, label-anchor: "center")
-///   		}
-///   })
-///
-///   Set #param[diagram][debug] to `2` or higher to see label anchors and
-///   outlines as seen here.
-///
-/// - label-anchor (anchor): The anchor point to place the label at, such as
-///   `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
-///   automatically chosen based on #param[edge][label-side] and the angle of
-///   the connector.
-///
-/// - label-fill (bool, paint): The background fill for the label. If `true`,
-///   defaults to the value of #param[edge][crossing-fill]. If `false` or
-///   `none`, no fill is used. If `auto`, then defaults to `true` if the label
-///   is covering the edge (#param[edge][label-side]`: center`).
-///
-/// - stroke (stroke): Stroke style of the edge. Arrows/marks scale with the
-///   stroke thickness (and with #param[edge][mark-scale]).
-///
-/// - dash (string): The stroke's dash style. This is also set by some mark
-///   styles. For example, setting `marks: "<..>"` applies `dash: "dotted"`.
-///
-/// - decorations (none, string, function): Apply a CeTZ path decoration to the
-///   stroke. Preset options are `"wave"`, `"zigzag"`, and `"coil"` (which may
-///   also be passed as convenience positional arguments), but a decoration
-///   function may also be specified.
-///
-///   #example(```
-///   diagram(
-///   	$
-///   		A edge("wave") &
-///   		B edge("zigzag") &
-///   		C edge("coil") & D \
-///   		alpha &&& omega
-///   	$,
-///   	edge((0,1), (3,1), "<->", decorations:
-///   		cetz.decorations.wave
-///   			.with(amplitude: .4)
-///   	)
-///   )
-///   ```)
-///
-/// - marks (array): The marks (arrowheads) to draw along an edge's stroke. This
-///   may be:
-///
-///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
-///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$,
-///     where
-///     $
-///     M_i in {#fletcher.MARK_ALIASES.keys().filter(x => x.len() < 4).map(raw.with(lang: none)).join($,$)} union N
-///     $
-///     is a mark symbol and
-///     $L in {#("-", "--", "..", "=", "==").map(raw.with(lang: none)).join($,$)}$
-///     is the line style.
-///     The mark symbol can also be a name,
-///     $M_i in N = {#("hook", "hook'", "harpoon", "harpoon'", "head", "circle").map(raw.with(lang: none)).join($,$), ...}$
-///     where a trailing `'` means to reflect the mark across the stroke.
-///
-///   - An array of marks, where each mark is specified by name or by a
-///     dictionary of parameters.
-///
-///   Shorthands are expanded into other arguments. For example,
-///   `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.
-///
-///   #table(
-///   	columns: (1fr, 4fr),
-///   	align: (center + horizon, horizon),
-///   	[Arrow], [`marks`],
-///   	..(
-///   		"->",
-///   		">>-->",
-///   		"<=>",
-///   		"==>",
-///         "->>-",
-///   		"x-/-@",
-///   		"|..|",
-///   		"hook->>",
-///   		"hook'->>",
-///   		"||-*-harpoon'",
-///         ("X", (kind: "head", size: 15, sharpness: 40deg),),
-///         ((kind: "circle", pos: 0.5, fill: true),),
-///   	).map(arg => (
-///   		fletcher.diagram(edge((0,0), (1,0), marks: arg, stroke: 0.8pt)),
-///   		raw(repr(arg)),
-///   	)).join()
-///   )
-///
-/// - mark-scale (percent): Scale factor for marks or arrowheads, relative to
-///   the #param[edge][stroke] thickness.
-///
-///   #diagram(
-///   	label-sep: 10pt,
-///   	edge-stroke: 1pt,
-///   	for i in range(3) {
-///   		let s = (1 + i/2)*100%
-///   		edge((2*i,0), (2*i + 1,0), label: s, "->", mark-scale: s)
-///   	}
-///   )
-///
-///   Note that the default arrowheads scale automatically with double and
-///   triple strokes:
-///
-///   #diagram(
-///   	label-sep: 10pt,
-///   	edge-stroke: 1pt,
-///   	for (i, s) in ("->", "=>", "==>").enumerate() {
-///   		edge((2*i,0), (2*i + 1,0), s, label: raw(s, lang: none))
-///   	}
-///   )
-///
-/// - extrude (array): Draw a separate stroke for each extrusion offset to
-///   obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
-///   of the stroke's thickness) or lengths.
-///
-///   #diagram({
-///   	(
-///   		(0,),
-///   		(-1.5,+1.5),
-///   		(-2,0,+2),
-///   		(-.5em,),
-///   		(0, 5pt,),
-///   	).enumerate().map(((i, e)) => {
-///   		edge(
-///   			(2*i, 0), (2*i + 1, 0), [#e], "|->",
-///   			extrude: e, stroke: 1pt, label-sep: 1em)
-///   	}).join()
-///   })
-///
-///   Notice how the ends of the line need to shift a little depending on the
-///   mark. For basic arrow heads, this offset is computed with
-///   `round-arrow-cap-offset()`.
-///
-///   See also #the-param[node][extrude].
-///
-/// - crossing (bool): If `true`, draws a backdrop of color
-///   #param[edge][crossing-fill] to give the illusion of lines crossing each
-///    other.
-///
-///   #diagram({
-///   	edge((0,1), (1,0), stroke: 1pt)
-///   	edge((0,0), (1,1), stroke: 1pt)
-///   	edge((2,1), (3,0), stroke: 1pt)
-///   	edge((2,0), (3,1), stroke: 1pt, crossing: true)
-///   })
-///
-///   You can also pass `"crossing"` as a positional argument as a shorthand for
-///   `crossing: true`.
-///
-/// - crossing-thickness (number): Thickness of the "crossing" background stroke
-///   (applicable if #param[edge][crossing] is `true`) in multiples of the
-///   normal stroke's thickness. Defaults to
-///   #the-param[diagram][crossing-thickness].
-///
-///   #diagram({
-///   	(1, 2, 4, 8).enumerate().map(((i, x)) => {
-///   		edge((2*i, 1), (2*i + 1, 0), stroke: 1pt, label-sep: 1em)
-///   		edge((2*i, 0), (2*i + 1, 1), raw(str(x)), stroke: 1pt, label-sep:
-///   		2pt, label-pos: 0.3, crossing: true, crossing-thickness: x)
-///   	}).join()
-///   })
-///
-/// - crossing-fill (paint): Color to use behind connectors or labels to give
-///   the illusion of crossing over other objects. Defaults to
-///   #param[diagram][crossing-fill].
-///
-///   #let cross(x, fill) = {
-///   	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
-///   	edge((2*x + 0,0), (2*x + 1,1), $f$, stroke: 1pt, crossing: true, crossing-fill: fill, label-fill: true)
-///   }
-///   #diagram(crossing-thickness: 5, {
-///   	cross(0, white)
-///   	cross(1, blue.lighten(50%))
-///   })
-///
-/// - corner-radius (length, none): Radius of rounded corners for edges with
-///   multiple segments. Note that `none` is distinct from `0pt`.
-///
-///   #for (i, r) in (none, 0pt, 5pt).enumerate() {
-///   	if i > 0 { h(1fr) }
-///   	fletcher.diagram(
-///   		edge-stroke: 1pt,
-///   		edge((3*i, 0), "r,t,rd,r", "=>", raw(repr(r)), label-pos: 0.6, corner-radius: r)
-///   	)
-///   }
-///
-///   This length specifies the corner radius for right-angled bends. The actual
-///   radius is smaller for acute angles and larger for obtuse angles to balance
-///   things visually. (Trust me, it looks naff otherwise!)
-///
-///   If `auto`, defaults to #the-param[diagram][edge-corner-radius].
-///
-/// - shift (length, number, pair): Amount to shift the edge sideways by,
-///   perpendicular to its direction. A pair `(from, to)` controls the shifts at
-///   each end of the edge independently, and a single shift `s` is short for
-///   `(s, s)`. Shifts can absolute lengths (e.g., `5pt`) or coordinate
-///   differences (e.g., `0.1`).
-///
-///   #diagram(
-///   	node((0,0), $A$), node((1,0), $B$),
-///   	edge((0,0), (1,0), "->", `3pt`, shift: 3pt),
-///   	edge((0,0), (1,0), "->", `-3pt`, shift: -3pt, label-side: right),
-///   )
-///
-///   If an edge has many vertices, the shifts only affect the first and last
-///   segments of the edge.
-///
-///   #example(```
-///   diagram(
-///   	node-fill: luma(70%),
-///   	node((0,0), [Hello]),
-///   	edge("u,r,d", "->"),
-///   	edge("u,r,d", "-->", shift: 8pt),
-///   	node((1,0), [World]),
-///   )
-///   ```)
-///
-/// - snap-to (pair): The nodes the start and end of an edge should snap to.
-/// Each node can be a position or node #param[node][name], or `none` to disable
-/// snapping.
-///
-///   By default, an edge's first and last #param[edge][vertices] snap to nearby
-///   nodes. This option can be used in case automatic snapping fails (if there
-///   are many nodes close together, for example.)
-///
-/// - layer (number): Layer on which to draw the edge.
-///
-///   Objects on a higher `layer` are drawn on top of objects on a lower
-///   `layer`. Objects on the same layer are drawn in the order they are passed
-///   to `diagram()`.
-///
-/// - post (function): Callback function to intercept `cetz` objects before they
-///   are drawn to the canvas.
-///
-///   This can be used to hide elements without affecting layout (for use with
-///   #link("https://github.com/touying-typ/touying")[Touying], for example).
-///   The `hide()` function also helps for this purpose.
-///
-#let edge(
-	..args,
-	vertices: (),
-	extrude: (0,),
-	shift: 0pt,
-	label: none,
-	label-side: auto,
-	label-pos: 0.5,
-	label-sep: auto,
-	label-anchor: auto,
-	label-fill: auto,
-	stroke: auto,
-	dash: none,
-	decorations: none,
-	kind: auto,
-	bend: 0deg,
-	corner: none,
-	corner-radius: auto,
-	marks: (),
-	mark-scale: 100%,
-	crossing: false,
-	crossing-thickness: auto,
-	crossing-fill: auto,
-	snap-to: (auto, auto),
-	layer: 0,
-	post: x => x,
-) = {
-
-	let options = (
-		vertices: vertices,
-		label: label,
-		label-pos: label-pos,
-		label-sep: label-sep,
-		label-anchor: label-anchor,
-		label-side: label-side,
-		label-fill: label-fill,
-		stroke: stroke,
-		dash: dash,
-		decorations: decorations,
-		kind: kind,
-		bend: bend,
-		corner: corner,
-		corner-radius: corner-radius,
-		extrude: extrude,
-		shift: shift,
-		marks: marks,
-		mark-scale: mark-scale,
-		crossing: crossing,
-		crossing-thickness: crossing-thickness,
-		crossing-fill: crossing-fill,
-		snap-to: as-pair(snap-to),
-		layer: layer,
-		post: post,
-	)
-
-	options += interpret-edge-args(args, options)
-	options += interpret-marks-arg(options.marks)
-
-	// relative coordinate shorthands
-	let interpret-coord-str(coord) = {
-		if type(coord) != str { return coord }
-		let rel = (0, 0)
-		let dirs = (
-			"t": ( 0,-1), "n": ( 0,-1), "u": ( 0,-1),
-			"b": ( 0,+1), "s": ( 0,+1), "d": ( 0,+1),
-			"l": (-1, 0), "w": (-1, 0),
-			"r": (+1, 0), "e": (+1, 0),
-		)
-		for char in coord.clusters() {
-			rel = vector.add(rel, dirs.at(char))
-		}
-		(rel: rel)
-	}
-	options.vertices = options.vertices.map(interpret-coord-str)
-
-
-	options.stroke = if options.stroke != none {
-		(
-			cap: "round",
-			dash: options.dash,
-		) + stroke-to-dict(map-auto(options.stroke, (:)))
-	}
-
-	if options.label-side == center {
-		options.label-anchor = "center"
-		options.label-sep = 0pt
-	}
-
-	if type(options.shift) != array { options.shift = (options.shift, options.shift) }
-
-	if type(options.decorations) == str {
-		options.decorations = (
-			"wave": cetz.decorations.wave.with(
-				amplitude: .12,
-				segment-length: .2,
-			),
-			"zigzag": cetz.decorations.zigzag.with(
-				amplitude: .12,
-				segment-length: .2,
-			),
-			"coil": cetz.decorations.coil.with(
-				amplitude: .15,
-				segment-length: .15,
-				factor: 140%,
-			),
-		).at(options.decorations)
-	}
-
-	let obj = (
-		class: "edge",
-		..options,
-		is-crossing-background: false,
-	)
-
-	// for the crossing effect, add another edge underneath
-	if options.crossing {
-		metadata((
-			..obj,
-			is-crossing-background: true
-		))
-	}
-
-	metadata(obj)
-}
-
-
-
-#let resolve-edge-options(edge, options) = {
-	let to-pt(len) = to-abs-length(len, options.em-size)
-
-	edge.stroke = pass-none(stroke)(edge.stroke)
-
-	if edge.stroke == none {
-		// hack: for no stroke, it's easier to do the following.
-		// then we have the guarantee that edge.stroke is actually
-		// a stroke, not possibly none
-		edge.extrude = ()
-		edge.marks = ()
-		edge.stroke = stroke((:))
-	}
-
-	edge.stroke = (
-		(thickness: 0.048em) + // guarantees thickness is a length
-		stroke-to-dict(options.edge-stroke) +
-		stroke-to-dict(edge.stroke)
-	)
-	edge.stroke.thickness = to-pt(edge.stroke.thickness)
-
-	edge.extrude = as-array(edge.extrude).map(as-number-or-length.with(
-		message: "`extrude` must be a number, length, or an array of those"
-	)).map(d => {
-		if type(d) == length { to-pt(d) }
-		else { d*edge.stroke.thickness }
-	})
-
-	edge.crossing-fill = map-auto(edge.crossing-fill, options.crossing-fill)
-	edge.crossing-thickness = map-auto(edge.crossing-thickness, options.crossing-thickness)
-	edge.corner-radius = map-auto(edge.corner-radius, options.edge-corner-radius)
-
-	if edge.is-crossing-background {
-		edge.stroke = (
-			thickness: edge.crossing-thickness*edge.stroke.thickness,
-			paint: edge.crossing-fill,
-			cap: "round",
-		)
-		edge.marks = (none, none)
-		edge.extrude = edge.extrude.map(e => e/edge.crossing-thickness)
-	}
-	
-	edge.stroke = as-stroke(edge.stroke)
-
-	if edge.kind == auto {
-		if edge.vertices.len() > 2 { edge.kind = "poly" }
-		else if edge.corner != none { edge.kind = "corner" }
-		else if edge.bend != 0deg { edge.kind = "arc" }
-		else { edge.kind = "line" }
-	}
-
-	// Scale marks
-	edge.mark-scale *= options.mark-scale
-	let scale = edge.mark-scale/100%
-	edge.marks = edge.marks.map(mark => {
-		if mark == none { return }
-		for k in ("size", "inner-len", "outer-len") {
-			if k in mark { mark.at(k) *= scale }
-		}
-		mark
-	})
-
-	edge.label-sep = to-pt(map-auto(edge.label-sep, options.label-sep))
-
-	edge.label-fill = map-auto(edge.label-fill, edge.label-side == center)
-
-	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
-	if edge.label-fill == false { edge.label-fill = none }
-
-	edge
 }
 
 
@@ -1164,10 +526,10 @@
 /// - edge-corner-radius (length, none): Default value of
 ///   #the-param[edge][corner-radius].
 ///
-/// - node-defocus (number): Default value of #the-param[node][defocus]. 
+/// - node-defocus (number): Default value of #the-param[node][defocus].
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
-/// - mark-scale (length): Default value of #the-param[edge][mark-scale].
+/// - mark-scale (percent): Default value of #the-param[edge][mark-scale].
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///   the illusion of crossing over other objects. See
 ///   #the-param[edge][crossing-fill].

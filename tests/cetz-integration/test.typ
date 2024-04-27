@@ -19,7 +19,7 @@
 					let c1 = (rel: (θ1, 30pt), to: p1)
 					let c2 = (rel: (θ2, 70pt), to: p2)
 					fletcher.cetz.draw.bezier(p1, p2, c1, c2)
-					fletcher.draw-arrow-cap(p1, 180deg, (thickness: 1pt, paint: black), "head")
+					fletcher.draw-mark("head", origin: p1, angle: 180deg, stroke: 1pt)
 				})
 			})
 

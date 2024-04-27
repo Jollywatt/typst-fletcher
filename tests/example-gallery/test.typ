@@ -12,7 +12,6 @@
 
 #[
 	#import fletcher.shapes: diamond
-	#set text(font: "Comic Neue", weight: 600)
 
 	#diagram(
 		node-stroke: 1pt,
