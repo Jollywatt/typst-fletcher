@@ -781,7 +781,7 @@
 ///   - `centers: (x-centers, y-centers)`, the physical offsets of each row and each column,
 ///   - `cell-sizes: (x-sizes, y-sizes)`, the physical sizes of each row and
 ///     each column.
-#let draw-debug-axes(grid) = {
+#let draw-debug-axes(grid, debug: false) = {
 
 	let (x-lims, y-lims) = range(2).map(axis => (
 		grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
@@ -839,20 +839,23 @@
 			}
 		}
 
-		let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
+		if debug {
+			let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
 
-		let dir-to-arrow(dir) = {
-			     if dir == ltr { $arrow.r$ }
-			else if dir == rtl { $arrow.l$ }
-			else if dir == ttb { $arrow.b$ }
-			else if dir == btt { $arrow.t$ }
+			let dir-to-arrow(dir) = {
+				     if dir == ltr { $arrow.r$ }
+				else if dir == rtl { $arrow.l$ }
+				else if dir == ttb { $arrow.b$ }
+				else if dir == btt { $arrow.t$ }
+			}
+
+			draw.content(
+				(x-lims.at(0), y-lims.at(0)),
+				pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
+				anchor: "north-east"
+			)
 		}
 
-		draw.content(
-			(x-lims.at(0), y-lims.at(0)),
-			pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
-			anchor: "north-east"
-		)
 
 
 	})
@@ -877,7 +880,7 @@
 	}
 
 	if debug >= 1 {
-		draw-debug-axes(grid)
+		draw-debug-axes(grid, debug: debug >= 2)
 	}
 
 }

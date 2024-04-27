@@ -402,12 +402,11 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 = Diagrams
 
-Diagrams are a collection of nodes and edges rendered on a CeTZ canvas.
-// Nodes and edges may be passed as separate arguments, together in code blocks, or within `&`-delimited math matrices.
+Diagrams created with `diagram()` are a collection of _nodes_ and _edges_ rendered on a CeTZ canvas.
 
 == Elastic coordinates
 
-Diagrams are laid out on a flexible coordinate grid, visible when the #param[diagram][debug] option is turned on.
+Diagrams are laid out on a _flexible coordinate grid_, visible when #the-param[diagram][debug] option is turned on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 
 By default, coordinates $(u, v)$ have $u$ going $arrow.r$ and $v$ going $arrow.b$.
@@ -417,7 +416,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
 #diagram(
-	debug: true,
+	debug: 2,
 	spacing: 10pt,
 	node-corner-radius: 3pt,
 	node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
@@ -432,7 +431,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 
 == Fractional coordinates
 
-So far, this is just like a table --- however, coordinates can be fractional.
+So far, this is just like a table --- however, coordinates can be _fractional_.
 These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down.
 // Both the node's position and its influence on row/column sizes are interpolated.
 
@@ -446,7 +445,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 		let c = (orange, red, green, blue).map(x => x.lighten(50%))
 		fletcher.diagram(
 			debug: 1,
-			spacing: 0mm,
+			spacing: 1mm,
 			node-corner-radius: 3pt,
 			node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
 			node((1,0), [b], fill: c.at(1), width: 5mm, height: 5mm),
@@ -461,7 +460,9 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 #link(label("node()"))[`node((x, y), label, ..options)`]
 
-Nodes are content centered at a particular coordinate. They can be circular, rectangular, or any custom shape. Nodes automatically fit the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
+Nodes are content centered at a particular coordinate.
+They can be circular, rectangular, or any custom shape.
+Nodes automatically fit to the size of their label (plus an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
 #diagram(
@@ -486,7 +487,8 @@ Nodes are content centered at a particular coordinate. They can be circular, rec
 
 == Node shapes
 
-By default, nodes are circular or rectangular depending on the aspect ratio of their label. The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the #link(<shapes>, `fletcher.shapes`) submodule, or a function.
+By default, nodes are circular or rectangular depending on the aspect ratio of their label.
+The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the #link(<shapes>, `fletcher.shapes`) submodule, or a function.
 
 
 #code-example-row(```typ
@@ -515,7 +517,7 @@ When #the-param[node][enclose] is given, the node automatically resizes.
 #diagram(
 	node-stroke: 0.6pt,
 	node($Sigma$, enclose: ((1,1), (1,2)), // a node spanning multiple centers
-	    inset: 10pt, stroke: teal, name: <bar>),
+	    inset: 10pt, stroke: teal, fill: teal.lighten(90%), name: <bar>),
 	node((2,1), [X]),
 	node((2,2), [Y]),
 	edge((1,1), "r", "->", snap-to: (<bar>, auto)),
@@ -527,13 +529,13 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 
 #code-example-row(```typ
 #diagram(
-	spacing: 20pt,
 	node-stroke: 0.6pt,
+	node-fill: white,
 	node((0,1), [X]),
 	edge("->-", bend: 40deg),
 	node((1,0), [Y], name: <y>),
-	node($Sigma$, enclose: ((0,1), <y>), // a node enclosing other nodes
-	     inset: 10pt, stroke: teal, name: <group>),
+	node($Sigma$, enclose: ((0,1), <y>), inset: 10pt,
+	    stroke: teal, fill: teal.lighten(90%), name: <group>),
 	node((2.5,0.5), [Z], name: <z>),
 	edge(<group>, <z>, "->"),
 )
@@ -759,8 +761,7 @@ While shorthands like `"|==>"` exist for specifying marks and stroke styles, fin
 #diagram(
 	edge-stroke: 1.5pt,
 	spacing: 25mm,
-	node((0,1), [_tulip_]),
-	edge((-0.1,0), bend: -8deg, marks: (
+	edge((0,1), (-0.1,0), bend: -8deg, marks: (
 		(inherit: ">>", size: 6, delta: 70deg, sharpness: 65deg),
 		(inherit: "head", rev: true, pos: 0.8, sharpness: 0deg, size: 17),
 		(inherit: "bar", size: 1, pos: 0.3),
@@ -769,7 +770,7 @@ While shorthands like `"|==>"` exist for specifying marks and stroke styles, fin
 )
 ```)
 
-When you specify a marks shorthand like `"|=>"`, it is expanded with `fletcher.interpret-marks-arg()`.
+When you specify a marks shorthand like `"|=>"`, it is expanded with `interpret-marks-arg()`.
 In other words, `edge(from, to, "|=>")` is equivalent to:
 
 ```typc
@@ -777,13 +778,13 @@ edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 ```
 
 This does two things:
-- Passes an array of mark dictionaries to the #param[edge][marks] argument.
+- Passes an array of _mark objects_ to #the-param[edge][marks].
 - Passes any other stroke style options to `edge()`, like `"double"` (from the `"="` line style).
 
-=== Mark dictionaries
+=== Mark objects
 
-A mark is a dictionary with a `draw` entry containing CeTZ objects.
-For example, a very basic circle mark could be:
+A _mark object_ is a dictionary with a `draw` entry containing CeTZ objects.
+For example, a very basic circle mark is given by `my-mark`:
 
 #code-example-row(```typ
 #import cetz.draw
@@ -796,10 +797,10 @@ For example, a very basic circle mark could be:
 )
 ```)
 
-Marks scale with the edge's stroke; one unit is equal to the stroke thickness.
+Marks scale with the edge's stroke --- one unit is equal to the stroke thickness --- so the circle mark has a radius of twice the edge's stroke.
 
-A mark dictionary can contain other parameters, and any subsequent entries may depend on them by being written as a function accepting the mark dictionary.
-For example, the `my-mark` above could also be implemented as:
+A mark object can contain other parameters, and any subsequent entries may depend on them by being written as a function accepting the mark object.
+For example, `my-mark` above could also be implemented as:
 
 ```typ
 #let mark = (
@@ -808,7 +809,7 @@ For example, the `my-mark` above could also be implemented as:
 )
 ```
 
-This makes it easier to change the size without modifying `draw`:
+This makes it easier to change the size without modifying `draw`, for example:
 
 #code-example-row(```typ
 #import cetz.draw
@@ -924,6 +925,8 @@ The last few properties control the fine behaviours of how marks connect to the 
 )
 
 See `mark-debug()` and `cap-offset()` for details.
+
+=== Detailed example
 
 As a complete example, here is the implementation of a straight arrowhead in ```plain src/default-marks.typ```:
 
