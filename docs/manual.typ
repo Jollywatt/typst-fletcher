@@ -774,17 +774,18 @@ When you specify a marks shorthand like `"|=>"`, it is expanded with `interpret-
 In other words, `edge(from, to, "|=>")` is equivalent to:
 
 ```typc
-edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
+context edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 ```
 
 This does two things:
 - Passes an array of _mark objects_ to #the-param[edge][marks].
-- Passes any other stroke style options to `edge()`, like `"double"` (from the `"="` line style).
+- Passes any other stroke style options to `edge()`, such as `"double"` (from the `"="` line style).
 
 === Mark objects
 
-A _mark object_ is a dictionary with a `draw` entry containing CeTZ objects.
-For example, a very basic circle mark is given by `my-mark`:
+A _mark object_ is a dictionary with at least a `draw` entry containing the CeTZ objects to be drawn on the edge.
+Marks are translated and scaled to fit the edge; the mark's center should be at the origin, and a unit length is equal to the stroke thickness.
+For example, a basic circle mark is given by `my-mark`:
 
 #code-example-row(```typ
 #import cetz.draw
@@ -797,9 +798,7 @@ For example, a very basic circle mark is given by `my-mark`:
 )
 ```)
 
-Marks scale with the edge's stroke --- one unit is equal to the stroke thickness --- so the circle mark has a radius of twice the edge's stroke.
-
-A mark object can contain other parameters, and any subsequent entries may depend on them by being written as a function accepting the mark object.
+A mark object can contain other parameters; any subsequent entries may depend on parameters before them by being written as a _function_ of the mark object.
 For example, `my-mark` above could also be implemented as:
 
 ```typ
@@ -824,7 +823,7 @@ Internally, marks are passed to `resolve-mark()`, which ensures all entries are 
 
 === Special mark properties
 
-You can add any properties to a mark dictionary, but there are some with special functions.
+A mark object may contain any properties, but some have special functions.
 
 #{
 	show table.cell.where(y: 0): emph
@@ -838,7 +837,7 @@ You can add any properties to a mark dictionary, but there are some with special
 		`draw`,
 		[
 			As described above, this contains the final CeTZ objects to be drawn. Objects should be centered at $(0,0)$ and be scaled so that one unit is the stroke thickness.
-			The default `stroke` and `fill` is inherited from the edge.
+			The default `stroke` and `fill` is inherited from the edge's style.
 		],
 		`true`,
 		none,
@@ -958,10 +957,44 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 
 #pagebreak()
 
+
+
+== Reusing custom marks
+
+While custom mark objects may be passed directly to #the-param[edge][marks], this can become verbose if the same custom mark is used often.
+
+Mark shorthands such as `"hook->"` search the state variable `fletcher.MARKS` for defined marks.
+(This is why `context` is needed --- to access the value of a state.)
+#code-example-row(```typ
+#context fletcher.MARKS.get().at("|>")
+```)
+You can modify the `MARKS` state like so:
+#code-example-row(```typ
+#diagram(spacing: 3cm, edge("<->", stroke: 1.5pt))
+
+#fletcher.MARKS.update(m => m + (
+	"<": (inherit: "stealth", rev: true),
+	">": (inherit: "stealth", rev: false),
+	"multi": (
+		inherit: "straight",
+		draw: mark => fletcher.cetz.draw.line(
+			(0, +mark.size*calc.sin(mark.sharpness)),
+			(-mark.size*calc.cos(mark.sharpness), 0),
+			(0, -mark.size*calc.sin(mark.sharpness)),
+		),
+	)
+))
+
+#diagram(spacing: 3cm, edge("multi->-multi", stroke: 1.5pt + eastern))
+```)
+
+Here, we redefined which mark style the `"<"` and `">"` shorthands refer to, and added an entirely new mark style with the shorthand `"multi"`.
+
+
 = CeTZ integration
 
 
-Fletcher's drawing cababilities are deliberately restricted to a few simple building blocks.
+Fletcher's drawing capabilities are deliberately restricted to a few simple building blocks.
 However, an escape hatch is provided with #the-param[diagram][render] so you can intercept diagram data and draw things using CeTZ directly.
 
 == Bézier edges
