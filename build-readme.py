@@ -10,7 +10,7 @@ import lxml.etree as ET
 
 
 TYP_TEMPLATE = """
-#import "/src/exports.typ" as fletcher: node, edge
+#import "/src/exports.typ" as fletcher: diagram, node, edge
 #let fg = {fg} // foreground color
 #let bg = {bg} // background color
 
