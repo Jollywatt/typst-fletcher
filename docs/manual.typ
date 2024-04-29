@@ -353,7 +353,6 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	#diagram(
-		debug: true,          // show a coordinate grid
 		spacing: (10mm, 5mm), // wide columns, narrow rows
 		node-stroke: 1pt,     // outline node shapes
 		edge-stroke: 1pt,     // make lines thicker
@@ -362,6 +361,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 		edge((-2,0), "r,d,r", "..|>", $g$),
 		node((0,-1), $F(s)$),
 		node((0,+1), $G(s)$),
+		node(enclose: ((0,-1), (0,+1)), stroke: teal, inset: 8pt),
 		edge((0,+1), (1,0), "..|>", corner: left),
 		edge((0,-1), (1,0), "-|>", corner: right),
 		node((1,0), text(white, $ plus.circle $), inset: 2pt, fill: black),
@@ -380,13 +380,14 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 
 	..code-example(```typ
+	#import fletcher.shapes: diamond
 	#diagram(
 		node-stroke: black + 0.5pt,
 		node-fill: gradient.radial(white, blue, center: (40%, 20%),
 		                           radius: 150%),
-		spacing: (15mm, 8mm),
+		spacing: (10mm, 5mm),
 		node((0,0), [1], name: <1>, extrude: (0, -4)), // double stroke
-		node((1,0), [2], name: <2>),
+		node((1,0), [2], name: <2>, shape: diamond),
 		node((2,-1), [3a], name: <3a>),
 		node((2,+1), [3b], name: <3b>),
 		edge(<1>, <2>, [go], "->"),
@@ -702,7 +703,7 @@ The strength of this adjustment is controlled by the `defocus` option of `node()
 = Marks and arrows
 
 // Edges can be arrows.
-Arrow marks can be specified like  `edge(a, b, "-->")` or with the `marks` option of `edge()`.
+Arrow marks can be specified like  `edge(a, b, "-->")` or with #the-param[edge][marks].
 Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$.
 #align(center, fletcher.diagram(
 	debug: 0,
@@ -743,19 +744,25 @@ A few other marks are supported, and can be placed anywhere along the edge.
 	}
 }))
 
-All the built-in marks are defined in `fletcher.MARKS`:
+All the built-in marks are defined in the state variable `fletcher.MARKS`, which you may access with `context fletcher.MARKS.get()`.
 
-#{context fletcher.MARKS.get().keys()
-	.sorted(key: i => i.len())
-	.map(raw.with(lang: "none"))
-	.join[, ]
-}
+#context table(
+	columns: 9,
+	..fletcher.MARKS.get().pairs().map(((k, v)) => [
+		#set align(center)
+		#raw(k) \
+		#diagram(edge(stroke: 1pt, marks: (v, v)))
+	])
+)
 
 
 
 == Custom marks
 
-While shorthands like `"|==>"` exist for specifying marks and stroke styles, finer control is possible.
+While shorthands like `"|=>"` exist for specifying marks and stroke styles, finer control is possible.
+Marks can be specified by passing an array of _mark objects_ to #the-param[edge][marks].
+For example:
+
 
 #code-example-row(```typ
 #diagram(
@@ -770,22 +777,21 @@ While shorthands like `"|==>"` exist for specifying marks and stroke styles, fin
 )
 ```)
 
-When you specify a marks shorthand like `"|=>"`, it is expanded with `interpret-marks-arg()`.
-In other words, `edge(from, to, "|=>")` is equivalent to:
+
+In fact, shorthands like `"|=>"` are expanded with `interpret-marks-arg()` into a form more like the example amove.
+More precisely, `edge(from, to, "|=>")` is equivalent to:
 
 ```typc
 context edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 ```
 
-This does two things:
-- Passes an array of _mark objects_ to #the-param[edge][marks].
-- Passes any other stroke style options to `edge()`, such as `"double"` (from the `"="` line style).
+If you want to explore the internals of mark styles, a good place to start may to inspect the output of `context fletcher.interpret-marks-arg(..)` for various input shorthands.
 
 === Mark objects
 
-A _mark object_ is a dictionary with at least a `draw` entry containing the CeTZ objects to be drawn on the edge.
-Marks are translated and scaled to fit the edge; the mark's center should be at the origin, and a unit length is equal to the stroke thickness.
-For example, a basic circle mark is given by `my-mark`:
+A _mark object_ is a dictionary withm, at the very least, a `draw` entry containing the CeTZ objects to be drawn on the edge.
+Marks are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is the unit length.
+For example, here is a basic circle mark:
 
 #code-example-row(```typ
 #import cetz.draw
@@ -798,7 +804,7 @@ For example, a basic circle mark is given by `my-mark`:
 )
 ```)
 
-A mark object can contain other parameters; any subsequent entries may depend on parameters before them by being written as a _function_ of the mark object.
+A mark object can contain arbitrary parameters; any subsequent entries may depend on parameters defined earlier by being written as a _function_ of the mark object.
 For example, `my-mark` above could also be implemented as:
 
 ```typ
@@ -808,7 +814,7 @@ For example, `my-mark` above could also be implemented as:
 )
 ```
 
-This makes it easier to change the size without modifying `draw`, for example:
+This makes it easier to change the size without modifying the `draw` function, for example:
 
 #code-example-row(```typ
 #import cetz.draw
@@ -842,6 +848,14 @@ A mark object may contain any properties, but some have special functions.
 		`true`,
 		none,
 
+		[`fill`\ `stroke`],
+		[
+			The default fill and stroke styles for CeTZ objects returned by `draw`.
+			If `none`, polygons will not be filled/stroked default, and if `auto`, the style is inherited from the edge's stroke style.
+		],
+		`false`,
+		`auto`,
+
 		`inherit`,
 		[
 			The name of a mark in `fletcher.MARKS` to inherit properties from.
@@ -850,12 +864,12 @@ A mark object may contain any properties, but some have special functions.
 		`false`,
 		none,
 
-		`scale`,
+		`pos`,
 		[
-			Overall scaling factor. See also #the-param[edge][mark-scale].
+			Location of the mark along the edge, from `0` (start) to `1` (end).
 		],
-		`false`,
-		`100%`,
+		`true`,
+		`auto`,
 
 		`rev`,
 		[
@@ -875,6 +889,13 @@ A mark object may contain any properties, but some have special functions.
 		],
 		`false`,
 		`false`,
+
+		`scale`,
+		[
+			Overall scaling factor. See also #the-param[edge][mark-scale].
+		],
+		`false`,
+		`100%`,
 
 		`extrude`,
 		[
@@ -915,6 +936,8 @@ A mark object may contain any properties, but some have special functions.
 }
 
 The last few properties control the fine behaviours of how marks connect to the target point and to the edge's stroke.
+Briefly, a mark has four possibly-distinct center points.
+It is easier to show than to tell:
 
 #context grid(
 	columns: (1fr, 1fr),
@@ -934,19 +957,16 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 #let straight = (
 	size: 8,
 	sharpness: 20deg,
-
 	tip-origin: mark => 0.5/calc.sin(mark.sharpness),
 	tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
-
 	fill: none,
 	draw: mark => {
 		draw.line(
-			(180deg + mark.sharpness, mark.size),
+			(180deg + mark.sharpness, mark.size), // polar cetz coordinate
 			(0, 0),
 			(180deg - mark.sharpness, mark.size),
 		)
 	},
-
 	cap-offset: (mark, y) => calc.tan(mark.sharpness + 90deg)*calc.abs(y),
 )
 
@@ -961,15 +981,16 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 
 == Reusing custom marks
 
-While custom mark objects may be passed directly to #the-param[edge][marks], this can become verbose if the same custom mark is used often.
+While you can pass custom mark objects directly to #the-param[edge][marks], this can get annoying if you use the same mark often.
+In these cases, you can define your own mark shorthands.
 
-Mark shorthands such as `"hook->"` search the state variable `fletcher.MARKS` for defined marks.
-(This is why `context` is needed --- to access the value of a state.)
+Mark shorthands such as `"hook->"` search the state variable `fletcher.MARKS` for defined mark names.
 #code-example-row(```typ
 #context fletcher.MARKS.get().at("|>")
 ```)
-You can modify the `MARKS` state like so:
+With a bit of care, you can modify the `MARKS` state like so:
 #code-example-row(```typ
+// this is what the default marks look like
 #diagram(spacing: 3cm, edge("<->", stroke: 1.5pt))
 
 #fletcher.MARKS.update(m => m + (
@@ -985,6 +1006,7 @@ You can modify the `MARKS` state like so:
 	)
 ))
 
+// subsequent diagrams will use your updated marks
 #diagram(spacing: 3cm, edge("multi->-multi", stroke: 1.5pt + eastern))
 ```)
 
