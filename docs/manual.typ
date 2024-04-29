@@ -603,6 +603,7 @@ However, don't forget you can also use variables in code-mode, which is a more e
 })
 ```)
 
+#pagebreak()
 
 === Relative coordinates
 
@@ -672,9 +673,9 @@ To adjust _where_ along the boundary the edge connects, you can adjust the edge'
 ```)
 
 Alternatively, the `shift` option of `edge()` lets you shift edges sideways by an absolute length:
-#code-example-row(```typ
+#block(breakable: false, code-example-row(```typ
 #diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
-```)
+```))
 
 By default, edges which are incident at an angle are automatically adjusted slightly, especially if the node is wide or tall.
 Aesthetically, things can look more comfortable if edges don't all connect to the node's exact center, but instead spread out a bit.
@@ -747,7 +748,8 @@ A few other marks are supported, and can be placed anywhere along the edge.
 All the built-in marks are defined in the state variable `fletcher.MARKS`, which you may access with `context fletcher.MARKS.get()`.
 
 #context table(
-	columns: (1fr,)*6,
+	columns: (1fr,)*7,
+	stroke: none,
 	..fletcher.MARKS.get().pairs().map(((k, v)) => [
 		#set align(center)
 		#raw(k) \
@@ -755,7 +757,7 @@ All the built-in marks are defined in the state variable `fletcher.MARKS`, which
 	]),
 )
 
-
+Because it is a state variable, you can modify `fletcher.MARKS` to add or change the marks palette.
 
 == Custom marks
 
@@ -785,7 +787,7 @@ More precisely, `edge(from, to, "|=>")` is equivalent to:
 context edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 ```
 
-If you want to explore the internals of mark styles, a good place to start may to inspect the output of `context fletcher.interpret-marks-arg(..)` for various input shorthands.
+If you want to explore the internals of mark styles, you might like to inspect the output of `context fletcher.interpret-marks-arg(..)` for various input mark shorthands.
 
 === Mark objects
 

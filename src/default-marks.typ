@@ -259,6 +259,9 @@
 	"O": (inherit: "circle", size: 4),
 	"*": (inherit: "circle", fill: auto),
 	"@": (inherit: "circle", size: 4, fill: auto),
+
+	"[]": (inherit: "square"),
+	"<>": (inherit: "diamond"),
 )
 
 #let MARKS = state("fletcher-marks", DEFAULT_MARKS)

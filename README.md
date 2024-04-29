@@ -145,6 +145,7 @@ Pull requests are most welcome!
 ### 0.4.4
 
 - Support fully customisable marks/arrowheads!
+  - Added new mark styles and tweaked some existing defaults. **Note.** This may change the micro-typography of diagrams from previous versions.
 - Add node groups via the `enclose` option of `node()`.
 - Node labels can be aligned inside the node with `align()`.
 - Node labels wrap naturally when label text is wider than the node. **Note:** This may change diagram layout from previous versions.
