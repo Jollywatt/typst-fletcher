@@ -729,6 +729,9 @@
 		) + stroke-to-dict(map-auto(options.stroke, (:)))
 	}
 
+	if options.label-side not in (left, center, right, auto) {
+		panic("`label-side` must be one of `left`, `center`, `right`, or `auto`; got " + repr(options.label-side))
+	}
 	if options.label-side == center {
 		options.label-anchor = "center"
 		options.label-sep = 0pt
