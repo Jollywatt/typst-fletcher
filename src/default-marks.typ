@@ -126,7 +126,7 @@
 	),
 
 	circle: (
-		size: 3,
+		size: 2,
 
 		tip-end: mark => -mark.size,
 		tail-end: mark => mark.size,
