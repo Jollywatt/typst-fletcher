@@ -202,7 +202,7 @@
 		tip-origin: mark => mark.size + 0.5,
 
 		stroke: (cap: "round"),
-		
+
 		draw: mark => {
 			draw.arc(
 				(0,0),

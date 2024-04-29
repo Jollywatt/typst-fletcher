@@ -778,7 +778,7 @@ For example:
 ```)
 
 
-In fact, shorthands like `"|=>"` are expanded with `interpret-marks-arg()` into a form more like the example amove.
+In fact, shorthands like `"|=>"` are expanded with `interpret-marks-arg()` into a form more like the example above.
 More precisely, `edge(from, to, "|=>")` is equivalent to:
 
 ```typc
@@ -789,7 +789,7 @@ If you want to explore the internals of mark styles, a good place to start may t
 
 === Mark objects
 
-A _mark object_ is a dictionary withm, at the very least, a `draw` entry containing the CeTZ objects to be drawn on the edge.
+A _mark object_ is a dictionary with, at the very least, a `draw` entry containing the CeTZ objects to be drawn on the edge.
 Marks are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is the unit length.
 For example, here is a basic circle mark:
 
