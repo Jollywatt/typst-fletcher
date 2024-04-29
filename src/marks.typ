@@ -89,8 +89,13 @@
 
 	mark = apply-mark-inheritances(mark)
 
-
-	mark = MARK_REQUIRED_DEFAULTS + defaults + mark
+	// be careful to preserve the insertion order of mark
+	// as this defines the evaluation order of mark parameters
+	for (k, v) in MARK_REQUIRED_DEFAULTS + defaults {
+		if k not in mark {
+			mark.insert(k, v)
+		}
+	}
 
 	for (key, value) in mark {
 		if key == "cap-offset" { continue }

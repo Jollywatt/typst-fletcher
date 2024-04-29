@@ -145,6 +145,28 @@
 		},
 	),
 
+	square: (
+		size: 2,
+		angle: 0deg,
+		fill: none,
+		tip-origin: mark => +(mark.size + 0.5)/calc.cos(mark.angle),
+		tail-origin: mark => -(mark.size + 0.5)/calc.cos(mark.angle),
+		tip-end: mark => -mark.size/calc.cos(mark.angle),
+		tail-end: mark => +mark.size/calc.cos(mark.angle),
+		draw: mark => {
+			let x = mark.size
+			draw.rotate(mark.angle)
+			draw.rect(
+				(-x, -x), (+x, +x),
+			)
+		}
+	),
+
+	diamond: (
+		inherit: "square",
+		angle: 45deg,
+	),
+
 	bar: (
 		size: 4.9,
 		angle: 90deg,
@@ -178,6 +200,9 @@
 		rim: 0.85,
 
 		tip-origin: mark => mark.size + 0.5,
+
+		stroke: (cap: "round"),
+		
 		draw: mark => {
 			draw.arc(
 				(0,0),

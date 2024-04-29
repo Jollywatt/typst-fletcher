@@ -747,12 +747,12 @@ A few other marks are supported, and can be placed anywhere along the edge.
 All the built-in marks are defined in the state variable `fletcher.MARKS`, which you may access with `context fletcher.MARKS.get()`.
 
 #context table(
-	columns: 9,
+	columns: (1fr,)*6,
 	..fletcher.MARKS.get().pairs().map(((k, v)) => [
 		#set align(center)
 		#raw(k) \
 		#diagram(edge(stroke: 1pt, marks: (v, v)))
-	])
+	]),
 )
 
 
