@@ -702,7 +702,6 @@
 	)
 
 	options += interpret-edge-args(args, options)
-	// options += interpret-marks-arg(options.marks)
 
 	// relative coordinate shorthands
 	let interpret-coord-str(coord) = {
@@ -722,12 +721,6 @@
 	options.vertices = options.vertices.map(interpret-coord-str)
 
 
-	options.stroke = if options.stroke != none {
-		(
-			cap: "round",
-			dash: options.dash,
-		) + stroke-to-dict(map-auto(options.stroke, (:)))
-	}
 
 	if options.label-side not in (left, center, right, auto) {
 		panic("`label-side` must be one of `left`, `center`, `right`, or `auto`; got " + repr(options.label-side))
@@ -764,8 +757,6 @@
 
 	edge += interpret-marks-arg(edge.marks)
 
-	edge.stroke = pass-none(stroke)(edge.stroke)
-
 	if edge.stroke == none {
 		// hack: for no stroke, it's easier to do the following.
 		// then we have the guarantee that edge.stroke is actually
@@ -776,9 +767,13 @@
 	}
 
 	edge.stroke = (
-		(thickness: 0.048em) + // guarantees thickness is a length
+		(
+			cap: "round",
+			dash: edge.dash,
+			thickness: 0.048em, // guarantees thickness is a length, not auto
+		) +
 		stroke-to-dict(options.edge-stroke) +
-		stroke-to-dict(edge.stroke)
+		stroke-to-dict(map-auto(edge.stroke, (:)))
 	)
 	edge.stroke.thickness = to-pt(edge.stroke.thickness)
 
