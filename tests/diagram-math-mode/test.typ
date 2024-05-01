@@ -64,3 +64,14 @@ $)
 	edge((0,0), (1,1), "..>"),
 	edge((1,1), (1,0), "-->"),
 )
+
+
+#pagebreak()
+
+= Label side in math mode
+
+#diagram(spacing: (1cm, 3mm), $
+	A edge(f, #left, "->") & B \
+	A edge(#center, f, "->") & B \
+	A edge(f, "->", #right) & B \
+$)

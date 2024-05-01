@@ -215,6 +215,7 @@
 	)
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
+	let is-label-side(arg) = type(arg) == alignment
 	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
 	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
 
@@ -255,6 +256,11 @@
 		panic("Vertices cannot be specified by both positional and named arguments.")
 	}
 
+
+	let i = pos.position(is-label-side)
+	if i != none {
+		new-options.label-side = pos.remove(i)
+	}
 
 
 	// accept (mark, label), (label, mark) or just either one
