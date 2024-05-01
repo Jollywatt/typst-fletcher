@@ -467,15 +467,16 @@
 ///   may be:
 ///
 ///   - A shorthand string such as `"->"` or `"hook'-/->>"`. Specifically,
-///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$,
+///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, etc,
 ///     where
-///     $ M_i in #`fletcher.MARKS` = {#context fletcher.MARKS.get().keys().slice(10).map(raw).join($,$), ...} $
+///
+///     $ M_i in #`fletcher.MARKS` = #context math.mat(..fletcher.MARKS.get().keys().map(i => $#raw(i),$).chunks(5), delim: "{") $
 ///     is a mark name and
 ///     $ L in #`fletcher.LINE_ALIASES` = {#fletcher.LINE_ALIASES.keys().map(raw.with(lang: none)).join($,$)} $
 ///     is the line style.
 ///
-///   - An array of marks, where each mark is specified by name or by a
-///     dictionary of parameters.
+///   - An array of marks, where each mark is specified by name of as a _mark
+///     object_ (dictionary of parameters with a `draw` entry).
 ///
 ///   Shorthands are expanded into other arguments. For example,
 ///   `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, the result of `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.
@@ -483,7 +484,7 @@
 ///   #table(
 ///   	columns: (1fr, 4fr),
 ///   	align: (center + horizon, horizon),
-///   	[Arrow], [`marks`],
+///   	[Result], [Value of `marks`],
 ///   	..(
 ///   		"->",
 ///   		">>-->",

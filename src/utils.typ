@@ -228,7 +228,7 @@
 		.at(0, default: none)
 }
 
-#let find-node(nodes, key) = {
+#let find-node(nodes, key, snap: false) = {
 	if type(key) == label {
 		let node = nodes.find(node => node.name == key)
 		assert(node != none, message: "Couldn't resolve name " + repr(key))

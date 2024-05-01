@@ -1,7 +1,7 @@
 #import "utils.typ": *
 #import "deps.typ": cetz
 #import cetz.draw
-#import "default-marks.typ": MARKS
+#import "default-marks.typ": *
 
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
@@ -27,8 +27,8 @@
 /// Units are in multiples of stroke thickness.
 ///
 /// This is used to correctly implement multi-stroke marks, e.g.,
-/// #diagram(edge("<==>")). The function `fletcher.mark-debug()` can help
-/// visualise a mark's cap offset.
+/// #diagram(edge("<==>")). The function `mark-debug()` can help visualise a
+/// mark's cap offset.
 ///
 /// #example(`fletcher.mark-debug("O")`)
 ///
@@ -108,6 +108,16 @@
 	mark
 }
 
+
+/// Draw a mark at a given potition and angle
+///
+/// - mark (dictionary): Mark object to draw. Must contain a `draw` entry.
+/// - stroke (stroke): Stroke style for the mark. The stroke's paint is used as
+///   the defauly fill style.
+/// - origin (point): Coordinate of the mark's origin (as defined by 
+///   `tip-origin` or `tail-origin`).
+/// - angle (angle): Angle of the mark, `0deg` being $->$, counterclockwise.
+/// - debug (bool): Whether to draw the origin points.
 #let draw-mark(
 	mark,
 	stroke: 1pt,
@@ -196,10 +206,13 @@
 /// - `tip-origin`: the $x$-coordinate of the point of the mark's tip.
 /// - `tail-origin`: the $x$-coordinate of the mark's tip when it is acting as a
 ///   reversed tail mark.
-/// - `tip-end`: The $x$-coordinate of the end point of the edge's stroke (
-///   green stroke).
+/// - `tip-end`: The $x$-coordinate of the end point of the edge's stroke (green
+///   stroke).
 /// - `tail-end`: The $x$-coordinate of the end point of the edge's stroke when
 ///   acting as a tail mark (red stroke).
+/// - Dashed green/red lines: The stroke end points as a function of $y$. This
+///   is controlled by the special `cap-offset` mark property and is used for
+///   multi-stroke effects like #diagram(edge(">==>")). See `cap-offset()`.
 ///
 /// This is mainly useful for designing your own marks.
 ///

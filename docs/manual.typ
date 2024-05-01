@@ -829,6 +829,8 @@ This makes it easier to change the size without modifying the `draw` function, f
 
 Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
 
+#pagebreak()
+
 === Special mark properties
 
 A mark object may contain any properties, but some have special functions.
@@ -950,6 +952,8 @@ It is easier to show than to tell:
 
 See `mark-debug()` and `cap-offset()` for details.
 
+#pagebreak()
+
 === Detailed example
 
 As a complete example, here is the implementation of a straight arrowhead in ```plain src/default-marks.typ```:
@@ -977,18 +981,17 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 #fletcher.mark-demo(straight)
 ```)
 
-#pagebreak()
 
 
 
-== Reusing custom marks
+== Custom mark shorthands
 
 While you can pass custom mark objects directly to #the-param[edge][marks], this can get annoying if you use the same mark often.
 In these cases, you can define your own mark shorthands.
 
 Mark shorthands such as `"hook->"` search the state variable `fletcher.MARKS` for defined mark names.
 #code-example-row(```typ
-#context fletcher.MARKS.get().at("|>")
+#context fletcher.MARKS.get().at(">")
 ```)
 With a bit of care, you can modify the `MARKS` state like so:
 #code-example-row(```typ
@@ -1014,6 +1017,13 @@ With a bit of care, you can modify the `MARKS` state like so:
 
 Here, we redefined which mark style the `"<"` and `">"` shorthands refer to, and added an entirely new mark style with the shorthand `"multi"`.
 
+Finally, I will restore the default state so as not to affect the rest of this manual:
+#code-example-row(```typ
+#fletcher.MARKS.update(fletcher.DEFAULT_MARKS) // restore to built-in mark styles
+```)
+
+
+#pagebreak()
 
 = CeTZ integration
 
