@@ -36,18 +36,12 @@
 /// dashed red line shows where the stroke ends if the mark is acting as a tail.
 #let cap-offset(mark, shift) = {
 	let o = 0
-		let scale = float(mark.scale)
+	let scale = float(mark.scale)
 	if "cap-offset" in mark {
-		o = (mark.cap-offset)(mark, shift/scale)*scale
+		o = (mark.cap-offset)(mark, shift/scale)
 	}
-	// if scale != 1 { panic(mark)}
-
-	// mark = MARK_REQUIRED_DEFAULTS + mark
-	if mark.tip {
-		mark.tip-end + o
-	} else {
-		mark.tail-end + o
-	}
+	o += if mark.tip { mark.tip-end } else { mark.tail-end }
+	o*scale
 
 }
 

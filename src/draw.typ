@@ -112,7 +112,7 @@
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
 
-		// let tip = mark.at("tip", default: false)
+
 		let tip = (pos == 0) == mark.rev
 		let s = if tip { +1 } else { -1 } // not completely sure why this is needed
 		let x = cap-offset(
@@ -120,10 +120,10 @@
 			s*(2*pos - 1)*y/edge.stroke.thickness,
 		)
 
-		x -= if tip { mark.tip-origin } else { mark.tail-origin }*float(mark.scale)
+		x -= if tip { mark.tip-origin } else { mark.tail-origin } * float(mark.scale)
 		if mark.rev { x *= -1 }
 
-		x*edge.stroke.thickness
+		x*edge.stroke.thickness//*float(mark.scale)
 	})
 }
 

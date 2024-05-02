@@ -19,3 +19,8 @@
 	#diagram(edge("triple", marks: (mark, mark)), mark-scale: scale)
 
 ]
+
+#pagebreak()
+
+#diagram(mark-scale: 100%, edge("cone-latex")) \
+#diagram(mark-scale: 50%, edge("cone-latex"))

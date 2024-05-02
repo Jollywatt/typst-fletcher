@@ -163,7 +163,6 @@
 		spacing: (1cm, 2cm),
 		edge-stroke: 1pt,
 		crossing-thickness: 5,
-		mark-scale: 70%,
 		node-fill: luma(97%),
 		node-outset: 3pt,
 		node((0,0), "magma"),
@@ -181,7 +180,7 @@
 		{
 			let quad(a, b, label, paint, ..args) = {
 				paint = paint.darken(25%)
-				edge(a, b, text(paint, label), "-|>", stroke: paint, label-side: center, ..args)
+				edge(a, b, text(paint, label), "-latex", stroke: paint, label-side: center, ..args)
 			}
 
 			quad((0,0), (-1,1), "Assoc", blue)
