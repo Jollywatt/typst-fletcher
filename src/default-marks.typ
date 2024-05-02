@@ -125,6 +125,58 @@
 		},
 	),
 
+	latex: (
+		size: 23, // radius of curvature
+		sharpness: 10deg, // angle at vertex between central line and arrow's edge
+		delta: 20deg, // angle spanned by arc of curved arrow edge
+
+		tip-end: mark => mark.size*(calc.sin(mark.sharpness) - calc.sin(mark.sharpness + mark.delta)),
+		tail-end: mark => mark.tip-end/2,
+		tail-origin: mark => mark.tip-end,
+
+		fill: auto,
+		stroke: none,
+		draw: mark => {
+			for flip in (+1, -1) {
+				draw.merge-path({
+					draw.arc(
+						(0, 0),
+						radius: mark.size,
+						start: flip*(90deg + mark.sharpness),
+						delta: flip*mark.delta,
+						fill: none,
+					)
+					draw.line((), ((), "|-", (0, flip*1e-1)))
+				})
+			}
+		}
+	),
+
+	cone: (
+		size: 8,
+		radius: 6,
+		angle: 30deg,
+
+		tip-end: mark => -mark.size,
+		tail-end: mark => mark.tip-end/2,
+		tail-origin: mark => mark.tip-end,
+
+		stroke: none,
+		draw: mark => {
+			for flip in (+1, -1) {
+				draw.merge-path({
+					draw.arc(
+						(-mark.size, -flip*1e-1),
+						radius: mark.radius,
+						start: 0deg,
+						stop: flip*mark.angle,
+					)
+					draw.line((), (0, 0))
+				})
+			}
+		}
+	),
+
 	circle: (
 		size: 2,
 
