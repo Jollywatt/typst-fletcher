@@ -1,4 +1,4 @@
-#import "@preview/fletcher:0.4.2" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.4.4" as fletcher: diagram, node, edge
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 #set text(white, font: "Fira Sans")
 #let colors = (maroon, olive, eastern)
