@@ -854,7 +854,7 @@ A mark object may contain any properties, but some have special functions.
 		[`fill`\ `stroke`],
 		[
 			The default fill and stroke styles for CeTZ objects returned by `draw`.
-			If `none`, polygons will not be filled/stroked default, and if `auto`, the style is inherited from the edge's stroke style.
+			If `none`, polygons will not be filled/stroked by default, and if `auto`, the style is inherited from the edge's stroke style.
 		],
 		`false`,
 		`auto`,

@@ -161,7 +161,7 @@
 	)
 }
 
-/// An pentagonal node shape, like a house.
+/// A pentagonal house-like node shape.
 ///
 /// #diagram(
 /// 	node-stroke: eastern,
