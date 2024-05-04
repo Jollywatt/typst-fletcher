@@ -147,7 +147,6 @@
 		"south",
 		"south-east",
 	).at(int(calc.round(i)))
-
 }
 
 #let rect-at(origin, size) = (-1, +1).map(dir => {

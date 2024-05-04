@@ -608,10 +608,8 @@
 	},
 ) = {
 
-	let spacing = as-pair(spacing)
-	let cell-size = as-pair(cell-size)
-	// if type(spacing) != array { spacing = (spacing, spacing) }
-	// if type(cell-size) != array { cell-size = (cell-size, cell-size) }
+	let spacing = as-pair(spacing).map(as-length)
+	let cell-size = as-pair(cell-size).map(as-length)
 
 	let options = (
 		debug: int(debug),
@@ -642,24 +640,23 @@
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
 
-		// resolve options and fancy coordinates in nodes and edges
-
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
-		nodes = nodes.map(node => {
-			node.pos = resolve-label-coordinate(nodes, node.pos)
-			node
-		})
 		edges = edges.map(edge => {
 
 			let first-last-labels = (0, -1).map(i => {
-				if type(edge.vertices.at(i)) == label { edge.vertices.at(i) }
-				else { auto }
+				if type(edge.vertices.at(i)) == label {
+					edge.vertices.at(i)
+				} else { auto }
 			})
 
 			let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
 			edge.vertices = resolve-relative-coordinates(verts)
+
+			if not edge.vertices.all(i => type(i) == array) {
+				panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
+			}
 
 			let first-last-verts = (0, -1).map(i => edge.vertices.at(i))
 
@@ -677,14 +674,9 @@
 		})
 
 		// measure node sizes and determine diagram layout
-
-		for edge in edges {
-			if not edge.vertices.all(i => type(i) == array) {
-				panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
-			}
-		}
 		let nodes = compute-node-sizes(nodes, styles)
 		let grid = compute-grid(nodes, edges, options)
+
 
 		// compute final/cetz coordinates for nodes and edges
 

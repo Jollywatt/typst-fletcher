@@ -9,7 +9,6 @@
 /// the node's label.
 #let compute-node-sizes(nodes, styles) = nodes.map(node => {
 
-
 	// Width and height explicitly given
 	if auto not in node.size {
 		let (width, height) = node.size
@@ -62,17 +61,20 @@
 })
 
 
+/// Process the `enclose` options of an array of nodes.
 #let compute-node-enclosures(nodes, grid) = {
 	let nodes = nodes.map(node => {
 		if node.enclose.len() == 0 { return node }
 
 		let enclosed-vertices = node.enclose.map(key => {
-
 			let near-node = find-node(nodes, key)
-
 			if near-node == none or near-node == node {
+				// if enclosed point doesn't resolve to a node
+				// enclose the point itself
 				(uv-to-xy(grid, key),)
 			} else {
+				// if enclosed point resolves to a node
+				// enclose its bounding box
 				let (x, y) = near-node.final-pos
 				let (w, h) = near-node.size
 				(
@@ -91,7 +93,7 @@
 			size.map(d => d + node.inset*2),
 			node.size,
 		)
-		node.shape = shapes.rect
+		node.shape = shapes.rect // TODO: support different node shapes with enclose
 
 		node
 	})
@@ -182,9 +184,9 @@
 /// - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
 ///   column.
 ///
-/// - grid (dicitionary): Representation of the grid layout, including:
+/// - grid (dictionary): Representation of the grid layout, including:
 ///   - `flip`
-#let compute-cell-sizes(grid, edges, nodes) = {
+#let compute-cell-sizes(grid, nodes, edges) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
@@ -264,12 +266,12 @@
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, edges, nodes)
+	grid += compute-cell-sizes(grid, nodes, edges)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
 		.map(((sizes, min-size)) => sizes.map(calc.max.with(min-size)))
-		
+
 	grid += compute-cell-centers(grid)
 
 	grid
@@ -278,7 +280,7 @@
 
 
 
-
+// For straight edges, `shift` translates the line laterally
 #let apply-edge-shift-line(grid, edge) = {
 	let (from-xy, to-xy) = edge.final-vertices
 	let θ = vector-angle(vector.sub(to-xy, from-xy)) + 90deg
@@ -291,10 +293,9 @@
 	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
 
 	edge
-
 }
 
-
+// For arc edges, `shift` grows/shrinks the arc concentrically
 #let apply-edge-shift-arc(grid, edge) = {
 	let (from-xy, to-xy) = edge.final-vertices
 
@@ -309,9 +310,9 @@
 	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
 
 	edge
-
 }
 
+// For poly edges, `shift` affects the first/last line segments
 #let apply-edge-shift-poly(grid, edge) = {
 	let end-segments = (
 		edge.final-vertices.slice(0, 2), // first two vertices
@@ -337,14 +338,12 @@
 	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
 
 	edge
-
-
 }
 
 
 /// Apply #the-param[edge][shift] by translating edge vertices.
 ///
-/// - grid (dicitionary): Representation of the grid layout. This is needed to
+/// - grid (dictionary): Representation of the grid layout. This is needed to
 ///   support shifts specified as coordinate lengths.
 /// - edge (dictionary): The edge with a `shift` entry.
 #let apply-edge-shift(grid, edge) = {

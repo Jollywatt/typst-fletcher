@@ -15,9 +15,6 @@
 )
 
 
-
-
-
 /// For a given mark, determine where that the stroke should terminate at,
 /// relative to the mark's origin point, as a function of the shift.
 ///
@@ -44,7 +41,6 @@
 	o*scale
 
 }
-
 
 
 #let apply-mark-inheritances(mark) = {
@@ -137,7 +133,7 @@
 		else { stroke += stroke-to-dict(mark.stroke) }
 	}
 
-	assert("draw" in mark, message: repr(mark))
+	assert("draw" in mark, message: "Mark object must contain `draw`; got " + repr(mark))
 
 	draw.group({
 		draw.set-style(
