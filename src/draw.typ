@@ -235,7 +235,7 @@
 	// Draw arc(s), one for each extrusion shift
 	for shift in edge.extrude {
 
-		// Adjust arc angles to accomodate for cap offsets
+		// Adjust arc angles to accommodate for cap offsets
 		let (δ-start, δ-stop) = cap-offsets(edge, shift)
 			.map(arclen => -bend-dir*arclen/radius*1rad)
 

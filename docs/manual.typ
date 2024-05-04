@@ -96,7 +96,7 @@
 
 #set raw(lang: "typc")
 #show raw.where(block: false): it => {
-	// if raw block is a funciton call, like `foo()`, make it a link
+	// if raw block is a function call, like `foo()`, make it a link
 	if it.text.match(regex("^[a-z-]+\(\)$")) == none { it }
 	else {
 		let l = label(it.text)
@@ -628,7 +628,7 @@ A label as an edge vertex is interpreted as the position of the node with that l
 ```)
 
 Node names are labels instead of strings (like in CeTZ) so that positional arguments to `edge()` are easier to disambiguate by their type.
-(Node labels are not inserted into the final outout, so they do not interfere with other labels in the document.)
+(Node labels are not inserted into the final output, so they do not interfere with other labels in the document.)
 
 == Edge types
 
