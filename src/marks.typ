@@ -103,11 +103,11 @@
 }
 
 
-/// Draw a mark at a given potition and angle
+/// Draw a mark at a given position and angle
 ///
 /// - mark (dictionary): Mark object to draw. Must contain a `draw` entry.
 /// - stroke (stroke): Stroke style for the mark. The stroke's paint is used as
-///   the defauly fill style.
+///   the default fill style.
 /// - origin (point): Coordinate of the mark's origin (as defined by 
 ///   `tip-origin` or `tail-origin`).
 /// - angle (angle): Angle of the mark, `0deg` being $->$, counterclockwise.
