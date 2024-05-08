@@ -39,6 +39,7 @@
 
 #diagram(
 	node-stroke: 1pt,
+	spacing: 10pt,
 	node((0,0), [STOP], shape: shapes.octagon.with(truncate: 0)),
 	node((1,0), [STOP], shape: shapes.octagon.with(truncate: 0.5)),
 	node((2,0), [STOP], shape: shapes.octagon.with(truncate: 1)),
@@ -51,7 +52,8 @@
 
 #diagram(node((0, 0), [triangle], stroke: 1pt, shape: shapes.triangle))
 
-#diagram(node((0, 0), `t`, stroke: 1pt, shape: shapes.triangle.with(dir: top)))
-#diagram(node((0, 0), `b`, stroke: 1pt, shape: shapes.triangle.with(dir: bottom)))
-#diagram(node((0, 0), `l`, stroke: 1pt, shape: shapes.triangle.with(dir: left)))
-#diagram(node((0, 0), `r`, stroke: 1pt, shape: shapes.triangle.with(dir: right)))
+#diagram(node((0, 0), `top`, stroke: 1pt, shape: shapes.triangle.with(dir: top)))
+#diagram(node((0, 0), `bottom`, stroke: 1pt, shape: shapes.triangle.with(dir: bottom)))
+
+#diagram(node((0, 0), `left`, stroke: 1pt, shape: shapes.triangle.with(dir: left)))
+#diagram(node((0, 0), `right`, stroke: 1pt, shape: shapes.triangle.with(dir: right)))

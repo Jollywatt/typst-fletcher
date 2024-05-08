@@ -23,7 +23,7 @@
 
 /// The standard circle node shape.
 ///
-/// A string `"cricle"` or the element function `cricle` given to
+/// A string `"circle"` or the element function `circle` given to
 /// #the-param[node][shape] are interpreted as this shape.
 ///
 /// #diagram(
@@ -119,7 +119,9 @@
 
 /// An isosceles triangle node shape.
 ///
-/// One of #param[triangle][angle] or #param[triangle][aspect] may be given, but not both.
+/// One of #param[triangle][angle] or #param[triangle][aspect] may be given, but
+/// not both. The triangle's base coincides with the label's base and widens to
+/// enclose the label; see https://www.desmos.com/calculator/i4i9svunj4.
 ///
 /// #diagram(
 /// 	node-stroke: fuchsia,
@@ -134,9 +136,14 @@
 /// - fit (number): Adjusts how comfortably the triangle fits the label.
 ///
 ///   #for (i, fit) in (1, 0.8, 0.5, 0).enumerate() {
-///   	let s = fletcher.shapes.triangle.with(fit: fit)
-///   	let l = raw("fit: " + repr(fit))
-///   	diagram(node((i, 0), l, shape: s, stroke: fuchsia, fill: fuchsia.lighten(90%)))
+///   	let s = fletcher.shapes.triangle.with(fit: fit, angle: 120deg)
+///   	let l = box(stroke: 1pt, inset: 5pt, raw("fit: " + repr(fit)))
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: fuchsia,
+///   		fill: fuchsia.lighten(90%),
+///   	))
 ///   	h(1fr)
 ///   }
 #let triangle(node, extrude, dir: top, angle: auto, aspect: auto, fit: 0.8) = {
@@ -147,25 +154,21 @@
 
 	let (w, h) = node.size
 
-	let x = w/2
-	let y = h/2
-
-	if flip { (x, y) = (y, x) }
+	if flip { (w, h) = (h, w) }
 
 	if angle == auto and aspect == auto { aspect = w/h }
 	if angle == auto { angle = 2*calc.atan(aspect/2) }
 	if aspect == auto { aspect = 2*calc.tan(angle/2) }
 
-	let j = x - aspect*(1 - fit)*y
-	let a = aspect*y + j
-	let b = y + 2*j/aspect
+	let a = aspect*h/2 + fit*w/2
+	let b = (a + fit*w/2)/aspect
 
 	a += extrude*calc.tan(45deg + angle/4)
 	b += extrude/calc.cos(90deg - angle/2)
 
 	let verts = (
-		(-a, -y - extrude),
-		(+a, -y - extrude),
+		(-a, -h/2 - extrude),
+		(+a, -h/2 - extrude),
 		(0, +b),
 	)
 
