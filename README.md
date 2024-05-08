@@ -1,7 +1,7 @@
 # fletcher
 
 [![Manual](https://img.shields.io/badge/latest-manual.pdf-green)](docs/manual.pdf?raw=true)
-![Version](https://img.shields.io/badge/latest-0.4.4-green)
+![Version](https://img.shields.io/badge/latest-0.4.5-green)
 ![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Farrow-diagrams%2Fraw%2Fmaster%2Ftypst.toml&query=package.version&label=dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
@@ -13,7 +13,7 @@ See the [manual](docs/manual.pdf?raw=true) for documentation.
 
 
 ```typ
-#import "@preview/fletcher:0.4.4" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.4.5" as fletcher: diagram, node, edge
 ```
 
 
@@ -141,6 +141,10 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.4.5
+
+- Add isosceles triangle node shape (#31).
 
 ### 0.4.4
 

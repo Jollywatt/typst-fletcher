@@ -48,6 +48,10 @@ insert_example_table([
 
 ## Change log
 
+### 0.4.5
+
+- Add isosceles triangle node shape (#31).
+
 ### 0.4.4
 
 - Support fully customisable marks/arrowheads!

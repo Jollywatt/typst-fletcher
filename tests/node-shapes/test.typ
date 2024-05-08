@@ -23,6 +23,18 @@
 
 )
 
+
+#pagebreak()
+
+#set align(center)
+
+
+#for (name, shape) in dictionary(shapes) {
+	if type(shape) == module { continue }
+	diagram(debug: 0, node((0, 0), name, shape: shape, stroke: 1pt, extrude: (0, 2)))
+	linebreak()
+}
+
 #pagebreak()
 
 #diagram(
@@ -34,3 +46,12 @@
 	node((1,1), [STOP], shape: shapes.octagon.with(truncate: 5pt)),
 	node((2,1), [STOP], shape: shapes.octagon.with(truncate: 8pt)),
 )
+
+#pagebreak()
+
+#diagram(node((0, 0), [triangle], stroke: 1pt, shape: shapes.triangle))
+
+#diagram(node((0, 0), `t`, stroke: 1pt, shape: shapes.triangle.with(dir: top)))
+#diagram(node((0, 0), `b`, stroke: 1pt, shape: shapes.triangle.with(dir: bottom)))
+#diagram(node((0, 0), `l`, stroke: 1pt, shape: shapes.triangle.with(dir: left)))
+#diagram(node((0, 0), `r`, stroke: 1pt, shape: shapes.triangle.with(dir: right)))

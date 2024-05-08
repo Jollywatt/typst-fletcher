@@ -12,10 +12,6 @@
 /// 	node((0,0), `rect`, shape: fletcher.shapes.rect)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `corner-radius`
-///   - `size`
-/// - extrude (length): The extrude length.
 #let rect(node, extrude) = {
 	let r = node.corner-radius
 	let (w, h) = node.size.map(i => i/2 + extrude)
@@ -36,9 +32,6 @@
 /// 	node((0,0), `circle`, shape: fletcher.shapes.circle)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `radius`
-/// - extrude (length): The extrude length.
 #let circle(node, extrude) = draw.circle((0, 0), radius: node.radius + extrude)
 
 /// An elliptical node shape.
@@ -49,42 +42,14 @@
 /// 	node((0,0), `ellipse`, shape: fletcher.shapes.ellipse)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `node.size`
-/// - extrude (length): The extrude length.
-#let ellipse(node, extrude) = {
+/// - scale (number): Scale factor for ellipse radii.
+#let ellipse(node, extrude, scale: 1) = {
 	draw.circle(
 		(0, 0),
-		radius: vector.scale(node.size, 0.5).map(x => x + extrude),
+		radius: vector.scale(node.size, 0.5).map(x => x*scale + extrude),
 	)
 }
 
-/// A rhombus node shape.
-///
-/// #diagram(
-/// 	node-stroke: purple,
-/// 	node-fill: purple.lighten(90%),
-/// 	node((0,0), `diamond`, shape: fletcher.shapes.diamond)
-/// )
-///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
-/// - scale (number): Scale factor to increase the node's drawn size (without
-///   affecting its real size). This is used so the label doesn't poke out.
-#let diamond(node, extrude, scale: 1.5) = {
-	let (w, h) = node.size
-	let φ = calc.atan2(w/1pt, h/1pt)
-	let x = w/2*scale + extrude/calc.sin(φ)
-	let y = h/2*scale + extrude/calc.cos(φ)
-	draw.line(
-		(-x, 0pt),
-		(0pt, -y),
-		(+x, 0pt),
-		(0pt, +y),
-		close: true,
-	)
-}
 
 /// A capsule node shape.
 ///
@@ -94,9 +59,6 @@
 /// 	node((0,0), `pill`, shape: fletcher.shapes.pill)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
 #let pill(node, extrude) = {
 	let size = node.size.map(i => i + 2*extrude)
 	draw.rect(
@@ -106,6 +68,7 @@
 	)
 }
 
+
 /// A slanted rectangle node shape.
 ///
 /// #diagram(
@@ -114,9 +77,6 @@
 /// 	node((0,0), `parallelogram`, shape: fletcher.shapes.parallelogram)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
 /// - angle (angle): Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg` unless you want your document to be larger than the solar system.
 #let parallelogram(node, extrude, angle: 20deg) = {
@@ -133,33 +93,93 @@
 	)
 }
 
-/// An (irregular) hexagon node shape.
+/// A rhombus node shape.
 ///
 /// #diagram(
-/// 	node-stroke: aqua,
-/// 	node-fill: aqua.lighten(90%),
-/// 	node((0,0), `hexagon`, shape: fletcher.shapes.hexagon)
+/// 	node-stroke: purple,
+/// 	node-fill: purple.lighten(90%),
+/// 	node((0,0), `diamond`, shape: fletcher.shapes.diamond)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
-/// - angle (angle): Half the exterior angle, `0deg` being a rectangle.
-#let hexagon(node, extrude, angle: 30deg) = {
+/// - scale (number): Scale factor to increase the node's drawn size (without
+///   affecting its real size). This is used so the label doesn't poke out.
+#let diamond(node, extrude, scale: 1.5) = {
 	let (w, h) = node.size
-	let (x, y) = (w/2, h/2 + extrude)
-	let δ = y*calc.tan(angle)
-	x += extrude*calc.tan(45deg - angle/2)
+	let φ = calc.atan2(w/1pt, h/1pt)
+	let x = w/2*scale + extrude/calc.sin(φ)
+	let y = h/2*scale + extrude/calc.cos(φ)
 	draw.line(
-		(-x, -y),
-		(+x, -y),
-		(+x + δ, 0pt),
-		(+x, +y),
-		(-x, +y),
-		(-x - δ, 0pt),
+		(-x, 0pt),
+		(0pt, -y),
+		(+x, 0pt),
+		(0pt, +y),
 		close: true,
 	)
 }
+
+/// An isosceles triangle node shape.
+///
+/// One of #param[triangle][angle] or #param[triangle][aspect] may be given, but not both.
+///
+/// #diagram(
+/// 	node-stroke: fuchsia,
+/// 	node-fill: fuchsia.lighten(90%),
+/// 	node((0,0), `triangle`, shape: fletcher.shapes.triangle)
+/// )
+///
+/// - dir (top, bottom, left, right): Direction the triangle points.
+/// - aspect (number, auto): Aspect ratio of triangle, or the ratio of its base
+///   to its height.
+/// - angle (angle, auto): Angle of the triangle opposite the base.
+/// - fit (number): Adjusts how comfortably the triangle fits the label.
+///
+///   #for (i, fit) in (1, 0.8, 0.5, 0).enumerate() {
+///   	let s = fletcher.shapes.triangle.with(fit: fit)
+///   	let l = raw("fit: " + repr(fit))
+///   	diagram(node((i, 0), l, shape: s, stroke: fuchsia, fill: fuchsia.lighten(90%)))
+///   	h(1fr)
+///   }
+#let triangle(node, extrude, dir: top, angle: auto, aspect: auto, fit: 0.8) = {
+	assert(dir in (top, bottom, left, right))
+
+	let flip = dir in (right, left) // flip along diagonal line x = y
+	let rotate = dir in (bottom, left) // rotate 180deg
+
+	let (w, h) = node.size
+
+	let x = w/2
+	let y = h/2
+
+	if flip { (x, y) = (y, x) }
+
+	if angle == auto and aspect == auto { aspect = w/h }
+	if angle == auto { angle = 2*calc.atan(aspect/2) }
+	if aspect == auto { aspect = 2*calc.tan(angle/2) }
+
+	let j = x - aspect*(1 - fit)*y
+	let a = aspect*y + j
+	let b = y + 2*j/aspect
+
+	a += extrude*calc.tan(45deg + angle/4)
+	b += extrude/calc.cos(90deg - angle/2)
+
+	let verts = (
+		(-a, -y - extrude),
+		(+a, -y - extrude),
+		(0, +b),
+	)
+
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+	draw.line(
+		..verts.map(((i, j)) => (i, j)),
+		close: true,
+	)
+
+	// draw.rect((-x, -y), (+x, +y), stroke: yellow + 1pt)
+}
+
 
 /// A pentagonal house-like node shape.
 ///
@@ -169,9 +189,6 @@
 /// 	node((0,0), `house`, shape: fletcher.shapes.house)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
 /// - angle (angle): The slant of the roof. Set to `0deg` for a rectangle, and
 ///   to `90deg` for a document stretching past Pluto.
 #let house(node, extrude, angle: 10deg) = {
@@ -190,6 +207,33 @@
 }
 
 
+
+/// An (irregular) hexagon node shape.
+///
+/// #diagram(
+/// 	node-stroke: aqua,
+/// 	node-fill: aqua.lighten(90%),
+/// 	node((0,0), `hexagon`, shape: fletcher.shapes.hexagon)
+/// )
+///
+/// - angle (angle): Half the exterior angle, `0deg` being a rectangle.
+#let hexagon(node, extrude, angle: 30deg) = {
+	let (w, h) = node.size
+	let (x, y) = (w/2, h/2 + extrude)
+	let δ = y*calc.tan(angle)
+	x += extrude*calc.tan(45deg - angle/2)
+	draw.line(
+		(-x, -y),
+		(+x, -y),
+		(+x + δ, 0pt),
+		(+x, +y),
+		(-x, +y),
+		(-x - δ, 0pt),
+		close: true,
+	)
+}
+
+
 /// A truncated rectangle node shape.
 ///
 /// #diagram(
@@ -198,11 +242,8 @@
 /// 	node((0,0), `octagon`, shape: fletcher.shapes.octagon)
 /// )
 ///
-/// - node (dictionary): A node dictionary, containing:
-///   - `size`
-/// - extrude (length): The extrude length.
 /// - truncate (number, length): Size of the truncated corners. A number is
-///   interpreted as a ratio of the smaller of the node's width or height.
+///   interpreted as a multiple of the smaller of the node's width or height.
 #let octagon(node, extrude, truncate: 0.5) = {
 	let (w, h) = node.size
 	let (x, y) = (w/2 + extrude, h/2 + extrude)
