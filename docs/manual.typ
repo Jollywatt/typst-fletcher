@@ -406,7 +406,7 @@ Diagrams created with `diagram()` are a collection of _nodes_ and _edges_ render
 
 == Elastic coordinates
 
-Diagrams are laid out on a _flexible coordinate grid_, visible when #the-param[diagram][debug] option is turned on.
+Diagrams are laid out on a _flexible coordinate grid_, visible when #the-param[diagram][debug] is turned on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 
 By default, coordinates $(u, v)$ have $u$ going $arrow.r$ and $v$ going $arrow.b$.
@@ -433,10 +433,6 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 
 So far, this is just like a table --- however, coordinates can be _fractional_.
 These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down.
-// Both the node's position and its influence on row/column sizes are interpolated.
-
-// As a result, diagrams are responsive to node sizes (like tables) while also allowing precise positioning.
-For example, see how the column sizes change as the green box moves from $(0, 0)$ to $(1, 0)$:
 
 #stack(
 	dir: ltr,
@@ -462,7 +458,7 @@ For example, see how the column sizes change as the green box moves from $(0, 0)
 
 Nodes are content centered at a particular coordinate.
 They can be circular, rectangular, or any custom shape.
-Nodes automatically fit to the size of their label (plus an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
+Nodes automatically fit to the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
 #diagram(
@@ -506,7 +502,7 @@ The #param[node][shape] option accepts `rect`, `circle`, various shapes provided
 )
 ```)
 
-Custom CeTZ shapes are possible by passing a callback to #param[node][shape], but it is up to the user implement outline extrusion; see #the-param[node][shape] for details.
+Custom node shapes may be implemented with CeTZ via #the-param[node][shape], but it is up to the user to support outline extrusion for custom shapes.
 
 == Node groups
 
@@ -546,7 +542,7 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 
 #link(label("edge()"))[`edge(from, to, label, marks, ..options)`]
 
-Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's `outset`). Edges can have `label`s, can #param[edge][bend] into arcs, and can have various arrow #param[edge][marks].
+Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's #param[node][outset]). An edges can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
 
 #code-example-row(```typ
 #diagram(spacing: (12mm, 6mm), {
@@ -556,8 +552,8 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 	node(b, $B$)
 	node(c, $C$)
 
-	edge(a, b, bend: -10deg, "dashed")
-	edge(c, b, bend: +10deg, "<-<<")
+	edge(a, b, bend: -18deg, "dashed")
+	edge(c, b, bend: +18deg, "<-<<")
 	edge(a, abc, $a$)
 	edge(b, abc, "<=>")
 	edge(c, abc, $c$)
@@ -602,8 +598,6 @@ However, don't forget you can also use variables in code-mode, which is a more e
 })
 ```)
 
-#pagebreak()
-
 === Relative coordinates
 
 You may specify an edge's direction instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`, or with string of _directions_ for short, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
@@ -622,19 +616,19 @@ A label as an edge vertex is interpreted as the position of the node with that l
 #code-example-row(```typ
 #diagram(
 	node((0,0), $frak(A)$, name: <A>),
-	node((1,0), $frak(B)$, name: <B>),
+	node((1,0.5), $frak(B)$, name: <B>),
 	edge(<A>, <B>, "-->")
 )
 ```)
 
-Node names are labels instead of strings (like in CeTZ) so that positional arguments to `edge()` are easier to disambiguate by their type.
+Node names are labels (instead of strings like CeTZ) so that positional arguments to `edge()` are possible to disambiguate by their type.
 (Node labels are not inserted into the final output, so they do not interfere with other labels in the document.)
 
 == Edge types
 
-There are three `kind`s of edges: `"line"`, `"arc"`, and `"poly"`.
+There are three types of edges: `"line"`, `"arc"`, and `"poly"`.
 All edges have at least two `vertices`, but `"poly"` edges can have more.
-In unspecified, `kind` is chosen based on #param[edge][bend] and the number of #param[edge][vertices].
+If unspecified, #param[edge][kind] is chosen based on #param[edge][bend] and the number of #param[edge][vertices].
 
 
 #code-example-row(```typ
@@ -645,7 +639,7 @@ In unspecified, `kind` is chosen based on #param[edge][bend] and the number of #
 )
 ```)
 
-All vertices except the first can be relative (see above), so that the `"poly"` edge above could also be written in these ways:
+All vertices except the first can be relative coordinates (see above), so that in the example above, the `"poly"` edge could also be written in these equivalent ways:
 
 ```typc
 edge((4,0), (rel: (0,1)), (rel: (1,0)), (rel: (1,-1)), "->", `poly`)
@@ -653,7 +647,7 @@ edge((4,0), "d", "r", "ur", "->", `poly`) // using relative coordinate names
 edge((4,0), "d,r,ur", "->", `poly`) // shorthand
 ```
 
-Only the first and last `vertices` of an edge snap to node outlines.
+Only the first and last #param[edge][vertices] of an edge automatically snap to nodes.
 
 == Tweaking where edges connect
 
@@ -671,7 +665,7 @@ To adjust _where_ along the boundary the edge connects, you can adjust the edge'
 )
 ```)
 
-Alternatively, the `shift` option of `edge()` lets you shift edges sideways by an absolute length:
+Alternatively, #the-param[edge][shift] lets you shift edges sideways by an absolute length:
 #block(breakable: false, code-example-row(```typ
 #diagram($A edge(->, shift: #3pt) edge(<-, shift: #(-3pt)) & B$)
 ```))
@@ -698,13 +692,14 @@ Notice the (subtle) difference the figures below.
 	})
 ))
 
-The strength of this adjustment is controlled by the `defocus` option of `node()` (or the `node-defocus` option of `diagram()`).
+The strength of this adjustment is controlled by #the-param[node][defocus] (or #the-param[diagram][node-defocus]).
 
 = Marks and arrows
 
 // Edges can be arrows.
 Arrow marks can be specified like  `edge(a, b, "-->")` or with #the-param[edge][marks].
-Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$.
+Some mathematical arrow heads are supported, which match $arrow$, $arrow.double$, $arrow.triple$, $arrow.bar$, $arrow.twohead$, and $arrow.hook$ in the default font.
+
 #align(center, fletcher.diagram(
 	debug: 0,
 	spacing: (14mm, 12mm),
@@ -725,7 +720,7 @@ Some mathematical arrow heads are supported, matching $arrow$, $arrow.double$, $
 	}
 }))
 
-A few other marks are supported, and can be placed anywhere along the edge.
+A few other marks are provided, and all marks can be placed anywhere along the edge.
 
 #align(center, fletcher.diagram(
 	debug: 0,
@@ -756,7 +751,7 @@ All the built-in marks are defined in the state variable `fletcher.MARKS`, which
 	]),
 )
 
-Because it is a state variable, you can modify `fletcher.MARKS` to add or change the marks palette.
+Because it is a state variable, you can modify `fletcher.MARKS` to add or modify mark styles.
 
 == Custom marks
 
@@ -786,12 +781,12 @@ More precisely, `edge(from, to, "|=>")` is equivalent to:
 context edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 ```
 
-If you want to explore the internals of mark styles, you might like to inspect the output of `context fletcher.interpret-marks-arg(..)` for various input mark shorthands.
+If you want to explore the internals of mark objects, you might find it handy to inspect the output of `context fletcher.interpret-marks-arg(..)` with various mark shorthands as input.
 
 === Mark objects
 
 A _mark object_ is a dictionary with, at the very least, a `draw` entry containing the CeTZ objects to be drawn on the edge.
-Marks are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is the unit length.
+These CeTZ objects are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is defined as the unit length.
 For example, here is a basic circle mark:
 
 #code-example-row(```typ
@@ -805,25 +800,25 @@ For example, here is a basic circle mark:
 )
 ```)
 
-A mark object can contain arbitrary parameters; any subsequent entries may depend on parameters defined earlier by being written as a _function_ of the mark object.
-For example, `my-mark` above could also be implemented as:
+A mark object can contain arbitrary parameters, which may depend on parameters defined earlier by being written as a _function_ of the mark object.
+For example, the mark above could also be written as:
 
 ```typ
-#let mark = (
+#let my-mark = (
 	size: 2,
 	draw: mark => draw.circle((0,0), radius: mark.size, fill: none)
 )
 ```
 
-This makes it easier to change the size without modifying the `draw` function, for example:
+This form makes it easier to change the size without modifying the `draw` function, for example:
 
 #code-example-row(```typ
 #import cetz.draw
-#let mark = (
+#let my-mark = (
 	size: 2,
 	draw: mark => draw.circle((0,0), radius: mark.size, fill: none)
 ) // setup
-#diagram(edge(stroke: 3pt, marks: (mark + (size: 4), mark)))
+#diagram(edge(stroke: 3pt, marks: (my-mark + (size: 4), my-mark)))
 ```)
 
 Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
@@ -836,42 +831,39 @@ A mark object may contain any properties, but some have special functions.
 
 #{
 	show table.cell.where(y: 0): emph
+	set par(justify: false)
 	let little-mark(..args) = diagram(spacing: 5mm, edge(..args, stroke: 0.5pt))
 
 	table(
-		columns: 4,
+		columns: 3,
 
-		table.header([Name], [Description], [Required], [Default]),
-
-		`draw`,
-		[
-			As described above, this contains the final CeTZ objects to be drawn. Objects should be centered at $(0,0)$ and be scaled so that one unit is the stroke thickness.
-			The default `stroke` and `fill` is inherited from the edge's style.
-		],
-		`true`,
-		none,
-
-		[`fill`\ `stroke`],
-		[
-			The default fill and stroke styles for CeTZ objects returned by `draw`.
-			If `none`, polygons will not be filled/stroked by default, and if `auto`, the style is inherited from the edge's stroke style.
-		],
-		`false`,
-		`auto`,
+		table.header([Name], [Description], [Default]),
 
 		`inherit`,
 		[
 			The name of a mark in `fletcher.MARKS` to inherit properties from.
 			This can be used to make mark aliases, for instance, `"<"` is defined as `(inherit: "head", rev: true)`.
 		],
-		`false`,
+		none,
+
+		`draw`,
+		[
+			As described above, this contains the final CeTZ objects to be drawn. Objects should be centered at $(0,0)$ and be scaled so that one unit is the stroke thickness.
+			The default `stroke` and `fill` is inherited from the edge's style.
+		],
 		none,
 
 		`pos`,
 		[
 			Location of the mark along the edge, from `0` (start) to `1` (end).
 		],
-		`true`,
+		`auto`,
+
+		[`fill`\ `stroke`],
+		[
+			The default fill and stroke styles for CeTZ objects returned by `draw`.
+			If `none`, polygons will not be filled/stroked by default, and if `auto`, the style is inherited from the edge's stroke style.
+		],
 		`auto`,
 
 		`rev`,
@@ -879,7 +871,6 @@ A mark object may contain any properties, but some have special functions.
 			Whether to reverse the mark so it points backwards.
 
 		],
-		`false`,
 		`false`,
 
 		`flip`,
@@ -891,13 +882,11 @@ A mark object may contain any properties, but some have special functions.
 			A suffix `'` in the name, such as `"hook'"`, results in a flip.
 		],
 		`false`,
-		`false`,
 
 		`scale`,
 		[
 			Overall scaling factor. See also #the-param[edge][mark-scale].
 		],
-		`false`,
 		`100%`,
 
 		`extrude`,
@@ -907,7 +896,6 @@ A mark object may contain any properties, but some have special functions.
 			#diagram(spacing: 8mm, edge(marks: (none, (inherit: "head", extrude: (-5, 0, 5))), stroke: .7pt)).
 
 		],
-		`false`,
 		`(0,)`,
 
 		[`tip-origin`\ `tail-origin`],
@@ -915,7 +903,6 @@ A mark object may contain any properties, but some have special functions.
 			These two properties control the $x$ coordinate of the point of the mark, relative to $(0, 0)$. If the mark is acting as a tip (#little-mark("->") or #little-mark("<-")) then `tip-origin` applies, and `tail-origin` applies when the mark is a tail (#little-mark("-<") or #little-mark(">-")).
 			See `mark-debug()`.
 		],
-		`false`,
 		`0`,
 
 		[`tip-end`\ `tail-end`],
@@ -923,7 +910,6 @@ A mark object may contain any properties, but some have special functions.
 			These control the $x$ coordinate at which the edge's stroke terminates, relative to $(0, 0)$.
 			See `mark-debug()`.
 		],
-		`false`,
 		`0`,
 
 		`cap-offset`,
@@ -932,7 +918,6 @@ A mark object may contain any properties, but some have special functions.
 			This is relevant for #param[edge][extrude]d edges.
 			See `cap-offset()`.
 		],
-		`false`,
 		none,
 
 	)
@@ -1132,7 +1117,6 @@ The default marks are defined in the `fletcher.MARKS` dictionary with keys:
 #show-fns("/src/marks.typ", level: 2, outline: true)
 
 
-#pagebreak()
 == `shapes.typ` <shapes>
 
 To use these shapes in a diagram, import them with:

@@ -48,12 +48,47 @@
 	node((2,1), [STOP], shape: shapes.octagon.with(truncate: 8pt)),
 )
 
+
 #pagebreak()
 
-#diagram(node((0, 0), [triangle], stroke: 1pt, shape: shapes.triangle))
+Direction
 
-#diagram(node((0, 0), `top`, stroke: 1pt, shape: shapes.triangle.with(dir: top)))
-#diagram(node((0, 0), `bottom`, stroke: 1pt, shape: shapes.triangle.with(dir: bottom)))
+#diagram(
+	for (i, shape) in (
+		shapes.triangle,
+		shapes.house,
+		shapes.chevron,
+	).enumerate() {
+		for (j, dir) in (top, bottom, left, right).enumerate() {
+			node(
+				(j, i),
+				[#dir],
+				fill: orange.transparentize(40%),
+				shape: shape.with(dir: dir),
+			)
+		}
+	}
+)
 
-#diagram(node((0, 0), `left`, stroke: 1pt, shape: shapes.triangle.with(dir: left)))
-#diagram(node((0, 0), `right`, stroke: 1pt, shape: shapes.triangle.with(dir: right)))
+#pagebreak()
+
+Fit factor
+
+#diagram(
+	node-inset: 0pt,
+	for (i, shape) in (
+		shapes.parallelogram,
+		shapes.triangle,
+		shapes.chevron,
+		shapes.hexagon,
+	).enumerate() {
+		for (j, fit) in (0, 0.5, 1).enumerate() {
+			node(
+				(j, i),
+				box(fill: blue.transparentize(60%), inset: 10pt, raw("fit: " + repr(fit))),
+				fill: green.transparentize(20%),
+				shape: shape.with(fit: fit),
+			)
+		}
+	}
+)
