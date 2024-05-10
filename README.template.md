@@ -51,6 +51,7 @@ insert_example_table([
 ### 0.4.5
 
 - Add isosceles triangle node shape (#31).
+- Add `fit` and `dir` options to various node shapes to adjust sizing and orientation.
 
 ### 0.4.4
 
