@@ -14,9 +14,9 @@
 	let arg = arg.text
 	let l1 = style.fn-param-label(func, arg)
 	let l2 = style.fn-label(func)
-	if full [
-		the #link(l1, raw(arg)) option of #link(l2, raw(func + "()"))
-	] else {
+	if full {
+		[the #link(l1, raw(arg)) option of #link(l2, raw(func + "()"))]
+	} else {
 		link(l1, raw(arg))
 	}
 }
@@ -486,7 +486,6 @@ Nodes automatically fit to the size of their label (with an #param[node][inset])
 By default, nodes are circular or rectangular depending on the aspect ratio of their label.
 The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the #link(<shapes>, `fletcher.shapes`) submodule, or a function.
 
-
 #code-example-row(```typ
 #import fletcher.shapes: pill, parallelogram, diamond, hexagon
 #let theme = rgb("8cf")
@@ -503,6 +502,35 @@ The #param[node][shape] option accepts `rect`, `circle`, various shapes provided
 ```)
 
 Custom node shapes may be implemented with CeTZ via #the-param[node][shape], but it is up to the user to support outline extrusion for custom shapes.
+
+#table(
+	columns: (1fr,)*4,
+	gutter: 2mm,
+	stroke: none,
+	align: center + horizon,
+	..{
+		let colors = (
+			green,
+			red,
+			orange,
+			teal,
+			olive,
+			purple,
+			fuchsia,
+			eastern,
+			yellow,
+			aqua,
+			maroon,
+		)
+		dictionary(fletcher.shapes).pairs()
+			.filter(((key, value)) => type(value) != module)
+			.zip(colors)
+			.map((((name, shape), color)) => {
+				diagram(node((0,0), link(label(name + "()"), raw(name)), shape: shape,
+					fill: color.lighten(90%), stroke: color))
+			})
+	}
+)
 
 == Node groups
 
@@ -1119,7 +1147,7 @@ The default marks are defined in the `fletcher.MARKS` dictionary with keys:
 
 == `shapes.typ` <shapes>
 
-To use these shapes in a diagram, import them with:
+To use built-in shapes in a diagram, import them with:
 
 ```typ
 #import fletcher: shapes
@@ -1133,7 +1161,8 @@ or:
 #diagram(node([Hello], stroke: 1pt, shape: hexagon))
 ```
 
-Built-in shapes:
+To set a shape parameter, use `shape.with(..)`, for example `hexagon.with(angle: 45deg)`.
+
 
 #show-fns("/src/shapes.typ", level: 2, outline: true)
 

@@ -114,16 +114,16 @@
 ///   `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
 ///   of the node's label.
 ///
-///   Some other shape functions are provided in the `fletcher.shapes`
+///   Other shapes are defined in the `fletcher.shapes`
 ///   submodule, including
 ///   #{
 ///   	dictionary(fletcher.shapes).keys()
-///   	.filter(i => i not in ("cetz", "draw", "vector"))
-///   	.map(i => [- #raw(i)]).join()
-///   }
+///   	.filter(x => type(x) != module)
+///   	.map(i => [#raw(i)]).join(last: [, and ])[, ]
+///   }.
 ///
-///   Custom shapes should be specified as a function `(node, extrude) => (..)`
-///   returning `cetz` objects.
+///   Custom shapes should be specified as a function `(node, extrude, ..parameters) => (..)`
+///   which returns `cetz` objects.
 ///   - The `node` argument is a dictionary containing the node's attributes,
 ///     including its dimensions (`node.size`), and other options (such as
 ///     `node.corner-radius`).

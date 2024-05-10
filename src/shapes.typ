@@ -83,7 +83,7 @@
 /// - fit (number): Adjusts how comfortably the parallelogram fits the label.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
-///   	let s = fletcher.shapes.parallelogram.with(fit: fit)
+///   	let s = fletcher.shapes.parallelogram.with(fit: fit, angle: 35deg)
 ///   	let l = box(
 ///   		stroke: (dash: "dashed", thickness: 0.5pt),
 ///   		inset: 10pt,
