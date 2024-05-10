@@ -11,3 +11,16 @@
 	node((2,1), [next]),
 	edge((1,2), ".."),
 )
+
+#pagebreak()
+
+#diagram(
+	edge((0,0), "nw", "->"),
+	node((0,0), [London]),
+	edge("..|>", bend: 20deg),
+	edge("<|..", bend: -20deg),
+	node((1,1), [Paris]),
+	edge("e", "->"),
+	edge("s", "->"),
+	edge("se", "->"),
+)

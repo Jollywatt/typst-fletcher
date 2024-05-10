@@ -381,7 +381,7 @@
 	let edges = ()
 
 	let prev-coord = (0,0)
-	let should-set-prev-edge-end-point = false
+	let number-of-edges-needing-end-vertex = 0
 
 	for obj in objects {
 		if obj.func() == metadata {
@@ -391,11 +391,11 @@
 				nodes.push(node)
 
 				prev-coord = node.pos
-				if should-set-prev-edge-end-point {
+				for i in range(number-of-edges-needing-end-vertex) {
 					// the `to` point of the previous edge is waiting to be set
-					edges.at(-1).vertices.at(-1) = node.pos
-					should-set-prev-edge-end-point = false
+					edges.at(-1 - i).vertices.at(-1) = node.pos
 				}
+				number-of-edges-needing-end-vertex = 0
 
 			} else if obj.value.class == "edge" {
 				let edge = obj.value
@@ -406,8 +406,7 @@
 				if edge.vertices.at(-1) == auto {
 					// if edge's end point isn't set, defer it until the next node is seen.
 					// currently, this is only allowed for one edge at a time.
-					if should-set-prev-edge-end-point { panic("Cannot infer edge end point. Please specify explicitly.") }
-					should-set-prev-edge-end-point = true
+					number-of-edges-needing-end-vertex += 1
 				}
 				edges.push(edge)
 			}

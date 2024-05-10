@@ -146,6 +146,7 @@ Pull requests are most welcome!
 
 - Add isosceles triangle node shape (#31).
 - Add `fit` and `dir` options to various node shapes to adjust sizing and orientation.
+- Allow more than one consecutive edge to have an implicit end vertex.
 
 ### 0.4.4
 
