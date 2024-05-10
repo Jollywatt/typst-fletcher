@@ -528,7 +528,12 @@
 /// - node-defocus (number): Default value of #the-param[node][defocus].
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
+///
+/// - label-wrapper (function): Default value of
+///   #the-param[edge][label-wrapper].
+///
 /// - mark-scale (percent): Default value of #the-param[edge][mark-scale].
+///
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///   the illusion of crossing over other objects. See
 ///   #the-param[edge][crossing-fill].
@@ -599,6 +604,12 @@
 	node-fill: none,
 	node-defocus: 0.2,
 	label-sep: 0.2em,
+	label-wrapper: edge => box(
+		[#edge.label],
+		inset: .2em,
+		radius: .2em,
+		fill: edge.label-fill,
+	),
 	mark-scale: 100%,
 	crossing-fill: white,
 	crossing-thickness: 5,
@@ -623,6 +634,7 @@
 		edge-corner-radius: edge-corner-radius,
 		node-defocus: node-defocus,
 		label-sep: label-sep,
+		label-wrapper: label-wrapper,
 		edge-stroke: as-stroke(edge-stroke),
 		mark-scale: mark-scale,
 		crossing-fill: crossing-fill,

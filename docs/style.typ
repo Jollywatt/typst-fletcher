@@ -132,7 +132,7 @@
       types,
       tidy.utilities.eval-docstring(description, style-args),
       is-long: description.len() > 500, // approximate
-      show-default: "default" in info,
+      show-default: "default" in info and "Default:" not in description,
       default: info.at("default", default: none),
     )
   }

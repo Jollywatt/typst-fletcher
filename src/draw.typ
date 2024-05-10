@@ -77,19 +77,22 @@
 
 
 #let draw-edge-label(edge, label-pos, debug: 0) = {
-	cetz.draw.content(
-		label-pos,
-		box(
-			// cetz seems to sometimes squash the content, causing a line-
-			// break, when padding is present...
-			fill: edge.label-fill,
-			stroke: if debug >= 2 { DEBUG_COLOR + 0.25pt },
-			radius: .2em,
-			pad(.2em)[#edge.label],
-		),
-		padding: .2em,
-		anchor: if edge.label-anchor != auto { edge.label-anchor },
-	)
+	if edge.label != none {
+		cetz.draw.content(
+			label-pos,
+			// box(
+			// 	// cetz seems to sometimes squash the content, causing a line-
+			// 	// break, when padding is present...
+			// 	fill: edge.label-fill,
+			// 	stroke: if debug >= 2 { DEBUG_COLOR + 0.25pt },
+			// 	radius: .2em,
+			// 	pad(.2em)[#edge.label],
+			// ),
+			(edge.label-wrapper)(edge),
+			padding: .2em,
+			anchor: if edge.label-anchor != auto { edge.label-anchor },
+		)
+	}
 
 	if debug >= 2 {
 		cetz.draw.circle(

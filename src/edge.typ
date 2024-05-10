@@ -427,6 +427,9 @@
 ///   Set #param[diagram][debug] to `2` or higher to see label anchors and
 ///   outlines as seen here.
 ///
+///   Default: #the-param[diagram][label-sep]
+///
+///
 /// - label-anchor (anchor): The anchor point to place the label at, such as
 ///   `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
 ///   automatically chosen based on #param[edge][label-side] and the angle of
@@ -436,6 +439,18 @@
 ///   defaults to the value of #param[edge][crossing-fill]. If `false` or
 ///   `none`, no fill is used. If `auto`, then defaults to `true` if the label
 ///   is covering the edge (#param[edge][label-side]`: center`).
+///
+/// - label-wrapper (auto, function): Callback function accepting a node
+///   dictionary and returning the label content. This is used to add a label
+///   background (see #param[edge][crossing-fill]), and can be used to adjust
+///   the label's padding, outline, and so on.
+///
+///   #example(```
+///   diagram(edge($f$, label-wrapper: e =>
+///   	circle(e.label, fill: e.label-fill)))
+///   ```)
+///
+///   Default: #the-param[diagram][label-wrapper]
 ///
 /// - stroke (stroke): Stroke style of the edge. Arrows/marks scale with the
 ///   stroke thickness (and with #param[edge][mark-scale]).
@@ -566,8 +581,7 @@
 ///
 /// - crossing-thickness (number): Thickness of the "crossing" background stroke
 ///   (applicable if #param[edge][crossing] is `true`) in multiples of the
-///   normal stroke's thickness. Defaults to
-///   #the-param[diagram][crossing-thickness].
+///   normal stroke's thickness.
 ///
 ///   #diagram({
 ///   	(1, 2, 4, 8).enumerate().map(((i, x)) => {
@@ -577,9 +591,10 @@
 ///   	}).join()
 ///   })
 ///
+///   Default: #the-param[diagram][crossing-thickness]
+///
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
-///   the illusion of crossing over other objects. Defaults to
-///   #the-param[diagram][crossing-fill].
+///   the illusion of crossing over other objects.
 ///
 ///   #let cross(x, fill) = {
 ///   	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
@@ -589,6 +604,8 @@
 ///   	cross(0, white)
 ///   	cross(1, blue.lighten(50%))
 ///   })
+///
+///   Default: #the-param[diagram][crossing-fill]
 ///
 /// - corner-radius (length, none): Radius of rounded corners for edges with
 ///   multiple segments. Note that `none` is distinct from `0pt`.
@@ -605,7 +622,7 @@
 ///   radius is smaller for acute angles and larger for obtuse angles to balance
 ///   things visually. (Trust me, it looks naff otherwise!)
 ///
-///   If `auto`, defaults to #the-param[diagram][edge-corner-radius].
+///   Default: #the-param[diagram][edge-corner-radius]
 ///
 /// - shift (length, number, pair): Amount to shift the edge sideways by,
 ///   perpendicular to its direction. A pair `(from, to)` controls the shifts at
@@ -662,6 +679,7 @@
 	label-sep: auto,
 	label-anchor: auto,
 	label-fill: auto,
+	label-wrapper: auto,
 	stroke: auto,
 	dash: none,
 	decorations: none,
@@ -689,6 +707,7 @@
 		label-anchor: label-anchor,
 		label-side: label-side,
 		label-fill: label-fill,
+		label-wrapper: label-wrapper,
 		stroke: stroke,
 		dash: dash,
 		decorations: decorations,
@@ -842,9 +861,10 @@
 	edge.label-sep = to-pt(map-auto(edge.label-sep, options.label-sep))
 
 	edge.label-fill = map-auto(edge.label-fill, edge.label-side == center)
-
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }
 	if edge.label-fill == false { edge.label-fill = none }
+
+	edge.label-wrapper = map-auto(edge.label-wrapper, options.label-wrapper)
 
 	edge
 }
