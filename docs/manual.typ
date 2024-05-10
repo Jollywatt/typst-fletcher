@@ -481,10 +481,9 @@ The #param[node][shape] option accepts `rect`, `circle`, various shapes provided
 
 #code-example-row(```typ
 #import fletcher.shapes: pill, parallelogram, diamond, hexagon
-#let theme = rgb("8cf")
 #diagram(
-	node-fill: gradient.radial(white, theme, radius: 100%),
-	node-stroke: theme,
+	node-fill: gradient.radial(white, blue, radius: 200%),
+	node-stroke: blue,
 	(
 		node((0,0), [Blue Pill], shape: pill),
 		node((1,0), [_Slant_], shape: parallelogram.with(angle: 20deg)),
@@ -495,6 +494,7 @@ The #param[node][shape] option accepts `rect`, `circle`, various shapes provided
 ```)
 
 Custom node shapes may be implemented with CeTZ via #the-param[node][shape], but it is up to the user to support outline extrusion for custom shapes.
+The predefined shapes are:
 
 #table(
 	columns: (1fr,)*4,
@@ -561,9 +561,9 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 
 = Edges
 
-#link(label("edge()"))[`edge(from, to, label, marks, ..options)`]
+#link(label("edge()"))[`edge(..vertices, ..options)`]
 
-Edges connect two coordinates. If there is a node at an endpoint, the edge attaches to the nodes' bounding shape (after applying the node's #param[node][outset]). An edges can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
+An edge connects two coordinates. If there is a node at the endpoint, the edge snaps to the nodes' bounding shape (after applying the node's #param[node][outset]). An edge can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
 
 #code-example-row(```typ
 #diagram(spacing: (12mm, 6mm), {
@@ -586,11 +586,11 @@ Edges connect two coordinates. If there is a node at an endpoint, the edge attac
 
 == Specifying edge vertices
 
-Generally, the first few arguments to `edge()` specify its #param[edge][vertices].
+The first few arguments given to `edge()` specify its #param[edge][vertices], of which there can be two or more.
 
 === Implicit coordinates
 
-To specify the start and end points of an edge, you may provide both explicitly (like `edge(from, to)`); leave `from` implicit (like `edge(to)`); or leave both implicit.
+To specify the start and end points of an edge, you may provide both explicitly, like `edge(from, to)`; leave `from` implicit, like `edge(to)`; or leave both implicit.
 When `from` is implicit, it becomes the coordinate of the last `node`, and if `to` is implicit, the next `node`.
 
 #code-example-row(```typ
@@ -1000,8 +1000,8 @@ Mark shorthands such as `"hook->"` search the state variable `fletcher.MARKS` fo
 ```)
 With a bit of care, you can modify the `MARKS` state like so:
 #code-example-row(```typ
-// this is what the default marks look like
-#diagram(spacing: 3cm, edge("<->", stroke: 1.5pt))
+Original marks:
+#diagram(spacing: 2cm, edge("<->", stroke: 1pt))
 
 #fletcher.MARKS.update(m => m + (
 	"<": (inherit: "stealth", rev: true),
@@ -1013,11 +1013,11 @@ With a bit of care, you can modify the `MARKS` state like so:
 			(-mark.size*calc.cos(mark.sharpness), 0),
 			(0, -mark.size*calc.sin(mark.sharpness)),
 		),
-	)
+	),
 ))
 
-// subsequent diagrams will use your updated marks
-#diagram(spacing: 3cm, edge("multi->-multi", stroke: 1.5pt + eastern))
+Updated marks:
+#diagram(spacing: 2cm, edge("multi->-multi", stroke: 1pt + eastern))
 ```)
 
 Here, we redefined which mark style the `"<"` and `">"` shorthands refer to, and added an entirely new mark style with the shorthand `"multi"`.

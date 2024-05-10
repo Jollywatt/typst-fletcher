@@ -80,7 +80,7 @@
 /// - angle (angle): Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg` unless you want your document to be larger than the solar system.
 ///
-/// - fit (number): Adjusts how comfortably the parallelogram fits the label.
+/// - fit (number): Adjusts how comfortably the parallelogram fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///   	let s = fletcher.shapes.parallelogram.with(fit: fit, angle: 35deg)
@@ -120,7 +120,7 @@
 /// 	node((0,0), `diamond`, shape: fletcher.shapes.diamond)
 /// )
 ///
-/// - fit (number): Adjusts how comfortably the diamond fits the label.
+/// - fit (number): Adjusts how comfortably the diamond fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///   	let s = fletcher.shapes.diamond.with(fit: fit)
@@ -167,7 +167,7 @@
 /// - aspect (number, auto): Aspect ratio of triangle, or the ratio of its base
 ///   to its height.
 /// - angle (angle, auto): Angle of the triangle opposite the base.
-/// - fit (number): Adjusts how comfortably the triangle fits the label.
+/// - fit (number): Adjusts how comfortably the triangle fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///   	let s = fletcher.shapes.triangle.with(fit: fit, angle: 120deg)
@@ -228,8 +228,8 @@
 /// )
 ///
 /// - dir (top, bottom, left, right): Direction of the roof of the house.
-/// - angle (angle): The slant of the roof. Set to `0deg` for a rectangle, and
-///   to `90deg` for a document stretching past Pluto.
+/// - angle (angle): The slant of the roof. A plain rectangle is `0deg`, and 
+///   `90deg` is a sky scraper stretching past Pluto.
 #let house(node, extrude, dir: top, angle: 10deg) = {
 	let flip = dir in (right, left) // flip along diagonal line x = y
 	let rotate = dir in (bottom, left) // rotate 180deg
@@ -271,9 +271,8 @@
 /// )
 ///
 /// - dir (top, bottom, left, right): Direction the chevron points.
-/// - angle (angle): The slant of the roof. Set to `0deg` for a rectangle, and
-///   to `90deg` for a document stretching past Pluto.
-/// - fit (number): Adjusts how comfortably the chevron fits the label.
+/// - angle (angle): The slant of the arrow. A plain rectangle is `0deg`.
+/// - fit (number): Adjusts how comfortably the chevron fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///   	let s = fletcher.shapes.chevron.with(fit: fit)
@@ -338,7 +337,7 @@
 /// )
 ///
 /// - angle (angle): Half the exterior angle, `0deg` being a rectangle.
-/// - fit (number): Adjusts how comfortably the hexagon fits the label.
+/// - fit (number): Adjusts how comfortably the hexagon fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///   	let s = fletcher.shapes.hexagon.with(fit: fit)

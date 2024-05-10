@@ -579,7 +579,7 @@
 ///
 /// - crossing-fill (paint): Color to use behind connectors or labels to give
 ///   the illusion of crossing over other objects. Defaults to
-///   #param[diagram][crossing-fill].
+///   #the-param[diagram][crossing-fill].
 ///
 ///   #let cross(x, fill) = {
 ///   	edge((2*x + 0,1), (2*x + 1,0), stroke: 1pt)
