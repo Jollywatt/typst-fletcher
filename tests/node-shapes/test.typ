@@ -78,6 +78,7 @@ Fit factor
 	node-inset: 0pt,
 	for (i, shape) in (
 		shapes.parallelogram,
+		shapes.diamond,
 		shapes.triangle,
 		shapes.chevron,
 		shapes.hexagon,

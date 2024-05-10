@@ -120,13 +120,28 @@
 /// 	node((0,0), `diamond`, shape: fletcher.shapes.diamond)
 /// )
 ///
-/// - scale (number): Scale factor to increase the node's drawn size (without
-///   affecting its real size). This is used so the label doesn't poke out.
-#let diamond(node, extrude, scale: 1.5) = {
+/// - fit (number): Adjusts how comfortably the diamond fits the label.
+///
+///   #for (i, fit) in (0, 0.5, 1).enumerate() {
+///   	let s = fletcher.shapes.diamond.with(fit: fit)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("fit: " + repr(fit)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: purple,
+///   		fill: purple.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+#let diamond(node, extrude, fit: 0.5) = {
 	let (w, h) = node.size
 	let φ = calc.atan2(w/1pt, h/1pt)
-	let x = w/2*scale + extrude/calc.sin(φ)
-	let y = h/2*scale + extrude/calc.cos(φ)
+	let x = w/2*(1 + fit) + extrude/calc.sin(φ)
+	let y = h/2*(1 + fit) + extrude/calc.cos(φ)
 	draw.line(
 		(-x, 0pt),
 		(0pt, -y),
