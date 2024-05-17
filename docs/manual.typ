@@ -110,13 +110,6 @@
 	}
 }
 
-// bug in typst v0.11.0
-// https://github.com/typst/typst/pull/3847
-// remove once fixed
-#show raw.where(block: true): it => {
-	set text(1.25em)
-	raw(it.text.replace("\t", "  "), lang: it.lang)
-}
 
 
 #v(1fr)
