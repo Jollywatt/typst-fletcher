@@ -128,7 +128,7 @@
                                                             <g class="typst-group">
                                                                 <g>
                                                                     <g transform="translate(0 0)">
-                                                                        <path class="typst-shape" fill="none" stroke="#000000" stroke-width="0.528" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4" d="M 0 54.537865 C 0 54.537865 53.021347 0 53.021347 0 "/>
+                                                                        <path class="typst-shape" fill="none" stroke="#000000" stroke-width="0.528" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4" stroke-dashoffset="0" stroke-dasharray="3 3" d="M 0 54.537865 C 0 54.537865 53.021347 0 53.021347 0 "/>
                                                                     </g>
                                                                 </g>
                                                             </g>
