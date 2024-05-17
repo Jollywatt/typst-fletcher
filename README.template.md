@@ -53,6 +53,7 @@ insert_example_table([
 - Add isosceles triangle node shape (#31).
 - Add `fit` and `dir` options to various node shapes to adjust sizing and orientation.
 - Allow more than one consecutive edge to have an implicit end vertex.
+- Allow `snap-to` to be `none` to disable edge snaping (#32).
 
 ### 0.4.4
 
