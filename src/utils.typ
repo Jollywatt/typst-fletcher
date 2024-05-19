@@ -79,6 +79,7 @@
 #let vector-unitless(v) = v.map(x => if type(x) == length { x.pt() } else { x })
 #let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
 #let vector-angle(v) = calc.atan2(..vector-unitless(v))
+#let angle-between(from, to) = vector-angle(vector.sub(to, from))
 #let vector-2d((x, y, ..z)) = (x, y)
 #let vector-max(a, b) = array.zip(a, b).map(vals => calc.max(..vals))
 

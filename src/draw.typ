@@ -20,7 +20,6 @@
 					(node.shape)(node, extrude)
 				}
 			})
-
 		}
 
 		if node.label != none {
@@ -36,9 +35,7 @@
 				),
 				anchor: "center",
 			)
-
 		}
-
 	}
 
 	if node.layer != 0 { result = cetz.draw.on-layer(node.layer, result) }
@@ -75,36 +72,55 @@
 }
 
 
+#let place-edge-label-on-curve(edge, curve, debug: 0) = {
 
-#let draw-edge-label(edge, label-pos, debug: 0) = {
-	if edge.label != none {
-		cetz.draw.content(
-			label-pos,
-			// box(
-			// 	// cetz seems to sometimes squash the content, causing a line-
-			// 	// break, when padding is present...
-			// 	fill: edge.label-fill,
-			// 	stroke: if debug >= 2 { DEBUG_COLOR + 0.25pt },
-			// 	radius: .2em,
-			// 	pad(.2em)[#edge.label],
-			// ),
-			(edge.label-wrapper)(edge),
-			padding: .2em,
-			anchor: if edge.label-anchor != auto { edge.label-anchor },
-		)
+	let curve-point = curve(edge.label-pos)
+	let curve-point-ε = curve(edge.label-pos + 1e-3)
+
+	let θ = wrap-angle-180(angle-between(curve-point, curve-point-ε))
+	let θ-normal = θ + if edge.label-side == right { +90deg } else { -90deg }
+
+	if type(edge.label-angle) == alignment {
+		edge.label-angle = θ - (
+			right: 0deg,
+			top: 90deg,
+			left: 180deg,
+			bottom: 270deg,
+		).at(repr(edge.label-angle))
+
+	} else if edge.label-angle == auto {
+		edge.label-angle = θ
+		if calc.abs(edge.label-angle) > 90deg {
+			edge.label-angle += 180deg
+		}
 	}
+
+	if edge.label-anchor == auto {
+		edge.label-anchor = angle-to-anchor(θ-normal - edge.label-angle)
+	}
+
+	let label-pos = (to: curve-point, rel: (θ-normal, -edge.label-sep))
+
+	cetz.draw.content(
+		label-pos,
+		box(
+			(edge.label-wrapper)(edge),
+			stroke: if debug >= 2 { DEBUG_COLOR2 + 0.25pt },
+		),
+		angle: edge.label-angle,
+		anchor: if edge.label-anchor != auto { edge.label-anchor },
+	)
 
 	if debug >= 2 {
 		cetz.draw.circle(
 			label-pos,
 			radius: 0.75pt,
 			stroke: none,
-			fill: DEBUG_COLOR,
+			fill: DEBUG_COLOR2,
 		)
 	}
-
-
 }
+
 
 // Get the arrow head adjustment for a given extrusion distance.
 //
@@ -199,17 +215,7 @@
 			edge.label-side = if calc.abs(θ) < 90deg { left } else { right }
 		}
 
-		let label-dir = if edge.label-side == left { +1 } else { -1 }
-
-		if edge.label-anchor == auto {
-			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
-		}
-
-		let label-pos = vector.add(
-			vector.lerp(from, to, edge.label-pos),
-			vector-polar(edge.label-sep, θ + label-dir*90deg),
-		)
-		draw-edge-label(edge, label-pos, debug: debug)
+		place-edge-label-on-curve(edge, curve, debug: debug)
 	}
 
 }
@@ -273,23 +279,9 @@
 			// Choose label side to be on outside of arc
 			edge.label-side = if edge.bend > 0deg { left } else { right }
 		}
-		let label-dir = if edge.label-side == left { +1 } else { -1 }
 
-		if edge.label-anchor == auto {
-			// Choose label anchor based on edge direction
-			let θ = vector-angle(vector.sub(to, from))
-			edge.label-anchor = angle-to-anchor(θ - label-dir*90deg)
-		}
+		place-edge-label-on-curve(edge, curve, debug: debug)
 
-		let label-pos = vector.add(
-			center,
-			vector-polar(
-				radius + label-dir*bend-dir*edge.label-sep,
-				lerp(start, stop, edge.label-pos),
-			)
-		)
-
-		draw-edge-label(edge, label-pos, debug: debug)
 	}
 
 }
@@ -557,12 +549,7 @@
 
 #let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
-
-	// // apply edge shift
-	// let (δ-from, δ-to) = edge.shift
 	let θ = vector-angle(vector.sub(to, from)) + 90deg
-	// from = vector.add(from, vector-polar(δ-from, θ))
-	// to = vector.add(to, vector-polar(δ-to, θ))
 
 	// TODO: do defocus adjustment sensibly
 	from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
@@ -596,13 +583,8 @@
 
 #let draw-anchored-arc(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
-
 	let θ = vector-angle(vector.sub(to, from))
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
-
-	// let (δ-from, δ-to) = edge.shift
-	// from = vector.add(from, vector-polar(δ-from, θs.at(0) + 90deg))
-	// to = vector.add(to, vector-polar(δ-to, θs.at(1) - 90deg))
 
 	let dummy-lines = (from, to).zip(θs)
 		.map(((point, φ)) => cetz.draw.line(
@@ -635,26 +617,6 @@
 		edge.final-vertices.slice(0, 2), // first two vertices
 		edge.final-vertices.slice(-2), // last two vertices
 	)
-
-	// let θs = (
-	// 	vector-angle(vector.sub(..end-segments.at(0))),
-	// 	vector-angle(vector.sub(..end-segments.at(1))),
-	// )
-
-	// let δs = edge.shift.zip(θs).map(((d, θ)) => vector-polar(d, θ + 90deg))
-
-	// end-segments = end-segments.zip(δs).map(((segment, δ)) => {
-	// 	segment.map(point => vector.add(point, δ))
-	// })
-
-	// // the `shift` option is nicer if it shifts the entire segment, not just the first vertex
-	// // first segment
-	// edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
-	// edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
-	// // last segment
-	// edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
-	// edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
-
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
@@ -711,7 +673,7 @@
 }
 
 #let draw-edge(edge, nodes, ..args) = {
-	if edge.extrude.len() == 0 { return } // no line to draw
+	// if edge.extrude.len() == 0 { return } // no line to draw
 	// edge.marks = interpret-marks(edge.marks)
 	let obj = if edge.kind == "line" {
 		draw-anchored-line(edge, nodes, ..args)

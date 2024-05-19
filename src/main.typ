@@ -603,7 +603,7 @@
 	node-outset: 0pt,
 	node-fill: none,
 	node-defocus: 0.2,
-	label-sep: 0.2em,
+	label-sep: 0.4em,
 	label-wrapper: edge => box(
 		[#edge.label],
 		inset: .2em,

@@ -30,7 +30,7 @@ Compare to $->$, $=>$, $arrow.triple$, $arrow.twohead$, $arrow.hook$, $|->$.
 		let (marks, label, δl, δr) = a
 		edge(
 			(0, i), (1 + δr,i),
-			move(dx: δl - 0.48em, text(target-color, label)),
+			move(dx: δl - 0.28em, text(target-color, label)),
 			marks: marks,
 			label-anchor: "west",
 			label-pos: 0,
