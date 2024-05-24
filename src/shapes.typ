@@ -97,19 +97,83 @@
 ///   	))
 ///   	h(5mm)
 ///   }
-#let parallelogram(node, extrude, angle: 20deg, fit: 0.8) = {
+#let parallelogram(node, extrude, flip: false, angle: 20deg, fit: 0.8) = {
 	let (w, h) = node.size
+	if flip { (w, h) = (h, w) }
+
 	let (x, y) = (w/2 + extrude*calc.cos(angle), h/2 + extrude)
 	let δ = h/2*calc.tan(angle)
 	let μ = extrude*calc.tan(angle)
 	x += δ*fit
-	draw.line(
+
+	let verts = (
 		(-x - μ, -y),
 		(+x - δ, -y),
 		(+x + μ, +y),
 		(-x + δ, +y),
-		close: true,
 	)
+
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+
+	draw.line(..verts, close: true)
+}
+
+
+/// An isosceles trapezium node shape.
+///
+/// #diagram(
+/// 	node-stroke: green,
+/// 	node-fill: green.lighten(90%),
+/// 	node((0,0), `trapezium`, shape: fletcher.shapes.trapezium)
+/// )
+///
+/// - angle (angle): Angle of the slant, `0deg` is a rectangle. Don't set to
+///   `90deg` unless you want your document to be larger than the solar system.
+///
+/// - fit (number): Adjusts how comfortably the trapezium fits the label's bounding box.
+///
+///   #for (i, fit) in (0, 0.5, 1).enumerate() {
+///   	let s = fletcher.shapes.trapezium.with(fit: fit, angle: 35deg)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("fit: " + repr(fit)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: green,
+///   		fill: green.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+///
+/// - dir (top, bottom, left, right): The side the shorter parallel edge is on.
+#let trapezium(node, extrude, dir: top, angle: 20deg, fit: 0.8) = {
+	assert(dir in (top, bottom, left, right))
+
+	let flip = dir in (right, left) // flip along diagonal line x = y
+	let rotate = dir in (bottom, left) // rotate 180deg
+
+	let (w, h) = node.size
+	if flip { (w, h) = (h, w) }
+
+	let (x, y) = (w/2 + extrude*calc.cos(angle), h/2 + extrude)
+	let δ = h/2*calc.tan(angle)
+	let μ = extrude*calc.tan(angle)
+	x += δ*fit
+
+	let verts = (
+		(-x - μ, -y),
+		(+x + μ, -y),
+		(+x - δ, +y),
+		(-x + δ, +y),
+	)
+
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+	draw.line(..verts, close: true)
 }
 
 /// A rhombus node shape.
@@ -212,10 +276,7 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-	draw.line(
-		..verts.map(((i, j)) => (i, j)),
-		close: true,
-	)
+	draw.line(..verts, close: true)
 }
 
 
@@ -252,11 +313,7 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-
-	draw.line(
-		..verts,
-		close: true,
-	)
+	draw.line(..verts, close: true)
 }
 
 
@@ -318,10 +375,7 @@
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
 
-	draw.line(
-		..verts,
-		close: true,
-	)
+	draw.line(..verts, close: true)
 }
 
 

@@ -503,11 +503,12 @@ The predefined shapes are:
 	align: center + horizon,
 	..{
 		let colors = (
-			green,
+			blue,
 			red,
 			orange,
 			teal,
 			olive,
+			green,
 			purple,
 			fuchsia,
 			eastern,

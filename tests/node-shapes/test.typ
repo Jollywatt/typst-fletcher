@@ -55,6 +55,7 @@ Direction
 
 #diagram(
 	for (i, shape) in (
+		shapes.trapezium,
 		shapes.triangle,
 		shapes.house,
 		shapes.chevron,
@@ -70,6 +71,22 @@ Direction
 	}
 )
 
+
+#pagebreak()
+
+Flip
+
+#diagram(
+	for (i, flip) in (false, true).enumerate() {
+		node(
+			(i, 0),
+			[#flip],
+			fill: teal.transparentize(40%),
+			shape: shapes.parallelogram.with(flip: flip),
+		)
+	}
+)
+
 #pagebreak()
 
 Fit factor
@@ -78,6 +95,7 @@ Fit factor
 	node-inset: 0pt,
 	for (i, shape) in (
 		shapes.parallelogram,
+		shapes.trapezium,
 		shapes.diamond,
 		shapes.triangle,
 		shapes.chevron,
