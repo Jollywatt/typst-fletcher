@@ -142,6 +142,12 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.4.6
+
+- Add `label-angle` option to `edge()`.
+- Add `label-wrapper` option to allow changing the label inset, outline stroke, and so on (#26).
+- Add `trapezium` node shape.
+
 ### 0.4.5
 
 - Add isosceles triangle node shape (#31).
@@ -162,14 +168,14 @@ Pull requests are most welcome!
 ### 0.4.3
 
 - Fixed edge crossing backgrounds being drawn above nodes (#14).
-- Added `fletcher.hide()` to hide elements with/without affecting layout, useful for incremental diagrams in slides (#15).
+- Add `fletcher.hide()` to hide elements with/without affecting layout, useful for incremental diagrams in slides (#15).
 - Support `shift`ing edges by coordinate deltas as well as absolute lengths (#13).
 - Support node names (#8).
 
 ### 0.4.2
 
 - Improve edge-to-node snapping. Edges can terminate anywhere near a node (not just at its center) and will automatically snap to the node outline. Added `snap-to` option to `edge()`.
-- Fixed node `inset` being half the amount specified. If upgrading from previous version, you will need to divide node `inset` values by two to preserve diagram layout.
+- Fix node `inset` being half the amount specified. If upgrading from previous version, you will need to divide node `inset` values by two to preserve diagram layout.
 - Add `decorations` option to `edge()` for CeTZ path decorations (`"wave"`, `"zigzag"`, and `"coil"`, also accepted as positional string arguments).
 
 ### 0.4.1
