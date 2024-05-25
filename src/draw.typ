@@ -72,6 +72,21 @@
 }
 
 
+/// Draw an edge label at point along a curve.
+///
+/// Label is drawn near the point `curve(edge.label-pos)`, respecting the label
+/// options of `edge()` such as #param[edge][label-side] and
+/// #param[edge][label-angle].
+///
+/// - edge (dictionary): Edge object. Must include:
+///   - `label-pos`
+///   - `label-sep`
+///   - `label-side`
+///   - `label-anchor`
+///   - `label-angle`
+///   - `label-wrapper`
+/// - curve (function): Parametric curve $RR -> RR^2$ describing the shape of
+///   the edge in $x y$ coordinates.
 #let place-edge-label-on-curve(edge, curve, debug: 0) = {
 
 	let curve-point = curve(edge.label-pos)

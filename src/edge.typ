@@ -402,7 +402,7 @@
 ///
 /// - label-sep (length): Separation between the connector and the label anchor.
 ///
-///   With the default anchor (automatically set to `"bottom"` in this case):
+///   With the default anchor (automatically set to `"south"` in this case):
 ///
 ///   #diagram(
 ///   	debug: 2,
@@ -429,11 +429,21 @@
 ///
 ///   Default: #the-param[diagram][label-sep]
 ///
+/// - label-angle (angle, left, right, top, bottom, auto): Angle to rotate the
+///   label (counterclockwise).
 ///
-/// - label-anchor (anchor): The anchor point to place the label at, such as
-///   `"top-right"`, `"center"`, `"bottom"`, etc. If `auto`, the anchor is
-///   automatically chosen based on #param[edge][label-side] and the angle of
-///   the connector.
+///   If a direction is given, the label is rotated so that the edge travels in
+///   that direction relative to the label. If `auto`, the best of `right` or
+///   `left` is chosen.
+///
+///   #for angle in (0deg, auto, right, top, left) {
+///   	diagram(edge((0,1), (2,0), "->", [#angle], label-angle: angle))
+///   }
+///
+/// - label-anchor (anchor): The CeTZ-style anchor point of the label to use for
+///   placement (e.g., `"north-east"` or `"center"`). If `auto`, the best anchor
+///   is chosen based on #param[edge][label-side], #param[edge][label-angle],
+///   and the edge's direction.
 ///
 /// - label-fill (bool, paint): The background fill for the label. If `true`,
 ///   defaults to the value of #param[edge][crossing-fill]. If `false` or
