@@ -526,6 +526,9 @@ The predefined shapes are:
 	}
 )
 
+Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `edge()`.
+
+
 == Node groups
 
 Nodes are usually centered at a particular coordinate, but they can also #param[node][enclose] multiple centers.
@@ -1118,13 +1121,9 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 = Main functions <func-ref>
 
 
-#show-fns("/src/main.typ", only: (
-	"diagram",
-	"node",
-), level: 1)
-#show-fns("/src/edge.typ", only: (
-	"edge",
-))
+#show-fns("/src/diagram.typ", only: ("diagram",))
+#show-fns("/src/node.typ", only: ("node",))
+#show-fns("/src/edge.typ", only: ("edge",))
 
 = Behind the scenes
 
@@ -1156,15 +1155,13 @@ or:
 ```
 
 To set a shape parameter, use `shape.with(..)`, for example `hexagon.with(angle: 45deg)`.
+Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `edge()`.
 
 
 #show-fns("/src/shapes.typ", level: 2, outline: true)
 
 == `coords.typ`
 #show-fns("/src/coords.typ", level: 2, outline: true)
-
-== `layout.typ`
-#show-fns("/src/layout.typ", level: 2, outline: true)
 
 == `draw.typ`
 #show-fns("/src/draw.typ", level: 2, outline: true)
