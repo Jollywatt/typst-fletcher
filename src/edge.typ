@@ -1,5 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
+#import "coords.typ": vector-polar-with-xy-or-uv-length
 
 
 #let EDGE_ARGUMENT_SHORTHANDS = (
@@ -880,3 +881,113 @@
 
 	edge
 }
+
+
+#let convert-edge-corner-to-poly(edge) = {
+
+	let (from, to) = edge.final-vertices
+	let θ = angle-between(from, to)
+
+	let bend-dir = (
+		if edge.corner == right { true }
+		else if edge.corner == left { false }
+		else { panic("Edge corner option must be left or right.") }
+	)
+
+	let θ-floor = calc.floor(θ/90deg)*90deg
+	let θ-ceil = calc.ceil(θ/90deg)*90deg
+	let θs = if bend-dir {
+		(θ-ceil, θ-floor + 180deg)
+	} else {
+		(θ-floor, θ-ceil + 180deg)
+	}
+
+	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
+		(to.at(0), from.at(1))
+	} else {
+		(from.at(0), to.at(1))
+	}
+
+	edge + (
+		kind: "poly",
+		final-vertices: (from, corner-point, to),
+		label-side: if bend-dir { left } else { right },
+	)
+}
+
+
+
+
+// For straight edges, `shift` translates the line laterally
+#let apply-edge-shift-line(grid, edge) = {
+	let (from-xy, to-xy) = edge.final-vertices
+	let θ = angle-between(from-xy, to-xy) + 90deg
+
+	let (δ-from, δ-to) = edge.shift
+	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ)
+	let δ⃗-to = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ)
+
+	edge.final-vertices.at( 0) = vector.add(from-xy, δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
+
+	edge
+}
+
+// For arc edges, `shift` grows/shrinks the arc concentrically
+#let apply-edge-shift-arc(grid, edge) = {
+	let (from-xy, to-xy) = edge.final-vertices
+
+	let θ = angle-between(from-xy, to-xy) + 90deg
+	let (θ-from, θ-to) = (θ + edge.bend, θ - edge.bend)
+
+	let (δ-from, δ-to) = edge.shift
+	let δ⃗-from = vector-polar-with-xy-or-uv-length(grid, from-xy, δ-from, θ-from)
+	let δ⃗-to   = vector-polar-with-xy-or-uv-length(grid, to-xy, δ-to, θ-to)
+
+	edge.final-vertices.at( 0) = vector.add(from-xy, δ⃗-from)
+	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
+
+	edge
+}
+
+// For poly edges, `shift` affects the first/last line segments
+#let apply-edge-shift-poly(grid, edge) = {
+	let end-segments = (
+		edge.final-vertices.slice(0, 2), // first two vertices
+		edge.final-vertices.slice(-2), // last two vertices
+	)
+
+	let θs = (
+		angle-between(..end-segments.at(0)) + 180deg,
+		angle-between(..end-segments.at(1)) + 180deg,
+	)
+
+	let ends = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
+	let δs = edge.shift.zip(ends, θs).map(((d, xy, θ)) => {
+		vector-polar-with-xy-or-uv-length(grid, xy, d, θ + 90deg)
+	})
+
+	// the `shift` option is nicer if it shifts the entire segment, not just the first vertex
+	// first segment
+	edge.final-vertices.at(0) = vector.add(edge.final-vertices.at(0), δs.at(0))
+	edge.final-vertices.at(1) = vector.add(edge.final-vertices.at(1), δs.at(0))
+	// last segment
+	edge.final-vertices.at(-2) = vector.add(edge.final-vertices.at(-2), δs.at(1))
+	edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), δs.at(1))
+
+	edge
+}
+
+
+/// Apply #the-param[edge][shift] by translating edge vertices.
+///
+/// - grid (dictionary): Representation of the grid layout. This is needed to
+///   support shifts specified as coordinate lengths.
+/// - edge (dictionary): The edge with a `shift` entry.
+#let apply-edge-shift(grid, edge) = {
+	if edge.kind == "line" { apply-edge-shift-line(grid, edge) }
+	else if edge.kind == "arc" { apply-edge-shift-arc(grid, edge) }
+	else if edge.kind == "poly" { apply-edge-shift-poly(grid, edge) }
+	else { edge }
+}
+

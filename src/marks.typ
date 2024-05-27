@@ -413,7 +413,7 @@
 	let t = lerp(Δt, 1, mark.pos)
 	let tip-point = path(t)
 	let tail-point = path(t - Δt)
-	let θ = vector-angle(vector.sub(tip-point, tail-point))
+	let θ = angle-between(tail-point, tip-point)
 
 	draw-mark(mark, origin: tip-point, angle: θ, stroke: stroke)
 

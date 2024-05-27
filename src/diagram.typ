@@ -1,315 +1,183 @@
 #import "utils.typ": *
-#import "coords.typ": *
-#import "layout.typ": *
-#import "draw.typ": *
+#import "node.typ": *
 #import "edge.typ": *
+#import "draw.typ": draw-diagram
+#import "coords.typ": *
 
-/// Draw a labelled node in a diagram which can connect to edges.
-///
-/// - pos (coordinate): Dimensionless "elastic coordinates" `(x, y)` of the
-///   node.
-///
-///   See the options of `diagram()` to control the physical scale of elastic
-///   coordinates.
-///
-/// - name (label, none): An optional name to give the node.
-///
-///   Names can sometimes be used in place of coordinates. For example:
-///
-///   #example(```
-///   fletcher.diagram(
-///   	node((0,0), $A$, name: <A>),
-///   	node((1,0.6), $B$, name: <B>),
-///   	edge(<A>, <B>, "->"),
-///   )
-///   ```)
-///
-///   Note that you can also just use variables to refer to coordinates:
-///
-///   #example(```
-///   fletcher.diagram({
-///   	let A = (0,0)
-///   	let B = (1,0.6)
-///   	node(A, $A$)
-///   	node(B, $B$)
-///   	edge(A, B, "->")
-///   })
-///   ```)
-///
-/// - label (content): Content to display inside the node.
-///
-///   If a node is larger than its label, you can wrap the label in `align()` to
-///   control the label alignment within the node.
-///
-///   #example(```typc
-///   diagram(
-///   	node((0,0), align(bottom + left)[¡Hola!],
-///   		width: 3cm, height: 2cm, fill: yellow),
-///   )
-///   ```)
-///
-/// - inset (length, auto): Padding between the node's content and its outline.
-///
-///   In debug mode, the inset is visualised by a thin green outline.
-///
-///   #example(```
-///   diagram(
-///   	debug: 3,
-///   	node-stroke: 1pt,
-///   	node((0,0), [Hello,]),
-///   	edge(),
-///   	node((1,0), [World!], inset: 10pt),
-///   )
-///   ```)
-///
-/// - outset (length, auto): Margin between the node's bounds to the anchor
-///   points for connecting edges.
-///
-///   This does not affect node layout, only how closely edges connect to the
-///   node.
-///
-///   In debug mode, the outset is visualised by a thin green outline.
-///
-///   #example(```
-///   diagram(
-///   	debug: 3,
-///   	node-stroke: 1pt,
-///   	node((0,0), [Hello,]),
-///   	edge(),
-///   	node((1,0), [World!], outset: 10pt),
-///   )
-///   ```)
-///
-/// - width (length, auto): Width of the node. If `auto`, the node's width is
-///   the width of the node #param[node][label], plus twice the
-///   #param[node][inset].
-///
-///   If the width is not `auto`, you can use `align` to control the placement of the node's #param[node][label].
-///
-/// - height (length, auto): Height of the node. If `auto`, the node's height is the height of the node #param[node][label], plus twice the #param[node][inset].
-///
-///   If the height is not `auto`, you can use `align` to control the placement of the node's #param[node][label].
-///
-/// - enclose (array): Positions or names of other nodes to enclose by enlarging
-///   this node.
-///
-///   If given, causes the node to resize so that its bounding rectangle
-///   surrounds the given nodes. The center #param[node][pos] does not affect
-///   the node's position if `enclose` is given, but still affects connecting
-///   edges.
-///
-///   #box(example(```
-///   diagram(
-///   	node-stroke: 1pt,
-///   	node((0,0), [ABC], name: <A>),
-///   	node((1,1), [XYZ], name: <Z>),
-///   	node(
-///   		text(teal)[Node group], stroke: teal,
-///   		enclose: (<A>, <Z>), name: <group>),
-///   	edge(<group>, (3,0.5), stroke: teal),
-///   )
-///   ```))
-///
-/// - shape (rect, circle, function, auto): Shape to draw for the node. If
-///   `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
-///   of the node's label.
-///
-///   Other shapes are defined in the `fletcher.shapes`
-///   submodule, including
-///   #{
-///   	dictionary(fletcher.shapes).keys()
-///   	.filter(x => type(x) != module)
-///   	.map(i => [#raw(i)]).join(last: [, and ])[, ]
-///   }.
-///
-///   Custom shapes should be specified as a function `(node, extrude, ..parameters) => (..)`
-///   which returns `cetz` objects.
-///   - The `node` argument is a dictionary containing the node's attributes,
-///     including its dimensions (`node.size`), and other options (such as
-///     `node.corner-radius`).
-///   - The `extrude` argument is a length which the shape outline should be
-///     extruded outwards by. This serves two functions: to support automatic
-///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
-///     effects using the `extrude` node option.
-///   See the ```plain src/shapes.typ``` source file for examples.
-///
-/// - stroke (stroke): Stroke style for the node outline.
-///
-///   Defaults to #the-param[diagram][node-stroke].
-///
-/// - fill (paint): Fill style of the node. The fill is drawn within the node
-///   outline as defined by the first #param(full: false)[node][extrude] value.
-///
-///   Defaults to #the-param[diagram][node-fill].
-///
-/// - defocus (number): Strength of the "defocus" adjustment for connectors
-///   incident with this node.
-///
-///   This affects how connectors attach to non-square nodes. If `0`, the
-///   adjustment is disabled and connectors are always directed at the node's
-///   exact center.
-///
-///   #stack(
-///   	dir: ltr,
-///   	spacing: 1fr,
-///   	..(0.2, 0, -1).enumerate().map(((i, defocus)) => {
-///   		fletcher.diagram(spacing: 8mm, {
-///   			node((i, 0), raw("defocus: "+str(defocus)), stroke: black, defocus: defocus)
-///   			for y in (-1, +1) {
-///   				edge((i - 1, y), (i, 0))
-///   				edge((i, y), (i, 0))
-///   				edge((i + 1, y), (i, 0))
-///   			}
-///   		})
-///   	})
-///   )
-///
-///   Defaults to #the-param[diagram][node-defocus].
-///
-/// - extrude (array): Draw strokes around the node at the given offsets to
-///   obtain a multi-stroke effect. Offsets may be numbers (specifying multiples
-///   of the stroke's thickness) or lengths.
-///
-///   The node's fill is drawn within the boundary defined by the first offset in
-///   the array.
-///
-///   #diagram(
-///   	node-stroke: 1pt,
-///   	node-fill: red.lighten(70%),
-///   	node((0,0), `(0,)`),
-///   	node((1,0), `(0, 2)`, extrude: (0, 2)),
-///   	node((2,0), `(2, 0)`, extrude: (2, 0)),
-///   	node((3,0), `(0, -2.5, 2mm)`, extrude: (0, -2.5, 2mm)),
-///   )
-///
-///   See also #the-param[edge][extrude].
-///
-/// - corner-radius (length): Radius of rounded corners, if supported by the
-///   node #param[node][shape].
-///
-///   Defaults to #the-param[diagram][node-corner-radius].
-///
-/// - layer (number, auto): Layer on which to draw the node.
-///
-///   Objects on a higher `layer` are drawn on top of objects on a lower
-///   `layer`. Objects on the same layer are drawn in the order they are passed
-///   to `diagram()`.
-///
-///   By default, nodes are drawn on layer `0` unless they #param[node][enclose]
-///   points, in which case `layer` defaults to `-1`.
-///
-/// - post (function): Callback function to intercept `cetz` objects before they
-///   are drawn to the canvas.
-///
-///   This can be used to hide elements without affecting layout (for use with
-///   #link("https://github.com/touying-typ/touying")[Touying], for example).
-///   The `hide()` function also helps for this purpose.
-///
-#let node(
-	..args,
-	pos: auto,
-	name: none,
-	label: none,
-	inset: auto,
-	outset: auto,
-	fill: auto,
-	stroke: auto,
-	extrude: (0,),
-	width: auto,
-	height: auto,
-	radius: auto,
-	enclose: (),
-	corner-radius: auto,
-	shape: auto,
-	defocus: auto,
-	layer: auto,
-	post: x => x,
-) = {
-	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
-	if args.pos().len() > 2 { panic("Unexpected positional argument(s):", args.pos().slice(2)) }
 
-	// interpret first two positional arguments
-	if args.pos().len() == 2 {
-		(pos, label) = args.pos()
-	} else if args.pos().len() == 1 {
-		let arg = args.pos().at(0)
-		if type(arg) == array {
-			pos = arg
-			label = none
-		} else {
-			pos = auto
-			label = arg
-		}
+
+/// Interpret #the-param[diagram][axes].
+///
+/// Returns a dictionary with:
+/// - `x`: Whether $u$ is reversed
+/// - `y`: Whether $v$ is reversed
+/// - `xy`: Whether the axes are swapped
+///
+/// - axes (array): Pair of directions specifying the interpretation of $(u, v)$
+///   coordinates. For example, `(ltr, ttb)` means $u$ goes $arrow.r$ and $v$
+///   goes $arrow.b$.
+/// -> dictionary
+#let interpret-axes(axes) = {
+	let dirs = axes.map(direction.axis)
+	let flip
+	if dirs == ("horizontal", "vertical") {
+		flip = false
+	} else if dirs == ("vertical", "horizontal") {
+		flip = true
+	} else {
+		panic("Axes cannot both be in the same direction. Got `" + repr(axes) + "`, try `axes: (ltr, ttb)`.")
 	}
 
-	let extrude = as-array(extrude).map(as-number-or-length.with(
-		message: "`extrude` must be a number, length, or an array of those"
-	))
-
-	metadata((
-		class: "node",
-		pos: pos,
-		name: pass-none(as-label)(name),
-		label: label,
-		inset: inset,
-		outset: outset,
-		enclose: as-array(enclose),
-		size: (width, height),
-		radius: radius,
-		shape: shape,
-		stroke: stroke,
-		fill: fill,
-		corner-radius: corner-radius,
-		defocus: defocus,
-		extrude: extrude,
-		layer: layer,
-		post: post,
-	))
+	(
+		flip: (
+			x: axes.at(0) in (rtl, ttb),
+			y: axes.at(1) in (rtl, ttb),
+			xy: flip,
+		)
+	)
 }
 
 
+/// Convert an array of rects `(center: (x, y), size: (w, h))` with fractional
+/// positions into rects with integral positions.
+///
+/// If a rect is centered at a factional position `floor(x) < x < ceil(x)`, it
+/// will be replaced by two new rects centered at `floor(x)` and `ceil(x)`. The
+/// total width of the original rect is split across the two new rects according
+/// two which one is closer. (E.g., if the original rect is at `x = 0.25`, the
+/// new rect at `x = 0` has 75% the original width and the rect at `x = 1` has
+/// 25%.) The same splitting procedure is done for `y` positions and heights.
+///
+/// This is the algorithm used to determine grid layout in diagrams.
+///
+/// - rects (array): An array of rects of the form `(center: (x, y), size:
+///   (width, height))`. The coordinates `x` and `y` may be floats.
+/// -> array
+#let expand-fractional-rects(rects) = {
+	let new-rects
+	for axis in (0, 1) {
+		new-rects = ()
+		for rect in rects {
+			let coord = rect.center.at(axis)
+			let size = rect.size.at(axis)
 
-#let resolve-node-options(node, options) = {
-	let to-pt(len) = to-abs-length(as-length(len), options.em-size)
+			if calc.fract(coord) == 0 {
+				rect.center.at(axis) = calc.trunc(coord)
+				new-rects.push(rect)
+			} else {
+				rect.center.at(axis) = calc.floor(coord)
+				rect.size.at(axis) = size*(calc.ceil(coord) - coord)
+				new-rects.push(rect)
 
-	node.stroke = map-auto(node.stroke, options.node-stroke)
-	if node.stroke != none {
-		let base-stroke = pass-none(stroke-to-dict)(options.node-stroke)
-		node.stroke = base-stroke + stroke-to-dict(node.stroke)
+				rect.center.at(axis) = calc.ceil(coord)
+				rect.size.at(axis) = size*(coord - calc.floor(coord))
+				new-rects.push(rect)
+			}
+		}
+		rects = new-rects
 	}
-	node.stroke = pass-none(stroke)(node.stroke) // guarantee stroke or none
+	new-rects
+}
 
-	node.fill = map-auto(node.fill, options.node-fill)
-	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
-	node.inset = to-pt(map-auto(node.inset, options.node-inset))
-	node.outset = to-pt(map-auto(node.outset, options.node-outset))
-	node.defocus = map-auto(node.defocus, options.node-defocus)
 
-	node.size = node.size.map(pass-auto(to-pt))
-	node.radius = pass-auto(to-pt)(node.radius)
+/// Determine the number and sizes of grid cells needed for a diagram with the
+/// given nodes and edges.
+///
+/// Returns a dictionary with:
+/// - `origin: (u-min, v-min)` Coordinate at the grid corner where elastic/`uv`
+///   coordinates are minimised.
+/// - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
+///   column.
+///
+/// - grid (dictionary): Representation of the grid layout, including:
+///   - `flip`
+#let compute-cell-sizes(grid, nodes, edges) = {
+	let rects = nodes.map(node => (center: node.pos, size: node.size))
+	rects = expand-fractional-rects(rects)
 
-	if node.shape == auto {
-		if node.radius != auto { node.shape = "circle" }
-		if node.size != (auto, auto) { node.shape = "rect" }
+	// all points in diagram that should be spanned by coordinate grid
+	let points = rects.map(r => r.center)
+	points += edges.map(edge => edge.vertices).join()
+
+	if points.len() == 0 { points.push((0,0)) }
+
+	let min-max-int(a) = (calc.floor(calc.min(..a)), calc.ceil(calc.max(..a)))
+	let (x-min, x-max) = min-max-int(points.map(p => p.at(0)))
+	let (y-min, y-max) = min-max-int(points.map(p => p.at(1)))
+	let origin = (x-min, y-min)
+	let bounding-dims = (x-max - x-min + 1, y-max - y-min + 1)
+
+	// Initialise row and column sizes
+	let cell-sizes = bounding-dims.map(n => (0pt,)*n)
+
+	// Expand cells to fit rects
+	for rect in rects {
+		let indices = vector.sub(rect.center, origin)
+		if grid.flip.x { indices.at(0) = -1 - indices.at(0) }
+		if grid.flip.y { indices.at(1) = -1 - indices.at(1) }
+		for axis in (0, 1) {
+			let size = if grid.flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
+			cell-sizes.at(axis).at(indices.at(axis)) = calc.max(
+				cell-sizes.at(axis).at(indices.at(axis)),
+				rect.size.at(axis),
+			)
+		}
 	}
 
-	let thickness = if node.stroke == none { 1pt } else {
-		map-auto(node.stroke.thickness, 1pt)
-	}
+	(origin: origin, cell-sizes: cell-sizes)
+}
 
-	node.extrude = node.extrude.map(d => {
-		if type(d) == length { d }
-		else { d*thickness }
-	}).map(to-pt)
+/// Determine the centers of grid cells from their sizes and spacing between
+/// them.
+///
+/// Returns the a dictionary with:
+/// - `centers: (x-centers, y-centers)` Positions of each row and column,
+///   measured from the corner of the bounding box.
+/// - `bounding-size: (x-size, y-size)` Dimensions of the bounding box.
+///
+/// - grid (dictionary): Representation of the grid layout, including:
+///   - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
+///     column.
+///   - `spacing: (x-spacing, y-spacing)` Gap to leave between cells.
+/// -> dictionary
+#let compute-cell-centers(grid) = {
+	// (x: (c1x, c2x, ...), y: ...)
+	let centers = array.zip(grid.cell-sizes, grid.spacing)
+		.map(((sizes, spacing)) => {
+			array.zip(cumsum(sizes), sizes, range(sizes.len()))
+				.map(((end, size, i)) => end - size/2 + spacing*i)
+		})
 
-	if type(node.outset) in (int, float) {
-		node.outset *= thickness
-	}
+	let bounding-size = array.zip(centers, grid.cell-sizes)
+		.map(((centers, sizes)) => centers.at(-1) + sizes.at(-1)/2)
 
-	let default-layer = if node.enclose.len() > 0 { -1 } else { 0 }
-	node.layer = map-auto(node.layer, default-layer)
+	(
+		centers: centers,
+		bounding-size: bounding-size,
+	)
+}
 
-	node
+/// Determine the number, sizes and relative positions of rows and columns in
+/// the diagram's coordinate grid.
+///
+/// Rows and columns are sized to fit nodes. Coordinates are not required to
+/// start at the origin, `(0,0)`.
+#let compute-grid(nodes, edges, options) = {
+	let grid = (
+		axes: options.axes,
+		spacing: options.spacing,
+	)
+
+	grid += interpret-axes(grid.axes)
+	grid += compute-cell-sizes(grid, nodes, edges)
+
+	// enforce minimum cell size
+	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
+		.map(((sizes, min-size)) => sizes.map(calc.max.with(min-size)))
+
+	grid += compute-cell-centers(grid)
+
+	grid
 }
 
 
@@ -357,18 +225,15 @@
 		}
 	}
 
-
 	(
 		nodes: nodes,
 		edges: edges,
 	)
-
 }
 
 
 
 #let interpret-diagram-args(args) = {
-
 	if args.named().len() > 0 {
 		let args = args.named().keys().join(", ")
 		panic("Unexpected named argument(s) to `diagram()`: " + args)
@@ -690,7 +555,6 @@
 
 
 		// compute final/cetz coordinates for nodes and edges
-
 		nodes = nodes.map(node => {
 			node.final-pos = uv-to-xy(grid, node.pos)
 			node

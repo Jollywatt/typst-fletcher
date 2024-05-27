@@ -53,8 +53,14 @@
 		)
 	}
 
-	// Show anchor outline
 	if debug >= 2 and node.radius != 0pt {
+		// node bounding rectangle
+		cetz.draw.rect(
+			..rect-at(node.final-pos, node.size),
+			stroke: DEBUG_COLOR + .1pt,
+		)
+
+		// node anchoring outline (what edges snap to)
 		cetz.draw.group({
 			cetz.draw.translate(node.final-pos)
 			cetz.draw.set-style(
@@ -63,11 +69,6 @@
 			)
 			(node.shape)(node, node.outset)
 		})
-
-		cetz.draw.rect(
-			..rect-at(node.final-pos, node.size),
-			stroke: DEBUG_COLOR + .1pt,
-		)
 	}
 }
 
@@ -146,18 +147,18 @@
 		let mark = edge.marks.find(mark => calc.abs(mark.pos - pos) < 1e-3)
 		if mark == none { return 0pt }
 
+		let is-tip = (pos == 0) == mark.rev
+		let sign = if mark.rev { -1 } else { +1 }
 
-		let tip = (pos == 0) == mark.rev
-		let s = if tip { +1 } else { -1 } // not completely sure why this is needed
 		let x = cap-offset(
-			mark + (tip: tip),
-			s*(2*pos - 1)*y/edge.stroke.thickness,
+			mark + (tip: is-tip),
+			sign*y/edge.stroke.thickness,
 		)
 
-		x -= if tip { mark.tip-origin } else { mark.tail-origin } * float(mark.scale)
-		if mark.rev { x *= -1 }
+		let origin = if is-tip { mark.tip-origin } else { mark.tail-origin }
+		x -= origin*float(mark.scale)
 
-		x*edge.stroke.thickness//*float(mark.scale)
+		sign*x*edge.stroke.thickness
 	})
 }
 
@@ -191,7 +192,7 @@
 /// - debug (int): Level of debug details to draw.
 #let draw-edge-line(edge, debug: 0) = {
 	let (from, to) = edge.final-vertices
-	let θ = vector-angle(vector.sub(to, from))
+	let θ = angle-between(from, to)
 
 	// Draw line(s), one for each extrusion shift
 	for shift in edge.extrude {
@@ -212,7 +213,6 @@
 		)
 
 		with-decorations(edge, obj)
-
 	}
 
 	// Draw marks
@@ -272,20 +272,14 @@
 			stroke: edge.stroke,
 		)
 
-		if edge.decorations == none { obj }
-		else {
-			let decor = edge.decorations.with(stroke: edge.stroke)
-			decor(obj)
-		}
+		with-decorations(edge, obj)
 	}
-
 
 	// Draw marks
 	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
 	for mark in edge.marks {
 		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
-
 
 	// Draw label
 	if edge.label != none {
@@ -324,13 +318,11 @@
 	let θs = range(n-segments).map(i => {
 		let (vert, vert-next) = (verts.at(i), verts.at(i + 1))
 		assert(vert != vert-next, message: "Adjacent vertices must be distinct.")
-		vector-angle(vector.sub(vert-next, vert))
+		angle-between(vert, vert-next)
 	})
 
 
 	// round corners
-
-	// i literally don't know how this works
 	let calculate-rounded-corner(i) = {
 		let pt = verts.at(i)
 		let Δθ = wrap-angle-180(θs.at(i) - θs.at(i - 1))
@@ -364,7 +356,7 @@
 		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
 	}
 
-	let debug-stroke = edge.stroke.thickness/4 + green
+	let debug-stroke = edge.stroke.thickness/4 + DEBUG_COLOR2
 
 	// phase keeps track of how to offset dash patterns
 	// to ensure continuity between segments
@@ -442,10 +434,7 @@
 				}
 
 				Δphase += delta/1rad*arc-radius
-
 			}
-
-
 		}
 
 		marks = marks.map(resolve-mark)
@@ -564,7 +553,7 @@
 
 #let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
-	let θ = vector-angle(vector.sub(to, from)) + 90deg
+	let θ = angle-between(from, to) + 90deg
 
 	// TODO: do defocus adjustment sensibly
 	from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
@@ -598,7 +587,7 @@
 
 #let draw-anchored-arc(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
-	let θ = vector-angle(vector.sub(to, from))
+	let θ = angle-between(from, to)
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
 
 	let dummy-lines = (from, to).zip(θs)
@@ -655,41 +644,7 @@
 }
 
 
-#let convert-edge-corner-to-poly(edge) = {
-
-	let (from, to) = edge.final-vertices
-	let θ = vector-angle(vector.sub(to, from))
-
-	let bend-dir = (
-		if edge.corner == right { true }
-		else if edge.corner == left { false }
-		else { panic("Edge corner option must be left or right.") }
-	)
-
-	let θ-floor = calc.floor(θ/90deg)*90deg
-	let θ-ceil = calc.ceil(θ/90deg)*90deg
-	let θs = if bend-dir {
-		(θ-ceil, θ-floor + 180deg)
-	} else {
-		(θ-floor, θ-ceil + 180deg)
-	}
-
-	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
-		(to.at(0), from.at(1))
-	} else {
-		(from.at(0), to.at(1))
-	}
-
-	edge + (
-		kind: "poly",
-		final-vertices: (from, corner-point, to),
-		label-side: if bend-dir { left } else { right },
-	)
-}
-
 #let draw-edge(edge, nodes, ..args) = {
-	// if edge.extrude.len() == 0 { return } // no line to draw
-	// edge.marks = interpret-marks(edge.marks)
 	let obj = if edge.kind == "line" {
 		draw-anchored-line(edge, nodes, ..args)
 	} else if edge.kind == "arc" {
@@ -704,54 +659,6 @@
 }
 
 
-
-
-
-#let draw-debug-axes(grid) = {
-
-	// cetz panics if rect is zero area
-	if grid.bounding-size.all(x => x != 0pt) {
-		cetz.draw.rect(
-			(0,0),
-			element-wise-mul(grid.bounding-size, grid.scale),
-			stroke: DEBUG_COLOR + 0.25pt
-		)
-	}
-
-
-
-	let (σx, σy) = grid.scale
-	for (axis, coord) in ((0, (x,y) => (σx*x,σy*y)), (1, (y,x) => (σx*x,σy*y))) {
-
-		for (i, x) in grid.centers.at(axis).enumerate() {
-			let size = grid.cell-sizes.at(axis).at(i)
-
-			// coordinate label
-			cetz.draw.content(
-				coord(x, -.5em),
-				text(fill: DEBUG_COLOR, size: .7em)[#(grid.origin.at(axis) + i)]
-			)
-
-			// size bracket
-			cetz.draw.line(
-				..(+1, -1).map(dir => coord(x + dir*max(size, 1e-6pt)/2, 0)),
-				stroke: DEBUG_COLOR + .75pt,
-				mark: (start: "|", end: "|")
-			)
-
-			// gridline
-			cetz.draw.line(
-				coord(x, 0),
-				coord(x, grid.bounding-size.at(1 - axis)),
-				stroke: (
-					paint: DEBUG_COLOR,
-					thickness: .3pt,
-					dash: "densely-dotted",
-				),
-			)
-		}
-	}
-}
 
 /// Draw diagram coordinate axes.
 ///
@@ -770,8 +677,8 @@
 
 	let (u-min, v-min) = grid.origin
 
-	let xy-lens = grid.centers.map(array.len)
-	let (u-len, v-len) = if grid.flip.xy { xy-lens.rev() } else { xy-lens }
+	let (u-len, v-len) = grid.centers.map(array.len)
+	if grid.flip.xy { (u-len, v-len) = (v-len, u-len) }
 	let v-range = range(v-min, v-min + v-len)
 	let u-range = range(u-min, u-min + u-len)
 
@@ -836,10 +743,7 @@
 			)
 		}
 
-
-
 	})
-
 }
 
 #let draw-diagram(
@@ -850,9 +754,8 @@
 ) = {
 
 	for edge in edges {
-		// find start/end notes to snap to (each can be none!)
-		let nodes = edge.snap-to.map(find-node.with(nodes))
-		draw-edge(edge, nodes, debug: debug)
+		let snap-to-nodes = edge.snap-to.map(find-node.with(nodes))
+		draw-edge(edge, snap-to-nodes, debug: debug)
 	}
 
 	for node in nodes {

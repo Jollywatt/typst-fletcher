@@ -201,8 +201,8 @@
 
 	let radius = vector-len(vector.sub(to, center))
 
-	let start = vector-angle(vector.sub(from, center))
-	let stop = vector-angle(vector.sub(to, center))
+	let start = angle-between(center, from)
+	let stop = angle-between(center, to)
 
 	if start < stop and angle > 0deg { start += 360deg }
 	if start > stop and angle < 0deg { start -= 360deg }
