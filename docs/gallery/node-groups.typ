@@ -1,4 +1,4 @@
-#import "@preview/fletcher:0.4.5" as fletcher: diagram, node, edge, shapes
+#import "@preview/fletcher:0.4.6" as fletcher: diagram, node, edge, shapes
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 
 
