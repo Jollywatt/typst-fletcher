@@ -120,7 +120,10 @@
 	cetz.draw.content(
 		label-pos,
 		box(
-			(edge.label-wrapper)(edge),
+			{
+				set text(size: edge.label-size)
+				(edge.label-wrapper)(edge)
+			},
 			stroke: if debug >= 2 { DEBUG_COLOR2 + 0.25pt },
 		),
 		angle: edge.label-angle,

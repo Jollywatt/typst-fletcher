@@ -691,6 +691,7 @@
 	label-angle: 0deg,
 	label-anchor: auto,
 	label-fill: auto,
+	label-size: auto,
 	label-wrapper: auto,
 	stroke: auto,
 	dash: none,
@@ -720,6 +721,7 @@
 		label-anchor: label-anchor,
 		label-side: label-side,
 		label-fill: label-fill,
+		label-size: label-size,
 		label-wrapper: label-wrapper,
 		stroke: stroke,
 		dash: dash,
@@ -872,6 +874,7 @@
 	})
 
 	edge.label-sep = to-pt(map-auto(edge.label-sep, options.label-sep))
+	edge.label-size = map-auto(edge.label-size, options.label-size)
 
 	edge.label-fill = map-auto(edge.label-fill, edge.label-side == center)
 	if edge.label-fill == true { edge.label-fill = edge.crossing-fill }

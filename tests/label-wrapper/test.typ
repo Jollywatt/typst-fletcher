@@ -18,3 +18,17 @@
 	C edge("u", ->, i) & D edge("l", ->, j)
 	$
 )
+
+#pagebreak()
+
+
+#diagram(
+	label-wrapper: node => {
+		set text(0.8em)
+		box(inset: 0.2em, node.label)
+	},
+	$
+	f edge("d", ->) edge(->, #$ f $) & f \
+	f edge("ur", ->)
+	$
+)

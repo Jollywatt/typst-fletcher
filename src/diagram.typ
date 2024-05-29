@@ -469,6 +469,7 @@
 	node-fill: none,
 	node-defocus: 0.2,
 	label-sep: 0.4em,
+	label-size: 1em,
 	label-wrapper: edge => box(
 		[#edge.label],
 		inset: .2em,
@@ -499,6 +500,7 @@
 		edge-corner-radius: edge-corner-radius,
 		node-defocus: node-defocus,
 		label-sep: label-sep,
+		label-size: label-size,
 		label-wrapper: label-wrapper,
 		edge-stroke: as-stroke(edge-stroke),
 		mark-scale: mark-scale,
