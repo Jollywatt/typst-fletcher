@@ -451,6 +451,10 @@
 ///   `none`, no fill is used. If `auto`, then defaults to `true` if the label
 ///   is covering the edge (#param[edge][label-side]`: center`).
 ///
+/// - label-size (auto, length): The default text size to apply to edge labels.
+///
+///   Default: #the-param[diagram][label-size]
+///
 /// - label-wrapper (auto, function): Callback function accepting a node
 ///   dictionary and returning the label content. This is used to add a label
 ///   background (see #param[edge][crossing-fill]), and can be used to adjust

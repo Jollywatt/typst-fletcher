@@ -394,6 +394,8 @@
 ///
 /// - label-sep (length): Default value of #the-param[edge][label-sep].
 ///
+/// - label-size (length): Default value of #the-param[edge][label-size].
+///
 /// - label-wrapper (function): Default value of
 ///   #the-param[edge][label-wrapper].
 ///

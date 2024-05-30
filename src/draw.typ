@@ -121,7 +121,7 @@
 		label-pos,
 		box(
 			{
-				set text(size: edge.label-size)
+				set text(edge.label-size)
 				(edge.label-wrapper)(edge)
 			},
 			stroke: if debug >= 2 { DEBUG_COLOR2 + 0.25pt },
