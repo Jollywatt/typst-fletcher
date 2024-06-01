@@ -145,6 +145,7 @@ Pull requests are most welcome!
 
 - Add `label-angle` option to `edge()`.
 - Add `label-wrapper` option to allow changing the label inset, outline stroke, and so on (#26).
+- Add `label-size` option to control default edge label text size (#35)
 - Add `trapezium` node shape.
 
 ### 0.4.5
