@@ -1,5 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
+#import "coords.typ": uv-to-xy
 
 #let DEBUG_COLOR = rgb("f008")
 #let DEBUG_COLOR2 = rgb("0f08")
@@ -559,8 +560,13 @@
 	let θ = angle-between(from, to) + 90deg
 
 	// TODO: do defocus adjustment sensibly
-	from = vector.add(from, defocus-adjustment(nodes.at(0), θ - 90deg))
-	to = vector.add(to, defocus-adjustment(nodes.at(1), θ + 90deg))
+	if nodes.at(0).len() == 1 {
+		from = vector.add(from, defocus-adjustment(nodes.at(0).at(0), θ - 90deg))
+	}
+	if nodes.at(1).len() == 1 {
+		to = vector.add(to, defocus-adjustment(nodes.at(1).at(0), θ + 90deg))
+
+	}
 
 
 	let dummy-line = cetz.draw.line(
@@ -568,12 +574,14 @@
 		to,
 	)
 
-	let intersection-objects = nodes.map(node => {
-		if node == none { return }
-		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
-			(node.shape)(node, node.outset)
-		})
+	let intersection-objects = nodes.map(nodes => {
+		for node in nodes {
+			cetz.draw.group({
+				cetz.draw.translate(node.final-pos)
+				(node.shape)(node, node.outset)
+			})
+		}
+		// if node == none { return }
 		dummy-line
 	})
 
@@ -599,12 +607,14 @@
 			vector.add(point, vector-polar(10cm, φ)), // ray emanating from node
 		))
 
-	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
-		if node == none { return }
-		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
-			(node.shape)(node, node.outset)
-		})
+	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
+		for node in nodes {
+			cetz.draw.group({
+				cetz.draw.translate(node.final-pos)
+				(node.shape)(node, node.outset)
+			})
+		}
+		// if node == none { return }
 		dummy-line
 	})
 
@@ -627,12 +637,14 @@
 
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
-	let intersection-objects = nodes.zip(dummy-lines).map(((node, dummy-line)) => {
-		if node == none { return }
-		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
-			(node.shape)(node, node.outset)
-		})
+	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
+		for node in nodes {
+			cetz.draw.group({
+				cetz.draw.translate(node.final-pos)
+				(node.shape)(node, node.outset)
+			})
+		}
+		// if node == none { return }
 		dummy-line
 	})
 
@@ -749,6 +761,35 @@
 	})
 }
 
+// Find candidate nodes that an edge should snap to
+//
+// Returns an array of zero or more nodes. False positives are acceptable.
+#let find-snapping-nodes(grid, nodes, key) = {
+	if key == none { return () }
+
+	if type(key) == label {
+		return nodes.filter(node => node.name == key)
+	}
+
+	if type(key) == array and key.len() == 2 {
+
+		let xy-pos = uv-to-xy(grid, key)
+
+		let candidates = nodes.filter(node => {
+
+			point-is-in-rect(xy-pos, (
+				center: node.final-pos,
+				size: node.size,
+			))
+		})
+
+		return candidates
+
+	}
+
+	panic("Couldn't find node corresponding to " + repr(key))
+}
+
 #let draw-diagram(
 	grid,
 	nodes,
@@ -756,8 +797,10 @@
 	debug: 0,
 ) = {
 
+	let node-finder = find-snapping-nodes.with(grid, nodes)
+
 	for edge in edges {
-		let snap-to-nodes = edge.snap-to.map(find-node.with(nodes))
+		let snap-to-nodes = edge.snap-to.map(node-finder)
 		draw-edge(edge, snap-to-nodes, debug: debug)
 	}
 

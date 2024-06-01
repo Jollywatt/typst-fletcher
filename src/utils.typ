@@ -77,13 +77,35 @@
 #let vector-len((x, y)) = 1pt*calc.sqrt((x/1pt)*(x/1pt) + (y/1pt)*(y/1pt))
 #let vector-set-len(len, v) = vector.scale(v, len/vector-len(v))
 #let vector-unitless(v) = v.map(x => if type(x) == length { x.pt() } else { x })
-#let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
-#let vector-angle(v) = calc.atan2(..vector-unitless(v))
-#let angle-between(from, to) = vector-angle(vector.sub(to, from))
 #let vector-2d((x, y, ..z)) = (x, y)
 #let vector-max(a, b) = array.zip(a, b).map(vals => calc.max(..vals))
 
-#let element-wise-mul(a, b) = a.zip(b).map(((i, j)) => i*j)
+#let vector-polar(r, θ) = (r*calc.cos(θ), r*calc.sin(θ))
+#let vector-angle(v) = calc.atan2(..vector-unitless(v))
+#let angle-between(from, to) = vector-angle(vector.sub(to, from))
+
+// Ensure angle is in range 0deg <= θ < 360deg
+#let wrap-angle-360(θ) = calc.rem-euclid(θ/360deg, 1)*360deg
+
+// Ensure angle is in range -180deg <= θ <= 180deg
+#let wrap-angle-180(θ) = (θ/360deg - calc.round(θ/360deg))*360deg
+
+#let angle-to-anchor(θ) = {
+	let i = calc.rem(8*θ/1rad/calc.tau, 8)
+	(
+		"east",
+		"north-east",
+		"north",
+		"north-west",
+		"west",
+		"south-west",
+		"south",
+		"south-east",
+	).at(int(calc.round(i)))
+}
+
+
+
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
@@ -130,29 +152,17 @@
 	}
 }
 
-// Ensure angle is in range 0deg <= θ < 360deg
-#let wrap-angle-360(θ) = calc.rem-euclid(θ/360deg, 1)*360deg
-
-// Ensure angle is in range -180deg <= θ <= 180deg
-#let wrap-angle-180(θ) = (θ/360deg - calc.round(θ/360deg))*360deg
-
-#let angle-to-anchor(θ) = {
-	let i = calc.rem(8*θ/1rad/calc.tau, 8)
-	(
-		"east",
-		"north-east",
-		"north",
-		"north-west",
-		"west",
-		"south-west",
-		"south",
-		"south-east",
-	).at(int(calc.round(i)))
-}
 
 #let rect-at(origin, size) = (-1, +1).map(dir => {
 	vector.add(origin, vector.scale(size, dir/2))
 })
+
+#let point-is-in-rect(point, (center, size)) = {
+	vector.sub(point, center)
+		.map(calc.abs)
+		.zip(size)
+		.all(((a, b)) => a <= b)
+}
 
 #let bounding-rect(points) = {
 	let (xs, ys) = array.zip(..points)

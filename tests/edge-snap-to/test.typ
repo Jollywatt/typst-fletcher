@@ -18,3 +18,18 @@ Allow `snap-to` to be `none`.
   edge((0.41,0), (1,1), "*-straight", snap-to: none),
   node((0,1), `Subnode`),
 )
+
+#pagebreak()
+
+#diagram(
+  node(enclose: ((0,0), (0,3)), fill: yellow),
+  for i in range(4) {
+    node((0,i), [1], fill: white)
+    edge((0,i), (1,i), "<->")
+
+  },
+  node([B], enclose: ((1,0), (1,3)), fill: yellow),
+  for i in range(3) {
+    edge((0,i), (0,i + 1), "o..o")
+  },
+)
