@@ -22,9 +22,9 @@ Allow `snap-to` to be `none`.
 #pagebreak()
 
 #diagram(
-  node(enclose: ((0,0), (0,3)), fill: yellow),
+  node(enclose: ((0,0), (0,3)), fill: yellow, snap: false),
   for i in range(4) {
-    node((0,i), [1], fill: white)
+    node((0,i), [#i], fill: white)
     edge((0,i), (1,i), "<->")
 
   },

@@ -222,6 +222,7 @@
 	shape: auto,
 	defocus: auto,
 	layer: auto,
+	snap: 0,
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
@@ -245,6 +246,8 @@
 		message: "`extrude` must be a number, length, or an array of those"
 	))
 
+	assert(type(snap) in (int, float) or snap == false, message: "`snap` must be a number or `false`; got " + repr(snap))
+
 	metadata((
 		class: "node",
 		pos: pos,
@@ -262,6 +265,7 @@
 		defocus: defocus,
 		extrude: extrude,
 		layer: layer,
+		snap: snap,
 		post: post,
 	))
 }

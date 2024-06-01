@@ -774,21 +774,29 @@
 	if type(key) == array and key.len() == 2 {
 
 		let xy-pos = uv-to-xy(grid, key)
-
 		let candidates = nodes.filter(node => {
-
+			if node.snap == false { return false }
 			point-is-in-rect(xy-pos, (
 				center: node.final-pos,
 				size: node.size,
 			))
+
 		})
 
-		return candidates
+		if candidates.len() > 0 {
+			// filter out nodes with lower snap priority
+			let max-snap-priority = calc.max(..candidates.map(node => node.snap))
+			candidates = candidates.filter(node => node.snap == max-snap-priority)
+		}
 
+
+		return candidates
 	}
 
 	panic("Couldn't find node corresponding to " + repr(key))
 }
+
+ 
 
 #let draw-diagram(
 	grid,
@@ -798,7 +806,6 @@
 ) = {
 
 	let node-finder = find-snapping-nodes.with(grid, nodes)
-
 	for edge in edges {
 		let snap-to-nodes = edge.snap-to.map(node-finder)
 		draw-edge(edge, snap-to-nodes, debug: debug)
