@@ -304,9 +304,9 @@
 		node
 	})
 
-	for node in nodes {
-		assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
-	}
+	// for node in nodes {
+	// 	assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
+	// }
 
 	(
 		nodes: nodes,
@@ -520,6 +520,7 @@
 		let to-pt(len) = to-abs-length(len, options.em-size)
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
+
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
