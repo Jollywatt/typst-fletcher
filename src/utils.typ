@@ -158,10 +158,6 @@
 })
 
 #let point-is-in-rect(point, (center, size)) = {
-	// vector.sub(point, center)
-	// 	.map(calc.abs)
-	// 	.zip(size)
-	// 	.all(((a, b)) => a <= cacb)
 	point.zip(center, size).all(((x, o, s)) => {
 		calc.abs(x - o) <= s/2
 	})
