@@ -105,6 +105,7 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 	node((0,0), [hello]),
 	node((rel: (1, 0)), [right]),
 	for i in range(0, 8) {
+		edge("->")
 		node((rel: (i*360deg/8, 1cm), to: (1, 0)), sym.ast, fill: none)
 	},
 )

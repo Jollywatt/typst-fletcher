@@ -93,13 +93,12 @@
 ///
 /// - grid (dictionary): Representation of the grid layout, including:
 ///   - `flip`
-#let compute-cell-sizes(grid, nodes, edges) = {
+#let compute-cell-sizes(grid, nodes) = {
 	let rects = nodes.map(node => (center: node.pos, size: node.size))
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
 	let points = rects.map(r => r.center)
-	points += edges.map(edge => edge.vertices).join()
 
 	if points.len() == 0 { points.push((0,0)) }
 
@@ -164,14 +163,14 @@
 ///
 /// Rows and columns are sized to fit nodes. Coordinates are not required to
 /// start at the origin, `(0,0)`.
-#let compute-grid(nodes, edges, options) = {
+#let compute-grid(nodes, options) = {
 	let grid = (
 		axes: options.axes,
 		spacing: options.spacing,
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, nodes, edges)
+	grid += compute-cell-sizes(grid, nodes)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
@@ -524,9 +523,6 @@
 
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
-		let edges = edges
-			.map(edge => resolve-edge-options(edge, options))
-			.map(edge => resolve-edge-vertices(edge, nodes))
 
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
@@ -536,7 +532,7 @@
 			nodes, "pos", ctx: (target-system: "uv"),
 		).filter(node => not is-nan-coord(node.pos))
 
-		let grid = compute-grid(nodes-affecting-grid, edges, options)
+		let grid = compute-grid(nodes-affecting-grid, options)
 
 		// compute final/cetz coordinates for nodes and edges
 		nodes = resolve-node-coordinates(
@@ -545,6 +541,10 @@
 
 		nodes = compute-node-enclosures(nodes, grid)
 
+		let edges = edges
+			.map(edge => resolve-edge-options(edge, options))
+			.map(edge => resolve-edge-vertices(edge, nodes))
+			
 		edges = edges.map(edge => {
 			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
 			if edge.kind == "corner" {
