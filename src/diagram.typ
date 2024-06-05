@@ -258,7 +258,7 @@
 
 				prev-coord = node.pos
 				for i in range(number-of-edges-needing-end-vertex) {
-					// the `to` point of the previous edge is waiting to be set
+					// previous edge(s) are waiting for their last vertex
 					edges.at(-1 - i).vertices.at(-1) = node.pos
 				}
 				number-of-edges-needing-end-vertex = 0
@@ -271,7 +271,6 @@
 				}
 				if edge.vertices.at(-1) == auto {
 					// if edge's end point isn't set, defer it until the next node is seen.
-					// currently, this is only allowed for one edge at a time.
 					number-of-edges-needing-end-vertex += 1
 				}
 				edges.push(edge)
@@ -289,8 +288,9 @@
 
 	edges = edges.map(edge => {
 		if edge.vertices.at(-1) == auto {
-			edge.vertices.at(-1) = vector.add(edge.vertices.at(-2), (1,0))
+			edge.vertices.at(-1) = (rel: (1,0))
 		}
+		assert(edge.vertices.all(v => v != auto))
 		edge
 	})
 
@@ -523,10 +523,8 @@
 
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
-
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
-
 
 		let nodes-affecting-grid = resolve-node-coordinates(
 			nodes, "pos", ctx: (target-system: "uv"),
@@ -543,10 +541,9 @@
 
 		let edges = edges
 			.map(edge => resolve-edge-options(edge, options))
-			.map(edge => resolve-edge-vertices(edge, nodes))
-			
+			.map(edge => resolve-edge-vertices(edge, grid, nodes))
+
 		edges = edges.map(edge => {
-			edge.final-vertices = edge.vertices.map(uv-to-xy.with(grid))
 			if edge.kind == "corner" {
 				edge = convert-edge-corner-to-poly(edge)
 			}

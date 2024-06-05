@@ -1,6 +1,7 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "coords.typ": vector-polar-with-xy-or-uv-length, resolve-label-coordinate, resolve-relative-coordinates
+#import "coords.typ": vector-polar-with-xy-or-uv-length
+#import "cetz-rework.typ": resolve, default-ctx
 
 #let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
@@ -914,6 +915,26 @@
 		.map(((option, label, vert)) => {
 			map-auto(map-auto(option, label), vert)
 		})
+
+	edge
+}
+
+#let resolve-edge-vertices(edge, grid, nodes) = {
+
+	let start-and-end-labels = (0, -1).map(i => {
+		let vert = edge.vertices.at(i)
+		if type(vert) == label { vert } else { auto }
+	})
+
+	let ctx = default-ctx + (target-system: "xyz", grid: grid)
+
+	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
+	edge.final-vertices = verts.map(vector-2d)
+
+
+	let start-and-end-vertices = (0, -1).map(i => edge.final-vertices.at(i))
+	edge.snap-to = edge.snap-to.zip(start-and-end-labels, start-and-end-vertices)
+		.map(((given, label, vert)) => map-auto(given, map-auto(label, vert)))
 
 	edge
 }

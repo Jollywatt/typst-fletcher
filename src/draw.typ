@@ -773,7 +773,7 @@
 
 	if type(key) == array and key.len() == 2 {
 
-		let xy-pos = uv-to-xy(grid, key)
+		let xy-pos = key
 		let candidates = nodes.filter(node => {
 			if node.snap == false { return false }
 			point-is-in-rect(xy-pos, (
