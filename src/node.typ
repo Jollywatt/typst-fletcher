@@ -1,5 +1,6 @@
 #import "utils.typ": *
 #import "coords.typ": uv-to-xy
+#import "cetz-rework.typ": default-ctx, resolve
 #import "shapes.typ"
 
 
@@ -415,4 +416,26 @@
 }
 
 
+/// Resolve node positions to a target coordinate system in sequence.
+///
+/// CeTZ-style coordinate expressions work, with the previous coordinate `()`
+/// refering to the resolved position of the previous node.
+///
+/// - nodes (array): Array of nodes, each a dictionary containing a `pos` entry,
+///   which should be a CeTZ-compatible coordinate expression.
+/// - into (string): Key to inset into the node dictionary containing the value
+///   of the resolved coordinate.
+/// - ctx (dictionary): CeTZ-style context to be passed to `resolve(ctx, ..)`.
+///   This must contain `target-system`, and optionally `grid`.
+/// -> array
+#let resolve-node-coordinates(nodes, into, ctx: (:)) = {
+	let ctx = default-ctx + ctx
 
+	for i in range(nodes.len()) {
+		let (new-ctx, coord) = resolve(ctx, nodes.at(i).pos)
+		nodes.at(i).insert(into, vector-2d(coord))
+		ctx = new-ctx
+	}
+
+	nodes
+}

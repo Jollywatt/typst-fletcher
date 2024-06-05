@@ -1,7 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "coords.typ": vector-polar-with-xy-or-uv-length
-
+#import "coords.typ": vector-polar-with-xy-or-uv-length, resolve-label-coordinate, resolve-relative-coordinates
 
 #let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),
@@ -885,6 +884,36 @@
 	if edge.label-fill == false { edge.label-fill = none }
 
 	edge.label-wrapper = map-auto(edge.label-wrapper, options.label-wrapper)
+
+	edge
+}
+
+#let resolve-edge-vertices(edge, nodes) = {
+
+	let first-last-labels = (0, -1).map(i => {
+		if type(edge.vertices.at(i)) == label {
+			edge.vertices.at(i)
+		} else { auto }
+	})
+
+	let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
+	edge.vertices = resolve-relative-coordinates(verts)
+
+	if not edge.vertices.all(i => type(i) == array) {
+		panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
+	}
+
+	let first-last-verts = (0, -1).map(i => edge.vertices.at(i))
+
+	// the first/last snap-to value should be:
+	// - whatever the user sets, or if auto:
+	// - the first/last vertex name, or if it is not a name:
+	// - the first/last vertex coordinate
+	edge.snap-to = edge.snap-to
+		.zip(first-last-labels, first-last-verts)
+		.map(((option, label, vert)) => {
+			map-auto(map-auto(option, label), vert)
+		})
 
 	edge
 }

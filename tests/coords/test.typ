@@ -1,5 +1,6 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge
+#import "/src/diagram.typ": compute-cell-centers, interpret-axes
 
 
 #import "/src/cetz-rework.typ": *
@@ -81,6 +82,8 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 #resolve(ctx, (1, 2), (rel: (45deg, 2pt))).slice(1)
 
 
+#assert(is-grid-independent-uv-coordinate((1,2)))
+#assert(not is-grid-independent-uv-coordinate((1pt,2pt)))
 
 #let uv-coord-is-grid-independent(coord) = {
 	let ctx = default-ctx + (
@@ -94,3 +97,14 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 #assert(uv-coord-is-grid-independent((rel: (+10, 0), to: (1, 2))))
 #assert(not uv-coord-is-grid-independent((1pt, 2pt)))
 #assert(not uv-coord-is-grid-independent((rel: (+10pt, 0pt), to: (1, 2))))
+
+#pagebreak()
+
+#diagram(
+	node-fill: teal.transparentize(60%),
+	node((0,0), [hello]),
+	node((rel: (1, 0)), [right]),
+	for i in range(0, 8) {
+		node((rel: (i*360deg/8, 1cm), to: (1, 0)), sym.ast, fill: none)
+	},
+)

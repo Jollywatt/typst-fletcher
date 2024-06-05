@@ -1,6 +1,5 @@
 #import "/src/deps.typ": cetz
 #import "/src/coords.typ": uv-to-xy, xy-to-uv
-#import "/src/diagram.typ": compute-cell-centers, interpret-axes
 #import "/src/utils.typ": vector
 
 #let default-ctx = (
@@ -147,3 +146,10 @@
 	return (ctx, ..result)
 }
 
+#let is-nan-coord(coord) = coord.all(x => float(x).is-nan())
+
+#let is-grid-independent-uv-coordinate(coord) = {
+	let ctx = default-ctx + (target-system: "uv")
+	(ctx, coord) = resolve(ctx, coord)
+	not is-nan-coord(coord)
+}

@@ -3,6 +3,7 @@
 #import "edge.typ": *
 #import "draw.typ": draw-diagram
 #import "coords.typ": *
+#import "cetz-rework.typ": is-grid-independent-uv-coordinate, default-ctx, resolve, is-nan-coord
 
 
 
@@ -523,48 +524,24 @@
 
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
-		let edges = edges.map(edge => resolve-edge-options(edge, options))
-
-		edges = edges.map(edge => {
-
-			let first-last-labels = (0, -1).map(i => {
-				if type(edge.vertices.at(i)) == label {
-					edge.vertices.at(i)
-				} else { auto }
-			})
-
-			let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
-			edge.vertices = resolve-relative-coordinates(verts)
-
-			if not edge.vertices.all(i => type(i) == array) {
-				panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
-			}
-
-			let first-last-verts = (0, -1).map(i => edge.vertices.at(i))
-
-			// the first/last snap-to value should be:
-			// - whatever the user sets, or if auto:
-			// - the first/last vertex name, or if it is not a name:
-			// - the first/last vertex coordinate
-			edge.snap-to = edge.snap-to
-				.zip(first-last-labels, first-last-verts)
-				.map(((option, label, vert)) => {
-					map-auto(map-auto(option, label), vert)
-				})
-
-			edge
-		})
+		let edges = edges
+			.map(edge => resolve-edge-options(edge, options))
+			.map(edge => resolve-edge-vertices(edge, nodes))
 
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
-		let grid = compute-grid(nodes, edges, options)
 
+
+		let nodes-affecting-grid = resolve-node-coordinates(
+			nodes, "pos", ctx: (target-system: "uv"),
+		).filter(node => not is-nan-coord(node.pos))
+
+		let grid = compute-grid(nodes-affecting-grid, edges, options)
 
 		// compute final/cetz coordinates for nodes and edges
-		nodes = nodes.map(node => {
-			node.final-pos = uv-to-xy(grid, node.pos)
-			node
-		})
+		nodes = resolve-node-coordinates(
+			nodes, "final-pos", ctx: (target-system: "xyz", grid: grid),
+		)
 
 		nodes = compute-node-enclosures(nodes, grid)
 

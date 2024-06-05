@@ -14,7 +14,7 @@
 ///   The `grid` is passed to #the-param[diagram][render].
 /// - uv (array): Elastic coordinate, `(float, float)`.
 #let uv-to-xy(grid, uv) = {
-	let (i, j) = vector.sub(uv, grid.origin)
+	let (i, j) = vector.sub(vector-2d(uv), grid.origin)
 
 	let (n-x, n-y) = grid.centers.map(array.len)
 	if grid.flip.xy { (n-x, n-y) = (n-y, n-x) }
