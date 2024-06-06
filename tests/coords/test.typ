@@ -110,3 +110,14 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 	},
 	edge("->>")
 )
+
+#diagram(
+	debug: 1,
+	node((0,1), [A]),
+	edge("->"),
+	edge("->", bend: 40deg),
+	node((rel: (1,1)), [B]),
+	node((rel: (45deg,1cm)), [C]),
+	edge("->")
+)
+

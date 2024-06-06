@@ -703,10 +703,9 @@
 
 	import cetz.draw
 	draw.group({
-		draw.rect(
-			..array.zip(x-lims, y-lims),
-			stroke: DEBUG_COLOR + .5pt,
-		)
+		let (a, b) = array.zip(x-lims, y-lims)
+		if a == b { b = vector.add(b, (1e-3pt, 1e-3pt)) }
+		draw.rect(a, b, stroke: DEBUG_COLOR + .5pt)
 
 		draw.set-style(stroke: (
 			paint: DEBUG_COLOR,

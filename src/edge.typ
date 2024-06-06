@@ -926,7 +926,18 @@
 		if type(vert) == label { vert } else { auto }
 	})
 
-	let ctx = default-ctx + (target-system: "xyz", grid: grid)
+	let prev-pos = nodes.at(edge.node-index - 1, default: (pos: (0, 0))).pos
+	let next-pos = nodes.at(edge.node-index, default: (pos: (rel: (1, 0)))).pos
+
+	let ctx = default-ctx + (
+		target-system: "xyz",
+		grid: grid,
+		prev: (pt: (0,0)/* should come from the previous node */)
+	)
+
+	edge.vertices.at(0) = map-auto(edge.vertices.at(0), prev-pos)
+	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
+
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
 	edge.final-vertices = verts.map(vector-2d)

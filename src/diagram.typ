@@ -254,25 +254,26 @@
 			if obj.value.class == "node" {
 				let node = obj.value
 
-				nodes.push(node)
 
-				prev-coord = node.pos
-				for i in range(number-of-edges-needing-end-vertex) {
-					// previous edge(s) are waiting for their last vertex
-					edges.at(-1 - i).vertices.at(-1) = node.pos
-				}
-				number-of-edges-needing-end-vertex = 0
+				// prev-coord = node.pos
+				// for i in range(number-of-edges-needing-end-vertex) {
+				// 	// previous edge(s) are waiting for their last vertex
+				// 	edges.at(-1 - i).vertices.at(-1) = (node-index: nodes.len())
+				// }
+				// number-of-edges-needing-end-vertex = 0
+				nodes.push(node)
 
 			} else if obj.value.class == "edge" {
 				let edge = obj.value
 
-				if edge.vertices.at(0) == auto {
-					edge.vertices.at(0) = prev-coord
-				}
-				if edge.vertices.at(-1) == auto {
-					// if edge's end point isn't set, defer it until the next node is seen.
-					number-of-edges-needing-end-vertex += 1
-				}
+				// if edge.vertices.at(0) == auto {
+				// 	edge.vertices.at(0) = (node-index: nodes.len())
+				// }
+				// if edge.vertices.at(-1) == auto {
+				// 	// if edge's end point isn't set, defer it until the next node is seen.
+				// 	number-of-edges-needing-end-vertex += 1
+				// }
+				edge.node-index = nodes.len()
 				edges.push(edge)
 			}
 
@@ -286,13 +287,13 @@
 		}
 	}
 
-	edges = edges.map(edge => {
-		if edge.vertices.at(-1) == auto {
-			edge.vertices.at(-1) = (rel: (1,0))
-		}
-		assert(edge.vertices.all(v => v != auto))
-		edge
-	})
+	// edges = edges.map(edge => {
+	// 	if edge.vertices.at(-1) == auto {
+	// 		edge.vertices.at(-1) = (rel: (1,0))
+	// 	}
+	// 	assert(edge.vertices.all(v => v != auto))
+	// 	edge
+	// })
 
 	// allow nodes which enclose other nodes to have pos: auto
 	nodes = nodes.map(node => {
@@ -521,7 +522,6 @@
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
 
-
 		let nodes = nodes.map(node => resolve-node-options(node, options))
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
@@ -535,6 +535,10 @@
 		// compute final/cetz coordinates for nodes and edges
 		nodes = resolve-node-coordinates(
 			nodes, "final-pos", ctx: (target-system: "xyz", grid: grid),
+		)
+
+		nodes = resolve-node-coordinates(
+			nodes, "pos", ctx: (target-system: "uv", grid: grid)
 		)
 
 		nodes = compute-node-enclosures(nodes, grid)
