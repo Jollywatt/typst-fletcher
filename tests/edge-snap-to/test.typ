@@ -33,3 +33,19 @@ Allow `snap-to` to be `none`.
     edge((0,i), (0,i + 1), "o..o")
   },
 )
+
+#pagebreak()
+
+#diagram(
+  node-stroke: 0.6pt,
+  node-fill: white,
+  node((0,1), [X]),
+  edge("->-", bend: 40deg),
+  node((1,0), [Y], name: <y>),
+  node($Sigma$, enclose: ((0,1), <y>),
+       stroke: teal, fill: teal.lighten(90%),
+       snap: -1, // prioritise other nodes when auto-snapping
+       name: <group>),
+  edge(<group>, <z>, "->"),
+  node((2.5,0.5), [Z], name: <z>),
+)

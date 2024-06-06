@@ -555,10 +555,12 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 	node((0,1), [X]),
 	edge("->-", bend: 40deg),
 	node((1,0), [Y], name: <y>),
-	node($Sigma$, enclose: ((0,1), <y>), inset: 10pt,
-	    stroke: teal, fill: teal.lighten(90%), name: <group>),
-	node((2.5,0.5), [Z], name: <z>),
+	node($Sigma$, enclose: ((0,1), <y>),
+	     stroke: teal, fill: teal.lighten(90%),
+	     snap: -1, // prioritise other nodes when auto-snapping
+	     name: <group>),
 	edge(<group>, <z>, "->"),
+	node((2.5,0.5), [Z], name: <z>),
 )
 ```)
 
