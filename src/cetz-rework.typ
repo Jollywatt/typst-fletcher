@@ -3,11 +3,11 @@
 #import "/src/utils.typ": vector
 
 #let default-ctx = (
-  length: 1cm,
-  debug: false,
+  // length: 1cm,
+  // debug: false,
   // Previous element position & bbox
   prev: (pt: (0, 0, 0)),
-  style: (:),
+  // style: (:),
   // Current transformation matrix, a rhs coordinate system
   // where z is sheared by a half x and y.
   //   +x = right, +y = up, +z = 1/2 (left + down)
@@ -19,7 +19,7 @@
   // Nodes, stores anchors and paths
   nodes: (:),
   // group stack
-  groups: (),
+  // groups: (),
 )
 
 #let resolve-system(coord) = {
@@ -108,7 +108,7 @@
 
 	let error-value = (coord: (float("nan"),)*3, update: update)
 
-	if to == none {panic(c, ctx)}
+	if to == none or type(to) != array {panic(c, ctx)}
 	if is-xy(rel) and is-uv(to) {
 		if "grid" not in ctx { return error-value }
 		to = uv-to-xy(ctx.grid, to)

@@ -894,7 +894,8 @@
 
 	let node-index(i, default) = {
 		if "node-index" in edge and edge.node-index != none {
-			nodes.at(edge.node-index + i, default: (pos: default)).pos
+			let node = nodes.at(edge.node-index + i, default: none)
+			if node == none { default } else { node.pos.at(ctx.target-system) }
 		} else { default }
 	}
 
@@ -907,14 +908,6 @@
 
 	edge.vertices.at(0) = map-auto(edge.vertices.at(0), prev-pos)
 	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
-
-	for node in nodes {
-		if node.name != none {
-			ctx.nodes.insert(str(node.name), (
-				anchors: _ => if ctx.target-system == "xyz" { node.final-pos } else { node.pos }
-			))
-		}
-	}
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
 	verts.map(vector-2d)

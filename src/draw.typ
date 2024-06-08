@@ -12,7 +12,7 @@
 		if node.stroke != none or node.fill != none {
 
 			cetz.draw.group({
-				cetz.draw.translate(node.final-pos)
+				cetz.draw.translate(node.pos.xyz)
 				for (i, extrude) in node.extrude.enumerate() {
 					cetz.draw.set-style(
 						fill: if i == 0 { node.fill },
@@ -26,7 +26,7 @@
 		if node.label != none {
 
 			cetz.draw.content(
-				node.final-pos,
+				node.pos.xyz,
 				box(
 					// wrapping label in a box allows user to control its alignment
 					align(center + horizon, node.label),
@@ -47,7 +47,7 @@
 	if debug >= 1 {
 		// dot at node anchor
 		cetz.draw.circle(
-			node.final-pos,
+			node.pos.xyz,
 			radius: 0.5pt,
 			fill: DEBUG_COLOR,
 			stroke: none,
@@ -57,13 +57,13 @@
 	if debug >= 2 and node.radius != 0pt {
 		// node bounding rectangle
 		cetz.draw.rect(
-			..rect-at(node.final-pos, node.size),
+			..rect-at(node.pos.xyz, node.size),
 			stroke: DEBUG_COLOR + .1pt,
 		)
 
 		// node anchoring outline (what edges snap to)
 		cetz.draw.group({
-			cetz.draw.translate(node.final-pos)
+			cetz.draw.translate(node.pos.xyz)
 			cetz.draw.set-style(
 				stroke: DEBUG_COLOR2 + 0.25pt,
 				fill: none,
@@ -525,15 +525,15 @@
 /// Get the anchor point around a node outline at a certain angle.
 #let get-node-anchor(node, θ, callback) = {
 	let outline = cetz.draw.group({
-		cetz.draw.translate(node.final-pos)
+		cetz.draw.translate(node.pos.xyz)
 		(node.shape)(node, node.outset)
 	})
 	let dummy-line = cetz.draw.line(
-		node.final-pos,
+		node.pos.xyz,
 		(rel: (θ, 10*node.radius))
 	)
 
-	find-farthest-intersection(outline + dummy-line, node.final-pos, callback)
+	find-farthest-intersection(outline + dummy-line, node.pos.xyz, callback)
 }
 
 /// Return the anchor point for an edge connecting to a node with the "defocus"
@@ -576,7 +576,7 @@
 	let intersection-objects = nodes.map(nodes => {
 		for node in nodes {
 			cetz.draw.group({
-				cetz.draw.translate(node.final-pos)
+				cetz.draw.translate(node.pos.xyz)
 				(node.shape)(node, node.outset)
 			})
 		}
@@ -609,7 +609,7 @@
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
 		for node in nodes {
 			cetz.draw.group({
-				cetz.draw.translate(node.final-pos)
+				cetz.draw.translate(node.pos.xyz)
 				(node.shape)(node, node.outset)
 			})
 		}
@@ -639,7 +639,7 @@
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
 		for node in nodes {
 			cetz.draw.group({
-				cetz.draw.translate(node.final-pos)
+				cetz.draw.translate(node.pos.xyz)
 				(node.shape)(node, node.outset)
 			})
 		}
@@ -775,7 +775,7 @@
 		let candidates = nodes.filter(node => {
 			if node.snap == false { return false }
 			point-is-in-rect(xy-pos, (
-				center: node.final-pos,
+				center: node.pos.xyz,
 				size: node.size,
 			))
 
@@ -805,7 +805,7 @@
 
 	let node-finder = find-snapping-nodes.with(grid, nodes)
 	for edge in edges {
-		let snap-to-nodes = array.zip(edge.snap-to, edge.vertices, edge.final-vertices)
+		let snap-to-nodes = edge.snap-to.zip(edge.vertices, edge.final-vertices)
 			.map(((given, raw, xyz)) => {
 				map-auto(given, if type(raw) == label { raw } else { xyz })	
 			}).map(node-finder)

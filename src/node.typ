@@ -251,7 +251,7 @@
 
 	metadata((
 		class: "node",
-		pos: pos,
+		pos: (raw: pos),
 		name: pass-none(as-label)(name),
 		label: label,
 		inset: inset,
@@ -428,20 +428,18 @@
 /// - ctx (dictionary): CeTZ-style context to be passed to `resolve(ctx, ..)`.
 ///   This must contain `target-system`, and optionally `grid`.
 /// -> array
-#let resolve-node-coordinates(nodes, into, ctx: (:)) = {
+#let resolve-node-coordinates(nodes, ctx: (:)) = {
 	let ctx = default-ctx + ctx
 	let coord
 
 	for i in range(nodes.len()) {
 		let node = nodes.at(i)
-		(ctx, coord) = resolve(ctx, node.pos)
+		(ctx, coord) = resolve(ctx, node.pos.raw)
 		if node.name != none {
-			ctx.nodes += (
-				str(node.name): (anchors: _ => coord)
-			)
+			ctx.nodes += (str(node.name): (anchors: _ => coord))
 		}
-		nodes.at(i).insert(into, vector-2d(coord))
+		nodes.at(i).pos.insert(ctx.target-system, vector-2d(coord))
 	}
 
-	nodes
+	(ctx, nodes)
 }

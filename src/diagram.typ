@@ -93,12 +93,12 @@
 ///
 /// - grid (dictionary): Representation of the grid layout, including:
 ///   - `flip`
-#let compute-cell-sizes(grid, nodes) = {
-	let rects = nodes.map(node => (center: node.pos, size: node.size))
+#let compute-cell-sizes(grid, verts, rects) = {
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
 	let points = rects.map(r => r.center)
+	points += verts
 
 	if points.len() == 0 { points.push((0,0)) }
 
@@ -163,14 +163,14 @@
 ///
 /// Rows and columns are sized to fit nodes. Coordinates are not required to
 /// start at the origin, `(0,0)`.
-#let compute-grid(nodes, options) = {
+#let compute-grid(rects, verts, options) = {
 	let grid = (
 		axes: options.axes,
 		spacing: options.spacing,
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, nodes)
+	grid += compute-cell-sizes(grid, verts, rects)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
@@ -510,36 +510,34 @@
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
 
-		let nodes-affecting-grid = resolve-node-coordinates(
-			nodes, "pos", ctx: (target-system: "uv"),
-		)
+		let (ctx, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
+
+		// nodes and edges whose uv coordinates can be resolved without knowing the grid
+		let rects-affecting-grid = nodes
+			.filter(node => not is-nan-coord(node.pos.uv))
+			.map(node => (center: node.pos.uv, size: node.size))
 
 		let vertices-affecting-grid = edges.map(edge => {
-			resolve-edge-vertices(edge, ctx: (target-system: "uv"), nodes-affecting-grid)
+			resolve-edge-vertices(edge, ctx: ctx + (target-system: "uv"), nodes)
+		}).join().filter(vert => not is-nan-coord(vert))
 
-		})
-
-		let grid = compute-grid(nodes-affecting-grid.filter(node => not is-nan-coord(node.pos)), options)
+		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
 		// compute final/cetz coordinates for nodes and edges
-		nodes = resolve-node-coordinates(
-			nodes, "final-pos", ctx: (target-system: "xyz", grid: grid),
-		)
+		(ctx, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
 
-		nodes = resolve-node-coordinates(
-			nodes, "pos", ctx: (target-system: "uv", grid: grid)
+		// do we even need this?
+		(_, nodes) = resolve-node-coordinates(
+			nodes, ctx: (target-system: "uv", grid: grid)
 		)
 
 		nodes = compute-node-enclosures(nodes, grid)
 
 		edges = edges.map(edge => {
 			edge.final-vertices = resolve-edge-vertices(
-				edge, ctx: (target-system: "xyz", grid: grid), nodes
+				edge, ctx: ctx + (target-system: "xyz", grid: grid), nodes
 			)
-			edge
-		})
 
-		edges = edges.map(edge => {
 			if edge.kind == "corner" {
 				edge = convert-edge-corner-to-poly(edge)
 			}
