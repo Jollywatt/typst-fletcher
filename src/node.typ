@@ -1,6 +1,6 @@
 #import "utils.typ": *
 #import "coords.typ": uv-to-xy
-#import "cetz-rework.typ": default-ctx, resolve
+#import "cetz-rework.typ": default-ctx, resolve, NAN_COORD
 #import "shapes.typ"
 
 
@@ -321,7 +321,7 @@
 ///
 /// Widths and heights that are `auto` are determined by measuring the size of
 /// the node's label.
-#let compute-node-sizes(nodes, styles) = nodes.map(node => {
+#let measure-node-size(node, styles) = {
 
 	// Width and height explicitly given
 	if auto not in node.size {
@@ -338,12 +338,14 @@
 	} else {
 
 		let inner-size = node.size.map(pass-auto(i => i - 2*node.inset))
+
+		// Determine physical size of node content
 		let (width, height) = measure(box(
 			node.label,
 			width:  inner-size.at(0),
 			height: inner-size.at(1),
 		), styles)
-		// Determine physical size of node content
+
 		// let (width, height) = node.inner-size
 		let radius = vector-len((width/2, height/2)) // circumcircle
 
@@ -372,11 +374,12 @@
 	if node.shape in (rect, "rect") { node.shape = shapes.rect }
 
 	node
-})
+}
 
 
 /// Process the `enclose` options of an array of nodes.
 #let compute-node-enclosures(nodes, grid) = {
+
 	let nodes = nodes.map(node => {
 		if node.enclose.len() == 0 { return node }
 
@@ -389,7 +392,7 @@
 			} else {
 				// if enclosed point resolves to a node
 				// enclose its bounding box
-				let (x, y) = near-node.final-pos
+				let (x, y) = near-node.pos.xyz
 				let (w, h) = near-node.size
 				(
 					(x - w/2, y - h/2),
@@ -402,17 +405,26 @@
 
 		let (center, size) = bounding-rect(enclosed-vertices)
 
-		node.final-pos = center
+		node.pos.xyz = center
 		node.size = vector-max(
 			size.map(d => d + node.inset*2),
 			node.size,
 		)
 		node.shape = shapes.rect // TODO: support different node shapes with enclose
 
+
 		node
 	})
 
-	nodes
+	let extra-anchors = nodes.map(node => {
+		if node.name != none {
+			(str(node.name): (anchors: _ => node.pos.xyz))
+		} else { (:) }
+	}).join()
+
+	// if extra-anchors.len() > 0 { panic(nodes, extra-anchors)}
+
+	(extra-anchors, nodes)
 }
 
 
@@ -434,7 +446,14 @@
 
 	for i in range(nodes.len()) {
 		let node = nodes.at(i)
-		(ctx, coord) = resolve(ctx, node.pos.raw)
+
+		if node.pos.raw == auto {
+			// skip enclosing nodes, their position is determined post-grid
+			coord = NAN_COORD
+		} else {
+			(ctx, coord) = resolve(ctx, node.pos.raw)
+		}
+
 		if node.name != none {
 			ctx.nodes += (str(node.name): (anchors: _ => coord))
 		}

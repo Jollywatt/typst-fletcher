@@ -1,7 +1,8 @@
 #import "/src/deps.typ": cetz
 #import "/src/coords.typ": uv-to-xy, xy-to-uv
-#import "/src/utils.typ": vector
+#import "/src/utils.typ": vector, is-nan-vector
 
+#let NAN_COORD = (float("nan"),)*3
 #let default-ctx = (
   // length: 1cm,
   // debug: false,
@@ -12,6 +13,7 @@
   // where z is sheared by a half x and y.
   //   +x = right, +y = up, +z = 1/2 (left + down)
   transform: cetz.matrix.ident(),
+  // transform: 
     // ((1, 0,-.5, 0),
     //  (0,-1,+.5, 0),
     //  (0, 0, .0, 0),
@@ -189,10 +191,9 @@
 	return (ctx, ..result)
 }
 
-#let is-nan-coord(coord) = coord.all(x => float(x).is-nan())
 
 #let is-grid-independent-uv-coordinate(coord) = {
 	let ctx = default-ctx + (target-system: "uv")
 	(ctx, coord) = resolve(ctx, coord)
-	not is-nan-coord(coord)
+	not is-nan-vector(coord)
 }

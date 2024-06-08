@@ -3,7 +3,7 @@
 #import "edge.typ": *
 #import "draw.typ": draw-diagram
 #import "coords.typ": *
-#import "cetz-rework.typ": is-grid-independent-uv-coordinate, default-ctx, resolve, is-nan-coord
+#import "cetz-rework.typ": is-grid-independent-uv-coordinate, default-ctx, resolve
 
 
 
@@ -504,43 +504,50 @@
 		options.spacing = options.spacing.map(to-pt)
 		options.cell-size = options.cell-size.map(to-pt)
 
-		let nodes = nodes.map(node => resolve-node-options(node, options))
+		let nodes = nodes.map(node => {
+			node = resolve-node-options(node, options)
+			node = measure-node-size(node, styles)
+			node
+		})
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
-		// measure node sizes and determine diagram layout
-		let nodes = compute-node-sizes(nodes, styles)
 
-		let (ctx, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
+		// try resolving node uv coordinates. this resolves to NaN coords if the coord depends on physical lengths
+		let (ctx-with-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
-			.filter(node => not is-nan-coord(node.pos.uv))
+			.filter(node => not is-nan-vector(node.pos.uv))
 			.map(node => (center: node.pos.uv, size: node.size))
 
 		let vertices-affecting-grid = edges.map(edge => {
-			resolve-edge-vertices(edge, ctx: ctx + (target-system: "uv"), nodes)
-		}).join().filter(vert => not is-nan-coord(vert))
+			resolve-edge-vertices(edge, ctx: ctx-with-anchors + (target-system: "uv"), nodes)
+		}).join()
+		if vertices-affecting-grid == none { vertices-affecting-grid = () }
+		vertices-affecting-grid = vertices-affecting-grid.filter(vert => not is-nan-vector(vert))
 
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
-		// compute final/cetz coordinates for nodes and edges
-		(ctx, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
+		// now with grid determined, compute final (physical) coordinates for nodes and edges
+		let (ctx-with-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
 
-		// do we even need this?
-		(_, nodes) = resolve-node-coordinates(
-			nodes, ctx: (target-system: "uv", grid: grid)
-		)
+		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
 
-		nodes = compute-node-enclosures(nodes, grid)
+
+
+		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
+		ctx-with-anchors.nodes += extra-anchors
+		// panic(nodes.filter(node => node.enclose.len() > 0))
 
 		edges = edges.map(edge => {
 			edge.final-vertices = resolve-edge-vertices(
-				edge, ctx: ctx + (target-system: "xyz", grid: grid), nodes
+				edge, ctx: ctx-with-anchors + (target-system: "xyz", grid: grid), nodes
 			)
 
 			if edge.kind == "corner" {
 				edge = convert-edge-corner-to-poly(edge)
 			}
+			if not edge.final-vertices.all(is-length-vector) {panic(edge)}
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})

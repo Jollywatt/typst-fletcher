@@ -22,6 +22,7 @@
 	node-stroke: .7pt,
 	edge-stroke: .7pt,
 	spacing: 10pt,
+	debug: 1,
 
 	node((0,1), [volume]),
 	node((0,2), [gain]),

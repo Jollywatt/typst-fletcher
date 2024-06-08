@@ -105,6 +105,9 @@
 }
 
 
+#let is-nan-vector(v) = v.all(x => float(x).is-nan())
+#let is-length-vector(v) = v.all(x => type(x) == length)
+#let is-number-vector(v) = v.all(x => type(x) in (int, float))
 
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
@@ -229,11 +232,14 @@
 
 
 #let find-node-at(nodes, pos) = {
+	let system = if pos.all(x => type(x) == length) { "xyz" } else { "uv" }
 	nodes.filter(node => {
+		if is-nan-vector(node.pos.at(system)) { return false }
+
 		// node must be within a one-unit block around pos
-		vector.sub(node.pos, pos).all(Δ => calc.abs(Δ) < 1)
+		vector.sub(node.pos.at(system), pos).all(Δ => calc.abs(Δ) < 1)
 	})
-		.sorted(key: node => vector.len(vector.sub(node.pos, pos)))
+		.sorted(key: node => vector.len(vector.sub(node.pos.at(system), pos)))
 		.at(0, default: none)
 }
 

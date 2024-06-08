@@ -774,12 +774,14 @@
 		let xy-pos = key
 		let candidates = nodes.filter(node => {
 			if node.snap == false { return false }
-			point-is-in-rect(xy-pos, (
+			let verdict = point-is-in-rect(xy-pos, (
 				center: node.pos.xyz,
 				size: node.size,
 			))
 
+			verdict
 		})
+
 
 		if candidates.len() > 0 {
 			// filter out nodes with lower snap priority
@@ -787,8 +789,8 @@
 			candidates = candidates.filter(node => node.snap == max-snap-priority)
 		}
 
-
 		return candidates
+
 	}
 
 	panic("Couldn't find node corresponding to " + repr(key))
@@ -802,13 +804,15 @@
 	edges,
 	debug: 0,
 ) = {
-
 	let node-finder = find-snapping-nodes.with(grid, nodes)
+	let first-last(x) = (x.at(0), x.at(-1))
 	for edge in edges {
-		let snap-to-nodes = edge.snap-to.zip(edge.vertices, edge.final-vertices)
-			.map(((given, raw, xyz)) => {
-				map-auto(given, if type(raw) == label { raw } else { xyz })	
-			}).map(node-finder)
+		let snap-to-nodes = edge.snap-to.zip(first-last(edge.vertices), first-last(edge.final-vertices)).enumerate()
+			.map(((i, (given, raw, xyz))) => {
+				let key = map-auto(given, if type(raw) == label { raw } else { xyz })
+				let node = node-finder(key)
+				node
+			})
 		draw-edge(edge, snap-to-nodes, debug: debug)
 	}
 
