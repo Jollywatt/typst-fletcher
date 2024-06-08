@@ -117,7 +117,7 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 	edge("->"),
 	edge("->", bend: 40deg),
 	node((rel: (1,1)), [B], name: <b>),
-	node((<a>, "|-", <b>), [C], name: <c>),
-	edge(<c>, <a>, "->")
+	node((rel: (89deg, 10pt), to: (<a>, "|-", <b>)), [C], name: <c>),
+	edge(<c>, <b>, "x..")
 )
 

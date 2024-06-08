@@ -889,50 +889,20 @@
 	edge
 }
 
-#let resolve-edge-vertices(edge, nodes) = {
 
-	let first-last-labels = (0, -1).map(i => {
-		if type(edge.vertices.at(i)) == label {
-			edge.vertices.at(i)
-		} else { auto }
-	})
+#let resolve-edge-vertices(edge, ctx: (:), nodes) = {
 
-	let verts = edge.vertices.map(resolve-label-coordinate.with(nodes))
-	edge.vertices = resolve-relative-coordinates(verts)
-
-	if not edge.vertices.all(i => type(i) == array) {
-		panic("Could not determine edge vertices, found " + repr(edge.vertices) + ".")
+	let node-index(i, default) = {
+		if "node-index" in edge and edge.node-index != none {
+			nodes.at(edge.node-index + i, default: (pos: default)).pos
+		} else { default }
 	}
 
-	let first-last-verts = (0, -1).map(i => edge.vertices.at(i))
+	let prev-pos = node-index(-1, (0, 0))
+	let next-pos = node-index(0, (rel: (1, 0)))
 
-	// the first/last snap-to value should be:
-	// - whatever the user sets, or if auto:
-	// - the first/last vertex name, or if it is not a name:
-	// - the first/last vertex coordinate
-	edge.snap-to = edge.snap-to
-		.zip(first-last-labels, first-last-verts)
-		.map(((option, label, vert)) => {
-			map-auto(map-auto(option, label), vert)
-		})
-
-	edge
-}
-
-#let resolve-edge-vertices(edge, grid, nodes) = {
-
-	let start-and-end-labels = (0, -1).map(i => {
-		let vert = edge.vertices.at(i)
-		if type(vert) == label { vert } else { auto }
-	})
-
-	let prev-pos = nodes.at(edge.node-index - 1, default: (pos: (0, 0))).pos
-	let next-pos = nodes.at(edge.node-index, default: (pos: (rel: (1, 0)))).pos
-
-	let ctx = default-ctx + (
-		target-system: "xyz",
-		grid: grid,
-		prev: (pt: (0,0)/* should come from the previous node */),
+	let ctx = default-ctx + ctx + (
+		prev: (pt: prev-pos),
 	)
 
 	edge.vertices.at(0) = map-auto(edge.vertices.at(0), prev-pos)
@@ -941,23 +911,15 @@
 	for node in nodes {
 		if node.name != none {
 			ctx.nodes.insert(str(node.name), (
-				anchors: _ => node.final-pos
+				anchors: _ => if ctx.target-system == "xyz" { node.final-pos } else { node.pos }
 			))
 		}
 	}
 
-
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
-	edge.final-vertices = verts.map(vector-2d)
+	verts.map(vector-2d)
 
-
-	let start-and-end-vertices = (0, -1).map(i => edge.final-vertices.at(i))
-	edge.snap-to = edge.snap-to.zip(start-and-end-labels, start-and-end-vertices)
-		.map(((given, label, vert)) => map-auto(given, map-auto(label, vert)))
-
-	edge
 }
-
 
 
 

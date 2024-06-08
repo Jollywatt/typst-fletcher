@@ -296,7 +296,6 @@
 		place-edge-label-on-curve(edge, curve, debug: debug)
 
 	}
-
 }
 
 
@@ -806,7 +805,10 @@
 
 	let node-finder = find-snapping-nodes.with(grid, nodes)
 	for edge in edges {
-		let snap-to-nodes = edge.snap-to.map(node-finder)
+		let snap-to-nodes = array.zip(edge.snap-to, edge.vertices, edge.final-vertices)
+			.map(((given, raw, xyz)) => {
+				map-auto(given, if type(raw) == label { raw } else { xyz })	
+			}).map(node-finder)
 		draw-edge(edge, snap-to-nodes, debug: debug)
 	}
 

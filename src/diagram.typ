@@ -194,16 +194,16 @@
 	let (x, y) = (0, 0)
 	for child in terms.children {
 		if child.func() == metadata {
-			if child.value.class == "edge" {
-				let edge = child.value
-				edge.vertices.at(0) = map-auto(edge.vertices.at(0), (x, y))
-				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
-				edges.push(edge)
-
-			} else if child.value.class == "node" {
+			if child.value.class == "node" {
 				let node = child.value
 				node.pos = (x, y)
 				nodes.push(node)
+			} else if child.value.class == "edge" {
+				let edge = child.value
+				edge.vertices.at(0) = map-auto(edge.vertices.at(0), (x, y))
+				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
+				edge.node-index = none
+				edges.push(edge)
 			}
 		} else if repr(child.func()) == "linebreak" {
 			y += 1
@@ -246,33 +246,14 @@
 	let nodes = ()
 	let edges = ()
 
-	let prev-coord = (0,0)
-	let number-of-edges-needing-end-vertex = 0
-
 	for obj in objects {
 		if obj.func() == metadata {
 			if obj.value.class == "node" {
 				let node = obj.value
-
-
-				// prev-coord = node.pos
-				// for i in range(number-of-edges-needing-end-vertex) {
-				// 	// previous edge(s) are waiting for their last vertex
-				// 	edges.at(-1 - i).vertices.at(-1) = (node-index: nodes.len())
-				// }
-				// number-of-edges-needing-end-vertex = 0
 				nodes.push(node)
 
 			} else if obj.value.class == "edge" {
 				let edge = obj.value
-
-				// if edge.vertices.at(0) == auto {
-				// 	edge.vertices.at(0) = (node-index: nodes.len())
-				// }
-				// if edge.vertices.at(-1) == auto {
-				// 	// if edge's end point isn't set, defer it until the next node is seen.
-				// 	number-of-edges-needing-end-vertex += 1
-				// }
 				edge.node-index = nodes.len()
 				edges.push(edge)
 			}
@@ -287,13 +268,14 @@
 		}
 	}
 
-	// edges = edges.map(edge => {
-	// 	if edge.vertices.at(-1) == auto {
-	// 		edge.vertices.at(-1) = (rel: (1,0))
-	// 	}
-	// 	assert(edge.vertices.all(v => v != auto))
-	// 	edge
-	// })
+	edges = edges.map(edge => {
+		// if edge.vertices.at(-1) == auto {
+		// 	edge.vertices.at(-1) = (rel: (1,0))
+		// }
+		// assert(edge.vertices.all(v => v != auto))
+		assert("node-index" in edge)
+		edge
+	})
 
 	// allow nodes which enclose other nodes to have pos: auto
 	nodes = nodes.map(node => {
@@ -523,14 +505,21 @@
 		options.cell-size = options.cell-size.map(to-pt)
 
 		let nodes = nodes.map(node => resolve-node-options(node, options))
+		let edges = edges.map(edge => resolve-edge-options(edge, options))
+
 		// measure node sizes and determine diagram layout
 		let nodes = compute-node-sizes(nodes, styles)
 
 		let nodes-affecting-grid = resolve-node-coordinates(
 			nodes, "pos", ctx: (target-system: "uv"),
-		).filter(node => not is-nan-coord(node.pos))
+		)
 
-		let grid = compute-grid(nodes-affecting-grid, options)
+		let vertices-affecting-grid = edges.map(edge => {
+			resolve-edge-vertices(edge, ctx: (target-system: "uv"), nodes-affecting-grid)
+
+		})
+
+		let grid = compute-grid(nodes-affecting-grid.filter(node => not is-nan-coord(node.pos)), options)
 
 		// compute final/cetz coordinates for nodes and edges
 		nodes = resolve-node-coordinates(
@@ -543,9 +532,12 @@
 
 		nodes = compute-node-enclosures(nodes, grid)
 
-		let edges = edges
-			.map(edge => resolve-edge-options(edge, options))
-			.map(edge => resolve-edge-vertices(edge, grid, nodes))
+		edges = edges.map(edge => {
+			edge.final-vertices = resolve-edge-vertices(
+				edge, ctx: (target-system: "xyz", grid: grid), nodes
+			)
+			edge
+		})
 
 		edges = edges.map(edge => {
 			if edge.kind == "corner" {
