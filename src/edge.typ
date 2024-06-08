@@ -932,11 +932,19 @@
 	let ctx = default-ctx + (
 		target-system: "xyz",
 		grid: grid,
-		prev: (pt: (0,0)/* should come from the previous node */)
+		prev: (pt: (0,0)/* should come from the previous node */),
 	)
 
 	edge.vertices.at(0) = map-auto(edge.vertices.at(0), prev-pos)
 	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
+
+	for node in nodes {
+		if node.name != none {
+			ctx.nodes.insert(str(node.name), (
+				anchors: _ => node.final-pos
+			))
+		}
+	}
 
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)

@@ -25,6 +25,8 @@
 #let resolve-system(coord) = {
 	if type(coord) == dictionary and ("u", "v").all(k => k in coord) {
 		return "uv"
+	} else if type(coord) == label {
+		return "element"
 	}
 
 	let cetz-system = cetz.coordinate.resolve-system(coord)
@@ -41,6 +43,47 @@
 	}
 }
 
+
+#let resolve-anchor(ctx, c) = {
+  // (name: <string>, anchor: <number, angle, string> or <none>)
+  // "name.anchor"
+  // "name"
+  if type(c) == label { c = str(c) }
+
+  let (name, anchor) = if type(c) == str {
+    let (name, ..anchor) = c.split(".")
+    if anchor.len() == 0 {
+      anchor = "default"
+    }
+    (name, anchor)
+  } else {
+    (c.name, c.at("anchor", default: "default"))
+  }
+
+  // Check if node is known
+  assert(name in ctx.nodes,
+    message: "Unknown element '" + name + "' in elements " + repr(ctx.nodes.keys()))
+
+  // Resolve length anchors
+  if type(anchor) == length {
+    anchor = util.resolve-number(ctx, anchor)
+  }
+
+  // Check if anchor is known
+  let node = ctx.nodes.at(name)
+  let pos = (node.anchors)(anchor)
+
+  if pos.all(x => type(x) in (int, float)) {
+	  pos = cetz.util.revert-transform(
+	    ctx.transform,
+	    pos
+	  )
+  }
+
+
+
+  return pos
+}
 
 
 
@@ -122,7 +165,7 @@
 		} else if t == "barycentric" {
 			cetz.coordinate.resolve-barycentric(ctx, c)
 		} else if t in ("element", "anchor") {
-			cetz.coordinate.resolve-anchor(ctx, c)
+			resolve-anchor(ctx, c)
 		} else if t == "tangent" {
 			cetz.coordinate.resolve-tangent(resolve, ctx, c)
 		} else if t == "perpendicular" {

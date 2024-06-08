@@ -113,11 +113,11 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 
 #diagram(
 	debug: 1,
-	node((0,1), [A]),
+	node((0,1), [A], name: <a>),
 	edge("->"),
 	edge("->", bend: 40deg),
-	node((rel: (1,1)), [B]),
-	node((rel: (45deg,1cm)), [C]),
-	edge("->")
+	node((rel: (1,1)), [B], name: <b>),
+	node((<a>, "|-", <b>), [C], name: <c>),
+	edge(<c>, <a>, "->")
 )
 

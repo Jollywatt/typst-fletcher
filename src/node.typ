@@ -430,11 +430,17 @@
 /// -> array
 #let resolve-node-coordinates(nodes, into, ctx: (:)) = {
 	let ctx = default-ctx + ctx
+	let coord
 
 	for i in range(nodes.len()) {
-		let (new-ctx, coord) = resolve(ctx, nodes.at(i).pos)
+		let node = nodes.at(i)
+		(ctx, coord) = resolve(ctx, node.pos)
+		if node.name != none {
+			ctx.nodes += (
+				str(node.name): (anchors: _ => coord)
+			)
+		}
 		nodes.at(i).insert(into, vector-2d(coord))
-		ctx = new-ctx
 	}
 
 	nodes
