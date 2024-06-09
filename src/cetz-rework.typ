@@ -124,6 +124,9 @@
 	if ctx.target-system == "xyz" and is-uv(c) {
 		if "grid" not in ctx { return error-value }
 		c = uv-to-xy(ctx.grid, c)
+	} else if ctx.target-system == "uv" and is-xy(c) {
+		if "grid" not in ctx { return error-value }
+		c = xy-to-uv(ctx.grid, c)
 	}
 
 	(coord: c, update: update)

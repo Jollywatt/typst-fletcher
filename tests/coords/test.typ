@@ -100,16 +100,16 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 
 #pagebreak()
 
-#diagram(
-	node-fill: teal.transparentize(60%),
-	node((0,0), [hello]),
-	node((rel: (1, 0)), [right]),
-	for i in range(0, 8) {
-		edge("->")
-		node((rel: (i*360deg/8, 1cm), to: (1, 0)), $ ast $, fill: none, inset: 0pt)
-	},
-	edge("->>")
-)
+// #diagram(
+// 	node-fill: teal.transparentize(60%),
+// 	node((0,0), [hello]),
+// 	node((rel: (1, 0)), [right]),
+// 	for i in range(0, 8) {
+// 		edge("->")
+// 		node((rel: (i*360deg/8, 1cm), to: (1, 0)), $ ast $, fill: none, inset: 0pt)
+// 	},
+// 	edge("->>")
+// )
 
 #diagram(
 	debug: 1,
@@ -118,6 +118,6 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 	edge("->", bend: 40deg),
 	node((rel: (1,1)), [B], name: <b>),
 	node((rel: (45deg, 10pt), to: (<a>, "|-", <b>)), [C], name: <c>),
-	edge(<c>, <b>, "x..")
+	// edge(<c>, <b>, "x..")
 )
 

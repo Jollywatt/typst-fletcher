@@ -1,6 +1,6 @@
 #import "utils.typ": *
 #import "coords.typ": uv-to-xy
-#import "cetz-rework.typ": default-ctx, resolve, NAN_COORD
+#import "cetz-rework.typ": default-ctx, resolve, NAN_COORD, resolve-system
 #import "shapes.typ"
 
 
@@ -418,6 +418,7 @@
 
 	let extra-anchors = nodes.map(node => {
 		if node.name != none {
+			if not is-number-vector(node.pos.uv){panic(node)}
 			let snap-origin = uv-to-xy(grid, node.pos.uv)
 			(str(node.name): (anchors: _ => snap-origin))
 		} else { (:) }
@@ -453,6 +454,7 @@
 		if node.pos.raw == auto {
 			// skip enclosing nodes, their position is determined post-grid
 			enclosing-nodes.push(i)
+			coord = NAN_COORD
 		} else {
 			(ctx, coord) = resolve(ctx, node.pos.raw)
 		}
@@ -478,6 +480,7 @@
 			}
 		})
 		let coord = bounding-rect(enclosed-nodes).center
+		assert(ctx.target-system == resolve-system(coord))
 		nodes.at(i).pos.insert(ctx.target-system, coord)
 	}
 

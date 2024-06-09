@@ -3,7 +3,6 @@
 
 #diagram(
 	node-stroke: 1pt,
-	debug: 3,
 	{
 		node((0,0), [Hello], name: <en>)
 		node((2,0), [Bonjour], name: <fr>)
@@ -23,7 +22,6 @@
 	node-stroke: .7pt,
 	edge-stroke: .7pt,
 	spacing: 10pt,
-	debug: 1,
 
 	node((0,1), [volume]),
 	node((0,2), [gain]),

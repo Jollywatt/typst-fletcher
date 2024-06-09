@@ -196,12 +196,13 @@
 		if child.func() == metadata {
 			if child.value.class == "node" {
 				let node = child.value
-				node.pos = (x, y)
+				node.pos = (raw: (x, y))
 				nodes.push(node)
 			} else if child.value.class == "edge" {
 				let edge = child.value
 				edge.vertices.at(0) = map-auto(edge.vertices.at(0), (x, y))
 				if edge.label != none { edge.label = $edge.label$ } // why is this needed?
+				edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), (rel: (1, 0)))
 				edge.node-index = none
 				edges.push(edge)
 			}
@@ -515,7 +516,7 @@
 
 
 		// try resolving node uv coordinates. this resolves to NaN coords if the coord depends on physical lengths
-		let (ctx-with-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
+		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
 
 		// infer center point of enclosing nodes
 		nodes = nodes.map(node => {
@@ -536,13 +537,14 @@
 			node
 		})
 
+
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
 			.filter(node => not is-nan-vector(node.pos.uv))
 			.map(node => (center: node.pos.uv, size: node.size))
 
 		let vertices-affecting-grid = edges.map(edge => {
-			resolve-edge-vertices(edge, ctx: ctx-with-anchors + (target-system: "uv"), nodes)
+			resolve-edge-vertices(edge, ctx: ctx-with-uv-anchors + (target-system: "uv"), nodes)
 		}).join()
 		if vertices-affecting-grid == none { vertices-affecting-grid = () }
 		vertices-affecting-grid = vertices-affecting-grid.filter(vert => not is-nan-vector(vert))
@@ -550,18 +552,19 @@
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
 		// now with grid determined, compute final (physical) coordinates for nodes and edges
-		let (ctx-with-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
+		let (ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
 
 		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
+		assert(nodes.all(n => is-number-vector(n.pos.uv)))
 
 
 		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
-		ctx-with-anchors.nodes += extra-anchors
+		ctx-with-xyz-anchors.nodes += extra-anchors
 		// panic(nodes.filter(node => node.enclose.len() > 0))
 
 		edges = edges.map(edge => {
 			edge.final-vertices = resolve-edge-vertices(
-				edge, ctx: ctx-with-anchors + (target-system: "xyz", grid: grid), nodes
+				edge, ctx: ctx-with-xyz-anchors + (target-system: "xyz", grid: grid), nodes
 			)
 
 			if edge.kind == "corner" {
