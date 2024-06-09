@@ -48,7 +48,7 @@
 	edge("o-o")
 	node((1,0), `R2`, radius: 5mm, fill: c)
 	edge("u", "o-o")
-	edge("o-o")
+	edge("r", "o-o")
 	node(`L7`, enclose: ((0,0), (1,0)), stroke: red + 0.5pt,
 		extrude: (0,2), snap: false)
 })

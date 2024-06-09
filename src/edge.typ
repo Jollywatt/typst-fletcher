@@ -893,14 +893,17 @@
 #let resolve-edge-vertices(edge, ctx: (:), nodes) = {
 
 	let node-index(i, default) = {
-		if "node-index" in edge and edge.node-index != none {
-			let node = nodes.at(edge.node-index + i, default: none)
+		i += edge.node-index
+		if "node-index" in edge and i in range(nodes.len()) {
+			let node = nodes.at(i)
 			if node == none { default } else { node.pos.at(ctx.target-system) }
 		} else { default }
 	}
 
+
 	let prev-pos = node-index(-1, (0, 0))
 	let next-pos = node-index(0, (rel: (1, 0)))
+	// if edge.label == [karl] {panic(prev-pos, next-pos, edge.node-index)}
 
 	let ctx = default-ctx + ctx + (
 		prev: (pt: prev-pos),
