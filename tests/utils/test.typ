@@ -1,6 +1,8 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/utils.typ": *
 
+// this test contains no visual output
+#show: none
 
 = Points in rect
 
