@@ -50,8 +50,9 @@
 ///
 /// This is the algorithm used to determine grid layout in diagrams.
 ///
-/// - rects (array): An array of rects of the form `(center: (x, y), size:
-///   (width, height))`. The coordinates `x` and `y` may be floats.
+/// - rects (array): An array of rects of the form
+///   `(center: (x, y), size: (width, height))`. The coordinates `x` and `y` may
+///   be floats.
 /// -> array
 #let expand-fractional-rects(rects) = {
 	let new-rects

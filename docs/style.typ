@@ -16,13 +16,11 @@
 })
 
 #let show-type(type, style-args: (:)) = {
-  h(2pt)
   let c-type = if type.starts-with("pair of") {
     type.slice(8, -1)
   } else { type }
   let c = colors.at(c-type, default: colors.at("default"))
   box(outset: 2pt, fill: c, radius: 2pt, raw(type))
-  h(2pt)
 }
 
 
@@ -73,12 +71,13 @@
   fn-name: none,
   is-long: false
 ) = {
-  let type-pills = types.map(show-type).join(text(0.8em)[ or ])
+  let sep(it) = box(inset: (x: 5pt), text(0.8em, it))
+  let type-pills = types.map(show-type).join(sep[or])
   block(
     inset: 10pt,
-    above: 1.5em,
     breakable: is-long,
     {
+      let default-multiline = type(default) == str and "\n" in default
       block(
         outset: 10pt,
         radius: 10pt,
@@ -88,6 +87,10 @@
             strong(raw(name))
             h(1em)
             type-pills
+            if show-default and not default-multiline {
+              sep[default]
+              show-type(default)
+            }
             h(1fr)
             text(gray, link(fn-label(fn.name), $arrow.tl$))
         })
@@ -96,7 +99,7 @@
 
       content
 
-      if show-default [
+      if show-default and default-multiline [
         #parbreak()
         Default: #raw(default)
       ]
@@ -136,7 +139,7 @@
       default: info.at("default", default: none),
     )
   }
-  v(4em, weak: true)
+  v(3em, weak: true)
 }
 
 
