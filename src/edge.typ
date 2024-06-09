@@ -463,7 +463,7 @@
 ///   that direction relative to the label. If `auto`, the best of `right` or
 ///   `left` is chosen.
 ///
-///   #for angle in (0deg, auto, right, top, left) {
+///   #for angle in (0deg, 90deg, auto, right, top, left) {
 ///   	diagram(edge((0,1), (2,0), "->", [#angle], label-angle: angle))
 ///   }
 ///

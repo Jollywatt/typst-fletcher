@@ -353,7 +353,8 @@ Avoid importing everything with `*` as many internal functions are also exported
 		edge((-2,0), "r,d,r", "..|>", $g$),
 		node((0,-1), $F(s)$),
 		node((0,+1), $G(s)$),
-		node(enclose: ((0,-1), (0,+1)), stroke: teal, inset: 8pt),
+		node(enclose: ((0,-1), (0,+1)), stroke: teal, inset: 10pt,
+		     snap: false), // prevent edges snapping to this node
 		edge((0,+1), (1,0), "..|>", corner: left),
 		edge((0,-1), (1,0), "-|>", corner: right),
 		node((1,0), text(white, $ plus.circle $), inset: 2pt, fill: black),
@@ -363,11 +364,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 	..code-example(```typ
 	An equation $f: A -> B$ and \
-	an inline diagram #diagram(
-		node-inset: 2pt,
-		label-sep: 0pt,
-		$A edge(->, text(#0.8em, f)) & B$
-	).
+	an inline diagram #diagram($A edge(->, text(#0.8em, f)) & B$).
 	```),
 
 
@@ -409,7 +406,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 #code-example-row(```typ
 #let c = (orange, red, green, blue).map(x => x.lighten(50%))
 #diagram(
-	debug: 2,
+	debug: 1,
 	spacing: 10pt,
 	node-corner-radius: 3pt,
 	node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
@@ -421,7 +418,7 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 
 
 So far, this is just like a table --- however, elastic coordinates can be _fractional_.
-Notice how the column sizes change as the green node is gradually moved from column 0 to column 1:
+Notice how the column sizes change as the green node is gradually moved between columns:
 
 #stack(
 	dir: ltr,
@@ -430,7 +427,7 @@ Notice how the column sizes change as the green node is gradually moved from col
 		let c = (orange, red, green, blue).map(x => x.lighten(50%))
 		fletcher.diagram(
 			debug: 1,
-			spacing: 1mm,
+			spacing: 0mm,
 			node-corner-radius: 3pt,
 			node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
 			node((1,0), [b], fill: c.at(1), width: 5mm, height: 5mm),
@@ -449,14 +446,14 @@ This lets you break away from flexible grid layouts.
 	columns: (1fr, 1fr),
 	stroke: none,
 	align: center,
-	..([Elastic coordinates $(u, v)$], [Physical coordinates $(x, y)$]).map(strong),
-	[Dimensionless, dependent on row/column sizes],
-	[Lengths, independent of row/column sizes],
-	`(1, 2), (0.5, -1)`,
-	`(5mm, 0mm), (-2pt, 20pt)`,
+	..([Elastic coordinates, e.g., `(2, 1)`], [Physical coordinates, e.g., `(10mm, 5mm)`]).map(strong),
+	[Dimensionless, dependent on row/column sizes.],
+	[Lengths, independent of row/column sizes.],
+	[Placed objects can influence diagram layout.],
+	[Placed objects never affect diagram layout.],
 )
 
-Absolute coordinates aren't very useful on their own, but they may be used alongside elastic coordinates, particularly in relative expressions of the form `(rel: (x, y), to: (u, v))`.
+Absolute coordinates aren't very useful on their own, but they may be used in combination with elastic coordinates, particularly with `(rel: (x, y), to: (u, v))`.
 
 #code-example-row(```typ
 #diagram(
@@ -470,13 +467,13 @@ Absolute coordinates aren't very useful on their own, but they may be used along
 
 == All sorts of coordinates
 
-You can use any CeTZ-style coordinate expression, mixing and matching elastic and physical coordinates, e.g., relative `(rel: (1, 2))`, polar `(45deg, 1cm)`, interpolating `(<P>, 80%, <Q>)`, perpendicular `(<X>, "|-", <Y>)`, and so on.
+You can also use any CeTZ-style coordinate expression, mixing and matching elastic and physical coordinates, e.g., relative `(rel: (1, 2))`, polar `(45deg, 1cm)`, interpolating `(<P>, 80%, <Q>)`, perpendicular `(<X>, "|-", <Y>)`, and so on.
 However, support for CeTZ-style anchors is incomplete.
 
 
 = Nodes
 
-#link(label("node()"))[`node((x, y), label, ..options)`]
+#link(label("node()"))[`node(coord, label, ..options)`]
 
 Nodes are content centered at a particular coordinate.
 They can be circular, rectangular, or any custom shape.
@@ -596,7 +593,7 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 
 = Edges
 
-#link(label("edge()"))[`edge(..vertices, ..options)`]
+#link(label("edge()"))[`edge(..vertices, marks, label, ..options)`]
 
 An edge connects two coordinates. If there is a node at the endpoint, the edge snaps to the nodes' bounding shape (after applying the node's #param[node][outset]). An edge can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
 
@@ -623,15 +620,18 @@ An edge connects two coordinates. If there is a node at the endpoint, the edge s
 
 The first few arguments given to `edge()` specify its #param[edge][vertices], of which there can be two or more.
 
-=== Implicit coordinates
+=== Connecting to adjacent nodes
 
-To specify the start and end points of an edge, you may provide both explicitly, like `edge(from, to)`; leave `from` implicit, like `edge(to)`; or leave both implicit.
-When `from` is implicit, it becomes the coordinate of the last `node`, and if `to` is implicit, the next `node`.
+If an edge's first or last vertex is `auto`, the coordinate of the previous or next node is used, respectively, according to the order that nodes and edges are passed to `diagram()`.
+A single vertex, as in `edge(to)`, is interpreted as `edge(auto, to)`.
+Given no vertices, an edge connects the nearest nodes on either side.
+
 
 #code-example-row(```typ
 #diagram(
 	node((0,0), [London]),
 	edge("..|>", bend: 20deg),
+	edge("<|--", bend: -20deg),
 	node((1,1), [Paris]),
 )
 ```)
@@ -643,21 +643,27 @@ Implicit coordinates can be handy for diagrams in math-mode:
 #diagram($ L edge("->", bend: #30deg) & P $)
 ```)
 
-However, don't forget you can also use variables in code-mode, which is a more explicit and flexible way to reduce repetition of coordinates.
+// However, don't forget you can also use variables in code-mode, which is a more explicit and flexible way to reduce repetition of coordinates.
 
-#code-example-row(```typ
-#diagram(node-fill: blue, {
-	let (dep, arv) = ((0,0), (1,1))
-	node(dep, text(white)[London])
-	node(arv, text(white)[Paris])
-	edge(dep, arv, "==>", bend: 40deg)
-})
-```)
+// #code-example-row(```typ
+// #diagram(node-fill: blue, {
+// 	let (dep, arv) = ((0,0), (1,1))
+// 	node(dep, text(white)[London])
+// 	node(arv, text(white)[Paris])
+// 	edge(dep, arv, "==>", bend: 40deg)
+// })
+// ```)
 
-=== Relative coordinates
+=== Relative coordinate shorthands
 
-You may specify an edge's direction instead of its end coordinate. This can be done with `edge((x, y), (rel: (Δx, Δy)))`, or with string of _directions_ for short, e.g., `"u"` for up or `"br"` for bottom right. Any combination of
-#strong[t]op/#strong[u]p/#strong[n]orth, #strong[b]ottomp/#strong[d]own/#strong[s]outh, #strong[l]eft/#strong[w]est, and #strong[r]ight/#strong[e]ast are allowed. Together with implicit coordinates, this allows you to do things like:
+Like node positions, edge vertices may be specified by CeTZ-style coordinate expressions, combining elastic and physical coordinates.
+
+Additionally, you may specify relative shorthand strings such as `"u"` for up or `"sw"` for south west. Any combination of
+#strong[t]op/#strong[u]p/#strong[n]orth,
+#strong[b]ottomp/#strong[d]own/#strong[s]outh,
+#strong[l]eft/#strong[w]est, and
+#strong[r]ight/#strong[e]ast
+are allowed. Together with implicit coordinates, this allows you to do things like:
 
 #code-example-row(```typ
 #diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
@@ -677,8 +683,8 @@ A label as an edge vertex is interpreted as the position of the node with that l
 )
 ```)
 
-Node names are labels (instead of strings like CeTZ) so that positional arguments to `edge()` are possible to disambiguate by their type.
-(Node labels are not inserted into the final output, so they do not interfere with other labels in the document.)
+Node names are _labels_ (instead of strings like in CeTZ) to disambiguate them from other positional string arguments.
+Since they are not inserted into the document, they do not interfere with other labels.
 
 == Edge types
 
@@ -695,7 +701,7 @@ If unspecified, #param[edge][kind] is chosen based on #param[edge][bend] and the
 )
 ```)
 
-All vertices except the first can be relative coordinates (see above), so that in the example above, the `"poly"` edge could also be written in these equivalent ways:
+All vertices except the first can be relative coordinate shorthands (see above), so that in the example above, the `"poly"` edge could also be written in these equivalent ways:
 
 ```typc
 edge((4,0), (rel: (0,1)), (rel: (1,0)), (rel: (1,-1)), "->", `poly`)
@@ -748,7 +754,7 @@ Notice the (subtle) difference the figures below.
 	})
 ))
 
-The strength of this adjustment is controlled by #the-param[node][defocus] (or #the-param[diagram][node-defocus]).
+The strength of this adjustment is controlled by #the-param[node][defocus] or #the-param[diagram][node-defocus].
 
 = Marks and arrows
 
@@ -1106,7 +1112,6 @@ Here is an example of how you might hack together a Bézier edge using the same 
 )
 ```)
 
-#pagebreak(weak: true)
 
 
 = Touying integration
