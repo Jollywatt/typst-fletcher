@@ -3,7 +3,6 @@
 #import "edge.typ": *
 #import "draw.typ": draw-diagram
 #import "coords.typ": *
-#import "cetz-rework.typ": is-grid-independent-uv-coordinate, default-ctx, resolve
 
 
 

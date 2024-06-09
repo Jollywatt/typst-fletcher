@@ -1,6 +1,5 @@
 #import "utils.typ": *
-#import "coords.typ": uv-to-xy
-#import "cetz-rework.typ": default-ctx, resolve, NAN_COORD, resolve-system
+#import "coords.typ": uv-to-xy, default-ctx, resolve, NAN_COORD, resolve-system
 #import "shapes.typ"
 
 
@@ -435,10 +434,10 @@
 /// CeTZ-style coordinate expressions work, with the previous coordinate `()`
 /// refering to the resolved position of the previous node.
 ///
+/// The resolved coordinates are added to each node's `pos` dictionary. 
+///
 /// - nodes (array): Array of nodes, each a dictionary containing a `pos` entry,
 ///   which should be a CeTZ-compatible coordinate expression.
-/// - into (string): Key to inset into the node dictionary containing the value
-///   of the resolved coordinate.
 /// - ctx (dictionary): CeTZ-style context to be passed to `resolve(ctx, ..)`.
 ///   This must contain `target-system`, and optionally `grid`.
 /// -> array

@@ -3,7 +3,7 @@
 #import "/src/diagram.typ": compute-cell-centers, interpret-axes
 
 #import "/src/utils.typ": vector-2d, interp, interp-inv
-#import "/src/cetz-rework.typ": *
+#import "/src/coords.typ": *
 
 // this test contains no visual output
 #show: none

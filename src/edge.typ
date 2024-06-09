@@ -1,7 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "coords.typ": vector-polar-with-xy-or-uv-length
-#import "cetz-rework.typ": resolve, default-ctx
+#import "coords.typ": vector-polar-with-xy-or-uv-length, resolve, default-ctx
 
 #let EDGE_ARGUMENT_SHORTHANDS = (
 	"dashed": (dash: "dashed"),

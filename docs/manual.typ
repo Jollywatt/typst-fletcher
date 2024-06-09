@@ -399,7 +399,7 @@ Diagrams created with `diagram()` are a collection of _nodes_ and _edges_ render
 
 == Elastic coordinates
 
-Diagrams are laid out on a _flexible coordinate grid_, visible when #the-param[diagram][debug] is turned on.
+Diagrams are laid out on a _flexible coordinate grid_, visible when #the-param[diagram][debug] is on.
 When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
 
 By default, coordinates $(u, v)$ have $u$ going $arrow.r$ and $v$ going $arrow.b$.
@@ -420,12 +420,8 @@ The #param[diagram][cell-size] option is the minimum row and column width, and #
 ```)
 
 
-
-
-== Fractional coordinates
-
-So far, this is just like a table --- however, coordinates can be _fractional_.
-These are dealt with by linearly interpolating the diagram between what it would be if the coordinates were rounded up or down.
+So far, this is just like a table --- however, elastic coordinates can be _fractional_.
+Notice how the column sizes change as the green node is gradually moved from column 0 to column 1:
 
 #stack(
 	dir: ltr,
@@ -443,6 +439,39 @@ These are dealt with by linearly interpolating the diagram between what it would
 		)
 	}),
 )
+
+== Absolute coordinates
+
+As well as _elastic_ or $u v$ coordinates, which are row/column numbers, you can also use _absolute_ or $x y$ coordinates, which are physical lengths.
+This lets you break away from flexible grid layouts.
+
+#table(
+	columns: (1fr, 1fr),
+	stroke: none,
+	align: center,
+	..([Elastic coordinates $(u, v)$], [Physical coordinates $(x, y)$]).map(strong),
+	[Dimensionless, dependent on row/column sizes],
+	[Lengths, independent of row/column sizes],
+	`(1, 2), (0.5, -1)`,
+	`(5mm, 0mm), (-2pt, 20pt)`,
+)
+
+Absolute coordinates aren't very useful on their own, but they may be used alongside elastic coordinates, particularly in relative expressions of the form `(rel: (x, y), to: (u, v))`.
+
+#code-example-row(```typ
+#diagram(
+	node((0, 0), name: <origin>),
+	for θ in range(16).map(i => i/16*360deg) {
+		node((rel: (θ, 10mm), to: <origin>), $ * $, inset: 1pt)
+		edge(<origin>, "-")
+	}
+)
+```)
+
+== All sorts of coordinates
+
+You can use any CeTZ-style coordinate expression, mixing and matching elastic and physical coordinates, e.g., relative `(rel: (1, 2))`, polar `(45deg, 1cm)`, interpolating `(<P>, 80%, <Q>)`, perpendicular `(<X>, "|-", <Y>)`, and so on.
+However, support for CeTZ-style anchors is incomplete.
 
 
 = Nodes
@@ -850,8 +879,6 @@ This form makes it easier to change the size without modifying the `draw` functi
 
 Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
 
-#pagebreak()
-
 === Special mark properties
 
 A mark object may contain any properties, but some have special functions.
@@ -963,7 +990,6 @@ It is easier to show than to tell:
 
 See `mark-debug()` and `cap-offset()` for details.
 
-#pagebreak()
 
 === Detailed example
 
@@ -1034,7 +1060,6 @@ Finally, I will restore the default state so as not to affect the rest of this m
 ```)
 
 
-#pagebreak()
 
 = CeTZ integration
 
@@ -1164,6 +1189,17 @@ Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width]
 
 == `coords.typ`
 #show-fns("/src/coords.typ", level: 2, outline: true)
+
+== `diagram.typ`
+#show-fns("/src/diagram.typ", level: 2, outline: true, exclude: ("diagram",))
+
+== `node.typ`
+
+
+#show-fns("/src/node.typ", level: 2, outline: true, exclude: ("node",))
+
+== `edge.typ`
+#show-fns("/src/edge.typ", level: 2, outline: true, exclude: ("edge",))
 
 == `draw.typ`
 #show-fns("/src/draw.typ", level: 2, outline: true)
