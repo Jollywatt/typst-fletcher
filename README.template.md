@@ -47,8 +47,11 @@ insert_example_table([
 
 ## Change log
 
-### 0.4.6
+### 0.5.0
 
+- Greatly enhance coordinate system.
+  - Support CeTZ-style coordinate expressions (relative, polar, interpolating, named coordinates, etc).
+  - Absolute coordinates (physical lengths) can be used alongside "elastic" coordinates (row/column positions).
 - Add `label-angle` option to `edge()`.
 - Add `label-wrapper` option to allow changing the label inset, outline stroke, and so on (#26).
 - Add `label-size` option to control default edge label text size (#35)

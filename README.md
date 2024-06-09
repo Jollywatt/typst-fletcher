@@ -1,7 +1,7 @@
 # fletcher
 
 [![Manual](https://img.shields.io/badge/docs-manual.pdf-green)](docs/manual.pdf?raw=true)
-![Version](https://img.shields.io/badge/version-0.4.6-green)
+![Version](https://img.shields.io/badge/version-0.5.0-green)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
 _**fletcher** (noun) a maker of arrows_
@@ -12,7 +12,7 @@ See the [manual](docs/manual.pdf?raw=true) for documentation.
 
 
 ```typ
-#import "@preview/fletcher:0.4.6" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.0" as fletcher: diagram, node, edge
 ```
 
 
@@ -141,8 +141,11 @@ Pull requests are most welcome!
 
 ## Change log
 
-### 0.4.6
+### 0.5.0
 
+- Greatly enhance coordinate system.
+  - Support CeTZ-style coordinate expressions (relative, polar, interpolating, named coordinates, etc).
+  - Absolute coordinates (physical lengths) can be used alongside "elastic" coordinates (row/column positions).
 - Add `label-angle` option to `edge()`.
 - Add `label-wrapper` option to allow changing the label inset, outline stroke, and so on (#26).
 - Add `label-size` option to control default edge label text size (#35)
