@@ -145,13 +145,17 @@
 		i += 1
 	}
 	let (first, last) = (values.at(0), values.at(-1))
+
+	// avoids division by zero when numerator and denominator both vanishe
+	let div(a, b) = if calc.abs(a) < 1e-3pt { 0 } else { a/b }
+
 	if value < first {
-		(value - first)/spacing
+		div(value - first, spacing)
 	} else if value >= last {
-		values.len() - 1 + (value - last)/spacing
+		values.len() - 1 + div(value - last, spacing)
 	} else {
 		let (prev, nearest) = (values.at(i - 1), values.at(i))
-		i - 1 + (value - prev)/(nearest - prev)
+		i - 1 + div(value - prev, nearest - prev)
 	}
 }
 

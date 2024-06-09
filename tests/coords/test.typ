@@ -11,9 +11,9 @@
 #let ctx = default-ctx + (
 	target-system: "uv",
 	nodes: (
-		"a": (anchors: a => (100, 100)),
-		"b": (anchors: a => (20, 50)),
-		"o": (anchors: a => (0, 0)),
+		"a": (anchors: _ => (100, 100)),
+		"b": (anchors: _ => (20, 50)),
+		"o": (anchors: _ => (0, 0)),
 	)
 )
 
@@ -56,6 +56,9 @@
 
 #resolve(ctx, (rel: (1pt, 1pt), to: (1, 2))).at(1) =
 #resolve(ctx, (rel: (45deg, 1.414pt), to: (1, 2))).at(1)
+
+#resolve(ctx, (-1, 0), (rel: (1, 0))).slice(1) =
+#resolve(ctx, (-1, 0), (0, 0)).slice(1)
 
 = Going from $x y$ coordinates to $u v$
 
@@ -120,4 +123,3 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #((float("
 	node((rel: (45deg, 10pt), to: (<a>, "|-", <b>)), [C], name: <c>),
 	// edge(<c>, <b>, "x..")
 )
-

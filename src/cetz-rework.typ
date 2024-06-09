@@ -105,6 +105,7 @@
 		(ctx, ctx.prev.pt)
 	}
 
+
 	let is-xy(coord) = coord.any(x => type(x) == length)
 	let is-uv(coord) = not is-xy(coord)
 
@@ -116,6 +117,7 @@
 		to = uv-to-xy(ctx.grid, to)
 	} else if is-uv(rel) and is-xy(to) {
 		if "grid" not in ctx { return error-value }
+		if "stop" in ctx {panic(ctx, rel, to)}
 		to = xy-to-uv(ctx.grid, to)
 	}
 

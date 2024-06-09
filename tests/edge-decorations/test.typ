@@ -12,7 +12,7 @@ $)
 $)
 
 
-#diagram(spacing: (1cm, 0cm), $
+#diagram(spacing: (1cm, 0mm), debug: 1, $
 	A edge(~>) & B \
 	A edge(<~) & B \
 	A edge("<~>") & B \

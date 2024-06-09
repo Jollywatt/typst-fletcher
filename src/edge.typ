@@ -892,7 +892,6 @@
 
 #let resolve-edge-vertices(edge, ctx: (:), nodes) = {
 
-
 	let adjacent-node-pos(forward, default) = {
 		if edge.node-index == none { return default }
 		let indices = if forward {
@@ -921,6 +920,8 @@
 	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
+	if edge.label == [open] and ctx.target-system == "xyz" {panic(edge.vertices, ctx, verts)}
+	if edge.label == [open] and ctx.target-system == "xyz" {panic(edge.vertices, verts, prev-pos)}
 	verts.map(vector-2d)
 
 }

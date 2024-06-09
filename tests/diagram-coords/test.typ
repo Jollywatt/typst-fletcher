@@ -3,7 +3,7 @@
 #import fletcher.vector
 #import fletcher: interp, interp-inv, xy-to-uv, uv-to-xy
 
-// test `interp()` and `interp-inv()` are inverses
+Test `interp()` and `interp-inv()` are inverses
 
 #let values = (1pt, 2pt, 4pt)
 #let indices = (-1, 0, 0.5, 1, 1.75, 3, 4)
@@ -22,7 +22,7 @@
 
 
 
-// test `uv-to-xy()` and `xy-to-uv()` are inverses
+Test `uv-to-xy()` and `xy-to-uv()` are inverses
 
 #for grid in (
 	(
@@ -56,3 +56,6 @@
 		// 	uv-to-xy-shifted(grid, uv, (0, 1)))
 	}
 }
+
+
+
