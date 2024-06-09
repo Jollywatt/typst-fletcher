@@ -226,7 +226,7 @@
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { error("Unexpected named argument(s) #..0.", args.named().keys()) }
-	if args.pos().len() > 2 { error("Unexpected positional argument(s) #..0.", args.pos().slice(2)) }
+	if args.pos().len() > 2 { error("`node()` can have up to two positional arguments; the position and label.") }
 
 	// interpret first two positional arguments
 	if args.pos().len() == 2 {

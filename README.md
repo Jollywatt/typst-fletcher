@@ -18,8 +18,8 @@ See the [manual](docs/manual.pdf?raw=true) for documentation.
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/first-isomorphism-theorem-dark.svg">
-  <img src="docs/example-gallery/first-isomorphism-theorem-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/first-isomorphism-theorem-dark.svg">
+  <img src="docs/readme-examples/first-isomorphism-theorem-light.svg">
 </picture>
 
 ```typ
@@ -31,8 +31,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/flowchart-trap-dark.svg">
-  <img src="docs/example-gallery/flowchart-trap-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/flowchart-trap-dark.svg">
+  <img src="docs/readme-examples/flowchart-trap-light.svg">
 </picture>
 
 ```typ
@@ -54,8 +54,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/state-machine-dark.svg">
-  <img src="docs/example-gallery/state-machine-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/state-machine-dark.svg">
+  <img src="docs/readme-examples/state-machine-light.svg">
 </picture>
 
 ```typ
@@ -77,8 +77,8 @@ $)
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/example-gallery/feynman-diagram-dark.svg">
-  <img src="docs/example-gallery/feynman-diagram-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/feynman-diagram-dark.svg">
+  <img src="docs/readme-examples/feynman-diagram-light.svg">
 </picture>
 
 ```typ

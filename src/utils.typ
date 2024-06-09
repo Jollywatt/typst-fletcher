@@ -70,7 +70,7 @@
   	if type(v) != str { v = repr(v) }
     message = message.replace("#" + str(k), ticks(v))
   }
-  assert(false, message: msg(message, ..args))
+  assert(false, message: message)
 }
 
 

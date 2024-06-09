@@ -47,7 +47,7 @@ README_TEMPLATE = """
 COMMENTS_PATTERN = re.compile(r"/\*<\*/.*?/\*>\*/|[^\n]*// hide[^\n]*\n", flags=re.DOTALL)
 README_PATTERN = re.compile(r"(```+)python\s*\n(.*?)\n\1", flags=re.DOTALL)
 
-EXAMPLES_PATH = "docs/example-gallery"
+EXAMPLES_PATH = "docs/readme-examples"
 
 
 def compile_example(example_name, darkmode=False):
