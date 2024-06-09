@@ -3,6 +3,7 @@
 
 #diagram(
 	node-stroke: 1pt,
+	debug: 3,
 	{
 		node((0,0), [Hello], name: <en>)
 		node((2,0), [Bonjour], name: <fr>)

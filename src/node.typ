@@ -418,7 +418,8 @@
 
 	let extra-anchors = nodes.map(node => {
 		if node.name != none {
-			(str(node.name): (anchors: _ => node.pos.xyz))
+			let snap-origin = uv-to-xy(grid, node.pos.uv)
+			(str(node.name): (anchors: _ => snap-origin))
 		} else { (:) }
 	}).join()
 
@@ -442,16 +443,15 @@
 /// -> array
 #let resolve-node-coordinates(nodes, ctx: (:)) = {
 	let ctx = default-ctx + ctx
-	let coord
 
 	let enclosing-nodes = ()
 
+	let coord
 	for i in range(nodes.len()) {
 		let node = nodes.at(i)
 
 		if node.pos.raw == auto {
 			// skip enclosing nodes, their position is determined post-grid
-			// coord = NAN_COORD
 			enclosing-nodes.push(i)
 		} else {
 			(ctx, coord) = resolve(ctx, node.pos.raw)
@@ -465,11 +465,13 @@
 
 	for i in enclosing-nodes {
 		let node = nodes.at(i)
+		assert(node.enclose.len() >= 2)
 
 		let enclosed-nodes = node.enclose.map(key => {
 			let node = find-node(nodes, key)
 			if node == none {
-				// enclose key doesn'y correspond to node; interpret as real coordinate
+				// enclose key doesn't correspond to node
+				// interpret key as real coordinate
 				key
 			} else {
 				node.pos.at(ctx.target-system)
