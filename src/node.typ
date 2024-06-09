@@ -444,12 +444,15 @@
 	let ctx = default-ctx + ctx
 	let coord
 
+	let enclosing-nodes = ()
+
 	for i in range(nodes.len()) {
 		let node = nodes.at(i)
 
 		if node.pos.raw == auto {
 			// skip enclosing nodes, their position is determined post-grid
-			coord = NAN_COORD
+			// coord = NAN_COORD
+			enclosing-nodes.push(i)
 		} else {
 			(ctx, coord) = resolve(ctx, node.pos.raw)
 		}
@@ -458,6 +461,22 @@
 			ctx.nodes += (str(node.name): (anchors: _ => coord))
 		}
 		nodes.at(i).pos.insert(ctx.target-system, vector-2d(coord))
+	}
+
+	for i in enclosing-nodes {
+		let node = nodes.at(i)
+
+		let enclosed-nodes = node.enclose.map(key => {
+			let node = find-node(nodes, key)
+			if node == none {
+				// enclose key doesn'y correspond to node; interpret as real coordinate
+				key
+			} else {
+				node.pos.at(ctx.target-system)
+			}
+		})
+		let coord = bounding-rect(enclosed-nodes).center
+		nodes.at(i).pos.insert(ctx.target-system, coord)
 	}
 
 	(ctx, nodes)

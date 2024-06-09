@@ -278,14 +278,16 @@
 	})
 
 	// allow nodes which enclose other nodes to have pos: auto
-	nodes = nodes.map(node => {
-		if node.enclose.len() > 0 and node.pos == auto {
-			let enclosed-centers = node.enclose
-				.map(resolve-label-coordinate.with(nodes))
-			node.pos = bounding-rect(enclosed-centers).center
-		}
-		node
-	})
+	// this can only happen with pre-grid uv coords
+	// nodes = nodes.map(node => {
+	// 	if node.enclose.len() > 0 and node.pos.raw == auto {
+	// 		let enclosed-centers = node.enclose
+	// 			.map(resolve-label-coordinate.with(nodes))
+	// 		node.pos.raw = bounding-rect(enclosed-centers).center
+	// 		panic(node)
+	// 	}
+	// 	node
+	// })
 
 	// for node in nodes {
 	// 	assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
