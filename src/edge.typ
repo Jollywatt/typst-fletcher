@@ -202,13 +202,13 @@
 /// <options> = any number of options specified as strings
 /// ```
 #let interpret-edge-args(args, options) = {
-	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
+	if args.named().len() > 0 { panic("Unexpected named argument(s):", ..args.named().keys()) }
 
 	let new-options = (:)
 	let pos = args.pos()
 
 	// predicates to detect the kind of a positional argument
-	let is-coord(arg) = type(arg) == array and arg.len() == 2 or type(arg) == label
+	let is-coord(arg) = type(arg) in (array, dictionary, label) or arg == auto
 	let is-rel-coord(arg) = is-coord(arg) or (
 		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
 		type(arg) == dictionary and "rel" in arg
@@ -216,6 +216,7 @@
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
 	let is-label-side(arg) = type(arg) == alignment
+
 	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
 	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
 
@@ -224,65 +225,88 @@
 		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
 	}
 
-	let first-coord = auto
-	let other-coords = ()
-	let found-coords = false
+	let set-if-not-already(new-options, key, value, default) = {
+		if options.at(key) == default {
+			new-options.insert(key, value)
+			return new-options
+		}
+		panic("`" + key + "` option of `edge()` specified as both positional " + rawrepr(value) + " and named " + rawrepr(options.at(key)) + " argument.")
+	}
+
+	let rel-coords = ()
+	let coords = ()
+
+	// First argument(s) are coordinates
+	// (<coord>, <rel-coord>*) => (<coord>, <rel-coord>*)
+	// (<rel-coord>*) => (auto, <rel-coord>*)
 
 	if peek(pos, is-coord) {
-		first-coord = pos.remove(0)
-		found-coords = true
+		coords.push(pos.remove(0))
 	}
 	while peek(pos, is-rel-coord) {
 		if type(pos.at(0)) == str {
-			other-coords += pos.remove(0).split(",")
+			rel-coords += pos.remove(0).split(",")
 		} else {
-			other-coords.push(pos.remove(0))
+			rel-coords.push(pos.remove(0))
 		}
-		found-coords = true
+	}
+
+	// Allow marks argument to be in between two coordinates
+	// (<coord>, <marks>, <rel-coord>)
+	// (<marks>, <rel-coord>) => (auto, <marks>, <rel-coord>)
+	if rel-coords.len() == 0 and peek(pos, maybe-marks, is-rel-coord) {
+		new-options.marks = pos.remove(0)
+		rel-coords.push(pos.remove(0))
+		if peek(pos, is-rel-coord) {
+			panic("Marks argument " + rawrepr(new-options.marks) + " must come after edge vertices (or between them if there are only two). Try reordering the positional arguments in `edge()`.")
+		}
+
+	}
+
+	coords += rel-coords
+	// if options.vertices == () {
+	if coords.len() > 0 {
+		if coords.len() == 1 { coords = (auto, ..coords) }
+		new-options = set-if-not-already(new-options, "vertices", coords, ())
 	}
 
 
-	if options.vertices == () {
-		// vertices specified through positional arguments
-		if other-coords == () {
-			// if only one coord is given, it is the end point,
-			// with the start point implicit/auto
-			new-options.vertices = (auto, first-coord)
-		} else {
-			new-options.vertices = (first-coord, ..other-coords)
-		}
-	} else if found-coords {
-		// vertices explicitly set with named argument
-		panic("Vertices cannot be specified by both positional and named arguments.")
-	}
-
-
+	// Allow label side argument anywhere (after coordinates)
 	let i = pos.position(is-label-side)
 	if i != none {
-		new-options.label-side = pos.remove(i)
+		new-options = set-if-not-already(new-options, "label-side", pos.remove(i), auto)
 	}
 
 
-	// accept (mark, label), (label, mark) or just either one
+	// Accept marks and labels after vertices
+	// (.., <marks>, <label>)
+	// (.., <label>, <marks>)
+	let marks
+	let label
 	if peek(pos, maybe-marks, maybe-label) {
-		new-options.marks = pos.remove(0)
-		new-options.label = pos.remove(0)
+		marks = pos.remove(0)
+		label = pos.remove(0)
 	} else if peek(pos, maybe-label, maybe-marks) {
-		new-options.label = pos.remove(0)
-		new-options.marks = pos.remove(0)
+		label = pos.remove(0)
+		marks = pos.remove(0)
 	} else if peek(pos, maybe-label) {
-		new-options.label = pos.remove(0)
+		label = pos.remove(0)
 	} else if peek(pos, maybe-marks) {
-		new-options.marks = pos.remove(0)
+		marks = pos.remove(0)
+	}
+
+	if marks != none {
+		if "marks" in new-options {
+			panic("Marks argument passed to `edge()` twice; found " + rawrepr(new-options.marks) + " and " + rawrepr(marks) + ".")
+		}
+		new-options = set-if-not-already(new-options, "marks", marks, ())
+	}
+	if label != none {
+		new-options = set-if-not-already(new-options, "label", label, none)
 	}
 
 	while peek(pos, is-edge-option) {
 		new-options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
-	}
-
-	// If label hasn't already been found, broaden search to accept strings as labels
-	if "label" not in new-options and peek(pos, x => type(x) == str) {
-		new-options.label = pos.remove(0)
 	}
 
 	if pos.len() > 0 {

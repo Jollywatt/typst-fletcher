@@ -156,8 +156,6 @@
 	  )
   }
 
-
-
   return pos
 }
 
@@ -183,7 +181,7 @@
 	let is-xy(coord) = coord.any(x => type(x) == length)
 	let is-uv(coord) = not is-xy(coord)
 
-	let error-value = (coord: (float("nan"),)*3, update: update)
+	let error-value = (coord: NAN_COORD, update: update)
 
 	if to == none or type(to) != array {panic(c, ctx)}
 	if is-xy(rel) and is-uv(to) {
@@ -235,7 +233,6 @@
 #let resolve(ctx, ..coordinates, update: true) = {
 	assert(ctx.target-system in (auto, "uv", "xyz"))
 
-	let error-value = (float("nan"),)*3
 
 	let result = ()
 	for c in coordinates.pos() {
@@ -248,7 +245,7 @@
 				if "grid" in ctx {
 					uv-to-xy(ctx.grid, c)
 				} else {
-					error-value
+					NAN_COORD
 				}
 			}
 		} else if t == "xyz" {
@@ -258,7 +255,7 @@
 				if "grid" in ctx {
 					xy-to-uv(ctx.grid, c)
 				} else {
-					error-value
+					NAN_COORD
 				}
 			}
 		} else if t == "previous" {

@@ -233,7 +233,8 @@
 		(pos, label) = args.pos()
 	} else if args.pos().len() == 1 {
 		let arg = args.pos().at(0)
-		if type(arg) == array {
+		// one positional argument may be the coordinate or the label
+		if type(arg) in (array, dictionary, label) {
 			pos = arg
 			label = none
 		} else {

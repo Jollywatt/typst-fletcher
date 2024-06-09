@@ -56,6 +56,7 @@ insert_example_table([
 - Add `label-wrapper` option to allow changing the label inset, outline stroke, and so on (#26).
 - Add `label-size` option to control default edge label text size (#35)
 - Add `trapezium` node shape.
+- Disallow string labels to be passed as positional arguments to `edge()` (to eliminate ambiguity). Used named argument or pass content instead.
 
 ### 0.4.5
 

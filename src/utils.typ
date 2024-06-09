@@ -59,6 +59,10 @@
 	d
 }
 
+#let rawrepr(x) = {
+	let as-str = if type(x) == str { x } else { repr(x) }
+	"`" + as-str + "`"
+}
 
 #let to-abs-length(len, em-size) = len.abs + len.em*em-size
 
