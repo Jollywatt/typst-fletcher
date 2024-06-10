@@ -665,7 +665,7 @@
 		draw-anchored-arc(edge, nodes, ..args)
 	} else if edge.kind == "poly" {
 		draw-anchored-polyline(edge, nodes, ..args)
-	} else { panic("Invalid edge kind " + repr(edge.kind)) }
+	} else { error("Invalid edge kind #0.", edge.kind) }
 
 	if edge.layer != 0 { obj = cetz.draw.on-layer(edge.layer, obj)}
 
@@ -793,7 +793,7 @@
 
 	}
 
-	panic("Couldn't find node corresponding to " + repr(key))
+	error("Couldn't find node corresponding to #0 in diagram.", key)
 }
 
  

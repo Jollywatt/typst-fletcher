@@ -52,7 +52,9 @@
 			mark.inherit = mark.inherit.slice(0, -1)
 		}
 
-		assert(mark.inherit in marks, message: "Mark style " + repr(mark.inherit) + " not defined.")
+		if mark.inherit not in marks {
+			error("Mark inherits from #0 which is not defined.", repr(mark.inherit))
+		}
 
 		let parent = marks.at(mark.remove("inherit"))
 		mark = parent + mark
@@ -133,7 +135,9 @@
 		else { stroke += stroke-to-dict(mark.stroke) }
 	}
 
-	assert("draw" in mark, message: "Mark object must contain `draw`; got " + repr(mark))
+	if "draw" not in mark {
+		error("Mark object must contain `draw` or `inherit`; resolved to #0.", mark)
+	}
 
 	draw.group({
 		draw.set-style(

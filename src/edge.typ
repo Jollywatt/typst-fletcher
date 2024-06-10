@@ -65,10 +65,6 @@
 		mark
 	})
 
-
-	assert(type(marks) == array)
-	assert(marks.all(mark => type(mark) == dictionary), message: repr(marks))
-
 	marks
 }
 
@@ -90,7 +86,7 @@
 
 	if type(arg) == symbol {
 		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
-		else { panic("Unrecognised marks symbol '" + arg + "'.") }
+		else { error("Unrecognised marks symbol #.", arg) }
 	}
 
 	assert(type(arg) == str)
@@ -124,9 +120,7 @@
 
 	marks.push(mark)
 
-	let parse-error(suggestion) = panic(
-		"Invalid marks shorthand '" + arg + "'. Try '" + suggestion + "'."
-	)
+	let parse-error(suggestion) = error("Invalid marks shorthand #0. Try #1.", arg, suggestion)
 
 	while true {
 		// line, <[-]x->>
@@ -202,7 +196,7 @@
 /// <options> = any number of options specified as strings
 /// ```
 #let interpret-edge-args(args, options) = {
-	if args.named().len() > 0 { panic("Unexpected named argument(s):", ..args.named().keys()) }
+	if args.named().len() > 0 { error("Unexpected named argument #0 in `edge()`.", ..args.named().keys()) }
 
 	let new-options = (:)
 	let pos = args.pos()
@@ -225,12 +219,10 @@
 		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
 	}
 
-	let set-if-not-already(new-options, key, value, default) = {
-		if options.at(key) == default {
-			new-options.insert(key, value)
-			return new-options
-		}
-		panic("`" + key + "` option of `edge()` specified as both positional " + rawrepr(value) + " and named " + rawrepr(options.at(key)) + " argument.")
+
+	let assert-not-set(key, default, ..value) = {
+		if options.at(key) == default { return }
+		error("#0 specified twice with positional argument(s) #..pos and named argument #named.", key, pos: value.pos().map(repr), named: repr(options.at(key)))
 	}
 
 	let rel-coords = ()
@@ -258,7 +250,7 @@
 		new-options.marks = pos.remove(0)
 		rel-coords.push(pos.remove(0))
 		if peek(pos, is-rel-coord) {
-			panic("Marks argument " + rawrepr(new-options.marks) + " must come after edge vertices (or between them if there are only two). Try reordering the positional arguments in `edge()`.")
+			error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
 		}
 
 	}
@@ -266,15 +258,17 @@
 	coords += rel-coords
 	// if options.vertices == () {
 	if coords.len() > 0 {
+		assert-not-set("vertices", (), ..coords)
 		if coords.len() == 1 { coords = (auto, ..coords) }
-		new-options = set-if-not-already(new-options, "vertices", coords, ())
+		new-options.vertices = coords
 	}
 
 
 	// Allow label side argument anywhere (after coordinates)
 	let i = pos.position(is-label-side)
 	if i != none {
-		new-options = set-if-not-already(new-options, "label-side", pos.remove(i), auto)
+		new-options.label-side = pos.remove(i)
+		assert-not-set("label-side", auto, new-options.label-side)
 	}
 
 
@@ -297,12 +291,14 @@
 
 	if marks != none {
 		if "marks" in new-options {
-			panic("Marks argument passed to `edge()` twice; found " + rawrepr(new-options.marks) + " and " + rawrepr(marks) + ".")
+			error("Marks argument passed to `edge()` twice; found #0 and #1.", repr(new-options.marks), repr(marks))
 		}
-		new-options = set-if-not-already(new-options, "marks", marks, ())
+		assert-not-set("marks", (), marks)
+		new-options.marks = marks
 	}
 	if label != none {
-		new-options = set-if-not-already(new-options, "label", label, none)
+		assert-not-set("label", none, label)
+		new-options.label = label
 	}
 
 	while peek(pos, is-edge-option) {
@@ -310,7 +306,7 @@
 	}
 
 	if pos.len() > 0 {
-		panic("Couldn't understand `edge()` positional argument(s):", pos, "Try using named arguments. Interpreted other arguments as:", new-options)
+		error("Couldn't interpret `edge()` arguments #..0. Try using named arguments. Interpreted previous arguments as #1", pos, new-options)
 	}
 
 	new-options

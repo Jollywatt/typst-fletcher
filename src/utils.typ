@@ -16,13 +16,13 @@
 #let as-label(x) = {
 	if type(x) == label { x }
 	else if type(x) == str { label(x) }
-	else { panic("Expected label or string; got " + repr(x)) }
+	else { error("Expected label or string; got #0.", repr(x)) }
 }
 
 #let as-pair(obj, message: "") = {
 	if type(obj) == array {
 		if obj.len() == 2 { obj }
-		else { panic("Expected a pair (array of length 2); got " + repr(obj))}
+		else { error("Expected a pair (array of length 2); got #0.", repr(obj))}
 	} else { (obj, obj) }
 }
 
@@ -30,12 +30,12 @@
 
 #let as-number-or-length(obj, message: "Expected a number or length") = {
 	if type(obj) in (int, float, length) { obj }
-	else { panic(message + "; got " + repr(obj)) }
+	else { error(message + "; got #0.", repr(obj)) }
 }
 
 #let as-length(obj, message: "Expected a length") = {
 	if type(obj) == length { obj }
-	else { panic(message + "; got " + repr(obj)) }
+	else { error(message + "; got #0.", repr(obj)) }
 }
 
 #let stroke-to-dict(s) = {
@@ -59,10 +59,21 @@
 	d
 }
 
-#let rawrepr(x) = {
-	let as-str = if type(x) == str { x } else { repr(x) }
-	"`" + as-str + "`"
+
+#let error(message, ..args) = {
+  let pairs = args.pos().enumerate() + args.named().pairs()
+  let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
+  for (k, v) in pairs {
+  	if type(v) == array {
+	    message = message.replace("#.." + str(k), v.map(ticks).join(", "))
+  	}
+  	if type(v) != str { v = repr(v) }
+    message = message.replace("#" + str(k), ticks(v))
+  }
+  assert(false, message: msg(message, ..args))
 }
+
+
 
 #let to-abs-length(len, em-size) = len.abs + len.em*em-size
 

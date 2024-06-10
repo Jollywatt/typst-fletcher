@@ -113,7 +113,7 @@
 		} else if coord.all(x => type(x) in (int, float)) {
 			"uv"
 		} else {
-			panic("Coordinate must be two numbers (for elastic coordinates) or two lengths (for physical coordinates); got " + repr(coord))
+			error("Coordinates must be two numbers (for elastic coordinates) or two lengths (for physical coordinates); got #0.", coord)
 		}
 	} else {
 		cetz-system
@@ -183,13 +183,11 @@
 
 	let error-value = (coord: NAN_COORD, update: update)
 
-	if to == none or type(to) != array {panic(c, ctx)}
 	if is-xy(rel) and is-uv(to) {
 		if "grid" not in ctx { return error-value }
 		to = uv-to-xy(ctx.grid, to)
 	} else if is-uv(rel) and is-xy(to) {
 		if "grid" not in ctx { return error-value }
-		if "stop" in ctx {panic(ctx, rel, to)}
 		to = xy-to-uv(ctx.grid, to)
 	}
 
@@ -279,7 +277,7 @@
 		} else if t == "function" {
 			cetz.coordinate.resolve-function(resolve, ctx, c)
 		} else {
-			panic("Failed to resolve coordinate of format: " + repr(c))
+			error("Failed to resolve coordinate #0.", c)
 		}
 
 		if update { ctx.prev.pt = out }

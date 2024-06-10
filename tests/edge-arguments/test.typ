@@ -32,3 +32,8 @@
 #assert(edge("->", [Hi]) == edge(marks: "->", label: [Hi]))
 #assert(edge([Hi], "->") == edge(marks: "->", label: [Hi]))
 
+// #edge((), "->", (), "=>")
+#edge((), "r", vertices: (<a>,))
+#edge(2, 3, 4)
+#edge(right, label-side: left)
+#edge([], label: (<a>,))

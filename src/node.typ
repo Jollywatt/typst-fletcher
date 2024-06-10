@@ -225,8 +225,8 @@
 	snap: 0,
 	post: x => x,
 ) = {
-	if args.named().len() > 0 { panic("Unexpected named argument(s):", args) }
-	if args.pos().len() > 2 { panic("Unexpected positional argument(s):", args.pos().slice(2)) }
+	if args.named().len() > 0 { error("Unexpected named argument(s) #..0.", args.named().keys()) }
+	if args.pos().len() > 2 { error("Unexpected positional argument(s) #..0.", args.pos().slice(2)) }
 
 	// interpret first two positional arguments
 	if args.pos().len() == 2 {
@@ -247,7 +247,9 @@
 		message: "`extrude` must be a number, length, or an array of those"
 	))
 
-	assert(type(snap) in (int, float) or snap == false, message: "`snap` must be a number or `false`; got " + repr(snap))
+	if not (type(snap) in (int, float) or snap == false) {
+		error("`snap` must be a number or `false`; got #0.", repr(snap))
+	}
 
 	metadata((
 		class: "node",
@@ -418,13 +420,10 @@
 
 	let extra-anchors = nodes.map(node => {
 		if node.name != none {
-			if not is-number-vector(node.pos.uv){panic(node)}
 			let snap-origin = uv-to-xy(grid, node.pos.uv)
 			(str(node.name): (anchors: _ => snap-origin))
 		} else { (:) }
 	}).join()
-
-	// if extra-anchors.len() > 0 { panic(nodes, extra-anchors)}
 
 	(extra-anchors, nodes)
 }
@@ -467,7 +466,6 @@
 
 	for i in enclosing-nodes {
 		let node = nodes.at(i)
-		assert(node.enclose.len() >= 2)
 
 		let enclosed-nodes = node.enclose.map(key => {
 			let node = find-node(nodes, key)

@@ -25,7 +25,7 @@
 	} else if dirs == ("vertical", "horizontal") {
 		flip = true
 	} else {
-		panic("Axes cannot both be in the same direction. Got `" + repr(axes) + "`, try `axes: (ltr, ttb)`.")
+		error("Axes #0 cannot both be in the same direction. Try `axes: (ltr, ttb)`.", axes)
 	}
 
 	(
@@ -237,7 +237,8 @@
 #let interpret-diagram-args(args) = {
 	if args.named().len() > 0 {
 		let args = args.named().keys().join(", ")
-		panic("Unexpected named argument(s) to `diagram()`: " + args)
+	if args.named().len() > 0 { error("Unexpected named argument(s) #..0.", args.named().keys()) }
+		// error("Unexpected named argument(s) #..0 to `diagram()`: " + args)
 	}
 
 	let positional-args = args.pos().flatten().join() + [] // join to ensure sequence
@@ -267,31 +268,6 @@
 			panic("Unrecognised value passed to diagram:", obj)
 		}
 	}
-
-	edges = edges.map(edge => {
-		// if edge.vertices.at(-1) == auto {
-		// 	edge.vertices.at(-1) = (rel: (1,0))
-		// }
-		// assert(edge.vertices.all(v => v != auto))
-		assert("node-index" in edge)
-		edge
-	})
-
-	// allow nodes which enclose other nodes to have pos: auto
-	// this can only happen with pre-grid uv coords
-	// nodes = nodes.map(node => {
-	// 	if node.enclose.len() > 0 and node.pos.raw == auto {
-	// 		let enclosed-centers = node.enclose
-	// 			.map(resolve-label-coordinate.with(nodes))
-	// 		node.pos.raw = bounding-rect(enclosed-centers).center
-	// 		panic(node)
-	// 	}
-	// 	node
-	// })
-
-	// for node in nodes {
-	// 	assert(type(node.pos) == array, message: "Invalid position `pos` in node: " + repr(node))
-	// }
 
 	(
 		nodes: nodes,
@@ -531,7 +507,6 @@
 				})
 				let coord = bounding-rect(enclosed-nodes).center
 				node.pos.raw = coord
-				// panic(node, coord)
 			}
 			node
 		})
@@ -554,12 +529,9 @@
 		let (ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
 
 		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
-		assert(nodes.all(n => is-number-vector(n.pos.uv)))
-
 
 		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
 		ctx-with-xyz-anchors.nodes += extra-anchors
-		// panic(nodes.filter(node => node.enclose.len() > 0))
 
 		edges = edges.map(edge => {
 			edge.final-vertices = resolve-edge-vertices(
@@ -569,7 +541,6 @@
 			if edge.kind == "corner" {
 				edge = convert-edge-corner-to-poly(edge)
 			}
-			if not edge.final-vertices.all(is-length-vector) {panic(edge)}
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})
