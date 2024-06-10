@@ -88,7 +88,7 @@
 #let NAN_COORD = (float("nan"),)*3
 
 #let default-ctx = (
-  prev: (pt: (0, 0, 0)),
+  prev: (pt: (0, 0)),
   transform: cetz.matrix.ident(),
   // transform: 
     // ((1, 0,-.5, 0),
@@ -231,33 +231,27 @@
 #let resolve(ctx, ..coordinates, update: true) = {
 	assert(ctx.target-system in (auto, "uv", "xyz"))
 
-
 	let result = ()
 	for c in coordinates.pos() {
 		let t = resolve-system(c)
 		let out = if t == "uv" {
 			if ctx.target-system in (auto, "uv") {
-				let (u, v) = c
+				let (u, v) = c // also works for dictionaries
 				(u, v)
 			} else if ctx.target-system == "xyz" {
-				if "grid" in ctx {
-					uv-to-xy(ctx.grid, c)
-				} else {
-					NAN_COORD
-				}
+				if "grid" in ctx { uv-to-xy(ctx.grid, c) }
+				else { NAN_COORD }
 			}
 		} else if t == "xyz" {
 			if ctx.target-system in (auto, "xyz") {
 				cetz.coordinate.resolve-xyz(c)
 			} else if ctx.target-system == "uv" {
-				if "grid" in ctx {
-					xy-to-uv(ctx.grid, c)
-				} else {
-					NAN_COORD
-				}
+				if "grid" in ctx { xy-to-uv(ctx.grid, c) }
+				else { NAN_COORD }
 			}
 		} else if t == "previous" {
-			ctx.prev.pt
+			(ctx, c) = resolve(ctx, ctx.prev.pt)
+			c
 		} else if t == "polar" {
 			cetz.coordinate.resolve-polar(c)
 		} else if t == "barycentric" {

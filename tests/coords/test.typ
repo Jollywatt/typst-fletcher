@@ -169,3 +169,13 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #NAN_COORD
 #assert(uv-coord-is-grid-independent((rel: (+10, 0), to: (1, 2))))
 #assert(not uv-coord-is-grid-independent((1pt, 2pt)))
 #assert(not uv-coord-is-grid-independent((rel: (+10pt, 0pt), to: (1, 2))))
+
+
+= Previous coordinate
+
+#let ctx = default-ctx + (
+	target-system: "xyz",
+	grid: grid,
+	prev: (pt: (4, 5))
+)
+#assert-resolve(ctx, (), (4, 5))

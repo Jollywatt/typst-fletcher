@@ -24,3 +24,12 @@
 	edge("s", "->"),
 	edge("se", "->"),
 )
+
+#pagebreak()
+
+#diagram({
+	edge((1,0), auto, "..>")
+	node(name: <h>)[Hello] // first coord is (0,0)
+	edge("->")
+	node(name: <b>, (rel: (1,1)))[Bye]
+})

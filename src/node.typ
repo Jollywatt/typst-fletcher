@@ -238,7 +238,7 @@
 			pos = arg
 			label = none
 		} else {
-			pos = auto
+			pos = if enclose.len() > 0 { auto } else { () }
 			label = arg
 		}
 	}
