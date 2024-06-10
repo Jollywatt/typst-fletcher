@@ -7,16 +7,19 @@
 = `auto` vertices
 
 #assert(edge(<from>, <to>).value.vertices == (<from>, <to>))
-#assert(edge(<to>).value.vertices == (auto, <to>))
 #assert(edge(<from>, auto).value.vertices == (<from>, auto))
 #assert(edge(auto, auto).value.vertices == (auto, auto))
+#assert(edge().value.vertices == (auto, auto))
+#assert(edge(<to>).value.vertices == (auto, <to>))
 
 = Coordinate vertices
 
 #assert(edge((1, 2), (3, 4)).value.vertices == ((1, 2), (3, 4)))
 #assert(edge((1, 2), "r").value.vertices == ((1, 2), (rel: (1, 0))))
 #assert(edge((1, 2), (rel: (1, 0))).value.vertices == ((1, 2), (rel: (1, 0))))
-#assert(edge("r") == edge((rel: (1, 0))))
+
+#assert(edge("r") == edge(auto, "r"))
+#assert(edge("r,u") == edge(auto, "r", "u"))
 #assert(edge((), (<a>, 50%, <b>)).value.vertices == ((), (<a>, 50%, <b>)))
 
 = Vertices and marks
@@ -32,8 +35,9 @@
 #assert(edge("->", [Hi]) == edge(marks: "->", label: [Hi]))
 #assert(edge([Hi], "->") == edge(marks: "->", label: [Hi]))
 
+= Error messages
 // #edge((), "->", (), "=>")
-#edge((), "r", vertices: (<a>,))
-#edge(2, 3, 4)
-#edge(right, label-side: left)
-#edge([], label: (<a>,))
+// #edge((), "r", vertices: (<a>,))
+// #edge(2, 3, 4)
+// #edge(right, label-side: left)
+// #edge([], label: (<a>,))

@@ -2,7 +2,7 @@
 #import "marks.typ": *
 #import "coords.typ": vector-polar-with-xy-or-uv-length, resolve, default-ctx
 
-#let EDGE_ARGUMENT_SHORTHANDS = (
+#let EDGE_FLAGS = (
 	"dashed": (dash: "dashed"),
 	"dotted": (dash: "dotted"),
 	"double": (extrude: (-2, +2)),
@@ -15,11 +15,11 @@
 
 #let LINE_ALIASES = (
 	"-": (:),
-	"=": EDGE_ARGUMENT_SHORTHANDS.double,
-	"==": EDGE_ARGUMENT_SHORTHANDS.triple,
-	"--": EDGE_ARGUMENT_SHORTHANDS.dashed,
-	"..": EDGE_ARGUMENT_SHORTHANDS.dotted,
-	"~": EDGE_ARGUMENT_SHORTHANDS.wave,
+	"=": EDGE_FLAGS.double,
+	"==": EDGE_FLAGS.triple,
+	"--": EDGE_FLAGS.dashed,
+	"..": EDGE_FLAGS.dotted,
+	"~": EDGE_FLAGS.wave,
 )
 
 #let MARK_SYMBOL_ALIASES = (
@@ -196,7 +196,9 @@
 /// <options> = any number of options specified as strings
 /// ```
 #let interpret-edge-args(args, options) = {
-	if args.named().len() > 0 { error("Unexpected named argument #0 in `edge()`.", ..args.named().keys()) }
+	if args.named().len() > 0 {
+		error("Unexpected named argument(s) #..0.", args.named().keys())
+	}
 
 	let new-options = (:)
 	let pos = args.pos()
@@ -204,14 +206,13 @@
 	// predicates to detect the kind of a positional argument
 	let is-coord(arg) = type(arg) in (array, dictionary, label) or arg == auto
 	let is-rel-coord(arg) = is-coord(arg) or (
-		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none or
-		type(arg) == dictionary and "rel" in arg
+		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none
 	)
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
-	let is-edge-option(arg) = type(arg) == str and arg in EDGE_ARGUMENT_SHORTHANDS
+	let is-edge-flag(arg) = type(arg) == str and arg in EDGE_FLAGS
 	let is-label-side(arg) = type(arg) == alignment
 
-	let maybe-marks(arg) = type(arg) == str and not is-edge-option(arg) or is-arrow-symbol(arg)
+	let maybe-marks(arg) = type(arg) == str and not is-edge-flag(arg) or is-arrow-symbol(arg)
 	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
 
 	let peek(x, ..predicates) = {
@@ -219,52 +220,57 @@
 		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
 	}
 
-
 	let assert-not-set(key, default, ..value) = {
 		if options.at(key) == default { return }
-		error("#0 specified twice with positional argument(s) #..pos and named argument #named.", key, pos: value.pos().map(repr), named: repr(options.at(key)))
+		error(
+			"#0 specified twice with positional argument(s) #..pos and named argument #named.",
+			key, pos: value.pos().map(repr), named: repr(options.at(key)),
+		)
 	}
 
-	let rel-coords = ()
 	let coords = ()
+	let has-first-coord = false
+	let has-tail-coords = false
 
 	// First argument(s) are coordinates
 	// (<coord>, <rel-coord>*) => (<coord>, <rel-coord>*)
 	// (<rel-coord>*) => (auto, <rel-coord>*)
-
 	if peek(pos, is-coord) {
 		coords.push(pos.remove(0))
+		has-first-coord = true
 	}
 	while peek(pos, is-rel-coord) {
 		if type(pos.at(0)) == str {
-			rel-coords += pos.remove(0).split(",")
+			coords += pos.remove(0).split(",")
 		} else {
-			rel-coords.push(pos.remove(0))
+			coords.push(pos.remove(0))
 		}
+		has-tail-coords = true
 	}
 
 	// Allow marks argument to be in between two coordinates
 	// (<coord>, <marks>, <rel-coord>)
 	// (<marks>, <rel-coord>) => (auto, <marks>, <rel-coord>)
-	if rel-coords.len() == 0 and peek(pos, maybe-marks, is-rel-coord) {
+	if not has-tail-coords and peek(pos, maybe-marks, is-rel-coord) {
 		new-options.marks = pos.remove(0)
-		rel-coords.push(pos.remove(0))
+		assert-not-set("marks", (), new-options.marks)
+
+		coords.push(pos.remove(0))
+		has-tail-coords = true
+
 		if peek(pos, is-rel-coord) {
 			error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
 		}
-
 	}
-
-	coords += rel-coords
-	// if options.vertices == () {
-	if coords.len() > 0 {
+	if coords.len() > 0 or options.vertices.len() == 0 {
 		assert-not-set("vertices", (), ..coords)
-		if coords.len() == 1 { coords = (auto, ..coords) }
+		if not has-tail-coords { coords = (auto, ..coords) }
+		if not has-first-coord { coords = (auto, ..coords) }
 		new-options.vertices = coords
 	}
 
 
-	// Allow label side argument anywhere (after coordinates)
+	// Allow label side argument anywhere after coordinates
 	let i = pos.position(is-label-side)
 	if i != none {
 		new-options.label-side = pos.remove(i)
@@ -301,8 +307,9 @@
 		new-options.label = label
 	}
 
-	while peek(pos, is-edge-option) {
-		new-options += EDGE_ARGUMENT_SHORTHANDS.at(pos.remove(0))
+	// Accept any trailing positional strings as option shorthands
+	while peek(pos, is-edge-flag) {
+		new-options += EDGE_FLAGS.at(pos.remove(0))
 	}
 
 	if pos.len() > 0 {
@@ -351,7 +358,7 @@
 ///
 ///   Additionally, some common options are given flags that may be given as
 ///   string positional arguments. These are
-///   #fletcher.EDGE_ARGUMENT_SHORTHANDS.keys().map(repr).map(raw).join([, ], last: [, and ]).
+///   #fletcher.EDGE_FLAGS.keys().map(repr).map(raw).join([, ], last: [, and ]).
 ///   For example, the following are equivalent:
 ///
 ///   ```typc
@@ -787,7 +794,7 @@
 
 
 	if options.label-side not in (left, center, right, auto) {
-		panic("`label-side` must be one of `left`, `center`, `right`, or `auto`; got " + repr(options.label-side))
+		error("`label-side` must be one of `left`, `center`, `right`, or `auto`; got #0.", options.label-side)
 	}
 	if options.label-side == center {
 		options.label-anchor = "center"
@@ -929,8 +936,6 @@
 	let prev-pos = adjacent-node-pos(false, (0, 0))
 	let next-pos = adjacent-node-pos(true, (rel: (1, 0)))
 
-	// if edge.label == [karl] {panic(prev-pos, next-pos, edge.node-index)}
-
 	let ctx = default-ctx + ctx + (
 		prev: (pt: prev-pos),
 	)
@@ -939,8 +944,6 @@
 	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
-	if edge.label == [open] and ctx.target-system == "xyz" {panic(edge.vertices, ctx, verts)}
-	if edge.label == [open] and ctx.target-system == "xyz" {panic(edge.vertices, verts, prev-pos)}
 	verts.map(vector-2d)
 
 }
@@ -955,7 +958,7 @@
 	let bend-dir = (
 		if edge.corner == right { true }
 		else if edge.corner == left { false }
-		else { panic("Edge corner option must be left or right.") }
+		else { error("Edge `corner` option must be `left` or `right`.") }
 	)
 
 	let θ-floor = calc.floor(θ/90deg)*90deg
