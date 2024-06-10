@@ -41,6 +41,7 @@ insert_example_table([
   "ml-architecture",
   "io-flowchart",
   "node-groups",
+  "digraph",
 ])
 ```
 
