@@ -5,8 +5,12 @@
 
 /// Draw a labelled node in a diagram which can connect to edges.
 ///
-/// - pos (coordinate): Dimensionless "elastic coordinates" `(x, y)` of the
-///   node.
+/// - ..args (any): The first positional argument is #param[node][pos] and the
+///   second, if given, is #param[node][label].
+///
+/// - pos (coordinate): Position of the node, or its center coordinate. This may
+///   be an elastic (row/column) coordinate like `(2, 1)`, or a CeTZ-style
+///   coordinate expression like `(rel: (30deg, 1cm), to: (2, 1))`.
 ///
 ///   See the options of `diagram()` to control the physical scale of elastic
 ///   coordinates.
@@ -20,19 +24,8 @@
 ///   	node((0,0), $A$, name: <A>),
 ///   	node((1,0.6), $B$, name: <B>),
 ///   	edge(<A>, <B>, "->"),
+///   	node((rel: (1, 0), to: <B>), $C$)
 ///   )
-///   ```)
-///
-///   Note that you can also just use variables to refer to coordinates:
-///
-///   #example(```
-///   fletcher.diagram({
-///   	let A = (0,0)
-///   	let B = (1,0.6)
-///   	node(A, $A$)
-///   	node(B, $B$)
-///   	edge(A, B, "->")
-///   })
 ///   ```)
 ///
 /// - label (content): Content to display inside the node.
@@ -47,7 +40,7 @@
 ///   )
 ///   ```)
 ///
-/// - inset (length, auto): Padding between the node's content and its outline.
+/// - inset (length): Padding between the node's content and its outline.
 ///
 ///   In debug mode, the inset is visualised by a thin green outline.
 ///
@@ -61,7 +54,9 @@
 ///   )
 ///   ```)
 ///
-/// - outset (length, auto): Margin between the node's bounds to the anchor
+///   Defaults to #the-param[diagram][node-inset].
+///
+/// - outset (length): Margin between the node's bounds to the anchor
 ///   points for connecting edges.
 ///
 ///   This does not affect node layout, only how closely edges connect to the
@@ -78,6 +73,8 @@
 ///   	node((1,0), [World!], outset: 10pt),
 ///   )
 ///   ```)
+///
+///   Defaults to #the-param[diagram][node-outset].
 ///
 /// - width (length, auto): Width of the node. If `auto`, the node's width is
 ///   the width of the node #param[node][label], plus twice the
@@ -188,14 +185,22 @@
 ///
 ///   Defaults to #the-param[diagram][node-corner-radius].
 ///
-/// - layer (number, auto): Layer on which to draw the node.
+/// - layer (number): Layer on which to draw the node.
 ///
 ///   Objects on a higher `layer` are drawn on top of objects on a lower
 ///   `layer`. Objects on the same layer are drawn in the order they are passed
 ///   to `diagram()`.
 ///
-///   By default, nodes are drawn on layer `0` unless they #param[node][enclose]
+///   Defaults to layer `0` unless the node #param[node][enclose]s
 ///   points, in which case `layer` defaults to `-1`.
+///
+/// - snap (number, false): The snapping priority for edges connecting to this
+///   node. A higher priority means edges will automatically snap to this node
+///   over other overlapping nodes. If `false`, edges only snap to this node if
+///   manually set with #the-param[edge][snap-to].
+///
+///   Setting a lower value is useful if the node #param[node][enclose]s other
+///   nodes that you want to snap to first.
 ///
 /// - post (function): Callback function to intercept `cetz` objects before they
 ///   are drawn to the canvas.
@@ -221,8 +226,8 @@
 	corner-radius: auto,
 	shape: auto,
 	defocus: auto,
-	layer: auto,
 	snap: 0,
+	layer: auto,
 	post: x => x,
 ) = {
 	if args.named().len() > 0 { error("Unexpected named argument(s) #..0.", args.named().keys()) }

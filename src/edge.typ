@@ -327,26 +327,28 @@
 ///
 ///
 /// - ..args (any): An edge's positional arguments may specify:
-///   - the edge's #param[edge][vertices]
+///   - the edge's #param[edge][vertices], each specified with a CeTZ-style coordinate
 ///   - the #param[edge][label] content
-///   - #param[edge][marks] and other style options
+///   - arrow #param[edge][marks], like `"=>"` or `"<<-|-o"`
+///   - other style flags, like `"double"` or `"wave"`
 ///
 ///   Vertex coordinates must come first, and are optional:
 ///
 ///   ```typc
 ///   edge(from, to, ..) // explicit start and end nodes
-///   edge(to, ..) // start node chosen automatically based on last node specified
-///   edge(..) // both nodes chosen automatically depending on adjacent nodes
+///   edge(to, ..) == edge(auto, to, ..) // start snaps to previous node
+///   edge(..) == edge(auto, auto, ..) // snaps to previous and next nodes
 ///   edge(from, v1, v2, ..vs, to, ..) // a multi-segmented edge
+///   edge(from, "->", to) // for two vertices, the marks style can come in between
 ///   ```
 ///
-///   All coordinates except the start point can be relative (a dictionary of the
-///   form `(rel: (Δx, Δy))` or a string containing the characters
-///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$).
+///   All vertices except the start point can be shorthand relative coordinate
+///   string containing the characters
+///   ${#"lrudtbnesw".clusters().map(raw).join($, $)}$ or commas.
 ///
-///   An edge's #param[edge][marks] and #param[edge][label] can be also be
-///   specified as positional arguments. They are disambiguated by guessing
-///   based on the types. For example, the following are equivalent:
+///   If given as positional arguments, an edge's #param[edge][marks] and
+///   #param[edge][label] are disambiguated by guessing based on the types. For
+///   example, the following are equivalent:
 ///
 ///   ```typc
 ///   edge((0,0), (1,0), $f$, "->")
@@ -692,7 +694,7 @@
 ///
 /// - snap-to (pair): The nodes the start and end of an edge should snap to.
 /// Each node can be a position or node #param[node][name], or `none` to disable
-/// snapping.
+/// snapping. See also #the-param[node][snap].
 ///
 ///   By default, an edge's first and last #param[edge][vertices] snap to nearby
 ///   nodes. This option can be used in case automatic snapping fails (if there

@@ -896,6 +896,7 @@ A mark object may contain any properties, but some have special functions.
 
 	table(
 		columns: 3,
+		stroke: (x: none),
 
 		table.header([Name], [Description], [Default]),
 
@@ -996,6 +997,7 @@ It is easier to show than to tell:
 
 See `mark-debug()` and `cap-offset()` for details.
 
+#pagebreak()
 
 === Detailed example
 
