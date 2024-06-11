@@ -82,6 +82,8 @@
 #assert-resolve(ctx, (rel: (v: 3, u: 4), to: "a"), (104, 103))
 #assert-resolve(ctx, (bary: (a: 1, b: 3)), ("a", 75%, "b"))
 
+#assert(is-nan-vector(resolve(ctx, (45deg, 1cm)).at(1)))
+
 = Resolving $x y$ coordinates
 
 #let grid = {
