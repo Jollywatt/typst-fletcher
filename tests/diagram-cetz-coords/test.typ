@@ -16,6 +16,11 @@ Polar coordinates
 	}
 )
 
+#diagram(
+	node((0,0))[A],
+	node((45deg, 1cm))[B]
+)
+
 #pagebreak()
 
 Perpendicular coordinates

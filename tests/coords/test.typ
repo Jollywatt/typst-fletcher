@@ -84,6 +84,13 @@
 
 #assert(is-nan-vector(resolve(ctx, (45deg, 1cm)).at(1)))
 
+
+
+== Polar coordinates
+#assert-resolve(ctx, (90deg, 1), (calc.cos(90deg), 1))
+
+
+
 = Resolving $x y$ coordinates
 
 #let grid = {

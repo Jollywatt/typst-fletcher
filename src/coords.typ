@@ -253,7 +253,8 @@
 			(ctx, c) = resolve(ctx, ctx.prev.pt)
 			c
 		} else if t == "polar" {
-			resolve(ctx, cetz.coordinate.resolve-polar(c)).at(1)
+			c = vector-2d(cetz.coordinate.resolve-polar(c))
+			resolve(ctx, c).at(1) // ensure uv <-> xyz conversion
 		} else if t == "barycentric" {
 			cetz.coordinate.resolve-barycentric(ctx, c)
 		} else if t in ("element", "anchor") {
