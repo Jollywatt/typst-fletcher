@@ -493,24 +493,6 @@
 		// try resolving node uv coordinates. this resolves to NaN coords if the coord depends on physical lengths
 		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
 
-		// infer center point of enclosing nodes
-		nodes = nodes.map(node => {
-			if node.pos.raw == auto {
-				let enclosed-nodes = node.enclose.map(key => {
-					let node = find-node(nodes, key)
-					if node == none {
-						// enclose key doesn't correspond to node; interpret as real coordinate
-						key
-					} else {
-						node.pos.uv
-					}
-				})
-				let coord = bounding-rect(enclosed-nodes).center
-				node.pos.raw = coord
-			}
-			node
-		})
-
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
@@ -530,7 +512,9 @@
 
 		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
 
+
 		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
+		assert(nodes.all(n => not is-nan-vector(n.pos.xyz)), message: repr(nodes))
 		ctx-with-xyz-anchors.nodes += extra-anchors
 
 		edges = edges.map(edge => {

@@ -57,7 +57,6 @@
 #diagram(
 	node-stroke: .7pt,
 	edge-stroke: .7pt,
-	// node(enclose: ((2,1), (2,2)), corner-radius: 15pt, inset: 5pt, fill: green),
 	node((0,1), $ a $, radius: 10pt),
 	node((0,2), $ b $, radius: 10pt),
 	edge((0,1), "r", "->", snap-to: (auto, <bar>)),
@@ -67,4 +66,19 @@
 	edge((1,2), "r", "->", snap-to: (<bar>, auto)),
 	node((2,1), $ x $, radius: 10pt),
 	node((2,2), $ y $, radius: 10pt),
+)
+
+#pagebreak()
+
+Enclosing absolutely positioned nodes
+
+#diagram(
+	node-inset: 0pt,
+	for i in range(7) {
+		let a = 30deg*i
+		node((a, 1cm), [#i], name: str(i))
+
+		let labels = range(i + 1).map(str).map(label)
+		node(enclose: labels, fill: blue.transparentize(70%))
+	},
 )

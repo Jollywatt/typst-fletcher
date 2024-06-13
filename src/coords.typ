@@ -85,7 +85,7 @@
 
 
 
-#let NAN_COORD = (float("nan"),)*3
+#let NAN_COORD = (float("nan"),)*2
 
 #let default-ctx = (
   prev: (pt: (0, 0)),
@@ -275,9 +275,13 @@
 			error("Failed to resolve coordinate #0.", c)
 		}
 
+		out = vector-2d(out)
+
 		if update { ctx.prev.pt = out }
 		result.push(out)
 	}
+
+	assert(result.all(c => c.len() == 2))
 
 	return (ctx, ..result)
 }

@@ -392,7 +392,8 @@
 
 		let enclosed-vertices = node.enclose.map(key => {
 			let near-node = find-node(nodes, key)
-			if near-node == none or near-node == node {
+
+			if near-node == none or near-node.pos.raw == auto {
 				// if enclosed point doesn't resolve to a node
 				// enclose the point itself
 				(uv-to-xy(grid, key),)
@@ -409,6 +410,10 @@
 				)
 			}
 		}).join()
+
+		if enclosed-vertices.len() == 0 {
+			panic(node, find-node(nodes, (1, 1)))
+		}
 
 		let (center, size) = bounding-rect(enclosed-vertices)
 
@@ -481,9 +486,10 @@
 			} else {
 				node.pos.at(ctx.target-system)
 			}
-		})
-		let coord = bounding-rect(enclosed-nodes).center
-		assert(ctx.target-system == resolve-system(coord))
+		}).filter(coord => not is-nan-vector(coord))
+		let coord = if enclosed-nodes.len() > 0 {
+			bounding-rect(enclosed-nodes).center
+		} else { NAN_COORD }
 		nodes.at(i).pos.insert(ctx.target-system, coord)
 	}
 
