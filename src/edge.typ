@@ -953,6 +953,7 @@
 
 
 #let convert-edge-corner-to-poly(edge) = {
+	if edge.kind != "corner" { return edge }
 
 	let (from, to) = edge.final-vertices
 	let θ = angle-between(from, to)

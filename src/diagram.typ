@@ -501,33 +501,35 @@
 
 		let vertices-affecting-grid = edges.map(edge => {
 			resolve-edge-vertices(edge, ctx: ctx-with-uv-anchors + (target-system: "uv"), nodes)
-		}).join()
-		if vertices-affecting-grid == none { vertices-affecting-grid = () }
+		}).join() + () // coerce none to ()
 		vertices-affecting-grid = vertices-affecting-grid.filter(vert => not is-nan-vector(vert))
 
+
+		// determine diagram's elastic grid layout
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
+
 
 		// now with grid determined, compute final (physical) coordinates for nodes and edges
 		let (ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
-
 		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
 
 
+		// resolve enclosing nodes
 		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
-		assert(nodes.all(n => not is-nan-vector(n.pos.xyz)), message: repr(nodes))
 		ctx-with-xyz-anchors.nodes += extra-anchors
 
+
+		// resolve edges
 		edges = edges.map(edge => {
 			edge.final-vertices = resolve-edge-vertices(
 				edge, ctx: ctx-with-xyz-anchors + (target-system: "xyz", grid: grid), nodes
 			)
 
-			if edge.kind == "corner" {
-				edge = convert-edge-corner-to-poly(edge)
-			}
+			edge = convert-edge-corner-to-poly(edge)
 			edge = apply-edge-shift(grid, edge)
 			edge
 		})
+
 
 		render(grid, nodes, edges, options)
 	}))
