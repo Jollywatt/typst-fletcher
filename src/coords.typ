@@ -149,6 +149,12 @@
 	let node = ctx.nodes.at(name)
 	let pos = (node.anchors)(anchor)
 
+	if anchor != "default" {
+		// TODO: support anchors!
+		// this would require moving edge positioning into a cetz ctx callback
+		error("Element anchors aren't supported yet! (Found #..0.)", anchor)
+	}
+
 	if pos.all(x => type(x) in (int, float)) {
 		pos = cetz.util.revert-transform(
 			ctx.transform,
