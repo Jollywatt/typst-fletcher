@@ -263,15 +263,13 @@
 }
 
 #let find-node(nodes, key, snap: false) = {
-	if key == none {
-		return none
-	} else if type(key) == label {
+	if type(key) == label {
 		let node = nodes.find(node => node.name == key)
-		assert(node != none, message: "Couldn't resolve name " + repr(key))
+		assert(node != none, message: "Couldn't find node with name " + repr(key))
 		node
 	} else if type(key) == array {
 		find-node-at(nodes, key)
 	} else {
-		panic("Couldn't find node corresponding to " + repr(key))
+		none
 	}
 }

@@ -82,3 +82,14 @@ Enclosing absolutely positioned nodes
 		node(enclose: labels, fill: blue.transparentize(70%))
 	},
 )
+
+
+#pagebreak()
+
+Enclosing CeTZ coordinates
+
+#diagram(debug: 1, {
+	node((0,0))
+	node((2,1))
+	node(enclose: ((0,0), (rel: (0pt, -10pt), to: (1, 0))), fill: yellow, inset: 0pt)
+})

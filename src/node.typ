@@ -385,7 +385,7 @@
 
 
 /// Process the `enclose` options of an array of nodes.
-#let resolve-node-enclosures(nodes, grid) = {
+#let resolve-node-enclosures(nodes, ctx) = {
 
 	let nodes = nodes.map(node => {
 		if node.enclose.len() == 0 { return node }
@@ -396,7 +396,9 @@
 			if near-node == none or near-node.pos.raw == auto {
 				// if enclosed point doesn't resolve to a node
 				// enclose the point itself
-				(uv-to-xy(grid, key),)
+				// (uv-to-xy(grid, key),)
+				let (_, coord) = resolve(ctx, key)
+				(coord,)
 			} else {
 				// if enclosed point resolves to a node
 				// enclose its bounding box
@@ -410,10 +412,6 @@
 				)
 			}
 		}).join()
-
-		if enclosed-vertices.len() == 0 {
-			panic(node, find-node(nodes, (1, 1)))
-		}
 
 		let (center, size) = bounding-rect(enclosed-vertices)
 
@@ -430,7 +428,7 @@
 
 	let extra-anchors = nodes.map(node => {
 		if node.name != none {
-			let snap-origin = uv-to-xy(grid, node.pos.uv)
+			let snap-origin = uv-to-xy(ctx.grid, node.pos.uv)
 			(str(node.name): (anchors: _ => snap-origin))
 		} else { (:) }
 	}).join()
@@ -454,15 +452,15 @@
 #let resolve-node-coordinates(nodes, ctx: (:)) = {
 	let ctx = default-ctx + ctx
 
-	let enclosing-nodes = ()
+	// e.g., nodes which enclose points can have position `auto`
+	let auto-placed-nodes = ()
 
 	let coord
 	for i in range(nodes.len()) {
 		let node = nodes.at(i)
 
 		if node.pos.raw == auto {
-			// skip enclosing nodes, their position is determined post-grid
-			enclosing-nodes.push(i)
+			auto-placed-nodes.push(i)
 			coord = NAN_COORD
 		} else {
 			(ctx, coord) = resolve(ctx, node.pos.raw)
@@ -471,10 +469,11 @@
 		if node.name != none {
 			ctx.nodes += (str(node.name): (anchors: _ => coord))
 		}
+
 		nodes.at(i).pos.insert(ctx.target-system, vector-2d(coord))
 	}
 
-	for i in enclosing-nodes {
+	for i in auto-placed-nodes {
 		let node = nodes.at(i)
 
 		let enclosed-nodes = node.enclose.map(key => {
@@ -482,14 +481,18 @@
 			if node == none {
 				// enclose key doesn't correspond to node
 				// interpret key as real coordinate
-				key
+				// key
+				let (_, coord) = resolve(ctx, key)
+				coord
 			} else {
 				node.pos.at(ctx.target-system)
 			}
 		}).filter(coord => not is-nan-vector(coord))
+
 		let coord = if enclosed-nodes.len() > 0 {
 			bounding-rect(enclosed-nodes).center
 		} else { NAN_COORD }
+
 		nodes.at(i).pos.insert(ctx.target-system, coord)
 	}
 
