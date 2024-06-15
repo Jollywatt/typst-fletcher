@@ -129,16 +129,16 @@ Pull requests are most welcome!
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/node-groups.typ">
+      <a href="docs/gallery/digraph.typ">
         <center>
-          <img src="docs/gallery/node-groups.svg" width="100%"/>
+          <img src="docs/gallery/digraph.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/digraph.typ">
+      <a href="docs/gallery/node-groups.typ">
         <center>
-          <img src="docs/gallery/digraph.svg" width="100%"/>
+          <img src="docs/gallery/node-groups.svg" width="100%"/>
         </center>
       </a>
     </td>
@@ -148,6 +148,11 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.5.1
+
+- Fix nodes which `enclose` absolute coordinates.
+- Fix crash with polar coordinates.
 
 ### 0.5.0
 

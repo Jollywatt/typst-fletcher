@@ -41,13 +41,18 @@ insert_example_table([
   "algebra-cube",
   "ml-architecture",
   "io-flowchart",
-  "node-groups",
   "digraph",
+  "node-groups",
 ])
 ```
 
 
 ## Change log
+
+### 0.5.1
+
+- Fix nodes which `enclose` absolute coordinates.
+- Fix crash with polar coordinates.
 
 ### 0.5.0
 
