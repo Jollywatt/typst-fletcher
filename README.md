@@ -129,16 +129,16 @@ Pull requests are most welcome!
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/node-groups.typ">
+      <a href="docs/gallery/digraph.typ">
         <center>
-          <img src="docs/gallery/node-groups.svg" width="100%"/>
+          <img src="docs/gallery/digraph.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/digraph.typ">
+      <a href="docs/gallery/node-groups.typ">
         <center>
-          <img src="docs/gallery/digraph.svg" width="100%"/>
+          <img src="docs/gallery/node-groups.svg" width="100%"/>
         </center>
       </a>
     </td>
@@ -148,6 +148,14 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.5.1
+
+- Fix nodes which `enclose` absolute coordinates.
+- Allow options to `enclose` CeTZ-style coordinate expressions.
+- Fix crash with polar coordinates.
+- Fix edges which bend at 0deg or 180deg (e.g., `edge("r,r")` or `edge("r,l")`) and enhance the way the corner radius adapts to the bend angle. **Note:** This may change diagram layout from previous versions.
+- Improve error messages.
 
 ### 0.5.0
 
