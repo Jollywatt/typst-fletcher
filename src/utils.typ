@@ -61,16 +61,16 @@
 
 
 #let error(message, ..args) = {
-  let pairs = args.pos().enumerate() + args.named().pairs()
-  let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
-  for (k, v) in pairs {
-  	if type(v) == array {
-	    message = message.replace("#.." + str(k), v.map(ticks).join(", "))
-  	}
-  	if type(v) != str { v = repr(v) }
-    message = message.replace("#" + str(k), ticks(v))
-  }
-  assert(false, message: message)
+	let pairs = args.pos().enumerate() + args.named().pairs()
+	let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
+	for (k, v) in pairs {
+		if type(v) == array {
+			message = message.replace("#.." + str(k), v.map(ticks).join(", "))
+		}
+		if type(v) != str { v = repr(v) }
+		message = message.replace("#" + str(k), ticks(v))
+	}
+	assert(false, message: message)
 }
 
 

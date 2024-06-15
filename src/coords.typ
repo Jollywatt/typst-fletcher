@@ -88,14 +88,14 @@
 #let NAN_COORD = (float("nan"),)*2
 
 #let default-ctx = (
-  prev: (pt: (0, 0)),
-  transform: cetz.matrix.ident(),
-  // transform: 
-    // ((1, 0,-.5, 0),
-    //  (0,-1,+.5, 0),
-    //  (0, 0, .0, 0),
-    //  (0, 0, .0, 1)),
-  nodes: (:),
+	prev: (pt: (0, 0)),
+	transform: cetz.matrix.ident(),
+	// transform: 
+		// ((1, 0,-.5, 0),
+		//  (0,-1,+.5, 0),
+		//  (0, 0, .0, 0),
+		//  (0, 0, .0, 1)),
+	nodes: (:),
 )
 
 
@@ -121,42 +121,42 @@
 }
 
 #let resolve-anchor(ctx, c) = {
-  // (name: <string>, anchor: <number, angle, string> or <none>)
-  // "name.anchor"
-  // "name"
-  if type(c) == label { c = str(c) }
+	// (name: <string>, anchor: <number, angle, string> or <none>)
+	// "name.anchor"
+	// "name"
+	if type(c) == label { c = str(c) }
 
-  let (name, anchor) = if type(c) == str {
-    let (name, ..anchor) = c.split(".")
-    if anchor.len() == 0 {
-      anchor = "default"
-    }
-    (name, anchor)
-  } else {
-    (c.name, c.at("anchor", default: "default"))
-  }
+	let (name, anchor) = if type(c) == str {
+		let (name, ..anchor) = c.split(".")
+		if anchor.len() == 0 {
+			anchor = "default"
+		}
+		(name, anchor)
+	} else {
+		(c.name, c.at("anchor", default: "default"))
+	}
 
-  // Check if node is known
-  assert(name in ctx.nodes,
-    message: "Unknown element '" + name + "' in elements " + repr(ctx.nodes.keys()))
+	// Check if node is known
+	assert(name in ctx.nodes,
+		message: "Unknown element '" + name + "' in elements " + repr(ctx.nodes.keys()))
 
-  // Resolve length anchors
-  if type(anchor) == length {
-    anchor = util.resolve-number(ctx, anchor)
-  }
+	// Resolve length anchors
+	if type(anchor) == length {
+		anchor = util.resolve-number(ctx, anchor)
+	}
 
-  // Check if anchor is known
-  let node = ctx.nodes.at(name)
-  let pos = (node.anchors)(anchor)
+	// Check if anchor is known
+	let node = ctx.nodes.at(name)
+	let pos = (node.anchors)(anchor)
 
-  if pos.all(x => type(x) in (int, float)) {
-	  pos = cetz.util.revert-transform(
-	    ctx.transform,
-	    pos
-	  )
-  }
+	if pos.all(x => type(x) in (int, float)) {
+		pos = cetz.util.revert-transform(
+			ctx.transform,
+			pos
+		)
+	}
 
-  return pos
+	return pos
 }
 
 
