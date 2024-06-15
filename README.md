@@ -2,6 +2,7 @@
 
 [![Manual](https://img.shields.io/badge/docs-manual.pdf-green)](docs/manual.pdf?raw=true)
 ![Version](https://img.shields.io/badge/version-0.5.0-green)
+[![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fdev%2Ftypst.toml&query=package.version&label=dev&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
 _**fletcher** (noun) a maker of arrows_
