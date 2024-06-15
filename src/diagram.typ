@@ -515,7 +515,7 @@
 
 
 		// resolve enclosing nodes
-		let (extra-anchors, nodes) = compute-node-enclosures(nodes, grid)
+		let (extra-anchors, nodes) = resolve-node-enclosures(nodes, grid)
 		ctx-with-xyz-anchors.nodes += extra-anchors
 
 

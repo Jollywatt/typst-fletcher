@@ -19,7 +19,7 @@
 	else { error("Expected label or string; got #0.", repr(x)) }
 }
 
-#let as-pair(obj, message: "") = {
+#let as-pair(obj) = {
 	if type(obj) == array {
 		if obj.len() == 2 { obj }
 		else { error("Expected a pair (array of length 2); got #0.", repr(obj))}
