@@ -385,7 +385,7 @@
 
 
 /// Process the `enclose` options of an array of nodes.
-#let compute-node-enclosures(nodes, grid) = {
+#let resolve-node-enclosures(nodes, grid) = {
 
 	let nodes = nodes.map(node => {
 		if node.enclose.len() == 0 { return node }
