@@ -249,16 +249,15 @@
 	return false
 }
 
-
-#let find-node-at(nodes, pos) = {
-	let system = if pos.all(x => type(x) == length) { "xyz" } else { "uv" }
+// find a node near a given uv coorinate
+#let find-node-at(nodes, uv) = {
 	nodes.filter(node => {
-		if is-nan-vector(node.pos.at(system)) { return false }
+		if is-nan-vector(node.pos.uv) { return false }
 
 		// node must be within a one-unit block around pos
-		vector.sub(node.pos.at(system), pos).all(Δ => calc.abs(Δ) < 1)
+		vector.sub(node.pos.uv, uv).all(Δ => calc.abs(Δ) < 1)
 	})
-		.sorted(key: node => vector.len(vector.sub(node.pos.at(system), pos)))
+		.sorted(key: node => vector.len(vector.sub(node.pos.uv, uv)))
 		.at(0, default: none)
 }
 
@@ -267,7 +266,7 @@
 		let node = nodes.find(node => node.name == key)
 		assert(node != none, message: "Couldn't find node with name " + repr(key))
 		node
-	} else if type(key) == array {
+	} else if type(key) == array and is-number-vector(key) {
 		find-node-at(nodes, key)
 	} else {
 		none

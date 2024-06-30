@@ -88,8 +88,9 @@ Enclosing absolutely positioned nodes
 
 Enclosing CeTZ coordinates
 
-#diagram(debug: 1, {
-	node((0,0))
-	node((2,1))
-	node(enclose: ((0,0), (rel: (0pt, -10pt), to: (1, 0))), fill: yellow, inset: 0pt)
+#diagram({
+	node((0,0), [1], name: <1>)
+	node((1,1), [2], name: <2>)
+	node(enclose: ((0,0), <2>), fill: teal, inset: 0pt)
+	node(enclose: ((<1>, 50%, <2>), (rel: (0pt, 0pt), to: <2>)), fill: yellow, inset: 0pt)
 })
