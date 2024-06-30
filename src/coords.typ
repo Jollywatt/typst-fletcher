@@ -96,6 +96,8 @@
 		//  (0, 0, .0, 0),
 		//  (0, 0, .0, 1)),
 	nodes: (:),
+	length: 1cm,
+	em-size: (width: 11pt, height: 11pt),
 )
 
 
@@ -249,8 +251,10 @@
 				else { NAN_COORD }
 			}
 		} else if t == "xyz" {
+			let c = cetz.coordinate.resolve-xyz(c)
+			c = vector-2d(c).map(x => x.abs + x.em*ctx.em-size.width)
 			if ctx.target-system in (auto, "xyz") {
-				cetz.coordinate.resolve-xyz(c)
+				c
 			} else if ctx.target-system == "uv" {
 				if "grid" in ctx { xy-to-uv(ctx.grid, c) }
 				else { NAN_COORD }

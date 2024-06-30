@@ -188,3 +188,21 @@ If a grid isn't provided, $x y$-derived coordinates should resolve to #NAN_COORD
 	prev: (pt: (4, 5))
 )
 #assert-resolve(ctx, (), (4, 5))
+
+
+= `em` coordinates
+
+#let ctx = default-ctx + (
+	target-system: "uv",
+	grid: grid,
+)
+
+#assert-resolve(ctx,
+	(rel: (0pt, 1em), to: (0pt, 1pt)),
+	(0pt, 1em + 1pt),
+)
+
+#assert-resolve(ctx + (em-size: (width: 1cm)),
+	(0deg, 1pt + 1em),
+	(0deg, 1pt + 1cm),
+)
