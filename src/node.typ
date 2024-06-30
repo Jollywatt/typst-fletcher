@@ -396,7 +396,6 @@
 			if near-node == none or near-node.pos.raw == auto {
 				// if enclosed point doesn't resolve to a node
 				// enclose the point itself
-				// (uv-to-xy(grid, key),)
 				let (_, coord) = resolve(ctx, key)
 				(coord,)
 			} else {
@@ -476,12 +475,13 @@
 	for i in auto-placed-nodes {
 		let node = nodes.at(i)
 
+		// the center of enclosing nodes defaults to the center
+		// of the bounding rect of the points they enclose
 		let enclosed-nodes = node.enclose.map(key => {
 			let node = find-node(nodes, key)
 			if node == none {
 				// enclose key doesn't correspond to node
 				// interpret key as real coordinate
-				// key
 				let (_, coord) = resolve(ctx, key)
 				coord
 			} else {
