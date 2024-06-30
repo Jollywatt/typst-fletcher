@@ -491,7 +491,11 @@
 
 
 		// try resolving node uv coordinates. this resolves to NaN coords if the coord depends on physical lengths
-		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv"))
+		let ctx = (
+			target-system: "uv",
+			em-size: (width: options.em-size, height: options.em-size),
+		)
+		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(nodes, ctx: ctx)
 
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
