@@ -35,3 +35,16 @@
 		)
 	)
 }
+
+#pagebreak()
+
+Dynamic corner radius
+
+#let c = gradient.linear(..color.map.rainbow)
+#diagram(
+	edge-corner-radius: 6pt,
+	for t in range(13).map(i => i/12) {
+		let a = t*180deg
+		edge("r", (rel: (-a, 1)), "->", stroke: c.sample(t*100%))
+	}
+)

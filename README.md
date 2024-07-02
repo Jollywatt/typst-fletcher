@@ -153,6 +153,7 @@ Pull requests are most welcome!
 
 - Fix nodes which `enclose` absolute coordinates.
 - Fix crash with polar coordinates.
+- Fix edges which bend at 0deg or 180deg (e.g., `edge("r,r")` or `edge("r,l")`) and enhance the way the corner radius adapts to the bend angle.
 
 ### 0.5.0
 
