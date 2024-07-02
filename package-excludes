@@ -1,6 +1,9 @@
 # this file contains paths that should not be included when submitting this package to https://github.com/typst/packages
 package-excludes
 tests/
-justfile
+pixi.lock
+pixi.toml
+.gitattributes
 build-readme.py
 README.template.md
+# plus anything in .gitignore

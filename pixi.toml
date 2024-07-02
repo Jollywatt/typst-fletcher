@@ -1,0 +1,16 @@
+[project]
+name = "typst-fletcher"
+authors = ["jollywatt <jo.alex.w@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+readme = "./build-readme.py"
+test = "typst-test run"
+fix = "typst-test update --exact"
+manual = { cmd = "typst watch --root . docs/manual.typ", cwd = "." }
+
+[dependencies]
+python = ">=3.12.4,<3.13"
+tomli = ">=2.0.1,<2.1"
+lxml = ">=5.2.2,<5.3"
