@@ -329,24 +329,40 @@
 	let calculate-rounded-corner(i) = {
 		let pt = verts.at(i)
 		let Δθ = wrap-angle-180(θs.at(i) - θs.at(i - 1))
-		let dir = sign(Δθ) // +1 if ccw, -1 if cw
+		let dir = if Δθ > 0deg { +1 } else { -1 } // +1 if ccw, -1 if cw
+
 
 		let θ-normal = θs.at(i - 1) + Δθ/2 + 90deg  // direction to center of curvature
 
 		let radius = edge.corner-radius
-		radius *= calc.abs(90deg/Δθ) // visual adjustment so that tighter bends have smaller radii
+		// radius *= 90deg/calc.max(calc.abs(Δθ), 45deg) // visual adjustment so that tighter bends have smaller radii
+		radius *= 1 + calc.cos(Δθ)
 		radius += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) }
 		radius *= dir // ??? makes math easier or something
 
-		let dist = radius/calc.cos(Δθ/2) // distance from vertex to center of curvature
+		if calc.abs(Δθ) > 179deg {
+			// singluar line; skip arc
+			(
+				arc-center: pt,
+				arc-radius: 0*radius,
+				start: θs.at(i - 1) - 90deg,
+				delta: wrap-angle-180(Δθ),
+				line-shift: 0*radius, // distance from vertex to beginning of arc
+			)
+		} else {
 
-		(
-			arc-center: vector.add(pt, vector-polar(dist, θ-normal)),
-			arc-radius: radius,
-			start: θs.at(i - 1) - 90deg,
-			delta: wrap-angle-180(Δθ),
-			line-shift: radius*calc.tan(Δθ/2), // distance from vertex to beginning of arc
-		)
+			// distance from vertex to center of curvature
+			let dist = radius/calc.cos(Δθ/2)
+
+			(
+				arc-center: vector.add(pt, vector-polar(dist, θ-normal)),
+				arc-radius: radius,
+				start: θs.at(i - 1) - 90deg,
+				delta: wrap-angle-180(Δθ),
+				line-shift: radius*calc.tan(Δθ/2), // distance from vertex to beginning of arc
+			)
+		}
+
 	}
 
 	let rounded-corners
@@ -417,14 +433,16 @@
 				Δphase += vector-len(vector.sub(from, to))
 
 				for d in edge.extrude {
-					cetz.draw.arc(
-						arc-center,
-						radius: arc-radius - d,
-						start: start,
-						delta: delta,
-						anchor: "origin",
-						stroke: stroke-with-phase(phase + Δphase),
-					)
+					if delta != 0deg {
+						cetz.draw.arc(
+							arc-center,
+							radius: arc-radius - d,
+							start: start,
+							delta: delta,
+							anchor: "origin",
+							stroke: stroke-with-phase(phase + Δphase),
+						)
+					}
 
 					if debug >= 4 {
 						cetz.draw.on-layer(1, cetz.draw.circle(
