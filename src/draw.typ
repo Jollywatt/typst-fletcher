@@ -341,7 +341,7 @@
 		radius *= dir // ??? makes math easier or something
 
 		if calc.abs(Δθ) > 179deg {
-			// singluar line; skip arc
+			// singular line; skip arc
 			(
 				arc-center: pt,
 				arc-radius: 0*radius,

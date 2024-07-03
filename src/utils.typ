@@ -249,7 +249,7 @@
 	return false
 }
 
-// find a node near a given uv coorinate
+// find a node near a given uv coordinate
 #let find-node-at(nodes, uv) = {
 	nodes.filter(node => {
 		if is-nan-vector(node.pos.uv) { return false }

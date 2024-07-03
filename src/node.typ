@@ -439,7 +439,7 @@
 /// Resolve node positions to a target coordinate system in sequence.
 ///
 /// CeTZ-style coordinate expressions work, with the previous coordinate `()`
-/// refering to the resolved position of the previous node.
+/// referring to the resolved position of the previous node.
 ///
 /// The resolved coordinates are added to each node's `pos` dictionary. 
 ///
