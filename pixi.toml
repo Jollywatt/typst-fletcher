@@ -12,5 +12,9 @@ manual = { cmd = "typst watch --root . docs/manual.typ", cwd = "." }
 
 [dependencies]
 python = ">=3.12.4,<3.13"
+typst = ">=0.11.1,<0.12"
+typst-test = ">=0.0.0.post103,<0.0.1"
+typos = ">=1.22.7,<1.23"
 tomli = ">=2.0.1,<2.1"
 lxml = ">=5.2.2,<5.3"
+

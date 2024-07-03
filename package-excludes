@@ -4,6 +4,7 @@ tests/
 pixi.lock
 pixi.toml
 .gitattributes
+typos.toml
 build-readme.py
 README.template.md
 # plus anything in .gitignore

@@ -23,6 +23,9 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.2-h92ec313_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-h5083fa2_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.0.1-pyhd8ed1ab_0.tar.bz2
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typos-1.22.7-h6e96688_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.11.1-hac6298f_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-test-0.0.0.post104.7babfc0-h6e96688_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2024a-h0c530f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/xz-5.2.6-h57fd34a_0.tar.bz2
 packages:
@@ -299,6 +302,54 @@ packages:
   license_family: MIT
   size: 15940
   timestamp: 1644342331069
+- kind: conda
+  name: typos
+  version: 1.22.7
+  build: h6e96688_0
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/typos-1.22.7-h6e96688_0.conda
+  sha256: b01ecd5d44b67738f9148add9ec7f12d9f1a4935725fc3d8841d020a7ba93f36
+  md5: 61ee622afcccb925d13da044e1c3ab26
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: MIT
+  license_family: MIT
+  size: 3355631
+  timestamp: 1718216631691
+- kind: conda
+  name: typst
+  version: 0.11.1
+  build: hac6298f_0
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.11.1-hac6298f_0.conda
+  sha256: a8b94bd38614026e43790fd240d5664000f8e0ea84a35c0f8b1a41572ff57ce5
+  md5: 2a19dcbf1ddee8d838dff3d31492297b
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: Apache-2.0
+  license_family: Apache
+  size: 11149875
+  timestamp: 1716008519686
+- kind: conda
+  name: typst-test
+  version: 0.0.0.post104.7babfc0
+  build: h6e96688_0
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/typst-test-0.0.0.post104.7babfc0-h6e96688_0.conda
+  sha256: 5cfb2b5cd35b9121e0a33aef8eaf55c05dd6ade4ea103e33b86d8963d33a585c
+  md5: 9304831b5f14e166d1d4f3a3f18c92fa
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: MIT
+  license_family: MIT
+  size: 983406
+  timestamp: 1719429641573
 - kind: conda
   name: tzdata
   version: 2024a

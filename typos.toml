@@ -1,0 +1,7 @@
+# don't spellcheck the following files
+[files]
+extend-exclude = [
+	"*.svg",
+	"*.sublime-workspace",
+	"*.sublime-project",
+]
