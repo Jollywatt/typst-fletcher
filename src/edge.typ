@@ -528,7 +528,7 @@
 ///     shorthand strings are of the form $M_1 L M_2$ or $M_1 L M_2 L M_3$, etc,
 ///     where
 ///
-///     $ M_i in #`fletcher.MARKS` = #context math.mat(..fletcher.MARKS.get().keys().map(i => $#raw(i),$).chunks(5), delim: "{") $
+///     $ M_i in #`fletcher.MARKS` = #context math.mat(..fletcher.MARKS.get().keys().map(i => $#raw(lang: none, i),$).chunks(6), delim: "{") $
 ///     is a mark name and
 ///     $ L in #`fletcher.LINE_ALIASES` = {#fletcher.LINE_ALIASES.keys().map(raw.with(lang: none)).join($,$)} $
 ///     is the line style.

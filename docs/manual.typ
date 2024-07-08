@@ -6,6 +6,15 @@
 #set par(justify: true)
 #show link: underline.with(stroke: 1pt + blue.lighten(70%))
 
+// show references to headings as the heading title with a link
+// not as "Section 1.2.3"
+#show ref: it => {
+	if it.element.func() == heading {
+		link(it.target, it.element.body)
+	} else { it }
+}
+
+
 #let VERSION = toml("/typst.toml").package.version
 
 // link to a specific parameter of a function
@@ -801,19 +810,23 @@ A few other marks are provided, and all marks can be placed anywhere along the e
 	}
 }))
 
-All the built-in marks are defined in the state variable `fletcher.MARKS`, which you may access with `context fletcher.MARKS.get()`.
+All the built-in marks (see @all-marks) are defined in the state variable `fletcher.MARKS`, which you may access with `context fletcher.MARKS.get()`.
+You add or tweak mark styles by modifying `fletcher.MARKS`, as described in @mark-objects.
 
-#context table(
-	columns: (1fr,)*7,
-	stroke: none,
-	..fletcher.MARKS.get().pairs().map(((k, v)) => [
-		#set align(center)
-		#raw(k) \
-		#diagram(edge(stroke: 1pt, marks: (v, v)))
-	]),
-)
+#context [#figure(
+	caption: [Default marks by name. Properties such to size, angle, spacing, or fill can be adjusted.],
+	gap: 1em,
+	table(
+		columns: (1fr,)*6,
+		stroke: none,
+		..fletcher.MARKS.get().pairs().map(((k, v)) => [
+			#set align(center)
+			#raw(lang: none, k) \
+			#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v)))
+		]),
+	)
+) <all-marks>]
 
-Because it is a state variable, you can modify `fletcher.MARKS` to add or modify mark styles.
 
 == Custom marks
 
@@ -845,9 +858,9 @@ context edge(from, to, ..fletcher.interpret-marks-arg("|=>"))
 
 If you want to explore the internals of mark objects, you might find it handy to inspect the output of `context fletcher.interpret-marks-arg(..)` with various mark shorthands as input.
 
-=== Mark objects
+=== Mark objects <mark-objects>
 
-A _mark object_ is a dictionary with, at the very least, a `draw` entry containing the CeTZ objects to be drawn on the edge.
+A _mark object_ is a dictionary with, at the very least, a `draw` entry containing the CeTZ objects to be drawn.
 These CeTZ objects are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is defined as the unit length.
 For example, here is a basic circle mark:
 
@@ -881,6 +894,18 @@ This form makes it easier to change the size without modifying the `draw` functi
 	draw: mark => draw.circle((0,0), radius: mark.size, fill: none)
 ) // setup
 #diagram(edge(stroke: 3pt, marks: (my-mark + (size: 4), my-mark)))
+```)
+
+Lastly, mark objects may _inherit_ properties from other marks in `fletcher.MARKS` by containing an `inherit` entry, for example:
+
+#code-example-row(```typ
+#let my-mark = (
+	inherit: "stealth", // base mark on `fletcher.MARKS.stealth`
+	fill: red,
+	stroke: none,
+	extrude: (0, -3),
+)
+#diagram(edge("rr", stroke: 2pt, marks: (my-mark, my-mark + (fill: blue))))
 ```)
 
 Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
@@ -997,7 +1022,6 @@ It is easier to show than to tell:
 
 See `mark-debug()` and `cap-offset()` for details.
 
-#pagebreak()
 
 === Detailed example
 
@@ -1029,7 +1053,7 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 
 
 
-== Custom mark shorthands
+== Custom mark shorthands <custom-marks>
 
 While you can pass custom mark objects directly to #the-param[edge][marks], this can get annoying if you use the same mark often.
 In these cases, you can define your own mark shorthands.
@@ -1108,7 +1132,6 @@ Here is an example of how you might hack together a Bézier edge using the same 
 					)
 				})
 			})
-
 		})
 	}
 )
@@ -1120,7 +1143,7 @@ Here is an example of how you might hack together a Bézier edge using the same 
 
 You can create incrementally-revealed diagrams in Touying presentation slides by defining the following `touying-reducer`:
 
-```typ
+#text(.85em, ```typ
 #import "@preview/touying:0.2.1": *
 #let diagram = touying-reducer.with(reduce: fletcher.diagram, cover: fletcher.hide)
 #let (init, slide) = utils.methods(s)
@@ -1145,7 +1168,7 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 		edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
 	)
 ]
-```
+```)
 
 #pagebreak(weak: true)
 

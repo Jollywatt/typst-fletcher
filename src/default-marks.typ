@@ -314,6 +314,48 @@
 
 	"[]": (inherit: "square"),
 	"<>": (inherit: "diamond"),
+
+
+
+
+	// crow's foot notation
+	crowfoot: (
+		many-width: 5,
+		many-length: 8,
+		one-width: 5,
+		zero-width: 3.5,
+		gap: 3,
+		first-gap: 5,
+		many: true,
+		one: true,
+		zero: true,
+		tail-origin: mark => -mark.many-length,
+		zero-fill: white,
+		fill: none,
+		draw: mark => {
+			let x = 0
+			if mark.many {
+				draw.line((0, mark.many-width), (-mark.many-length - .5, 0), (0, -mark.many-width))
+				x -= mark.many-length
+			}
+			if mark.one {
+				x -= mark.gap
+				x = calc.min(x, -mark.first-gap)
+				draw.line((x, mark.one-width), (x, -mark.one-width))
+			}
+			if mark.zero {
+				x -= mark.gap
+				draw.circle((x - mark.zero-width, 0), radius: mark.zero-width, fill: mark.zero-fill)
+			}
+		}
+	),
+	"n": (inherit: "crowfoot", zero: false, one: false, many: true),
+	"n!": (inherit: "crowfoot", zero: false, one: true, many: true),
+	"n?": (inherit: "crowfoot", zero: true, one: false, many: true),
+	"1": (inherit: "crowfoot", zero: false, one: true, many: false),
+	"1!": (inherit: "crowfoot", zero: false, one: true, many: false, extrude: mark => (0, -calc.max(4, mark.gap))),
+	"1?": (inherit: "crowfoot", zero: true, one: true, many: false),
+
 )
 
 #let MARKS = state("fletcher-marks", DEFAULT_MARKS)

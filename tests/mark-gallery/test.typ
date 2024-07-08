@@ -7,6 +7,6 @@
 	..fletcher.MARKS.get().pairs().map(((k, v)) => [
 		#set align(center)
 		#raw(k) \
-		#diagram(edge(stroke: 1pt, marks: (v, v)))
+		#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v)))
 	]),
 )
