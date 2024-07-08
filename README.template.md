@@ -56,6 +56,7 @@ insert_example_table([
 - Fix crash with polar coordinates.
 - Fix edges which bend at 0deg or 180deg (e.g., `edge("r,r")` or `edge("r,l")`) and enhance the way the corner radius adapts to the bend angle. **Note:** This may change diagram layout from previous versions.
 - Improve error messages.
+- Add marks for crow's foot notation: `n` (many), `n?` (zero or more), `n!` (one or more), `1` (one), `1?` (zero or one), `1!` (exactly one).
 
 ### 0.5.0
 
