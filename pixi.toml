@@ -1,5 +1,5 @@
 [project]
-name = "typst-fletcher"
+name = "fletcher"
 authors = ["jollywatt <jo.alex.w@gmail.com>"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64"]
@@ -9,6 +9,9 @@ readme = "./build-readme.py"
 test = "typst-test run"
 fix = "typst-test update --exact"
 manual = { cmd = "typst watch --root . docs/manual.typ", cwd = "." }
+gallery = "nu tasks.nu gallery"
+install = "nu tasks.nu install"
+check = "nu tasks.nu check"
 
 [dependencies]
 python = ">=3.12.4,<3.13"
@@ -17,4 +20,5 @@ typst-test = ">=0.0.0.post103,<0.0.1"
 typos = ">=1.22.7,<1.23"
 tomli = ">=2.0.1,<2.1"
 lxml = ">=5.2.2,<5.3"
+nushell = ">=0.95.0,<0.96"
 
