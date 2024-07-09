@@ -330,6 +330,9 @@
 /// - node-outset (length, pair of lengths): Default value of
 ///   #the-param[node][outset].
 ///
+/// - node-shape (rect, circle, function): Default value of
+///   #the-param[node][shape].
+///
 /// - node-stroke (stroke, none): Default value of #the-param[node][stroke].
 ///
 ///   The default stroke is folded with the stroke specified for the node. For
@@ -430,6 +433,7 @@
 	node-corner-radius: none,
 	node-inset: 6pt,
 	node-outset: 0pt,
+	node-shape: auto,
 	node-fill: none,
 	node-defocus: 0.2,
 	label-sep: 0.4em,
@@ -458,6 +462,7 @@
 		cell-size: cell-size,
 		node-inset: node-inset,
 		node-outset: node-outset,
+		node-shape: node-shape,
 		node-stroke: node-stroke,
 		node-fill: node-fill,
 		node-corner-radius: node-corner-radius,

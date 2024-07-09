@@ -23,6 +23,26 @@
 
 )
 
+#pagebreak()
+
+Diagram `node-shape` option
+
+#diagram(
+	node-shape: circle,
+	node-fill: yellow,
+
+	node((0,0), [A]),
+	node((1,0), [A B C]),
+)
+
+#diagram(
+	node-shape: rect,
+	node-fill: orange,
+
+	node((0,0), [A]),
+	node((1,0), [A B C]),
+)
+
 
 #pagebreak()
 

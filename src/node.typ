@@ -106,16 +106,17 @@
 ///   )
 ///   ```))
 ///
-/// - shape (rect, circle, function, auto): Shape to draw for the node. If
-///   `auto`, one of `rect` or `circle` is chosen depending on the aspect ratio
-///   of the node's label.
+/// - shape (rect, circle, function): Shape of the node's outline. If `auto`,
+///   one of `rect` or `circle` is chosen depending on the aspect ratio of the
+///   node's label.
 ///
 ///   Other shapes are defined in the `fletcher.shapes`
 ///   submodule, including
 ///   #{
-///   	dictionary(fletcher.shapes).keys()
-///   	.filter(x => type(x) != module)
-///   	.map(i => [#raw(i)]).join(last: [, and ])[, ]
+///   	dictionary(fletcher.shapes).pairs()
+///   	.filter(((k, v)) => type(v) != module)
+///   	.map(((k, v)) => [#raw(k)])
+///   	.join(last: [, and ])[, ]
 ///   }.
 ///
 ///   Custom shapes should be specified as a function `(node, extrude, ..parameters) => (..)`
@@ -127,7 +128,11 @@
 ///     extruded outwards by. This serves two functions: to support automatic
 ///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
 ///     effects using the `extrude` node option.
-///   See the ```plain src/shapes.typ``` source file for examples.
+///   See the
+///   #link("https://github.com/Jollywatt/typst-fletcher/blob/master/src/shapes.typ", 
+///   ```plain src/shapes.typ```) source file for example shape implementations.
+///
+///   Defaults to #the-param[diagram][node-shape].
 ///
 /// - stroke (stroke): Stroke style for the node outline.
 ///
@@ -298,6 +303,8 @@
 
 	node.size = node.size.map(pass-auto(to-pt))
 	node.radius = pass-auto(to-pt)(node.radius)
+
+	node.shape = map-auto(node.shape, options.node-shape)
 
 	if node.shape == auto {
 		if node.radius != auto { node.shape = "circle" }
