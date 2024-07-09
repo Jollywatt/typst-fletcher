@@ -43,6 +43,7 @@ insert_example_table([
   "io-flowchart",
   "digraph",
   "node-groups",
+  "uml-diagram",
 ])
 ```
 

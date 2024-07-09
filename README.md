@@ -143,6 +143,15 @@ Pull requests are most welcome!
       </a>
     </td>
   </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/uml-diagram.typ">
+        <center>
+          <img src="docs/gallery/uml-diagram.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
 </table>
 
 
