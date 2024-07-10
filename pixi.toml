@@ -5,13 +5,13 @@ channels = ["conda-forge"]
 platforms = ["osx-arm64"]
 
 [tasks]
-readme = "./build-readme.py"
+readme = "scripts/build-readme.py"
 test = "typst-test run"
 fix = "typst-test update --exact"
 manual = { cmd = "typst watch --root . docs/manual.typ", cwd = "." }
-gallery = "nu tasks.nu gallery"
-install = "nu tasks.nu install"
-check = "nu tasks.nu check"
+gallery = "scripts/compile.nu --gallery"
+install = "scripts/install.nu"
+check = "scripts/check.nu"
 
 [dependencies]
 python = ">=3.12.4,<3.13"

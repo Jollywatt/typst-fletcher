@@ -114,7 +114,8 @@ def get_version():
 	return tomli.load(open("typst.toml", 'rb'))['package']['version']
 
 def build_readme():
-	with open("README.template.md", 'r') as file:
+
+	with open("README.src.md", 'r') as file:
 		src = file.read()
 		out = re.sub(README_PATTERN, lambda match: eval(match[2]), src)
 		with open("README.md", 'w') as newfile:
@@ -124,7 +125,7 @@ def build_readme():
 USAGE = f"""
 USAGE:
 	build
-		Create README.md from README.template.md
+		Create README.md from README.src.md
 	compile [pattern]
 		Generate light and dark themed SVGs for examples in {EXAMPLES_PATH} matching pattern
 """
