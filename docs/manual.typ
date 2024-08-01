@@ -748,7 +748,7 @@ Notice the (subtle) difference the figures below.
 #align(center, stack(
 	dir: ltr,
 	spacing: 20%,
-	..(([With focus (default)], 0.2), ([Without defocus], 0)).map(((label, d)) => {
+	..(([Node with defocus (default)], 0.2), ([No defocus adjustment], 0)).map(((label, d)) => {
 		figure(
 			caption: label,
 			fletcher.diagram(
