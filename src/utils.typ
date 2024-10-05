@@ -52,6 +52,11 @@
 	else { error(message + "; got #0.", repr(obj)) }
 }
 
+#let as-angle(obj, message: "Expected an angle") = {
+	if type(obj) == angle { obj }
+	else { error(message + "; got #0.", repr(obj)) }
+}
+
 #let stroke-to-dict(s) = {
 	let s = as-stroke(s)
 	let d = (

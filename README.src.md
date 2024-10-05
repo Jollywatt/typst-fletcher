@@ -50,6 +50,10 @@ insert_example_table([
 
 ## Change log
 
+### 0.5.2
+
+- Add `loop-angle` option to `edge()` (#36).
+
 ### 0.5.1
 
 - Fix nodes which `enclose` absolute coordinates.

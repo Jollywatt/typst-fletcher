@@ -403,6 +403,17 @@
 ///   		.join()
 ///   })
 ///
+/// - loop-angle (angle): Angle around the node at which edge loops stick out at. Loops are arcs
+///   with the same start/end point and a large #param[edge][bend] angle (e.g.,
+///   `120deg`). This value has no effect for non-loop edges.
+///
+///   #diagram(debug: 0, {
+///   	node((0,0), $O$)
+///   	for θ in (0deg, -90deg, 135deg) {
+///   		edge((), "->", (), bend: 125deg, loop-angle: θ, label: θ)
+///   	}
+///   })
+///
 /// - label (content): Content for the edge label. See the
 ///   #param[edge][label-pos] and #param[edge][label-side] options to control
 ///   the position (and #param[edge][label-sep] and #param[edge][label-anchor]
@@ -732,6 +743,7 @@
 	shift: 0pt,
 	kind: auto,
 	bend: 0deg,
+	loop-angle: none,
 	corner: none,
 	corner-radius: auto,
 	marks: (),
@@ -760,6 +772,7 @@
 		decorations: decorations,
 		kind: kind,
 		bend: bend,
+		loop-angle: pass-none(as-angle)(loop-angle),
 		corner: corner,
 		corner-radius: corner-radius,
 		extrude: extrude,
@@ -1016,6 +1029,12 @@
 
 	edge.final-vertices.at( 0) = vector.add(from-xy, δ⃗-from)
 	edge.final-vertices.at(-1) = vector.add(to-xy, δ⃗-to)
+
+	if edge.loop-angle != none {
+		let a = edge.loop-angle + 90deg
+		edge.final-vertices.at( 0) = vector.add(edge.final-vertices.at( 0), vector-polar(+1e-4pt, a))
+		edge.final-vertices.at(-1) = vector.add(edge.final-vertices.at(-1), vector-polar(-1e-4pt, a))
+	}
 
 	edge
 }

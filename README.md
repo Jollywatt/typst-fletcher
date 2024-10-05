@@ -158,6 +158,10 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.2
+
+- Add `loop-angle` option to `edge()` (#36).
+
 ### 0.5.1
 
 - Fix nodes which `enclose` absolute coordinates.
