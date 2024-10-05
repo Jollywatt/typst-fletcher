@@ -236,9 +236,7 @@
 
 #let interpret-diagram-args(args) = {
 	if args.named().len() > 0 {
-		let args = args.named().keys().join(", ")
-	if args.named().len() > 0 { error("Unexpected named argument(s) #..0.", args.named().keys()) }
-		// error("Unexpected named argument(s) #..0 to `diagram()`: " + args)
+		error("Unexpected named argument(s) #..0.", args.named().keys())
 	}
 
 	let positional-args = args.pos().flatten().join() + [] // join to ensure sequence

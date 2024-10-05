@@ -86,7 +86,7 @@
 
 	if type(arg) == symbol {
 		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
-		else { error("Unrecognised marks symbol #.", arg) }
+		else { error("Unrecognised marks symbol #0.", arg) }
 	}
 
 	assert(type(arg) == str)
