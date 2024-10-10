@@ -669,7 +669,7 @@ Like node positions, edge vertices may be specified by CeTZ-style coordinate exp
 
 Additionally, you may specify relative shorthand strings such as `"u"` for up or `"sw"` for south west. Any combination of
 #strong[t]op/#strong[u]p/#strong[n]orth,
-#strong[b]ottomp/#strong[d]own/#strong[s]outh,
+#strong[b]ottom/#strong[d]own/#strong[s]outh,
 #strong[l]eft/#strong[w]est, and
 #strong[r]ight/#strong[e]ast
 are allowed. Together with implicit coordinates, this allows you to do things like:
