@@ -335,7 +335,7 @@
 ///
 /// Widths and heights that are `auto` are determined by measuring the size of
 /// the node's label.
-#let measure-node-size(node, styles) = {
+#let measure-node-size(node) = {
 
 	// Width and height explicitly given
 	if auto not in node.size {
@@ -358,7 +358,7 @@
 			node.label,
 			width:  inner-size.at(0),
 			height: inner-size.at(1),
-		), styles)
+		))
 
 		// let (width, height) = node.inner-size
 		let radius = vector-len((width/2, height/2)) // circumcircle

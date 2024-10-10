@@ -479,7 +479,7 @@
 
 	let (nodes, edges) = interpret-diagram-args(args)
 
-	box(style(styles => {
+	box(context {
 		let options = options
 
 		options.em-size = measure(h(1em)).width
@@ -489,7 +489,7 @@
 
 		let nodes = nodes.map(node => {
 			node = resolve-node-options(node, options)
-			node = measure-node-size(node, styles)
+			node = measure-node-size(node)
 			node
 		})
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
@@ -541,5 +541,5 @@
 
 
 		render(grid, nodes, edges, options)
-	}))
+	})
 }
