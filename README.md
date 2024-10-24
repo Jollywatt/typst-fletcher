@@ -160,6 +160,8 @@ Pull requests are most welcome!
 
 ### 0.5.2
 
+- **Require `typst` version `>=0.12.0`.**
+- Update `cetz` dependency to `0.3.1`. **Note:** This may slightly change edge label positions.
 - Add `loop-angle` option to `edge()` (#36).
 
 ### 0.5.1
