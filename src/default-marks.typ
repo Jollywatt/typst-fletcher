@@ -109,9 +109,12 @@
 			if mark.stealth > 0 {
 				let wing-angle = (mark.rear-angle - mark.angle)/2
 
+				let miter-limit = if mark.stroke == none { 0 }
+					else { stroke(mark.stroke).miter-limit }
+
 				let miter-length = 1/calc.sin(wing-angle)
 				// stealth arrows with sharp wings look bigger due to long miter lengths
-				let extra-size = if miter-length < mark.stroke.miter-limit {
+				let extra-size = if miter-length < miter-limit {
 					// so account for extra apparent size
 					0.4*miter-length
 				} else {
