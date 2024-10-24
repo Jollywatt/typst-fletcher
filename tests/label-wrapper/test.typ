@@ -14,7 +14,7 @@
 		radius: 7pt,
 	),
 	$
-	A edge(->, f) & B edge("d", ->, g) \
+	A edge(->, f) & B edge("d", ->, g, #right) \
 	C edge("u", ->, i) & D edge("l", ->, j)
 	$
 )
