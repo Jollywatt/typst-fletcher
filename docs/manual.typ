@@ -1,4 +1,4 @@
-#import "@preview/tidy:0.2.0"
+#import "@preview/tidy:0.3.0"
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 #import "/docs/style.typ"
 
@@ -109,16 +109,15 @@
 	if it.text.match(regex("^[a-z-]+\(\)$")) == none { it }
 	else {
 		let l = label(it.text)
-		locate(loc => {
-			if query(l, loc).len() > 0 {
+		context {
+			if query(l).len() > 0 {
 				link(l, it)
 			} else {
 				it
 			}
-		})
+		}
 	}
 }
-
 
 
 #v(1fr)
@@ -295,6 +294,8 @@
 ]
 
 ]
+
+
 
 #pagebreak()
 
@@ -533,7 +534,6 @@ The predefined shapes are:
 
 #table(
 	columns: (1fr,)*4,
-	gutter: 2mm,
 	stroke: none,
 	align: center + horizon,
 	..{
@@ -555,7 +555,7 @@ The predefined shapes are:
 			.filter(((key, value)) => type(value) != module)
 			.zip(colors)
 			.map((((name, shape), color)) => {
-				diagram(node((0,0), link(label(name + "()"), raw(name)), shape: shape,
+				diagram(node((0,0), box(inset: 1pt, link(label(name + "()"), raw(name))), shape: shape,
 					fill: color.lighten(90%), stroke: color))
 			})
 	}
