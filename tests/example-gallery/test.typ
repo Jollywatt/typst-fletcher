@@ -57,7 +57,6 @@
 
 #[
 	#import fletcher.shapes: house, hexagon
-	#set text(font: "Fira Sans")
 
 	#let blob(pos, label, tint: white, ..args) = node(
 		pos, align(center, label),
