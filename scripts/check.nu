@@ -22,8 +22,8 @@ def typos [] {
 
 def versions [] {
 	print "Version numbers in files to check:"
-	ls **/*.typ | get name | each { |file|
-		let matches = open $file | lines | find -r '\d\.\d\.\d'
+	ls **/*.typ **/*.toml | get name | each { |file|
+		let matches = open $file --raw | lines | find -r '\d\.\d\.\d'
 		$matches | wrap match | insert file $file
 	} | flatten | select file match
 }
