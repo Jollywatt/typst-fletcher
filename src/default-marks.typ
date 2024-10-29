@@ -103,7 +103,26 @@
 		angle: 25deg,
 
 		tip-origin: mark => 0.5/calc.sin(mark.angle),
-		tail-origin: mark => -mark.size*calc.cos(mark.angle) - 1,
+		tail-origin: mark => {
+			// with stealth > 0, the tail-origin lies within the triangular hull of the mark
+			// act as though the tail actually ended at the edge of the triangular hull
+			// for stealth <= 0, the actual stealth length should be used
+			// to avoid offsets between mark and edge
+			let stealth = calc.min(mark.stealth, 0)
+
+			let miter-correction = if mark.stealth < 0 {
+				// like tip-origin, the tail extends out due to the miter join, but scaled with the stealth
+				0.5/calc.sin(mark.angle) * stealth
+			} else {
+				// the overextent of the miter join is a bit harder to calculate here: it depends on
+				// - the angle between the strokes defined by `angle` and `stealth`
+				// - the angle by which this miter departs from the line direction
+				// for now, I just ignore this and use the old behavior of correcting by one stroke width:
+				-1
+			}
+
+			-mark.size*(1 - stealth)*calc.cos(mark.angle) + miter-correction
+		},
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
 
 		stroke: (miter-limit: 20),
