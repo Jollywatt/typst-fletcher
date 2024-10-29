@@ -234,8 +234,11 @@
 	),
 
 	diamond: (
-		inherit: "square",
+		inherit: "stealth",
+		size: 4,
 		angle: 45deg,
+		stealth: -1,
+		fill: none,
 	),
 
 	bar: (
