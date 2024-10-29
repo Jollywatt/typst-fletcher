@@ -121,7 +121,7 @@
 				-1
 			}
 
-			-mark.size*(1 - stealth)*calc.cos(mark.angle) + miter-correction
+			mark.size*(stealth - 1)*calc.cos(mark.angle) + miter-correction
 		},
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
 
