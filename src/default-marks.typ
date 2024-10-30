@@ -104,24 +104,53 @@
 
 		tip-origin: mark => 0.5/calc.sin(mark.angle),
 		tail-origin: mark => {
+			let (cos, sin) = (calc.cos(mark.angle), calc.sin(mark.angle))
+
 			// with stealth > 0, the tail-origin lies within the triangular hull of the mark
 			// act as though the tail actually ended at the edge of the triangular hull
 			// for stealth <= 0, the actual stealth length should be used
 			// to avoid offsets between mark and edge
 			let stealth = calc.min(mark.stealth, 0)
+			let base-length = mark.size*(stealth - 1)*cos
 
 			let miter-correction = if mark.stealth < 0 {
-				// like tip-origin, the tail extends out due to the miter join, but scaled with the stealth
-				0.5/calc.sin(mark.angle) * stealth
+				// the tail-origin is at the base-length, but extended by the length of the miter join of
+				// the two back edges of the arrow. this extension is the same as tip-origin, but scaled
+				// with the stealth
+				0.5/sin * stealth
 			} else {
-				// the overextent of the miter join is a bit harder to calculate here: it depends on
-				// - the angle between the strokes defined by `angle` and `stealth`
-				// - the angle by which this miter departs from the line direction
-				// for now, I just ignore this and use the old behavior of correcting by one stroke width:
-				-1
+				// the tail-origin is at the base-length, but extended by the length of the miter join of
+				// the front and back edge of the arrow. For this join, we need the angular bisector of
+				// these edges
+
+				// we can get the back edge by the law of cosines from the triangle formed by the tip
+				// (tail-end), the head's back point, and the tip-end. Since we're only interested in an
+				// angle, we ignore the size. We know
+				// - the side opposite tip-end = 1
+				// - the side opposite the back point = 1 - stealth
+				// - the angle opposite the back edge = angle
+				// we need the back edge and then the back point angle
+				let base = (1 - mark.stealth)*cos
+				let back-edge = calc.sqrt(1 + base*base - 2*base*cos)
+				// using law of sines we now get the back angle
+				let back-angle = calc.asin(base/back-edge * sin)
+
+				// using half the back angle, we can compute how far the miter join will extend out
+				let join-length = 0.5/calc.sin(back-angle/2)
+
+				// adding that angle onto the mark's `angle`, we get the difference in direction between
+				// the arrow's base and that miter
+				let projected-length = join-length * calc.cos(mark.angle + back-angle/2)
+
+				// apply the correction depending on whether we're over the miter limit
+				if join-length < mark.stroke.miter-limit/2 {
+					-projected-length
+				} else {
+					0
+				}
 			}
 
-			mark.size*(stealth - 1)*calc.cos(mark.angle) + miter-correction
+			base-length + miter-correction
 		},
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
 
