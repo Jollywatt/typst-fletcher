@@ -3,9 +3,9 @@
 #set text(font: "Comic Neue", weight: 600)
 
 #diagram(
-	node-stroke: 1pt/*<*/ + fg/*>*/,
-	edge-stroke: 1pt/*<*/ + fg/*>*/,
-	crossing-fill: bg, // hide
+	node-stroke: 1pt/*darkmode*/ + white/*end*/,
+	edge-stroke: 1pt/*darkmode*/ + white/*end*/,
+	crossing-fill: white, // darkmode
 	node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
 	edge("-|>"),
 	node((0,1), align(center)[

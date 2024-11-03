@@ -1,8 +1,8 @@
 #set text(10pt)
 #diagram(
-	node-stroke: .1em/*<*/ + fg/*>*/,
-	edge-stroke: fg, // hide
-	crossing-fill: bg , // hide
+	node-stroke: .1em/*darkmode*/ + white/*end*/,
+	edge-stroke: white, // darkmode
+	crossing-fill: black , // darkmode
 	node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
 	spacing: 4em,
 	edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),

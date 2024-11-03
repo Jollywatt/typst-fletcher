@@ -1,6 +1,6 @@
 #import fletcher.shapes: house, hexagon
 #set text(font: "Fira Sans")
-#set text(black) // hide
+#set text(black) // darkmode
 
 #let blob(pos, label, tint: white, ..args) = node(
 	pos, align(center, label),
@@ -14,7 +14,7 @@
 #diagram(
 	spacing: 8pt,
 	cell-size: (8mm, 10mm),
-	edge-stroke: 1pt/*<*/ + fg/*>*/,
+	edge-stroke: 1pt/*darkmode*/ + white/*end*/,
 	edge-corner-radius: 5pt,
 	mark-scale: 70%,
 
