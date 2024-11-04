@@ -7,6 +7,7 @@ authors = ["Joseph Wilson (Jollywatt)"]
 license = "MIT"
 description = "Draw diagrams with nodes and arrows."
 repository = "https://github.com/Jollywatt/typst-fletcher"
+categories = ["visualization", "components"]
 keywords = [
 	"commutative",
 	"commuting",
