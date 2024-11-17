@@ -39,7 +39,6 @@
 	}
 	o += if mark.tip { mark.tip-end } else { mark.tail-end }
 	o*scale
-
 }
 
 
@@ -64,7 +63,8 @@
 
 
 
-/// Resolve a mark dictionary by applying inheritance, adding any required entries, and evaluating any closure entries.
+/// Resolve a mark dictionary by applying inheritance, adding any required
+/// entries, and evaluating any closure entries.
 ///
 /// #example(```
 /// context fletcher.resolve-mark((

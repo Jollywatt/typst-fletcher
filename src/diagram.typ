@@ -493,12 +493,10 @@
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
 
-		// try resolving node uv coordinates. this resolves to NaN coords if the coord depends on physical lengths
-		let ctx = (
-			target-system: "uv",
-			em-size: (width: options.em-size, height: options.em-size),
-		)
-		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(nodes, ctx: ctx)
+		// try resolving node uv coordinates. this resolves to NaN coords if the
+		// resolution fails (e.g., if the coord depends on physical lengths)
+		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(
+			nodes, ctx: (target-system: "uv"))
 
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
@@ -506,10 +504,11 @@
 			.filter(node => not is-nan-vector(node.pos.uv))
 			.map(node => (center: node.pos.uv, size: node.size))
 
-		let vertices-affecting-grid = edges.map(edge => {
-			resolve-edge-vertices(edge, ctx: ctx-with-uv-anchors + (target-system: "uv"), nodes)
-		}).join() + () // coerce none to ()
-		vertices-affecting-grid = vertices-affecting-grid.filter(vert => not is-nan-vector(vert))
+
+		let vertices-affecting-grid = (edges
+			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx-with-uv-anchors + (target-system: "uv")))
+			.join() + ()) // coerce none to ()
+			.filter(vert => not is-nan-vector(vert))
 
 
 		// determine diagram's elastic grid layout

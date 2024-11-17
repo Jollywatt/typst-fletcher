@@ -428,7 +428,6 @@
 		)
 		node.shape = shapes.rect // TODO: support different node shapes with enclose
 
-
 		node
 	})
 

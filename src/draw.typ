@@ -827,10 +827,13 @@
 ) = {
 	let node-finder = find-snapping-nodes.with(grid, nodes)
 	let first-last(x) = (x.at(0), x.at(-1))
+
 	for edge in edges {
-		let snap-to-nodes = edge.snap-to.zip(first-last(edge.vertices), first-last(edge.final-vertices)).enumerate()
-			.map(((i, (given, raw, xyz))) => {
-				let key = map-auto(given, if type(raw) == label { raw } else { xyz })
+		let snap-to-nodes = edge.snap-to
+			.zip(first-last(edge.vertices), first-last(edge.final-vertices))
+			.enumerate()
+			.map(((i, (given, raw, xy))) => {
+				let key = map-auto(given, if type(raw) == label { raw } else { xy })
 				let node = node-finder(key)
 				node
 			})

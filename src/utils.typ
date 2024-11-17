@@ -167,7 +167,7 @@
 	}
 	let (first, last) = (values.at(0), values.at(-1))
 
-	// avoids division by zero when numerator and denominator both vanishe
+	// avoids division by zero when numerator and denominator both vanish
 	let div(a, b) = if calc.abs(a) < 1e-3pt { 0 } else { a/b }
 
 	if value < first {
@@ -181,8 +181,8 @@
 }
 
 
-#let rect-at(origin, size) = (-1, +1).map(dir => {
-	vector.add(origin, vector.scale(size, dir/2))
+#let rect-at(center, size) = (-1, +1).map(dir => {
+	vector.add(center, vector.scale(size, dir/2))
 })
 
 #let point-is-in-rect(point, (center, size)) = {
