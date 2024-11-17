@@ -337,7 +337,10 @@
 		let radius = edge.corner-radius
 		// radius *= 90deg/calc.max(calc.abs(Δθ), 45deg) // visual adjustment so that tighter bends have smaller radii
 		radius *= 1 + calc.cos(Δθ)
-		radius += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) }
+		// skip correcting the corner radius for extruded strokes if there's no stroke at all
+		if edge.extrude != () {
+			radius += if dir > 0 { calc.max(..edge.extrude) } else { -calc.min(..edge.extrude) }
+		}
 		radius *= dir // ??? makes math easier or something
 
 		if calc.abs(Δθ) > 179deg {
@@ -814,7 +817,7 @@
 	error("Couldn't find node corresponding to #0 in diagram.", key)
 }
 
- 
+
 
 #let draw-diagram(
 	grid,
