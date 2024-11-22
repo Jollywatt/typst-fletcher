@@ -5,12 +5,17 @@
 #let DEBUG_COLOR = rgb("f008")
 #let DEBUG_COLOR2 = rgb("0f08")
 
+#let draw-node-outline(node) = {
+	cetz.draw.group({
+		cetz.draw.translate(node.pos.xyz)
+		(node.shape)(node, node.outset)
+	})
+}
 
 #let draw-node(node, debug: 0) = {
 
 	let result = {
 		if node.stroke != none or node.fill != none {
-
 			cetz.draw.group({
 				cetz.draw.translate(node.pos.xyz)
 				for (i, extrude) in node.extrude.enumerate() {
@@ -24,7 +29,6 @@
 		}
 
 		if node.label != none {
-
 			cetz.draw.content(
 				node.pos.xyz,
 				box(
@@ -62,14 +66,15 @@
 		)
 
 		// node anchoring outline (what edges snap to)
-		cetz.draw.group({
-			cetz.draw.translate(node.pos.xyz)
-			cetz.draw.set-style(
-				stroke: DEBUG_COLOR2 + 0.25pt,
-				fill: none,
-			)
-			(node.shape)(node, node.outset)
-		})
+		// cetz.draw.group({
+		// 	cetz.draw.translate(node.pos.xyz)
+		// 	(node.shape)(node, node.outset)
+		// })
+		cetz.draw.set-style(
+			stroke: DEBUG_COLOR2 + 0.25pt,
+			fill: none,
+		)
+		draw-node-outline(node)
 	}
 }
 
@@ -575,6 +580,7 @@
 }
 
 
+
 #let draw-anchored-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
 	let θ = angle-between(from, to) + 90deg
@@ -589,19 +595,10 @@
 	}
 
 
-	let dummy-line = cetz.draw.line(
-		from,
-		to,
-	)
+	let dummy-line = cetz.draw.line(from, to)
 
 	let intersection-objects = nodes.map(nodes => {
-		for node in nodes {
-			cetz.draw.group({
-				cetz.draw.translate(node.pos.xyz)
-				(node.shape)(node, node.outset)
-			})
-		}
-		// if node == none { return }
+		nodes.map(draw-node-outline).join()
 		dummy-line
 	})
 
@@ -621,20 +618,14 @@
 	let θ = angle-between(from, to)
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
 
-	let dummy-lines = (from, to).zip(θs)
-		.map(((point, φ)) => cetz.draw.line(
+	let dummy-lines = (from, to).zip(θs, nodes)
+		.map(((point, φ, node)) => cetz.draw.line(
 			point,
 			vector.add(point, vector-polar(10cm, φ)), // ray emanating from node
 		))
 
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		for node in nodes {
-			cetz.draw.group({
-				cetz.draw.translate(node.pos.xyz)
-				(node.shape)(node, node.outset)
-			})
-		}
-		// if node == none { return }
+		nodes.map(draw-node-outline).join()
 		dummy-line
 	})
 
@@ -658,13 +649,7 @@
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		for node in nodes {
-			cetz.draw.group({
-				cetz.draw.translate(node.pos.xyz)
-				(node.shape)(node, node.outset)
-			})
-		}
-		// if node == none { return }
+		nodes.map(draw-node-outline).join()
 		dummy-line
 	})
 
@@ -679,13 +664,13 @@
 }
 
 
-#let draw-edge(edge, nodes, ..args) = {
+#let draw-edge(edge, ..args) = {
 	let obj = if edge.kind == "line" {
-		draw-anchored-line(edge, nodes, ..args)
+		draw-anchored-line(edge, ..args)
 	} else if edge.kind == "arc" {
-		draw-anchored-arc(edge, nodes, ..args)
+		draw-anchored-arc(edge, ..args)
 	} else if edge.kind == "poly" {
-		draw-anchored-polyline(edge, nodes, ..args)
+		draw-anchored-polyline(edge, ..args)
 	} else { error("Invalid edge kind #0.", edge.kind) }
 
 	if edge.layer != 0 { obj = cetz.draw.on-layer(edge.layer, obj)}
@@ -784,8 +769,6 @@
 //
 // Returns an array of zero or more nodes. False positives are acceptable.
 #let find-snapping-nodes(grid, nodes, key) = {
-	if key == none { return () }
-
 	if type(key) == label {
 		return nodes.filter(node => node.name == key)
 	}
@@ -795,14 +778,11 @@
 		let xy-pos = key
 		let candidates = nodes.filter(node => {
 			if node.snap == false { return false }
-			let verdict = point-is-in-rect(xy-pos, (
+			point-is-in-rect(xy-pos, (
 				center: node.pos.xyz,
 				size: node.size,
 			))
-
-			verdict
 		})
-
 
 		if candidates.len() > 0 {
 			// filter out nodes with lower snap priority
@@ -811,13 +791,26 @@
 		}
 
 		return candidates
-
 	}
 
 	error("Couldn't find node corresponding to #0 in diagram.", key)
 }
 
 
+// return a pair of arrays of nodes to which the edge should snap
+#let find-nodes-for-edge(grid, nodes, edge) = {
+	let select-nodes = find-snapping-nodes.with(grid, nodes)
+	let first-last(x) = (x.at(0), x.at(-1))
+	array.zip(
+		edge.snap-to,
+		first-last(edge.vertices),
+		first-last(edge.final-vertices),
+	).map(((given, vertex, xy)) => {
+		if given == none { return () } // user explicitly disabled snapping
+		let key = map-auto(given, if type(vertex) == label { vertex } else { xy })
+		select-nodes(key)
+	})
+}
 
 #let draw-diagram(
 	grid,
@@ -825,19 +818,10 @@
 	edges,
 	debug: 0,
 ) = {
-	let node-finder = find-snapping-nodes.with(grid, nodes)
-	let first-last(x) = (x.at(0), x.at(-1))
 
 	for edge in edges {
-		let snap-to-nodes = edge.snap-to
-			.zip(first-last(edge.vertices), first-last(edge.final-vertices))
-			.enumerate()
-			.map(((i, (given, raw, xy))) => {
-				let key = map-auto(given, if type(raw) == label { raw } else { xy })
-				let node = node-finder(key)
-				node
-			})
-		draw-edge(edge, snap-to-nodes, debug: debug)
+		let nodes = find-nodes-for-edge(grid, nodes, edge)
+		draw-edge(edge, nodes, debug: debug)
 	}
 
 	for node in nodes {
