@@ -480,10 +480,9 @@
 	box(context {
 		let options = options
 
-		options.em-size = measure(h(1em)).width
-		let to-pt(len) = to-abs-length(len, options.em-size)
-		options.spacing = options.spacing.map(to-pt)
-		options.cell-size = options.cell-size.map(to-pt)
+		options.em-size = 1em.to-absolute()
+		options.spacing = options.spacing.map(length.to-absolute)
+		options.cell-size = options.cell-size.map(length.to-absolute)
 
 		let nodes = nodes.map(node => {
 			node = resolve-node-options(node, options)

@@ -839,7 +839,7 @@
 
 
 #let resolve-edge-options(edge, options) = {
-	let to-pt(len) = to-abs-length(len, options.em-size)
+	// let to-pt(len) = to-abs-length(len, options.em-size)
 
 	edge += interpret-marks-arg(edge.marks)
 
@@ -861,12 +861,12 @@
 		stroke-to-dict(options.edge-stroke) +
 		stroke-to-dict(map-auto(edge.stroke, (:)))
 	)
-	edge.stroke.thickness = to-pt(edge.stroke.thickness)
+	edge.stroke.thickness = edge.stroke.thickness.to-absolute()
 
 	edge.extrude = as-array(edge.extrude).map(as-number-or-length.with(
 		message: "`extrude` must be a number, length, or an array of those"
 	)).map(d => {
-		if type(d) == length { to-pt(d) }
+		if type(d) == length { d.to-absolute() }
 		else { d*edge.stroke.thickness }
 	})
 
@@ -918,7 +918,7 @@
 		mark
 	})
 
-	edge.label-sep = to-pt(map-auto(edge.label-sep, options.label-sep))
+	edge.label-sep = map-auto(edge.label-sep, options.label-sep).to-absolute()
 	edge.label-size = map-auto(edge.label-size, options.label-size)
 
 	edge.label-fill = map-auto(edge.label-fill, edge.label-side == center)

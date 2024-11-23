@@ -79,12 +79,6 @@
 }
 
 
-
-
-#let to-abs-length(len, em-size) = len.abs + len.em*em-size
-
-#let sign(x) = if float(x) = 0 { 1 } else { x/calc.abs(x) }
-
 #let min-max(array) = (calc.min(..array), calc.max(..array))
 #let cumsum(array) = {
 	let sum = array.at(0)

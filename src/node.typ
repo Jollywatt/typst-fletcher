@@ -286,7 +286,6 @@
 
 
 #let resolve-node-options(node, options) = {
-	let to-pt(len) = to-abs-length(as-length(len), options.em-size)
 
 	node.stroke = map-auto(node.stroke, options.node-stroke)
 	if node.stroke != none {
@@ -297,12 +296,12 @@
 
 	node.fill = map-auto(node.fill, options.node-fill)
 	node.corner-radius = map-auto(node.corner-radius, options.node-corner-radius)
-	node.inset = to-pt(map-auto(node.inset, options.node-inset))
-	node.outset = to-pt(map-auto(node.outset, options.node-outset))
+	node.inset = map-auto(node.inset, options.node-inset).to-absolute()
+	node.outset = map-auto(node.outset, options.node-outset).to-absolute()
 	node.defocus = map-auto(node.defocus, options.node-defocus)
 
-	node.size = node.size.map(pass-auto(to-pt))
-	node.radius = pass-auto(to-pt)(node.radius)
+	node.size = node.size.map(pass-auto(length.to-absolute))
+	node.radius = pass-auto(length.to-absolute)(node.radius)
 
 	node.shape = map-auto(node.shape, options.node-shape)
 
@@ -318,7 +317,7 @@
 	node.extrude = node.extrude.map(d => {
 		if type(d) == length { d }
 		else { d*thickness }
-	}).map(to-pt)
+	}).map(length.to-absolute)
 
 	if type(node.outset) in (int, float) {
 		node.outset *= thickness
