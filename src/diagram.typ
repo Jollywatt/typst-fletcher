@@ -90,9 +90,11 @@
 /// - `cell-sizes: (x-sizes, y-sizes)` Lengths and widths of each row and
 ///   column.
 ///
-/// - grid (dictionary): Representation of the grid layout, including:
-///   - `flip`
-#let compute-cell-sizes(grid, verts, rects) = {
+/// - flip (dictionary): Describes axis order and orientation.
+/// - verts (array): Points that should be contained in the resulting grid.
+/// - rects (array): Rectangles (dictionaries of the form `(center, size)` which
+///   are used to determine cell sizes.
+#let compute-cell-sizes(flip, verts, rects) = {
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
@@ -113,10 +115,10 @@
 	// Expand cells to fit rects
 	for rect in rects {
 		let indices = vector.sub(rect.center, origin)
-		if grid.flip.x { indices.at(0) = -1 - indices.at(0) }
-		if grid.flip.y { indices.at(1) = -1 - indices.at(1) }
+		if flip.x { indices.at(0) = -1 - indices.at(0) }
+		if flip.y { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if grid.flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
+			let size = if flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = calc.max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -169,7 +171,7 @@
 	)
 
 	grid += interpret-axes(grid.axes)
-	grid += compute-cell-sizes(grid, verts, rects)
+	grid += compute-cell-sizes(grid.flip, verts, rects)
 
 	// enforce minimum cell size
 	grid.cell-sizes = grid.cell-sizes.zip(options.cell-size)
@@ -491,18 +493,19 @@
 		})
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
+		// PHASE 1: Resolve uv coordinates where possible
 
 		// try resolving node uv coordinates. this resolves to NaN coords if the
-		// resolution fails (e.g., if the coord depends on physical lengths)
+		// resolution fails (e.g., if the coords depend on physical lengths)
 		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(
 			nodes, ctx: (target-system: "uv"))
 
+		// panic("STOP", nodes)
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
 			.filter(node => not is-nan-vector(node.pos.uv))
 			.map(node => (center: node.pos.uv, size: node.size))
-
 
 		let vertices-affecting-grid = (edges
 			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx-with-uv-anchors + (target-system: "uv")))
@@ -510,9 +513,10 @@
 			.filter(vert => not is-nan-vector(vert))
 
 
+		// PHASE 2: Determine elastic grid (row/column sizes) and resolve xy coordinates
+
 		// determine diagram's elastic grid layout
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
-
 
 		// now with grid determined, compute final (physical) coordinates for nodes and edges
 		let (ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
@@ -520,8 +524,12 @@
 
 
 		// resolve enclosing nodes
-		let (extra-anchors, nodes) = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
-		ctx-with-xyz-anchors.nodes += extra-anchors
+		let nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
+		// ctx-with-xyz-anchors.nodes += extra-anchors
+
+		// panic(extra-anchors)
+		// panic("STOP", (ctx-with-xyz-anchors.nodes.foo.anchors)(()))
+		// panic((ctx-with-xyz-anchors.nodes.foo.anchors)("default"))
 
 
 		// resolve edges

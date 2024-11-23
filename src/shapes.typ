@@ -276,7 +276,10 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-	draw.line(..verts, close: true)
+	// draw.group({
+		draw.line(..verts, close: true)
+		// draw.anchor("tip", verts.at(2))
+	// })
 }
 
 

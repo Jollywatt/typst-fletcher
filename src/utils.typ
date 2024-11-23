@@ -6,7 +6,10 @@
 	let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
 	for (k, v) in pairs {
 		if type(v) == array {
-			message = message.replace("#.." + str(k), v.map(ticks).join(", "))
+			let replacement = if v.len() > 0 {
+				v.map(ticks).join(", ")
+			} else { "()" }
+			message = message.replace("#.." + str(k), replacement)
 		}
 		if type(v) != str { v = repr(v) }
 		message = message.replace("#" + str(k), ticks(v))

@@ -98,6 +98,9 @@
 	nodes: (:),
 	length: 1cm,
 	em-size: (width: 11pt, height: 11pt),
+	style: cetz.styles.default,
+	groups: (),
+	debug: false,
 )
 
 
@@ -135,36 +138,31 @@
 		}
 		(name, anchor)
 	} else {
-		(c.name, c.at("anchor", default: "default"))
+		(str(c.name), c.at("anchor", default: "default"))
 	}
 
-	// Check if node is known
-	assert(name in ctx.nodes,
-		message: "Unknown element '" + name + "' in elements " + repr(ctx.nodes.keys()))
+
+	if name not in ctx.nodes {
+		error("Node #0 not found. Named nodes are: #..1.", name, ctx.nodes.keys())
+	}
+
+	let calculate-anchors = ctx.nodes.at(name).anchors
+
+	if type(anchor) == str {
+		let anchor-names = (calculate-anchors)(()).filter(i => type(i) == str)
+
+		// if anchor not in anchor-names and anchor-names.len() > 0 {
+		// 	anchor = anchor-names.at(0)
+		// }
+	}
+
 
 	// Resolve length anchors
 	if type(anchor) == length {
 		anchor = util.resolve-number(ctx, anchor)
 	}
 
-	// Check if anchor is known
-	let node = ctx.nodes.at(name)
-	let pos = (node.anchors)(anchor)
-
-	if anchor != "default" {
-		// TODO: support anchors!
-		// this would require moving edge positioning into a cetz ctx callback
-		error("Element anchors aren't supported yet! (Found #..0.)", anchor)
-	}
-
-	if pos.all(x => type(x) in (int, float)) {
-		pos = cetz.util.revert-transform(
-			ctx.transform,
-			pos
-		)
-	}
-
-	return pos
+	(calculate-anchors)(anchor)
 }
 
 
