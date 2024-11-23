@@ -50,6 +50,11 @@ insert_example_table([
 
 ## Change log
 
+### 0.5.3
+
+- Support CeTZ anchors in edge coordinates, e.g., `edge(<a.east>, ..)`.
+- Fix crash when `stroke: none` set on polyline edges (#60, [@SillyFreak](https://github.com/SillyFreak!)).
+
 ### 0.5.2
 
 - **Require `typst` version `>=0.12.0`.**
