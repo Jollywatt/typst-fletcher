@@ -252,6 +252,17 @@
 	return false
 }
 
+#let is-sequence(it) = {
+	type(it) == "content" and repr(it.func()) == "sequence"
+}
+
+#let flatten-sequence-to-array(it) = {
+	if is-sequence(it) {
+		it.children.map(flatten-sequence-to-array).join() + ()
+	} else { (it,) }
+}
+
+
 // find a node near a given uv coordinate
 #let find-node-at(nodes, uv) = {
 	nodes.filter(node => {

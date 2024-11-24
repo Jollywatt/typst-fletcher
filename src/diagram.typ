@@ -182,10 +182,10 @@
 	grid
 }
 
-
 #let extract-nodes-and-edges-from-equation(eq) = {
 	assert(eq.func() == math.equation)
-	let terms = eq.body + []
+	let terms = flatten-sequence-to-array(eq.body)
+	// panic(terms)
 
 	let edges = ()
 	let nodes = ()
@@ -193,7 +193,7 @@
 	// convert math matrix into array-of-arrays matrix
 	let matrix = ((none,),)
 	let (x, y) = (0, 0)
-	for child in terms.children {
+	for child in terms {
 		if child.func() == metadata {
 			if child.value.class == "node" {
 				let node = child.value
@@ -227,6 +227,7 @@
 			}
 		}
 	}
+
 
 	(
 		nodes: nodes,

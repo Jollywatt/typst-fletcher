@@ -7,3 +7,12 @@
 	edge((2,1), (3,0), "|-|", bend: -20deg)
 	edge((2,0), (3,1), "<=>", crossing: true, bend: 20deg)
 })
+
+#pagebreak()
+
+#diagram($
+	edge("dr", "-", "crossing") &
+	edge("dl", "-", "crossing")
+$)
+
+#diagram($$) // invisible, but shouldn't crash
