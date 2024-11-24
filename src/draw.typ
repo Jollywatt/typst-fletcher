@@ -526,8 +526,7 @@
 		let anchor-names = calculate-anchors(())
 		let anchor-points = anchor-names.map(calculate-anchors)
 			.map(point => {
-				// funky disagreement between coordinate systems??
-				point.at(1) *= -1
+				point.at(1) *= -1 // CETZ Y AXIS
 				vector-2d(vector.scale(point, 1cm))
 			}).sorted(key: point => vector-len(vector.sub(point, target)))
 

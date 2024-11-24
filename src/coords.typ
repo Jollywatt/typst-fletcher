@@ -89,12 +89,16 @@
 
 #let default-ctx = (
 	prev: (pt: (0, 0)),
-	transform: cetz.matrix.ident(),
-	// transform: 
-		// ((1, 0,-.5, 0),
-		//  (0,-1,+.5, 0),
-		//  (0, 0, .0, 0),
-		//  (0, 0, .0, 1)),
+
+	// cetz anchors assume y axis going up.
+	// see lines ending with the comment
+	// CETZ Y AXIS
+	transform: 
+		((1, 0, 0, 0),
+		 (0,-1, 0, 0),
+		 (0, 0, 1, 0),
+		 (0, 0, 0, 1)),
+
 	nodes: (:),
 	length: 1cm,
 	em-size: (width: 11pt, height: 11pt),
@@ -141,26 +145,16 @@
 		(str(c.name), c.at("anchor", default: "default"))
 	}
 
-
 	if name not in ctx.nodes {
 		error("Node #0 not found. Named nodes are: #..1.", name, ctx.nodes.keys())
 	}
-
-	let calculate-anchors = ctx.nodes.at(name).anchors
-
-	if type(anchor) == str {
-		let anchor-names = (calculate-anchors)(()).filter(i => type(i) == str)
-
-		// if anchor not in anchor-names and anchor-names.len() > 0 {
-		// 	anchor = anchor-names.at(0)
-		// }
-	}
-
 
 	// Resolve length anchors
 	if type(anchor) == length {
 		anchor = util.resolve-number(ctx, anchor)
 	}
+
+	let calculate-anchors = ctx.nodes.at(name).anchors
 
 	(calculate-anchors)(anchor)
 }
@@ -181,6 +175,10 @@
 		resolve(ctx, c.to, update: false)
 	} else {
 		(ctx, ctx.prev.pt)
+	}
+
+	if is-nan-vector(to) {
+		return (coord: to, update: update)
 	}
 
 

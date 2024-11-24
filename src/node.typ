@@ -435,6 +435,47 @@
 }
 
 
+#let register-node-anchors(ctx, node) = {
+	if node.name == none { return ctx }
+	let node-origin = node.pos.at(ctx.target-system)
+	let calculate-anchors
+
+	if ctx.target-system == "uv" {
+		// anchors don't make sense in elastic coordinates
+		// so just give access to the origin, but make
+		// everything else indeterminate (NAN_COORD)
+		calculate-anchors = (a) => {
+			if a == () {
+				("default",)
+			} else {
+				if a == "default" {
+					node-origin
+				} else {
+					NAN_COORD
+				}
+			}
+		}
+	} else if ctx.target-system == "xyz" {
+		if is-nan-vector(node-origin) { return ctx }
+
+		let cetz-obj = (node.shape)(node, node.outset).at(0)
+		calculate-anchors = (k) => {
+			if k == "default" { return node-origin }
+			let a = ((cetz-obj)(ctx).anchors)(k)
+			if not is-number-vector(a) { return a }
+			a.at(1) *= -1 // CETZ Y AXIS
+			vector.add(
+				node-origin, // node center
+				vector-2d(vector.scale(a, ctx.length)),
+			)
+		}
+	}
+
+	ctx.nodes.insert(str(node.name), (anchors: calculate-anchors))
+	ctx
+
+}
+
 /// Resolve node positions to a target coordinate system in sequence.
 ///
 /// CeTZ-style coordinate expressions work, with the previous coordinate `()`
@@ -450,22 +491,19 @@
 #let resolve-node-coordinates(nodes, ctx: (:)) = {
 	let ctx = default-ctx + ctx
 
-	// e.g., nodes which enclose points are allowed to have
+	// nodes which enclose other points are allowed to have
 	// position `auto`; they are placed after normal nodes
 	let auto-placed-nodes = ()
 
 	let coord
-	for i in range(nodes.len()) {
-		let node = nodes.at(i)
+	for (i, node) in nodes.enumerate() {
 
 		if node.pos.raw == auto {
 			// this node encloses other nodes
 			if ctx.target-system == "xyz" {
 				// resolve center from uv coords, if possible
 				if not is-nan-vector(node.pos.uv) {
-					assert(not node.pos.uv.any(float.is-nan), message: repr(node))
 					(ctx, coord) = resolve(ctx, node.pos.uv)
-
 				}
 			} else {
 				// otherwise, we must find bounding box center later
@@ -473,26 +511,14 @@
 				coord = NAN_COORD
 			}
 		} else {
-			// this node has a center that should be resolvable
+			// this node has a center that may be resolvable
 			(ctx, coord) = resolve(ctx, node.pos.raw)
 		}
 
-		if node.name != none {
-			// we don't have proper cetz anchor information yet,
-			// so just make all anchors return the origin
-			let calculate-anchors(a) = {
-				if a == () {
-					("default",)
-				} else {
-					coord
-				}
-			}
-			ctx.nodes.insert(str(node.name), (anchors: calculate-anchors))
-			// this gets replaced below if cetz anchors are available
-		}
-
 		assert(coord.len() == 2)
-		nodes.at(i).pos.insert(ctx.target-system, coord)
+		node.pos.insert(ctx.target-system, coord)
+		nodes.at(i) = node
+		ctx = register-node-anchors(ctx, node)
 	}
 
 	for i in auto-placed-nodes {
@@ -519,29 +545,6 @@
 		nodes.at(i).pos.insert(ctx.target-system, coord)
 
 	}
-
-	// if resolving xyz coordinates, also resolve
-	// cetz anchors for nodes with names
-	// this allows edges to connect to specific node anchors
-	if ctx.target-system == "xyz" {
-		for node in nodes {
-			if node.name == none { continue }
-			if is-nan-vector(node.pos.xyz) { continue }
-
-			let cetz-obj = (node.shape)(node, node.outset).at(0)
-			let calculate-anchors(k) = {
-				if k == "default" { return node.pos.xyz }
-				let a = ((cetz-obj)(ctx).anchors)(k)
-				if not is-number-vector(a) { return a }
-				vector.add(
-					node.pos.xyz, // node center
-					vector-2d(vector.scale(a, ctx.length)),
-				)
-			}
-			ctx.nodes.insert(str(node.name), (anchors: calculate-anchors))
-		}
-	}
-
 
 	(ctx, nodes)
 }

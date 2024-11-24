@@ -185,7 +185,6 @@
 #let extract-nodes-and-edges-from-equation(eq) = {
 	assert(eq.func() == math.equation)
 	let terms = flatten-sequence-to-array(eq.body)
-	// panic(terms)
 
 	let edges = ()
 	let nodes = ()
@@ -501,7 +500,6 @@
 		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(
 			nodes, ctx: (target-system: "uv"))
 
-		// panic("STOP", nodes)
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
@@ -526,12 +524,6 @@
 
 		// resolve enclosing nodes
 		let nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
-		// ctx-with-xyz-anchors.nodes += extra-anchors
-
-		// panic(extra-anchors)
-		// panic("STOP", (ctx-with-xyz-anchors.nodes.foo.anchors)(()))
-		// panic((ctx-with-xyz-anchors.nodes.foo.anchors)("default"))
-
 
 		// resolve edges
 		edges = edges.map(edge => {

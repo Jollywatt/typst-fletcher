@@ -115,7 +115,8 @@
 
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 
-	draw.line(..verts, close: true)
+	let obj = draw.line(..verts, close: true)
+	draw.group(obj) // enables cetz border anchors
 }
 
 
@@ -173,7 +174,8 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-	draw.line(..verts, close: true)
+	let obj = draw.line(..verts, close: true)
+	draw.group(obj) // enables cetz border anchors
 }
 
 /// A rhombus node shape.
@@ -206,13 +208,14 @@
 	let φ = calc.atan2(w/1pt, h/1pt)
 	let x = w/2*(1 + fit) + extrude/calc.sin(φ)
 	let y = h/2*(1 + fit) + extrude/calc.cos(φ)
-	draw.line(
+	let obj = draw.line(
 		(-x, 0pt),
 		(0pt, -y),
 		(+x, 0pt),
 		(0pt, +y),
 		close: true,
 	)
+	draw.group(obj) // enables cetz border anchors
 }
 
 /// An isosceles triangle node shape.
@@ -276,10 +279,8 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-	// draw.group({
-		draw.line(..verts, close: true)
-		// draw.anchor("tip", verts.at(2))
-	// })
+	let obj = draw.line(..verts, close: true)
+	draw.group(obj) // enables cetz border anchors
 }
 
 
@@ -316,7 +317,8 @@
 	if flip { verts = verts.map(((i, j)) => (j, i)) }
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
-	draw.line(..verts, close: true)
+	let obj = draw.line(..verts, close: true)
+	draw.group(obj) // enables cetz border anchors
 }
 
 
@@ -378,7 +380,8 @@
 	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
 
-	draw.line(..verts, close: true)
+	let obj = draw.line(..verts, close: true)
+	draw.group(obj) // enables cetz border anchors
 }
 
 
@@ -417,7 +420,7 @@
 	let x = w/2 + extrude*calc.tan(45deg - angle/2) - f
 	let y = h/2 + extrude
 	let z = y*calc.tan(angle)
-	draw.line(
+	let obj = draw.line(
 		(+x, -y),
 		(+x + z, 0pt),
 		(+x, +y),
@@ -428,6 +431,7 @@
 
 		close: true,
 	)
+	draw.group(obj) // enables cetz border anchors
 }
 
 
@@ -450,7 +454,7 @@
 	else { d = truncate*calc.min(w/2, h/2)}
 	d += extrude*0.5857864376 // (1 - calc.tan(calc.pi/8))
 
-	draw.line(
+	let obj = draw.line(
 		(-x + d, -y    ),
 		(-x    , -y + d),
 		(-x    , +y - d),
@@ -461,4 +465,5 @@
 		(+x - d, -y    ),
 		close: true,
 	)
+	draw.group(obj) // enables cetz border anchors
 }
