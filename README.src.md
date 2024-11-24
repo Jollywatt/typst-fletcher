@@ -54,6 +54,7 @@ insert_example_table([
 
 - Support CeTZ anchors in edge coordinates, e.g., `edge(<a.east>, ..)`.
 - Fix crash when `stroke: none` set on polyline edges (#60, [@SillyFreak](https://github.com/SillyFreak!)).
+- Fix bug with crossing edges in math mode (#54).
 
 ### 0.5.2
 
