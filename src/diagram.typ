@@ -126,6 +126,11 @@
 		}
 	}
 
+	// panic(cell-sizes)
+	if flip.xy {
+		cell-sizes = cell-sizes.rev()
+	}
+
 	(origin: origin, cell-sizes: cell-sizes)
 }
 
