@@ -14,6 +14,7 @@
 	} else { it }
 }
 
+#show heading.where(level: 1): set text(18pt)
 
 #let VERSION = toml("/typst.toml").package.version
 
@@ -389,10 +390,10 @@ Avoid importing everything with `*` as many internal functions are also exported
 		node((1,0), [2], name: <2>, shape: diamond),
 		node((2,-1), [3a], name: <3a>),
 		node((2,+1), [3b], name: <3b>),
-		edge(<1>, <2>, [go], "->"),
-		edge(<2>, <3a>, "->", bend: -15deg),
-		edge(<2>, <3b>, "->", bend: +15deg),
-		edge(<3b>, <3b>, "->", bend: -130deg, label: [loop!]),
+		edge(<1>, "->", <2>)[go],
+		edge(<2.east>, "->", <3a>, bend: -15deg),
+		edge(<2.east>, "->", <3b>, bend: +15deg),
+		edge(<3b>, "~>", <3b>, bend: -130deg, loop-angle: 120deg)[loop!],
 	)
 	```)
 )
@@ -402,7 +403,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 = Diagrams
 
-Diagrams created with `diagram()` are a collection of _nodes_ and _edges_ rendered on a CeTZ canvas.
+Diagrams are collections of _nodes_ and _edges_ rendered on a CeTZ canvas with `diagram()`.
 
 == Elastic coordinates
 
@@ -450,7 +451,6 @@ Notice how the column sizes change as the green node is gradually moved between 
 == Absolute coordinates
 
 As well as _elastic_ or $u v$ coordinates, which are row/column numbers, you can also use _absolute_ or $x y$ coordinates, which are physical lengths.
-This lets you break away from flexible grid layouts.
 
 #table(
 	columns: (1fr, 1fr),
@@ -459,26 +459,28 @@ This lets you break away from flexible grid layouts.
 	..([Elastic coordinates, e.g., `(2, 1)`], [Physical coordinates, e.g., `(10mm, 5mm)`]).map(strong),
 	[Dimensionless, dependent on row/column sizes.],
 	[Lengths, independent of row/column sizes.],
-	[Placed objects can influence diagram layout.],
-	[Placed objects never affect diagram layout.],
+	[Node positions and sizes affect diagram layout.],
+	[Nodes are _floating_ and never affect layout.],
 )
 
-Absolute coordinates aren't very useful on their own, but they may be used in combination with elastic coordinates, particularly with `(rel: (x, y), to: (u, v))`.
+Absolute coordinates let you position nodes _exactly_, whereas elastic coordinates are useful for table-like layouts.
+Absolutely positioned nodes never affect the positions of other nodes --- the row and column sizes of a diagram depend only on the positions and sizes of nodes at elastic coordinates.
+
+== Coordinate expressions
+
+You can use CeTZ-style coordinate expressions such as _relative_ `(rel: (1, 2))`, _polar_ `(45deg, 1cm)`, _interpolating_ `(<P>, 80%, <Q>)`, _perpendicular_ `(<X>, "|-", <Y>)`, and so on.
+// Elastic and absolute coordinates can be mixed, for example:
 
 #code-example-row(```typ
 #diagram(
-	node((0, 0), name: <origin>),
+	node((1, 0), name: <origin>), // elastic coordinate
 	for θ in range(16).map(i => i/16*360deg) {
-		node((rel: (θ, 10mm), to: <origin>), $ * $, inset: 1pt)
-		edge(<origin>, "-")
+		node((rel: (θ, 10mm), to: <origin>), $ * $, inset: 1pt) // absolute offset
+		edge(<origin>)
 	}
 )
 ```)
 
-== All sorts of coordinates
-
-You can also use any CeTZ-style coordinate expression, mixing and matching elastic and physical coordinates, e.g., relative `(rel: (1, 2))`, polar `(45deg, 1cm)`, interpolating `(<P>, 80%, <Q>)`, perpendicular `(<X>, "|-", <Y>)`, and so on.
-However, support for CeTZ-style anchors is incomplete.
 
 
 = Nodes
@@ -486,7 +488,6 @@ However, support for CeTZ-style anchors is incomplete.
 #link(label("node()"))[`node(coord, label, ..options)`]
 
 Nodes are content centered at a particular coordinate.
-They can be circular, rectangular, or any custom shape.
 Nodes automatically fit to the size of their label (with an #param[node][inset]), but can also be given an exact `width`, `height`, or `radius`, as well as a #param[node][stroke] and #param[node][fill]. For example:
 
 #code-example-row(```typ
@@ -600,11 +601,33 @@ You can also #param[node][enclose] other nodes by coordinate or #param[node][nam
 ```)
 
 
+== Node anchors
+
+You can reference anchor points on node shapes like in CeTZ, provided the node has a #param[node][name].
+For example, `<A.north>` and `(name: "A", anchor: "north")` are equivalent coordinate expressions that can be referenced in other nodes or edges.
+
+#code-example-row(````typ
+#diagram(
+	node-shape: rect,
+	node(circle(stroke: white, text(white, $Delta$)), name: <A>, fill: navy),
+	node(<A.north-east>, circle(fill: white, radius: 6pt, $ plus.circle $)),
+	edge((<A.north-west>, 25%, <A.south-west>), "l,u", "-O"),
+	edge((<A.north-west>, 50%, <A.south-west>), "l,l", "-@"),
+	edge((<A.north-west>, 75%, <A.south-west>), "l,d", "-O"),
+)
+````)
+
+Nodes anchors count as _absolute_ coordinates, meaning that nodes with positions that depend on anchors are _floating_ and do not affect the diagram's grid (elastic coordinate row and column sizes).
+
 = Edges
 
 #link(label("edge()"))[`edge(..vertices, marks, label, ..options)`]
 
-An edge connects two coordinates. If there is a node at the endpoint, the edge snaps to the nodes' bounding shape (after applying the node's #param[node][outset]). An edge can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
+An edge connects two coordinates.
+By default, edges _snap_ to nodes' bounding shapes (after applying the node's #param[node][outset]).
+This can be adjusted with #the-param[edge][snap-to].
+
+An edge can have a #param[edge][label], can #param[edge][bend] into an arc, and can have various arrow #param[edge][marks].
 
 #code-example-row(```typ
 #diagram(spacing: (12mm, 6mm), {
@@ -628,11 +651,27 @@ An edge connects two coordinates. If there is a node at the endpoint, the edge s
 == Specifying edge vertices
 
 The first few arguments given to `edge()` specify its #param[edge][vertices], of which there can be two or more.
+Like node positions, vertices may be CeTZ-style coordinate expressions, combining elastic and physical coordinates, and node anchors.
 
-=== Connecting to adjacent nodes
+Here is a more advanced example using coordinate expressions and `()`, the edge's previous vertex.
 
-If an edge's first or last vertex is `auto`, the coordinate of the previous or next node is used, respectively, according to the order that nodes and edges are passed to `diagram()`.
-A single vertex, as in `edge(to)`, is interpreted as `edge(auto, to)`.
+#code-example-row(```typ
+#diagram(edge-stroke: 1pt, node-stroke: 1pt, {
+	node((0,0), name: <x>)[Input, $arrow(x)$]
+	node((0,1), name: <y>)[Ground truth, $arrow(y)$]
+	node((1,0.5), name: <out>)[MSE]
+	let verts = ( // () means the previous vertex
+		((), "-|", (<y.east>, 50%, <out.west>)),
+		((), "|-", <out>), <out>)
+	edge(<x>, ..verts, "->") // () == <x>
+	edge(<y>, ..verts)  // () == <y>
+})
+```)
+
+=== Use `auto` for the previous or next node
+
+If an edge's first or last vertex is `auto`, the previous or next node is used, according to the order that nodes and edges are passed to `diagram()`.
+A single vertex, such as `edge(to)`, is interpreted as `edge(auto, to)`.
 Given no vertices, an edge connects the nearest nodes on either side.
 
 
@@ -665,9 +704,7 @@ Implicit coordinates can be handy for diagrams in math-mode:
 
 === Relative coordinate shorthands
 
-Like node positions, edge vertices may be specified by CeTZ-style coordinate expressions, combining elastic and physical coordinates.
-
-Additionally, you may specify relative shorthand strings such as `"u"` for up or `"sw"` for south west. Any combination of
+You may use strings such as `"u"` for up or `"sw"` for south west as shorthands for relative vertex coordinates of the form `(rel: (du, dv))`. Any combination of
 #strong[t]op/#strong[u]p/#strong[n]orth,
 #strong[b]ottom/#strong[d]own/#strong[s]outh,
 #strong[l]eft/#strong[w]est, and
@@ -678,9 +715,8 @@ are allowed. Together with implicit coordinates, this allows you to do things li
 #diagram($ A edge("rr", ->, #[jump!], bend: #30deg) & B & C $)
 ```)
 
-=== Named or labelled coordinates
+=== Node anchors
 
-Another way coordinates can be expressed is through node names.
 Nodes can be given a #param[node][name], which is a label (not a string) identifying that node.
 A label as an edge vertex is interpreted as the position of the node with that label.
 
@@ -692,8 +728,7 @@ A label as an edge vertex is interpreted as the position of the node with that l
 )
 ```)
 
-Node names are _labels_ (instead of strings like in CeTZ) to disambiguate them from other positional string arguments.
-Since they are not inserted into the document, they do not interfere with other labels.
+
 
 == Edge types
 
@@ -720,7 +755,7 @@ edge((4,0), "d,r,ur", "->", `poly`) // shorthand
 
 Only the first and last #param[edge][vertices] of an edge automatically snap to nodes.
 
-== Tweaking where edges connect
+== Ways to adjust edge connection points
 
 A node's #param[node][outset] controls how _close_ edges connect to the node's boundary.
 To adjust _where_ along the boundary the edge connects, you can adjust the edge's end coordinates by a fractional amount.
@@ -822,11 +857,14 @@ You add or tweak mark styles by modifying `fletcher.MARKS`, as described in @mar
 		..fletcher.MARKS.get().pairs().map(((k, v)) => [
 			#set align(center)
 			#raw(lang: none, k) \
-			#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v)))
+			#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v, v)))
 		]),
 	)
 ) <all-marks>]
 
+If there is a common mark style that you believe should be included with `fletcher` by default, please #link("https://github.com/Jollywatt/typst-fletcher")[open an issue]!
+
+#pagebreak()
 
 == Custom marks
 
@@ -838,7 +876,7 @@ For example:
 #code-example-row(```typ
 #diagram(
 	edge-stroke: 1.5pt,
-	spacing: 25mm,
+	spacing: 28mm,
 	edge((0,1), (-0.1,0), bend: -8deg, marks: (
 		(inherit: ">>", size: 6, delta: 70deg, sharpness: 65deg),
 		(inherit: "head", rev: true, pos: 0.8, sharpness: 0deg, size: 17),
@@ -861,7 +899,7 @@ If you want to explore the internals of mark objects, you might find it handy to
 === Mark objects <mark-objects>
 
 A _mark object_ is a dictionary with, at the very least, a `draw` entry containing the CeTZ objects to be drawn.
-These CeTZ objects are translated and scaled to fit the edge; the mark's center should be at the origin, and the stroke's thickness is defined as the unit length.
+These CeTZ objects are translated and scaled to fit the edge; the mark should be centered at `(0, 0)`, and the stroke's thickness is defined as the unit length.
 For example, here is a basic circle mark:
 
 #code-example-row(```typ
@@ -875,7 +913,8 @@ For example, here is a basic circle mark:
 )
 ```)
 
-A mark object can contain arbitrary parameters, which may depend on parameters defined earlier by being written as a _function_ of the mark object.
+A mark object can contain arbitrary parameters.
+Parameters can be functions `mark => (..)` referencing other `mark` parameters defined earlier.
 For example, the mark above could also be written as:
 
 ```typ
@@ -908,7 +947,7 @@ Lastly, mark objects may _inherit_ properties from other marks in `fletcher.MARK
 #diagram(edge("rr", stroke: 2pt, marks: (my-mark, my-mark + (fill: blue))))
 ```)
 
-Internally, marks are passed to `resolve-mark()`, which ensures all entries are evaluated to final values.
+Internally, marks are passed to `resolve-mark()`, which resolves all entries to their final values.
 
 === Special mark properties
 
@@ -1053,7 +1092,7 @@ As a complete example, here is the implementation of a straight arrowhead in ```
 
 
 
-== Custom mark shorthands <custom-marks>
+== Defining mark shorthands <custom-marks>
 
 While you can pass custom mark objects directly to #the-param[edge][marks], this can get annoying if you use the same mark often.
 In these cases, you can define your own mark shorthands.
@@ -1153,8 +1192,7 @@ You can create incrementally-revealed diagrams in Touying presentation slides by
 	Slide with animated figure:
 	#diagram(
 		node-stroke: .1em,
-		node-fill: gradient.radial(blue.lighten(80%), blue,
-			center: (30%, 20%), radius: 80%),
+		node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
 		spacing: 4em,
 		edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
 		node((0,0), `reading`, radius: 2em),

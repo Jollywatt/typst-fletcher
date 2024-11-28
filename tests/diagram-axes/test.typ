@@ -38,3 +38,14 @@
 	])
 }).flatten().join(pagebreak())
 
+#pagebreak()
+
+#(
+	(ltr, ttb),
+	(ttb, ltr),
+).map(axes => diagram(
+	debug: 1,
+	axes: axes,
+	node((0,0), $A$),
+	node((1,0), $B$),
+)).join(linebreak())

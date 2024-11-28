@@ -323,7 +323,7 @@
 
 
 
-/// Draw a connecting line or arc in an arrow diagram.
+/// Draw a connecting edge in a diagram.
 ///
 ///
 /// - ..args (any): An edge's positional arguments may specify:
@@ -544,8 +544,8 @@
 ///     $ L in #`fletcher.LINE_ALIASES` = {#fletcher.LINE_ALIASES.keys().map(raw.with(lang: none)).join($,$)} $
 ///     is the line style.
 ///
-///   - An array of marks, where each mark is specified by name of as a _mark
-///     object_ (dictionary of parameters with a `draw` entry).
+///   - An array of mark names as strings or _mark objects_ (dictionaries of
+///     parameters with a `draw` entry).
 ///
 ///   Shorthands are expanded into other arguments. For example,
 ///   `edge(p1, p2, "=>")` is short for `edge(p1, p2, marks: (none, "head"), "double")`, or more precisely, the result of `edge(p1, p2, ..fletcher.interpret-marks-arg("=>"))`.

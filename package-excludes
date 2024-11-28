@@ -6,5 +6,6 @@ pixi.toml
 .gitattributes
 typos.toml
 build-readme.py
-README.template.md
+README.src.md
+.github
 # plus anything in .gitignore

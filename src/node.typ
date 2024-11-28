@@ -15,7 +15,7 @@
 ///   See the options of `diagram()` to control the physical scale of elastic
 ///   coordinates.
 ///
-/// - name (label, none): An optional name to give the node.
+/// - name (label, string, none): An optional name to give the node.
 ///
 ///   Names can sometimes be used in place of coordinates. For example:
 ///
@@ -27,6 +27,11 @@
 ///   	node((rel: (1, 0), to: <B>), $C$)
 ///   )
 ///   ```)
+///
+///   Node names are _labels_ (instead of strings like in CeTZ) to disambiguate
+///   them from other positional string arguments given to `edge()`. If a string
+///   is given, it is converted. (Since these labels are never inserted into the
+///   final document, they cannot interfere with other document labels.) 
 ///
 /// - label (content): Content to display inside the node.
 ///
