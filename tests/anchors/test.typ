@@ -69,8 +69,16 @@ Node positions depending on other nodes' anchors
 
 #diagram(
 	node((0,0), [Alpha], name: <A>, fill: green),
+	node((1,1), [Beta], name: <B>, fill: yellow),
 	node(<A.north-east>, $ times.circle $),
 	edge(<A>, "->", auto),
-	node((rel: (0pt, -20pt), to: <A.south>), $ plus.circle $, inset: 0pt, name: <B>),
-	node((rel: (10pt, 0pt), to: <B>), $ f $),
+	node((rel: (0pt, -20pt), to: <A.south>), $ plus.circle $, inset: 0pt, name: <C>),
+	node((rel: (10pt, 0pt), to: <C>), $ f $),
+	edge(
+		<A>,
+		((), "-|", (<A.east>, 50%, <B.west>)),
+		((), "|-", <B>),
+		<B>,
+		"..>",
+	)
 )

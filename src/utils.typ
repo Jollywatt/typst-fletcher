@@ -125,7 +125,7 @@
 
 #let is-length-vector(v) = v.all(x => type(x) == length)
 #let is-number-vector(v) = v.all(x => type(x) in (int, float))
-#let is-nan-vector(v) = is-number-vector(v) and v.all(x => float(x).is-nan())
+#let is-nan-vector(v) = is-number-vector(v) and v.any(x => float(x).is-nan())
 
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
