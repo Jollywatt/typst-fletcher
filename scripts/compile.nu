@@ -52,7 +52,9 @@ def compile_example [path, --darkmode(-d)] {
 	rm temp.typ
 }
 
-
+def compile_message [path, desc=''] {
+	print -n (ansi green_bold) 'Compiling' (ansi w) $": ($path) " (ansi reset) $"($desc)\n"
+}
 
 # Compile light and dark versions of README example diagrams.
 #
@@ -70,9 +72,9 @@ def "main examples" [
 		insert basename { $in.name | path basename } |
 		where basename =~ $pattern |
 		each { |it|
-			print -n (ansi green_bold) 'Compiling' (ansi w) $": ($it.name) " (ansi reset) "(light mode)\n"
+			compile_message $it.name '(light mode)'
 			compile_example $it.name
-			print -n (ansi green_bold) 'Compiling' (ansi w) $": ($it.name) " (ansi reset) "(dark mode)\n"
+			compile_message $it.name '(dark mode)'
 			compile_example $it.name --darkmode
 		}
 
@@ -102,8 +104,14 @@ def "main gallery" [
 	null
 }
 
+def "main manual" [] {
+	let path = 'docs/manual.typ'
+	compile_message $path
+	typst compile --root . $path
+}
 
 def main [] {
 	main examples
 	main gallery
+	main manual
 }
