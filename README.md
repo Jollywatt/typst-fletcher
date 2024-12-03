@@ -11,29 +11,26 @@ A [Typst](https://typst.app/) package for drawing diagrams with arrows,
 built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 See the [manual](docs/manual.pdf?raw=true) for documentation.
 
-
 ```typ
 #import "@preview/fletcher:0.5.3" as fletcher: diagram, node, edge
 ```
 
 
-
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/first-isomorphism-theorem-dark.svg">
-  <img src="docs/readme-examples/first-isomorphism-theorem-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/1-first-isomorphism-theorem-dark.svg">
+  <img src="docs/readme-examples/1-first-isomorphism-theorem-light.svg">
 </picture>
 
 ```typ
 #diagram(cell-size: 15mm, $
-  G edge(f, ->) edge("d", pi, ->>) & im(f) \
-  G slash ker(f) edge("ur", tilde(f), "hook-->")
+	G edge(f, ->) edge("d", pi, ->>) & im(f) \
+	G slash ker(f) edge("ur", tilde(f), "hook-->")
 $)
 ```
 
-
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/flowchart-trap-dark.svg">
-  <img src="docs/readme-examples/flowchart-trap-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/2-flowchart-trap-dark.svg">
+  <img src="docs/readme-examples/2-flowchart-trap-light.svg">
 </picture>
 
 ```typ
@@ -42,53 +39,99 @@ $)
 #set text(font: "Comic Neue", weight: 600)
 
 #diagram(
-  node-stroke: 1pt,
-  edge-stroke: 1pt,
-  node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
-  edge("-|>"),
-  node((0,1), align(center)[
-    Hey, wait,\ this flowchart\ is a trap!
-  ], shape: diamond),
-  edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
+	node-stroke: 1pt,
+	node((0,0), [Start], corner-radius: 2pt, extrude: (0, 3)),
+	edge("-|>"),
+	node((0,1), align(center)[
+		Hey, wait,\ this flowchart\ is a trap!
+	], shape: diamond),
+	edge("d,r,u,l", "-|>", [Yes], label-pos: 0.1)
 )
 ```
 
-
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/state-machine-dark.svg">
-  <img src="docs/readme-examples/state-machine-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/3-state-machine-dark.svg">
+  <img src="docs/readme-examples/3-state-machine-light.svg">
 </picture>
 
 ```typ
 #set text(10pt)
 #diagram(
-  node-stroke: .1em,
-  node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
-  spacing: 4em,
-  edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
-  node((0,0), `reading`, radius: 2em),
-  edge(`read()`, "-|>"),
-  node((1,0), `eof`, radius: 2em),
-  edge(`close()`, "-|>"),
-  node((2,0), `closed`, radius: 2em, extrude: (-2.5, 0)),
-  edge((0,0), (0,0), `read()`, "--|>", bend: 130deg),
-  edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
+	node-stroke: .1em,
+	node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
+	spacing: 4em,
+	edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
+	node((0,0), `reading`, radius: 2em),
+	edge(`read()`, "-|>"),
+	node((1,0), `eof`, radius: 2em),
+	edge(`close()`, "-|>"),
+	node((2,0), `closed`, radius: 2em, extrude: (-2.5, 0)),
+	edge((0,0), (0,0), `read()`, "--|>", bend: 130deg),
+	edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
 )
 ```
 
-
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/feynman-diagram-dark.svg">
-  <img src="docs/readme-examples/feynman-diagram-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/4-feynman-diagram-dark.svg">
+  <img src="docs/readme-examples/4-feynman-diagram-light.svg">
 </picture>
 
 ```typ
 #diagram($
-  e^- edge("rd", "-<|-") & & & edge("ld", "-|>-") e^+ \
-  & edge(gamma, "wave") \
-  e^+ edge("ru", "-|>-") & & & edge("lu", "-<|-") e^- \
+	e^- edge("rd", "-<|-") & & & edge("ld", "-|>-") e^+ \
+	& edge(gamma, "wave") \
+	e^+ edge("ru", "-|>-") & & & edge("lu", "-<|-") e^- \
 $)
 ```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme-examples/5-ml-architecture-dark.svg">
+  <img src="docs/readme-examples/5-ml-architecture-light.svg">
+</picture>
+
+```typ
+#import fletcher.shapes: house, hexagon
+#set text(font: "Fira Sans")
+#let blob(pos, label, tint: white, ..args) = node(
+	pos, align(center, label),
+	width: 26mm,
+	fill: tint.lighten(60%),
+	stroke: 1pt + tint.darken(20%),
+	corner-radius: 5pt,
+	..args,
+)
+
+#diagram(
+	spacing: 8pt,
+	cell-size: (8mm, 10mm),
+	edge-stroke: 1pt,
+	edge-corner-radius: 5pt,
+	mark-scale: 70%,
+
+	blob((0,1), [Add & Norm], tint: yellow, shape: hexagon),
+	edge(),
+	blob((0,2), [Multi-Head Attention], tint: orange),
+	blob((0,4), [Input], shape: house.with(angle: 30deg),
+		width: auto, tint: red),
+
+	for x in (-.3, -.1, +.1, +.3) {
+		edge((0,2.8), (x,2.8), (x,2), "-|>")
+	},
+	edge((0,2.8), (0,4)),
+
+	edge((0,3), "l,uu,r", "--|>"),
+	edge((0,1), (0, 0.35), "r", (1,3), "r,u", "-|>"),
+	edge((1,2), "d,rr,uu,l", "--|>"),
+
+	blob((2,0), [Softmax], tint: green),
+	edge("<|-"),
+	blob((2,1), [Add & Norm], tint: yellow, shape: hexagon),
+	edge(),
+	blob((2,2), [Feed Forward], tint: blue),
+)
+```
+
+
 
 
 # More examples
@@ -97,63 +140,62 @@ Pull requests are most welcome!
 <table>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/commutative.typ">
+      <a href="docs/gallery/1-commutative.typ">
         <center>
-          <img src="docs/gallery/commutative.svg" width="100%"/>
+          <img src="docs/gallery/1-commutative.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/algebra-cube.typ">
+      <a href="docs/gallery/2-algebra-cube.typ">
         <center>
-          <img src="docs/gallery/algebra-cube.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td style="background: white;">
-      <a href="docs/gallery/ml-architecture.typ">
-        <center>
-          <img src="docs/gallery/ml-architecture.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-    <td style="background: white;">
-      <a href="docs/gallery/io-flowchart.typ">
-        <center>
-          <img src="docs/gallery/io-flowchart.svg" width="100%"/>
+          <img src="docs/gallery/2-algebra-cube.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/digraph.typ">
+      <a href="docs/gallery/3-ml-architecture.typ">
         <center>
-          <img src="docs/gallery/digraph.svg" width="100%"/>
+          <img src="docs/gallery/3-ml-architecture.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/node-groups.typ">
+      <a href="docs/gallery/4-io-flowchart.typ">
         <center>
-          <img src="docs/gallery/node-groups.svg" width="100%"/>
+          <img src="docs/gallery/4-io-flowchart.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/uml-diagram.typ">
+      <a href="docs/gallery/5-digraph.typ">
         <center>
-          <img src="docs/gallery/uml-diagram.svg" width="100%"/>
+          <img src="docs/gallery/5-digraph.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td style="background: white;">
+      <a href="docs/gallery/6-node-groups.typ">
+        <center>
+          <img src="docs/gallery/6-node-groups.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/7-uml-diagram.typ">
+        <center>
+          <img src="docs/gallery/7-uml-diagram.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
 </table>
-
 
 
 ## Change log

@@ -23,11 +23,11 @@
 }
 
 #(
-	"feynman-diagram",
-	"first-isomorphism-theorem",
-	"flowchart-trap",
-	"ml-architecture",
-	"state-machine",
+	"1-first-isomorphism-theorem",
+	"2-flowchart-trap",
+	"3-state-machine",
+	"4-feynman-diagram",
+	"5-ml-architecture",
 ).map(name => {
 	render-example(name, darkmode: false)
 	render-example(name, darkmode: true)
