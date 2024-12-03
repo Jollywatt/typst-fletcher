@@ -32,11 +32,9 @@ def apply_example_template [path, --darkmode(-d)] {
 	let src = if $darkmode {
 		$src
 	} else {
-		$src | lines | filter {
-			not ($in | str ends-with '// darkmode')
-		} | each {
-			$in | str replace --regex --all '/\*darkmode\*/.*/\*end\*/' ''
-		} | str join "\n"
+		$src |
+			str replace -ra '.*//\s*darkmode\s*\n' '' |
+			str replace -ra '/\*darkmode\*/[\s\S]*/\*end\*/' ''
 	}
 
 	$src

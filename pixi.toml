@@ -5,7 +5,7 @@ channels = ["conda-forge/label/typst_rc", "conda-forge"]
 platforms = ["osx-arm64"]
 
 [tasks]
-readme = "scripts/readme.py"
+readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
 test = "typst-test run"
 fix = "typst-test update --exact"

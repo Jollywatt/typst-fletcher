@@ -1,9 +1,7 @@
 # fletcher
 
 [![Manual](https://img.shields.io/badge/docs-manual.pdf-green)](docs/manual.pdf?raw=true)
-```python
-f"![Version](https://img.shields.io/badge/version-{get_version()}-green)"
-```
+![Version](https://img.shields.io/badge/version-{VERSION}-green)
 [![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fdev%2Ftypst.toml&query=package.version&label=dev&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
@@ -13,39 +11,18 @@ A [Typst](https://typst.app/) package for drawing diagrams with arrows,
 built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 See the [manual](docs/manual.pdf?raw=true) for documentation.
 
-````python
-f"""
 ```typ
-#import "@preview/fletcher:{get_version()}" as fletcher: diagram, node, edge
+#import "@preview/fletcher:{VERSION}" as fletcher: diagram, node, edge
 ```
-"""
-````
 
-```python
-# These are examples in `docs/example-gallery/*.typ`
-'\n'.join(insert_example_block(name) for name in [
-  "first-isomorphism-theorem",
-  "flowchart-trap",
-  "state-machine",
-  "feynman-diagram",
-])
-```
+{README_EXAMPLES}
+
+
 
 # More examples
 Pull requests are most welcome!
 
-```python
-# These are examples in `docs/gallery/*.typ`
-insert_example_table([
-  "commutative",
-  "algebra-cube",
-  "ml-architecture",
-  "io-flowchart",
-  "digraph",
-  "node-groups",
-  "uml-diagram",
-])
-```
+{GALLERY}
 
 
 ## Change log
