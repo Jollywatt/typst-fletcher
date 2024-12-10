@@ -689,10 +689,14 @@
 ///     each column.
 #let draw-debug-axes(grid, debug: false) = {
 
-	let (x-lims, y-lims) = range(2).map(axis => (
-		grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
-		grid.centers.at(axis).at(-1) + grid.cell-sizes.at(axis).at(-1)/2,
-	))
+	// let (x-lims, y-lims) = range(2).map(axis => (
+	// 	grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
+	// 	grid.centers.at(axis).at(-1) + grid.cell-sizes.at(axis).at(-1)/2,
+	// ))
+	let x-min = grid.centers.at(0).at(0) - grid.cell-sizes.at(0).at(0)/2
+	let x-max = grid.centers.at(0).at(-1) + grid.cell-sizes.at(0).at(-1)/2
+	let y-min = grid.centers.at(1).at(0) - grid.cell-sizes.at(1).at(0)/2
+	let y-max = grid.centers.at(1).at(-1) + grid.cell-sizes.at(1).at(-1)/2
 
 	let (u-min, v-min) = grid.origin
 
@@ -707,42 +711,48 @@
 
 	import cetz.draw
 	draw.group({
-		let (a, b) = array.zip(x-lims, y-lims)
-		if a == b { b = vector.add(b, (1e-3pt, 1e-3pt)) }
-		draw.rect(a, b, stroke: DEBUG_COLOR + .5pt)
-
-		draw.set-style(stroke: (
-			paint: DEBUG_COLOR,
-			thickness: .3pt,
-			dash: "densely-dotted",
-		))
-
-		for axis in range(2) {
-			let swap(a, b) = if axis != 1 { (a, b) } else { (b, a) }
-			let x-range = (u-range, v-range).at(axis)
-			let (min, max) = (y-lims, x-lims).at(axis)
-			for (i, x) in x-range.enumerate() {
-				// coordinate line
-				draw.line(
-					swap(grid.centers.at(axis).at(i), min),
-					swap(grid.centers.at(axis).at(i), max),
-				)
-				// size bracket
-				let size = grid.cell-sizes.at(axis).at(i)
-				draw.rect(
-					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(-size/2, 0)),
-					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(+size/2, -1pt)),
-					fill: DEBUG_COLOR,
-					stroke: none,
-				)
-				// coordinate label
-				draw.content(
-					(to: swap(grid.centers.at(axis).at(i), min), rel: swap(0, -.2em)),
-					text(fill: DEBUG_COLOR, size: .7em)[#x],
-					anchor: if axis == 0 { "north" } else { "east" },
-				)
+		for (i, x) in grid.centers.at(0).enumerate() {
+			for (j, y) in grid.centers.at(1).enumerate() {
+				draw.circle((x, y), radius: 1pt, fill: green, stroke: none)
+				// draw.content((x, y), text(8pt, red, raw(repr((x, y)))))
 			}
 		}
+		// let (a, b) = array.zip(x-lims, y-lims)
+	// 	if a == b { b = vector.add(b, (1e-3pt, 1e-3pt)) }
+		draw.rect((x-min, y-min), (x-max, y-max), stroke: DEBUG_COLOR + .5pt)
+
+	// 	draw.set-style(stroke: (
+	// 		paint: DEBUG_COLOR,
+	// 		thickness: .3pt,
+	// 		dash: "densely-dotted",
+	// 	))
+
+	// 	for axis in range(2) {
+	// 		let swap(a, b) = if axis != 1 { (a, b) } else { (b, a) }
+	// 		// let x-range = (u-range, v-range).at(axis)
+	// 		let (min, max) = (y-lims, x-lims).at(axis)
+	// 		for (i, x) in grid.centers.at(axis).enumerate() {
+	// 			// coordinate line
+	// 			draw.line(
+	// 				swap(grid.centers.at(axis).at(i), min),
+	// 				swap(grid.centers.at(axis).at(i), max),
+	// 			)
+	// 			// size bracket
+	// 			let size = grid.cell-sizes.at(axis).at(i)
+	// 			draw.rect(
+	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(-size/2, 0)),
+	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(+size/2, -1pt)),
+	// 				fill: DEBUG_COLOR,
+	// 				stroke: none,
+	// 			)
+	// 			// coordinate label
+	// 			draw.content(
+	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(0, -.2em)),
+	// 				text(fill: DEBUG_COLOR, size: .7em)[#x],
+	// 				anchor: if axis == 0 { "north" } else { "east" },
+	// 			)
+	// 		}
+	// 	}
 
 		if debug {
 			let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
@@ -755,7 +765,7 @@
 			}
 
 			draw.content(
-				(x-lims.at(0), y-lims.at(0)),
+				(x-min, y-min),
 				pad(0.2em, text(0.5em, DEBUG_COLOR, $(#grid.axes.map(dir-to-arrow).join($,$))$)),
 				anchor: "north-east"
 			)

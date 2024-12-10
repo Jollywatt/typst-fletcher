@@ -118,7 +118,6 @@
 		if flip.x { indices.at(0) = -1 - indices.at(0) }
 		if flip.y { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
 			cell-sizes.at(axis).at(indices.at(axis)) = calc.max(
 				cell-sizes.at(axis).at(indices.at(axis)),
 				rect.size.at(axis),
@@ -126,9 +125,8 @@
 		}
 	}
 
-	// panic(cell-sizes)
 	if flip.xy {
-		cell-sizes = cell-sizes.rev()
+		cell-sizes = cell-sizes.map(array.rev)
 	}
 
 	(origin: origin, cell-sizes: cell-sizes)
@@ -154,6 +152,10 @@
 			array.zip(cumsum(sizes), sizes, range(sizes.len()))
 				.map(((end, size, i)) => end - size/2 + spacing*i)
 		})
+
+	if grid.flip.xy {
+		centers = centers.rev()
+	}
 
 	let bounding-size = array.zip(centers, grid.cell-sizes)
 		.map(((centers, sizes)) => centers.at(-1) + sizes.at(-1)/2)
