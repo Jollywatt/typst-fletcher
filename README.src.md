@@ -27,12 +27,16 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.4
+
+- Fix layout bugs for diagrams with non-default `axes` options (#62, #66).
+
 ### 0.5.3
 
 - Support CeTZ anchors in edge coordinates, e.g., `edge(<a.east>, ..)`.
 - Fix crash when `stroke: none` set on polyline edges (#60, [@SillyFreak](https://github.com/SillyFreak!)).
 - Fix bug with crossing edges in math mode (#54).
-- Fix bug with diagram sizes for some `axes` options (#62).
+- Fix layout bugs for diagrams with non-default `axes` options (#62, #66).
 
 ### 0.5.2
 
