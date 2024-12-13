@@ -697,6 +697,8 @@
 	let x-max = grid.centers.at(0).at(-1) + grid.cell-sizes.at(0).at(-1)/2
 	let y-min = grid.centers.at(1).at(0) - grid.cell-sizes.at(1).at(0)/2
 	let y-max = grid.centers.at(1).at(-1) + grid.cell-sizes.at(1).at(-1)/2
+	let x-lims = (x-min, x-max)
+	let y-lims = (y-min, y-max)
 
 	let (u-min, v-min) = grid.origin
 
@@ -721,38 +723,29 @@
 	// 	if a == b { b = vector.add(b, (1e-3pt, 1e-3pt)) }
 		draw.rect((x-min, y-min), (x-max, y-max), stroke: DEBUG_COLOR + .5pt)
 
-	// 	draw.set-style(stroke: (
-	// 		paint: DEBUG_COLOR,
-	// 		thickness: .3pt,
-	// 		dash: "densely-dotted",
-	// 	))
+		draw.set-style(stroke: (
+			paint: DEBUG_COLOR,
+			thickness: .3pt,
+			dash: "densely-dotted",
+		))
 
-	// 	for axis in range(2) {
-	// 		let swap(a, b) = if axis != 1 { (a, b) } else { (b, a) }
-	// 		// let x-range = (u-range, v-range).at(axis)
-	// 		let (min, max) = (y-lims, x-lims).at(axis)
-	// 		for (i, x) in grid.centers.at(axis).enumerate() {
-	// 			// coordinate line
-	// 			draw.line(
-	// 				swap(grid.centers.at(axis).at(i), min),
-	// 				swap(grid.centers.at(axis).at(i), max),
-	// 			)
-	// 			// size bracket
-	// 			let size = grid.cell-sizes.at(axis).at(i)
-	// 			draw.rect(
-	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(-size/2, 0)),
-	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(+size/2, -1pt)),
-	// 				fill: DEBUG_COLOR,
-	// 				stroke: none,
-	// 			)
-	// 			// coordinate label
-	// 			draw.content(
-	// 				(to: swap(grid.centers.at(axis).at(i), min), rel: swap(0, -.2em)),
-	// 				text(fill: DEBUG_COLOR, size: .7em)[#x],
-	// 				anchor: if axis == 0 { "north" } else { "east" },
-	// 			)
-	// 		}
-	// 	}
+		for (i, x) in grid.centers.at(0).enumerate() {
+			draw.line(
+				(x, y-min),
+				(x, y-max),
+			)
+
+			if grid.centers.at(0).len() != grid.cell-sizes.at(0).len() {
+				panic(grid)
+			}
+			let size = grid.cell-sizes.at(0).at(i)
+			draw.rect(
+				(to: (x, y-min), rel: (-size/2, 0)),
+				(to: (x, y-min), rel: (+size/2, -1pt)),
+				fill: DEBUG_COLOR,
+				stroke: none,
+			)
+		}
 
 		if debug {
 			let (u-label, v-label) = if grid.flip.xy { ($arrow$, $arrow.t.twohead$) } else { ($u$, $v$) }
