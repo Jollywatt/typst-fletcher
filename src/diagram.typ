@@ -37,7 +37,6 @@
 	)
 }
 
-
 /// Convert an array of rects `(center: (x, y), size: (w, h))` with fractional
 /// positions into rects with integral positions.
 ///
@@ -95,6 +94,13 @@
 /// - rects (array): Rectangles (dictionaries of the form `(center, size)` which
 ///   are used to determine cell sizes.
 #let compute-cell-sizes(flip, verts, rects) = {
+
+	if flip.xy {
+		// if x/y axes are flipped, transpose rectangles
+		rects = rects.map( ((center, size)) => {
+			(center: center, size: size.rev())
+		})
+	}
 	rects = expand-fractional-rects(rects)
 
 	// all points in diagram that should be spanned by coordinate grid
@@ -118,15 +124,14 @@
 		if flip.x { indices.at(0) = -1 - indices.at(0) }
 		if flip.y { indices.at(1) = -1 - indices.at(1) }
 		for axis in (0, 1) {
-			let size = if flip.xy { rect.size.at(axis) } else { rect.size.at(1 - axis) }
-			cell-sizes.at(axis).at(indices.at(axis)) = calc.max(
-				cell-sizes.at(axis).at(indices.at(axis)),
+			let i = indices.at(axis)
+			cell-sizes.at(axis).at(i) = calc.max(
+				cell-sizes.at(axis).at(i),
 				rect.size.at(axis),
 			)
 		}
 	}
 
-	// panic(cell-sizes)
 	if flip.xy {
 		cell-sizes = cell-sizes.rev()
 	}
@@ -184,6 +189,9 @@
 
 	grid += compute-cell-centers(grid)
 
+	assert(grid.centers.at(0).len() == grid.cell-sizes.at(0).len())
+	assert(grid.centers.at(1).len() == grid.cell-sizes.at(1).len())
+	
 	grid
 }
 
