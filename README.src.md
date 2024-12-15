@@ -33,6 +33,7 @@ Pull requests are most welcome!
 - Fix crash when `stroke: none` set on polyline edges (#60, [@SillyFreak](https://github.com/SillyFreak!)).
 - Fix bug with crossing edges in math mode (#54).
 - Fix layout bugs for diagrams with non-default `axes` options (#62, #66).
+- Fix a line breaking issue with justified text in nodes (#64).
 
 ### 0.5.2
 
