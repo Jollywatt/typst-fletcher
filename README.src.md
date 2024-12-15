@@ -30,6 +30,7 @@ Pull requests are most welcome!
 ### 0.5.4
 
 - Fix layout bugs for diagrams with non-default `axes` options (#62, #66).
+- Fix a line breaking issue with justified text in nodes (#64).
 
 ### 0.5.3
 
