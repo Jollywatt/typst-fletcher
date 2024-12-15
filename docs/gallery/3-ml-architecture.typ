@@ -1,11 +1,11 @@
 #import "@preview/fletcher:0.5.4" as fletcher: diagram, node, edge
 #import fletcher.shapes: house, hexagon
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
-#set text(font: "Fira Sans")
+#set text(font: "New Computer Modern")
 
 #let blob(pos, label, tint: white, ..args) = node(
 	pos, align(center, label),
-	width: 26mm,
+	width: 28mm,
 	fill: tint.lighten(60%),
 	stroke: 1pt + tint.darken(20%),
 	corner-radius: 5pt,

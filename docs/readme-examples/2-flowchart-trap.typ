@@ -1,6 +1,6 @@
 // https://xkcd.com/1195/
 #import fletcher.shapes: diamond
-#set text(font: "Comic Neue", weight: 600)
+#set text(font: "Comic Neue", weight: 600) // testing: omit
 
 #diagram(
 	node-stroke: 1pt/*darkmode*/ + white/*end*/,
