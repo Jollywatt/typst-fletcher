@@ -29,13 +29,14 @@
 		}
 
 		if node.label != none {
+			let ε = 1e-10pt // temp fix for https://github.com/Jollywatt/typst-fletcher/issues/64
 			cetz.draw.content(
 				node.pos.xyz,
 				box(
 					// wrapping label in a box allows user to control its alignment
 					align(center + horizon, node.label),
 					stroke: if debug >= 3 { DEBUG_COLOR2 + 0.25pt },
-					width:  node.size.at(0) - 2*node.inset,
+					width:  node.size.at(0) - 2*node.inset + ε,
 					height: node.size.at(1) - 2*node.inset,
 				),
 				anchor: "center",
