@@ -3,6 +3,7 @@
 
 #let render-example(name, darkmode: false) = {
 	let src = read("/docs/readme-examples/" + name + ".typ")
+	src = src.replace(regex("\n.*// testing: omit"), "")
 	if not darkmode {
 		src = src.replace(regex("/\*darkmode\*/[\s\S]*/\*end\*/"), "")
 		src = src.replace(regex("\n.*// darkmode"), "")
@@ -27,7 +28,6 @@
 	"2-flowchart-trap",
 	"3-state-machine",
 	"4-feynman-diagram",
-	"5-ml-architecture",
 ).map(name => {
 	render-example(name, darkmode: false)
 	render-example(name, darkmode: true)
