@@ -617,7 +617,7 @@ For example, `<A.north>` and `(name: "A", anchor: "north")` are equivalent coord
 )
 ````)
 
-Nodes anchors count as _absolute_ coordinates, meaning that nodes with positions that depend on anchors are _floating_ and do not affect the diagram's grid (elastic coordinate row and column sizes).
+Node anchors count as _absolute_ coordinates, meaning that nodes positioned with anchors are _floating_ and never affect the diagram's grid (the sizes of the rows and columns used for elastic coordinates).
 
 = Edges
 
@@ -857,10 +857,17 @@ You add or tweak mark styles by modifying `fletcher.MARKS`, as described in @mar
 		..fletcher.MARKS.get().pairs().map(((k, v)) => [
 			#set align(center)
 			#raw(lang: none, k) \
-			#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v, v)))
+			#diagram(spacing: 18mm, edge(stroke: 1pt, marks: (v, v)))
 		]),
 	)
 ) <all-marks>]
+
+Marks can be flipped by appending `'` to the name.
+
+#code-example-row(```typ
+#diagram(edge("harpoon'-hook", stroke: 1pt)) 
+#diagram(edge("hook'-harpoon", stroke: 1pt)) 
+```)
 
 If there is a common mark style that you believe should be included with `fletcher` by default, please #link("https://github.com/Jollywatt/typst-fletcher")[open an issue]!
 

@@ -263,7 +263,7 @@
 	))
 
 	if not (type(snap) in (int, float) or snap == false) {
-		error("`snap` must be a number or `false`; got #0.", repr(snap))
+		error("`snap` must be a number specifying priority or `false` to disable; got #0.", repr(snap))
 	}
 
 	metadata((

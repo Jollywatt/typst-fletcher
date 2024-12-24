@@ -191,7 +191,7 @@
 
 	assert(grid.centers.at(0).len() == grid.cell-sizes.at(0).len())
 	assert(grid.centers.at(1).len() == grid.cell-sizes.at(1).len())
-	
+
 	grid
 }
 
