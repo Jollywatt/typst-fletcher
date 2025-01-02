@@ -12,7 +12,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.4.0-h39f12f2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typos-1.28.1-h0716509_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.12.0-h0ef69ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-test-0.0.0.post106+2b4e689-h6e96688_0.conda
 packages:
 - kind: conda
   name: ca-certificates
@@ -122,19 +121,3 @@ packages:
   license_family: Apache
   size: 12169390
   timestamp: 1729333167741
-- kind: conda
-  name: typst-test
-  version: 0.0.0.post106+2b4e689
-  build: h6e96688_0
-  subdir: osx-arm64
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/typst-test-0.0.0.post106+2b4e689-h6e96688_0.conda
-  sha256: 472d2eb5144295e6d33d5c632b766586b1fb4a5026e7173551470dcf6cf3f64d
-  md5: ee82537ab27780ee221a1a855370e65e
-  depends:
-  - __osx >=11.0
-  constrains:
-  - __osx >=11.0
-  license: MIT
-  license_family: MIT
-  size: 11156937
-  timestamp: 1721425137996
