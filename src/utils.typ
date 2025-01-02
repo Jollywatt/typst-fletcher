@@ -50,6 +50,22 @@
 	else { error(message + "; got #0.", repr(obj)) }
 }
 
+#let as-relative(obj, message: "Expected float or relative length") = {
+	if type(obj) == relative { obj }
+	else if type(obj) in (int, float) { obj*100% + 0pt }
+	else if type(obj) in (ratio, length) { obj + 0% + 0pt }
+	else { error(message + "; got #0.", repr(obj)) }
+}
+
+#let relative-to-float(t, len: float("inf")*1pt) = {
+	len = len.to-absolute()
+	if type(t) in (int, float, ratio) { float(t) }
+	else if type(t) == length { t.to-absolute()/len }
+	else if type(t) == relative { float(t.ratio) + t.length.to-absolute()/len }
+	else { error("Cannot convert #0 to float.", t) }
+}
+
+
 #let as-length(obj, message: "Expected a length") = {
 	if type(obj) == length { obj }
 	else { error(message + "; got #0.", repr(obj)) }

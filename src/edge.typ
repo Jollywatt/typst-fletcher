@@ -729,7 +729,7 @@
 	vertices: (),
 	label: none,
 	label-side: auto,
-	label-pos: 0.5,
+	label-pos: 50%,
 	label-sep: auto,
 	label-angle: 0deg,
 	label-anchor: auto,
@@ -759,7 +759,7 @@
 	let options = (
 		vertices: vertices,
 		label: label,
-		label-pos: label-pos,
+		label-pos: as-relative(label-pos),
 		label-sep: label-sep,
 		label-angle: label-angle,
 		label-anchor: label-anchor,

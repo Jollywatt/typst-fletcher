@@ -98,7 +98,7 @@
 #let place-edge-label-on-curve(edge, curve, debug: 0) = {
 
 	let curve-point = curve(edge.label-pos)
-	let curve-point-ε = curve(edge.label-pos + 1e-3)
+	let curve-point-ε = curve(edge.label-pos + 1e-3%)
 
 	let θ = wrap-angle-180(angle-between(curve-point, curve-point-ε))
 	let θ-normal = θ + if edge.label-side == right { +90deg } else { -90deg }
@@ -226,7 +226,13 @@
 	}
 
 	// Draw marks
-	let curve(t) = vector.lerp(from, to, t)
+	let total-path-len = vector-len(vector.sub(from, to))
+	let curve(t) = {
+		// panic(t, total-path-len)
+		t = relative-to-float(t, len: total-path-len)
+		vector.lerp(from, to, t)
+	}
+
 	for mark in edge.marks {
 		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
@@ -286,7 +292,11 @@
 	}
 
 	// Draw marks
-	let curve(t) = vector.add(center, vector-polar(radius, lerp(start, stop, t)))
+	let total-path-len = calc.abs(stop - start)/1rad*radius
+	let curve(t) = {
+		t = relative-to-float(t, len: total-path-len)
+		vector.add(center, vector-polar(radius, lerp(start, stop, t)))
+	}
 	for mark in edge.marks {
 		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}
@@ -380,8 +390,16 @@
 	}
 
 	let lerp-scale(t, i) = {
-		let τ = t*n-segments - i
-		if 0 < τ and τ <= 1 or i == 0 and τ <= 0 or i == n-segments - 1 and 1 < τ { τ }
+		if type(t) in (int, float) {
+			let τ = t*n-segments - i
+			if (0 < τ and τ <= 1 or
+				i == 0 and τ <= 0 or
+				i == n-segments - 1 and 1 < τ) { τ }
+		} else  {
+			t = as-relative(t)
+			let τ = lerp-scale(float(t.ratio), i)
+			if τ != none {τ *100% + t.length }
+		}
 	}
 
 	let debug-stroke = edge.stroke.thickness/4 + DEBUG_COLOR2
