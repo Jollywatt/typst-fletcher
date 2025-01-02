@@ -1,7 +1,7 @@
 # fletcher
 
 [![Manual](https://img.shields.io/badge/docs-manual.pdf-green)](docs/manual.pdf?raw=true)
-![Version](https://img.shields.io/badge/version-0.5.4-green)
+![Version](https://img.shields.io/badge/version-0.5.5-green)
 [![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fdev%2Ftypst.toml&query=package.version&label=dev&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
@@ -12,7 +12,7 @@ built on top of [CeTZ](https://github.com/johannes-wolf/cetz).
 See the [manual](docs/manual.pdf?raw=true) for documentation.
 
 ```typ
-#import "@preview/fletcher:0.5.4" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.5" as fletcher: diagram, node, edge
 ```
 
 
@@ -152,6 +152,8 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.5.5
 
 ### 0.5.4
 
