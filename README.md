@@ -155,6 +155,7 @@ Pull requests are most welcome!
 
 ### 0.5.4
 
+- Allow relative lengths for the `label-pos` option of `edge()` (#61).
 - Fix layout bugs for diagrams with non-default `axes` options (#62, #66).
 - Fix a line breaking issue with justified text in nodes (#64).
 
