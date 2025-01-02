@@ -428,8 +428,12 @@
 ///    - roughly above the connector, in the case of straight lines; or
 ///    - on the outside of the curve, in the case of arcs.
 ///
-/// - label-pos (number): Position of the label along the connector, from the
-///   start to end (from `0` to `1`).
+/// - label-pos (float, ratio, relative length): Position of the label along the
+///   edge, from the start to end.
+///
+///   A number or ratio between zero and one is interpreted as a fraction of the
+///   edge length. Physical and relative relative lengths work too. For example,
+///   `100% - 1em` means `1em` from the end.
 ///
 ///   #stack(
 ///   	dir: ltr,
@@ -439,6 +443,10 @@
 ///   		edge((0,0), (1,0), p, "->", label-pos: p))
 ///   	),
 ///   )
+///
+///   For `"poly"` edges (see @edge-types), a number does not specify a fraction
+///   of the path length; instead, the $k$th vertex is at position $k/n$ where
+///   $n$ is the number of vertices. Each midpoint is then at $k/n + 0.5$.
 ///
 /// - label-sep (length): Separation between the connector and the label anchor.
 ///

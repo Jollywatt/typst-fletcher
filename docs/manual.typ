@@ -730,7 +730,7 @@ A label as an edge vertex is interpreted as the position of the node with that l
 
 
 
-== Edge types
+== Edge types <edge-types>
 
 There are three types of edges: `"line"`, `"arc"`, and `"poly"`.
 All edges have at least two `vertices`, but `"poly"` edges can have more.
