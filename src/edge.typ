@@ -20,6 +20,7 @@
 	"--": EDGE_FLAGS.dashed,
 	"..": EDGE_FLAGS.dotted,
 	"~": EDGE_FLAGS.wave,
+	" ": (extrude: ()),
 )
 
 #let MARK_SYMBOL_ALIASES = (
