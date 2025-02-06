@@ -1,6 +1,6 @@
 [package]
 name = "fletcher"
-version = "0.5.4"
+version = "0.5.5"
 compiler = "0.12.0"
 entrypoint = "src/exports.typ"
 authors = ["Joseph Wilson (Jollywatt)"]
