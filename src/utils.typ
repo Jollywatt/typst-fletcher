@@ -269,7 +269,7 @@
 }
 
 #let is-sequence(it) = {
-	type(it) == "content" and repr(it.func()) == "sequence"
+	type(it) == content and repr(it.func()) == "sequence"
 }
 
 #let flatten-sequence-to-array(it) = {
