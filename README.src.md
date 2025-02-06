@@ -27,6 +27,8 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.5
+
 ### 0.5.4
 
 - Allow relative lengths for the `label-pos` option of `edge()` (#61).

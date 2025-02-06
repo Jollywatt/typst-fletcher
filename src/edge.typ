@@ -20,6 +20,7 @@
 	"--": EDGE_FLAGS.dashed,
 	"..": EDGE_FLAGS.dotted,
 	"~": EDGE_FLAGS.wave,
+	" ": (extrude: ()),
 )
 
 #let MARK_SYMBOL_ALIASES = (
@@ -999,10 +1000,12 @@
 		(from.at(0), to.at(1))
 	}
 
+	let label-side = map-auto(edge.label-side, if bend-dir { left } else { right })
+
 	edge + (
 		kind: "poly",
 		final-vertices: (from, corner-point, to),
-		label-side: if bend-dir { left } else { right },
+		label-side: label-side,
 	)
 }
 
