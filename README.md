@@ -155,6 +155,11 @@ Pull requests are most welcome!
 
 ### 0.5.5
 
+- Update `cetz` dependency to `0.3.2`.
+- Fix deprecated type comparisons (#75).
+- Add space ` ` line style for empty stroke (#70).
+- Fix bug with `label-side` for corner edges (#74).
+
 ### 0.5.4
 
 - Allow relative lengths for the `label-pos` option of `edge()` (#61).
