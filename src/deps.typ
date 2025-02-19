@@ -1,1 +1,1 @@
-#import "@preview/cetz:0.3.1"
+#import "@preview/cetz:0.3.2"
