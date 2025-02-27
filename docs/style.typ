@@ -1,4 +1,4 @@
-#import "@preview/tidy:0.2.0"
+#import "@preview/tidy:0.4.1"
 
 #let function-name-color = tidy.styles.default.function-name-color
 #let rainbow-map = tidy.styles.default.rainbow-map
@@ -8,9 +8,8 @@
 #let colors-dark = tidy.styles.default.colors-dark
 
 #let show-outline(module-doc, style-args: (:)) = box({
-	let prefix = module-doc.label-prefix
 	for fn in module-doc.functions [
-		- #link(label(prefix + fn.name + "()"), raw(fn.name + "()"))
+		- #link(label(fn.name + "()"), raw(fn.name + "()"))
 	]
 	v(2em)
 })

@@ -1,6 +1,6 @@
-#import "@preview/tidy:0.3.0"
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 #import "/docs/style.typ"
+#let tidy = style.tidy
 
 #set page(numbering: "1")
 #set par(justify: true)
@@ -44,7 +44,7 @@
 )
 
 #let show-fns(file, only: none, exclude: (), level: 1, outline: false) = {
-	let module-doc = tidy.parse-module(read(file), scope: scope)
+	let module-doc = tidy.parse-module(read(file), scope: scope, old-syntax: true)
 
 
 	if only != none {
