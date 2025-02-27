@@ -12,6 +12,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.4.0-h39f12f2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typos-1.28.1-h0716509_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.12.0-h0ef69ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.2.1-h0716509_1.conda
 packages:
 - kind: conda
   name: ca-certificates
@@ -121,3 +122,20 @@ packages:
   license_family: Apache
   size: 12169390
   timestamp: 1729333167741
+- kind: conda
+  name: tytanic
+  version: 0.2.1
+  build: h0716509_1
+  build_number: 1
+  subdir: osx-arm64
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.2.1-h0716509_1.conda
+  sha256: bbfce50876fb37a0d36c91c1255fe7e949beae07b03de270034a09ec88f0f0b8
+  md5: 134be97496a4dc7ddcd0ac57f2eb32b8
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: MIT
+  license_family: MIT
+  size: 12844081
+  timestamp: 1740741010226
