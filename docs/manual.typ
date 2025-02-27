@@ -90,7 +90,7 @@
 	#v(30pt)
 
 	A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
-	built on top of #link("https://github.com/johannes-wolf/cetz")[CeTZ].
+	built on top of #link("https://cetz-package.github.io")[CeTZ].
 
 	#emph[
 	Commutative diagrams,
