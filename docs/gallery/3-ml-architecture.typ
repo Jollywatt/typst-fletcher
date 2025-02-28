@@ -1,4 +1,4 @@
-#import "@preview/fletcher:0.5.5" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.6" as fletcher: diagram, node, edge
 #import fletcher.shapes: house, hexagon
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 #set text(font: "New Computer Modern")

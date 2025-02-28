@@ -34,6 +34,8 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.6
+
 ### 0.5.5
 
 - Update `cetz` dependency to `0.3.2`.
