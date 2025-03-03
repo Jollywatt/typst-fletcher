@@ -1187,33 +1187,84 @@ Here is an example of how you might hack together a Bézier edge using the same 
 
 = Touying integration
 
-You can create incrementally-revealed diagrams in Touying presentation slides by defining the following `touying-reducer`:
+You can create incrementally-revealed diagrams with Touying presentation slides by defining a `touying-reducer`.
+You must redefine `diagram` to use this reducer so that Touying primitives like `pause`, `uncover`, `only`, and so on are understood.
+For example, here is a simple animated diagram:
 
-#text(.85em, ```typ
-#import "@preview/touying:0.2.1": *
-#let diagram = touying-reducer.with(reduce: fletcher.diagram, cover: fletcher.hide)
-#let (init, slide) = utils.methods(s)
-#show: init
+#let touying-src = text(.85em, ```typ
+#import "@preview/touying:0.5.5": *
+#show: themes.simple.simple-theme.with(aspect-ratio: "16-9")
+#let diagram = touying-reducer.with(
+	reduce: fletcher.diagram, cover: fletcher.hide)
 
-#slide[
-	Slide with animated figure:
-	#diagram(
-		node-stroke: .1em,
-		node-fill: gradient.radial(blue.lighten(80%), blue, center: (30%, 20%), radius: 80%),
-		spacing: 4em,
-		edge((-1,0), "r", "-|>", `open(path)`, label-pos: 0, label-side: center),
-		node((0,0), `reading`, radius: 2em),
+#slide(repeat: 6, self => {
+	let (uncover, only, alternatives) = utils.methods(self)
+	diagram(
+		node((0, 0), name: <A>)[$A$],
 		pause,
-		edge((0,0), (0,0), `read()`, "--|>", bend: 130deg),
-		edge(`read()`, "-|>"),
-		node((1,0), `eof`, radius: 2em),
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
 		pause,
-		edge(`close()`, "-|>"),
-		node((2,0), `closed`, radius: 2em, extrude: (-2.5, 0)),
-		edge((0,0), (2,0), `close()`, "-|>", bend: -40deg),
+		edge("->"),
+		node((2, 0), name: <C>)[$C$],
+		only("4,6", edge(<A>, "~", <B>, bend: 40deg, stroke: red)),
+		only("5,6", edge(<B>, "~", <C>, bend: 40deg, stroke: green)),
+		only("6", edge(<C>, "~", <A>, bend: 40deg, stroke: blue)),
 	)
-]
+})
 ```)
+
+// can't do this automatically with toying :(
+#let touying-slides = (
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+	),
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
+	),
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
+		edge("->"),
+		node((2, 0), name: <C>)[$C$],
+	),
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
+		edge("->"),
+		node((2, 0), name: <C>)[$C$],
+		edge(<A>, "~", <B>, bend: 40deg, stroke: red),
+	),
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
+		edge("->"),
+		node((2, 0), name: <C>)[$C$],
+		edge(<B>, "~", <C>, bend: 40deg, stroke: green),
+	),
+	diagram(
+		node((0, 0), name: <A>)[$A$],
+		edge("->"),
+		node((1, 0), name: <B>)[$B$],
+		edge("->"),
+		node((2, 0), name: <C>)[$C$],
+		edge(<A>, "~", <B>, bend: 40deg, stroke: red),
+		edge(<B>, "~", <C>, bend: 40deg, stroke: green),
+		edge(<C>, "~", <A>, bend: 40deg, stroke: blue),
+	),
+)
+
+#stack(
+	dir: rtl,
+	spacing: 1fr,
+	table(..touying-slides),
+	touying-src,
+)
 
 #pagebreak(weak: true)
 
