@@ -230,7 +230,7 @@
 		node(c(2,1,1), $T_G P times.circle T^* X$)
 
 
-		// aways
+		// away
 		edge(v000, c(0,0,1), $"Id"$, "->", bend: 0deg)
 		edge(c(1,0,0), c(1,0,1), $"Id"$, "->")
 		edge(c(2,0,0), c(2,0,1), $"Id"$, "->")
@@ -239,7 +239,7 @@
 		edge(c(1,1,0), c(1,1,1), $i_J$, "hook->")
 		edge(c(2,1,0), c(2,1,1), $i_C$, "hook->")
 
-		// downs
+		// down
 		edge(c(0,1,0), v000, $pi_J$, "=>", label-pos: 0.2)
 		edge(c(1,1,0), c(1,0,0), $pi_J$, "->", label-pos: 0.2)
 		edge(c(2,1,0), c(2,0,0), $pi_"CP"$, "->", label-pos: 0.2)
@@ -248,7 +248,7 @@
 		edge(c(1,1,1), c(1,0,1), $c_pi$, "->", label-pos: 0.2)
 		edge(c(2,1,1), c(2,0,1), $overline(c)_pi$, "-||->", label-pos: 0.2)
 
-		// acrosses
+		// across
 		edge(v000, c(1,0,0), $lambda_g$, "->")
 		edge(c(1,0,0), c(2,0,0), $pi^G=pi$, "->")
 

@@ -5,3 +5,6 @@ extend-exclude = [
 	"*.sublime-workspace",
 	"*.sublime-project",
 ]
+
+[default.extend-words]
+typ="typ"
