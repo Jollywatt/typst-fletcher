@@ -71,7 +71,7 @@
 
 #let ctx = default-ctx + (
 	target-system: "uv",
-	transform: cetz.matrix.ident(),
+	transform: cetz.matrix.ident(4),
 	nodes: (
 		"a": (anchors: _ => (100, 100)),
 		"b": (anchors: _ => (20, 50)),
