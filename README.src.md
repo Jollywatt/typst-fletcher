@@ -36,6 +36,9 @@ Pull requests are most welcome!
 
 ### 0.5.6
 
+- **Require `typst` version `>=0.13.0`.**
+- Update `cetz` dependency to `0.3.3`.
+
 ### 0.5.5
 
 - Update `cetz` dependency to `0.3.2`.
