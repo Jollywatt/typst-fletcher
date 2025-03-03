@@ -2,19 +2,19 @@
 name = "fletcher"
 authors = ["jollywatt <jo.alex.w@gmail.com>"]
 channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [tasks]
 readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
 test = "tt run"
-fix = "tt update --exact"
+fix = "tt update"
 manual = "typst watch --root . docs/manual.typ"
 install = "scripts/install.nu"
 check = "scripts/check.nu"
 
 [dependencies]
-typst = "0.12.0"
 nushell = ">=0.95.0,<0.96"
 typos = "*"
+typst = "==0.13.0"
 tytanic = ">=0.2.1,<0.3"
