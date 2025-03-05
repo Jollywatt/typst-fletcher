@@ -38,6 +38,7 @@ Pull requests are most welcome!
 
 - **Require `typst` version `>=0.13.0`.**
 - Update `cetz` dependency to `0.3.3`.
+- Support CeTZ anchors on nodes which dynamically enclose other nodes (#81).
 
 ### 0.5.5
 

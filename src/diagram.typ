@@ -530,13 +530,15 @@
 		// determine diagram's elastic grid layout
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
-		// now with grid determined, compute final (physical) coordinates for nodes and edges
-		let (ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "xyz", grid: grid))
-		let (_, nodes) = resolve-node-coordinates(nodes, ctx: (target-system: "uv", grid: grid))
+		let ctx-with-xyz-anchors
+		for i in range(2) {
+			// now with grid determined, compute final (physical) coordinates for nodes and edges
+			(ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(
+				nodes, ctx: (target-system: "xyz", grid: grid))
 
-
-		// resolve enclosing nodes
-		let nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
+			// resolve enclosing nodes
+			nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
+		}
 
 		// resolve edges
 		edges = edges.map(edge => {

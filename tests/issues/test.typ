@@ -29,3 +29,14 @@ https://github.com/Jollywatt/typst-fletcher/issues/74
 		node((1, 1), [B]),
 	) 
 }
+
+https://github.com/Jollywatt/typst-fletcher/issues/81
+
+#diagram(
+  debug: 3,
+  node((0,0), [1], fill: red, name: <1>),
+  node((1,0), [2], fill: blue, name: <2>),
+  node([],enclose: (<1>,<2>), name: <3>, stroke: black),
+  edge(<1.south>, "d"),      
+  edge(<3.south>,"d")
+)

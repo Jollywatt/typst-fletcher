@@ -82,3 +82,19 @@ Node positions depending on other nodes' anchors
 		"..>",
 	)
 )
+
+#pagebreak()
+
+Diagram requiring two coordinate resolution passes
+
+#diagram({
+	node((0,0), $A$, name: <A>, stroke: 1pt)
+	node((1,1), $B$, name: <B>, stroke: 1pt)
+	node(enclose: (<A>, <B>), stroke: yellow, name: <box>, text(yellow)[enclose node\ with anchor])
+
+	// node that depends on the anchors of an enclosing node
+	node(<box.north-east>, $ plus.circle $, name: <D>, stroke: teal)
+
+	// edge depending on 
+	edge(<D.east>, "->", (rel: (2cm,0cm)), stroke: 1pt + teal)
+})

@@ -405,7 +405,8 @@
 		let enclosed-vertices = node.enclose.map(key => {
 			let near-node = find-node(nodes, key)
 
-			if near-node == none or near-node.pos.raw == auto {
+			// if near-node == none or near-node.pos.raw == auto {
+			if near-node == none {
 				// if enclosed point doesn't resolve to a node
 				// enclose the point itself
 				let (_, coord) = resolve(ctx, key)
@@ -431,6 +432,7 @@
 			size.map(d => d + node.inset*2),
 			node.size,
 		)
+		node.resolved-enclose = true
 		node.shape = shapes.rect // TODO: support different node shapes with enclose
 
 		node
@@ -463,16 +465,21 @@
 	} else if ctx.target-system == "xyz" {
 		if is-nan-vector(node-origin) { return ctx }
 
-		let cetz-obj = (node.shape)(node, node.outset).at(0)
-		calculate-anchors = (k) => {
-			if k == "default" { return node-origin }
-			let a = ((cetz-obj)(ctx).anchors)(k)
-			if not is-number-vector(a) { return a }
-			a.at(1) *= -1 // CETZ Y AXIS
-			vector.add(
-				node-origin, // node center
-				vector-2d(vector.scale(a, ctx.length)),
-			)
+		// do not compute anchors for enclose nodes before they have been resolved
+		if node.enclose.len() > 0 and "resolved-enclose" not in node {
+			calculate-anchors = (k) => NAN_COORD
+		} else {
+			let cetz-obj = (node.shape)(node, node.outset).at(0)
+			calculate-anchors = (k) => {
+				if k == "default" { return node-origin }
+				let a = ((cetz-obj)(ctx).anchors)(k)
+				if not is-number-vector(a) { return a }
+				a.at(1) *= -1 // CETZ Y AXIS
+				vector.add(
+					node-origin, // node center
+					vector-2d(vector.scale(a, ctx.length)),
+				)
+			}
 		}
 	}
 
@@ -495,6 +502,7 @@
 /// -> array
 #let resolve-node-coordinates(nodes, ctx: (:)) = {
 	let ctx = default-ctx + ctx
+	let system = ctx.target-system
 
 	// nodes which enclose other points are allowed to have
 	// position `auto`; they are placed after normal nodes
@@ -520,7 +528,6 @@
 			(ctx, coord) = resolve(ctx, node.pos.raw)
 		}
 
-		assert(coord.len() == 2)
 		node.pos.insert(ctx.target-system, coord)
 		nodes.at(i) = node
 		ctx = register-node-anchors(ctx, node)

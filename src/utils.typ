@@ -280,24 +280,28 @@
 
 
 // find a node near a given uv coordinate
-#let find-node-at(nodes, uv) = {
+#let find-node-at(nodes, uv, snap: true) = {
 	nodes.filter(node => {
 		if is-nan-vector(node.pos.uv) { return false }
 
-		// node must be within a one-unit block around pos
-		vector.sub(node.pos.uv, uv).all(Δ => calc.abs(Δ) < 1)
+		if snap {
+			// node must be within a one-unit block around pos
+			vector.sub(node.pos.uv, uv).all(Δ => calc.abs(Δ) < 0.1)
+		} else {
+			node.pos.uv == uv
+		}
 	})
 		.sorted(key: node => vector.len(vector.sub(node.pos.uv, uv)))
 		.at(0, default: none)
 }
 
-#let find-node(nodes, key, snap: false) = {
+#let find-node(nodes, key, snap: true) = {
 	if type(key) == label {
 		let node = nodes.find(node => node.name == key)
 		assert(node != none, message: "Couldn't find node with name " + repr(key))
 		node
 	} else if type(key) == array and is-number-vector(key) {
-		find-node-at(nodes, key)
+		find-node-at(nodes, key, snap: snap)
 	} else {
 		none
 	}
