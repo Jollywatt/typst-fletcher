@@ -46,7 +46,6 @@
 #let show-fns(file, only: none, exclude: (), level: 1, outline: false) = {
 	let module-doc = tidy.parse-module(read(file), scope: scope, old-syntax: true)
 
-
 	if only != none {
 		let ordered-fns = only.map(fn-name => {
 			module-doc.functions.find(fn => fn.name == fn-name)
@@ -120,6 +119,7 @@
 	}
 }
 
+#show raw.where(block: true): set text(7pt)
 
 #v(1fr)
 

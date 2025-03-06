@@ -19,14 +19,14 @@
 ///
 ///   Names can sometimes be used in place of coordinates. For example:
 ///
-///   #example(```
-///   fletcher.diagram(
+///   ```example
+///   #diagram(
 ///   	node((0,0), $A$, name: <A>),
 ///   	node((1,0.6), $B$, name: <B>),
 ///   	edge(<A>, <B>, "->"),
 ///   	node((rel: (1, 0), to: <B>), $C$)
 ///   )
-///   ```)
+///   ```
 ///
 ///   Node names are _labels_ (instead of strings like in CeTZ) to disambiguate
 ///   them from other positional string arguments given to `edge()`. If a string
@@ -38,26 +38,26 @@
 ///   If a node is larger than its label, you can wrap the label in `align()` to
 ///   control the label alignment within the node.
 ///
-///   #example(```typc
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	node((0,0), align(bottom + left)[¡Hola!],
 ///   		width: 3cm, height: 2cm, fill: yellow),
 ///   )
-///   ```)
+///   ```
 ///
 /// - inset (length): Padding between the node's content and its outline.
 ///
 ///   In debug mode, the inset is visualised by a thin green outline.
 ///
-///   #example(```
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	debug: 3,
 ///   	node-stroke: 1pt,
 ///   	node((0,0), [Hello,]),
 ///   	edge(),
 ///   	node((1,0), [World!], inset: 10pt),
 ///   )
-///   ```)
+///   ```
 ///
 ///   Defaults to #the-param[diagram][node-inset].
 ///
@@ -69,15 +69,15 @@
 ///
 ///   In debug mode, the outset is visualised by a thin green outline.
 ///
-///   #example(```
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	debug: 3,
 ///   	node-stroke: 1pt,
 ///   	node((0,0), [Hello,]),
 ///   	edge(),
 ///   	node((1,0), [World!], outset: 10pt),
 ///   )
-///   ```)
+///   ```
 ///
 ///   Defaults to #the-param[diagram][node-outset].
 ///
@@ -99,8 +99,8 @@
 ///   the node's position if `enclose` is given, but still affects connecting
 ///   edges.
 ///
-///   #box(example(```
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	node-stroke: 1pt,
 ///   	node((0,0), [ABC], name: <A>),
 ///   	node((1,1), [XYZ], name: <Z>),
@@ -109,7 +109,7 @@
 ///   		enclose: (<A>, <Z>), name: <group>),
 ///   	edge(<group>, (3,0.5), stroke: teal),
 ///   )
-///   ```))
+///   ```
 ///
 /// - shape (rect, circle, function): Shape of the node's outline. If `auto`,
 ///   one of `rect` or `circle` is chosen depending on the aspect ratio of the

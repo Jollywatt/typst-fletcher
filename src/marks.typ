@@ -27,7 +27,9 @@
 /// #diagram(edge("<==>")). The function `mark-debug()` can help visualise a
 /// mark's cap offset.
 ///
-/// #example(`fletcher.mark-debug("O")`)
+/// ```example
+/// #fletcher.mark-debug("O")
+/// ```
 ///
 /// The dashed green line shows the stroke tip end as a function of $y$, and the
 /// dashed red line shows where the stroke ends if the mark is acting as a tail.
@@ -66,13 +68,13 @@
 /// Resolve a mark dictionary by applying inheritance, adding any required
 /// entries, and evaluating any closure entries.
 ///
-/// #example(```
-/// context fletcher.resolve-mark((
+/// ```example
+/// #context fletcher.resolve-mark((
 /// 	a: 1,
 /// 	b: 2,
 /// 	c: mark => mark.a + mark.b,
 /// ))
-/// ```)
+/// ```
 ///
 #let resolve-mark(mark, defaults: (:)) = {
 	if mark == none { return none }
@@ -184,14 +186,14 @@
 
 /// Visualise a mark's anatomy.
 ///
-/// #example(```
-/// context {
+/// ```example
+/// #context {
 /// 	let mark = fletcher.MARKS.get().stealth
 /// 	// make a wide stealth arrow
 /// 	mark += (angle: 45deg)
 /// 	fletcher.mark-debug(mark)
 /// }
-/// ```)
+/// ```
 ///
 /// - Green/left stroke: the edge's stroke when the mark is at the tip.
 /// - Red/right stroke: edge's stroke if the mark is at the start acting as a

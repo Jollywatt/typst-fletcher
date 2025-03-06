@@ -508,10 +508,10 @@
 ///   background (see #param[edge][crossing-fill]), and can be used to adjust
 ///   the label's padding, outline, and so on.
 ///
-///   #example(```
-///   diagram(edge($f$, label-wrapper: e =>
+///   ```example
+///   #diagram(edge($f$, label-wrapper: e =>
 ///   	circle(e.label, fill: e.label-fill)))
-///   ```)
+///   ```
 ///
 ///   Default: #the-param[diagram][label-wrapper]
 ///
@@ -526,8 +526,8 @@
 ///   also be passed as convenience positional arguments), but a decoration
 ///   function may also be specified.
 ///
-///   #example(```
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	$
 ///   		A edge("wave") &
 ///   		B edge("zigzag") &
@@ -539,7 +539,7 @@
 ///   			.with(amplitude: .4)
 ///   	)
 ///   )
-///   ```)
+///   ```
 ///
 /// - marks (array): The marks (arrowheads) to draw along an edge's stroke. This
 ///   may be:
@@ -702,15 +702,15 @@
 ///   If an edge has many vertices, the shifts only affect the first and last
 ///   segments of the edge.
 ///
-///   #example(```
-///   diagram(
+///   ```example
+///   #diagram(
 ///   	node-fill: luma(70%),
 ///   	node((0,0), [Hello]),
 ///   	edge("u,r,d", "->"),
 ///   	edge("u,r,d", "-->", shift: 8pt),
 ///   	node((1,0), [World]),
 ///   )
-///   ```)
+///   ```
 ///
 /// - snap-to (pair): The nodes the start and end of an edge should snap to.
 /// Each node can be a position or node #param[node][name], or `none` to disable
@@ -725,6 +725,24 @@
 ///   Objects on a higher `layer` are drawn on top of objects on a lower
 ///   `layer`. Objects on the same layer are drawn in the order they are passed
 ///   to `diagram()`.
+///
+/// - floating (bool): Whether the edge should be _floating_ so as not to affect
+///   the diagram's bounding box.
+/// 
+///   When `floating: true`, the edge is wrapped in `cetz.draw.floating(..)` which
+///   prevents the objects from affecting the canvas' bounding box.
+/// 
+///   ```example
+///   An inline #diagram($
+/// 		A edge(->, bend: #45deg, floating: #true) & B
+/// 	$) diagram.
+/// 
+/// 	#rect(width: 7cm, align(center, diagram(
+/// 		node((0,1), $A$),
+/// 		edge("->", floating: true, [centered despite label]),
+/// 		node((0,0), $B$),
+/// 	)))
+///   ```
 ///
 /// - post (function): Callback function to intercept `cetz` objects before they
 ///   are drawn to the canvas.
