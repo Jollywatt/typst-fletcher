@@ -34,6 +34,8 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.7
+
 ### 0.5.6
 
 - **Require `typst` version `>=0.13.0`.**
