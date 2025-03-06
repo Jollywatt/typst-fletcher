@@ -762,6 +762,7 @@
 	crossing-fill: auto,
 	snap-to: (auto, auto),
 	layer: 0,
+	floating: false,
 	post: x => x,
 ) = {
 
@@ -794,6 +795,7 @@
 		snap-to: as-pair(snap-to),
 		layer: layer,
 		post: post,
+		floating: as-bool(floating, message: "`floating` must be boolean"),
 	)
 
 	options += interpret-edge-args(args, options)
@@ -935,6 +937,10 @@
 	if edge.label-fill == false { edge.label-fill = none }
 
 	edge.label-wrapper = map-auto(edge.label-wrapper, options.label-wrapper)
+
+	if edge.floating {
+		edge.post = x => cetz.draw.floating((edge.post)(x))
+	}
 
 	edge
 }

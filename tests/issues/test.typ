@@ -40,3 +40,16 @@ https://github.com/Jollywatt/typst-fletcher/issues/81
   edge(<1.south>, "d"),      
   edge(<3.south>,"d")
 )
+
+https://github.com/Jollywatt/typst-fletcher/issues/38
+
+#align(center, diagram(
+  node((0, 0), $1$),
+  edge("->", [this is a very long label], floating: true),
+  node((0, 1), $2$),
+))
+#align(center, diagram(
+  node((0, 0), $1$),
+  edge("->"),
+  node((0, 1), $2$),
+))

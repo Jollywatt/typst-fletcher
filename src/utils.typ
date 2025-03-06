@@ -27,6 +27,11 @@
 // Make a function propagage `none`
 #let pass-none(f) = x => if x == none { x } else { f(x) }
 
+#let as-bool(obj, message: "Expected boolean") = {
+	if type(obj) == bool { obj }
+	else { error(message + "; got #0.", repr(obj)) }
+}
+
 // for when `stroke` is already in namespace
 #let as-stroke(x) = stroke(x)
 
