@@ -41,6 +41,7 @@ Pull requests are most welcome!
 - Support CeTZ anchors on nodes which dynamically enclose other nodes (#81).
 - Allow nested enclosing of nodes (#45).
 - Add `floating` option to `edge()` to make certain objects not affect the diagram's bounds (#38).
+- Make `debug` annotations "floating" so they don't affect diagram size and layout.
 
 ### 0.5.5
 

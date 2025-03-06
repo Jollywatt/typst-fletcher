@@ -5,6 +5,10 @@
 #let DEBUG_COLOR = rgb("f008")
 #let DEBUG_COLOR2 = rgb("0f08")
 
+#let draw-debug(objs) = {
+	cetz.draw.floating(objs)
+}
+
 #let draw-node-outline(node) = {
 	cetz.draw.group({
 		cetz.draw.translate(node.pos.xyz)
@@ -51,37 +55,32 @@
 	// Draw debug stuff
 	if debug >= 1 {
 		// dot at node anchor
-		cetz.draw.circle(
+		draw-debug(cetz.draw.circle(
 			node.pos.xyz,
 			radius: 0.5pt,
 			fill: DEBUG_COLOR,
 			stroke: none,
-		)
+		))
 	}
 
 	if debug >= 2 and node.radius != 0pt {
 		// node bounding rectangle
-		cetz.draw.rect(
-			..rect-at(node.pos.xyz, node.size),
-			stroke: DEBUG_COLOR + .1pt,
-		)
+		draw-debug({
+			cetz.draw.rect(
+				..rect-at(node.pos.xyz, node.size),
+				stroke: DEBUG_COLOR + .1pt,
+			)
 
-		// node anchoring outline (what edges snap to)
-		// cetz.draw.group({
-		// 	cetz.draw.translate(node.pos.xyz)
-		// 	(node.shape)(node, node.outset)
-		// })
-		cetz.draw.set-style(
-			stroke: DEBUG_COLOR2 + 0.25pt,
-			fill: none,
-		)
-		draw-node-outline(node)
+			// node anchoring outline (what edges snap to)
+			cetz.draw.set-style(stroke: DEBUG_COLOR2 + 0.25pt)
+			draw-node-outline(node)
+		})
 	}
 
 	if debug >= 3 and "enclosed-vertices" in node {
-		node.enclosed-vertices.map(pos => {
+		draw-debug(node.enclosed-vertices.map(pos => {
 			cetz.draw.circle(pos, radius: node.inset, stroke: 0.1pt + blue)
-		}).join()
+		}).join())
 	}
 }
 
@@ -144,12 +143,12 @@
 	)
 
 	if debug >= 2 {
-		cetz.draw.circle(
+		draw-debug(cetz.draw.circle(
 			label-pos,
 			radius: 0.75pt,
 			stroke: none,
 			fill: DEBUG_COLOR2,
-		)
+		))
 	}
 }
 
@@ -712,7 +711,7 @@
 ///   - `centers: (x-centers, y-centers)`, the physical offsets of each row and each column,
 ///   - `cell-sizes: (x-sizes, y-sizes)`, the physical sizes of each row and
 ///     each column.
-#let draw-debug-axes(grid, debug: false) = {
+#let draw-debug-axes(grid, debug: false, floating: true) = {
 
 	let (x-lims, y-lims) = range(2).map(axis => (
 		grid.centers.at(axis).at( 0) - grid.cell-sizes.at(axis).at( 0)/2,
@@ -731,7 +730,7 @@
 	if grid.flip.xy { (u-range, v-range) = (v-range, u-range) }
 
 	import cetz.draw
-	draw.group({
+	let objs = draw.group({
 		let (a, b) = array.zip(x-lims, y-lims)
 		if a == b { b = vector.add(b, (1e-3pt, 1e-3pt)) }
 		draw.rect(a, b, stroke: DEBUG_COLOR + .5pt)
@@ -787,6 +786,12 @@
 		}
 
 	})
+
+	if floating {
+		cetz.draw.floating(objs)
+	} else {
+		objs
+	}
 }
 
 // Find candidate nodes that an edge should snap to

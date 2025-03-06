@@ -30,7 +30,7 @@
 		#grid.axes
 
 		#cetz.canvas({
-			fletcher.draw-debug-axes(grid)
+			fletcher.draw-debug-axes(grid, floating: false)
 			pip(fletcher.uv-to-xy(grid, (0,0)), red)
 			pip(fletcher.uv-to-xy(grid, (1,0)), green)
 			pip(fletcher.uv-to-xy(grid, (1,.5)), blue)
@@ -48,4 +48,5 @@
 	axes: axes,
 	node((0,0), $A$),
 	node((1,0), $B$),
+	node(enclose: ((0,0), (1,0)), fill: white),
 )).join(linebreak())
