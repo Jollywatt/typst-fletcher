@@ -94,3 +94,17 @@ Enclosing CeTZ coordinates
 	node(enclose: ((0,0), <2>), fill: teal, inset: 0pt)
 	node(enclose: ((<1>, 50%, <2>), (rel: (0pt, 0pt), to: <2>)), fill: yellow, inset: 0pt)
 })
+
+#pagebreak()
+
+Nested enclose nodes
+
+#diagram(node-inset: 2mm, {
+	node((0,0), circle(fill: red))
+	node((rel: (15mm, 8mm)), circle(fill: blue, radius: 2mm), name: <1>)
+	node(enclose: ((0,0), <1>), stroke: 1pt, name: <inner>, corner-radius: 2mm)
+	node((1,.7), circle(fill: green), name: <2>)
+	node(enclose: (<inner>, <2>), stroke: 1pt, corner-radius: 4mm, name: <outer>)
+	node((-1,0), circle(fill: yellow, radius: 2mm), name: <3>)
+	node(enclose: (<outer>, <3>), stroke: 1pt, corner-radius: 6mm, name: <universe>)
+})

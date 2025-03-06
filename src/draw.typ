@@ -77,6 +77,12 @@
 		)
 		draw-node-outline(node)
 	}
+
+	if debug >= 3 and "enclosed-vertices" in node {
+		node.enclosed-vertices.map(pos => {
+			cetz.draw.circle(pos, radius: node.inset, stroke: 0.1pt + blue)
+		}).join()
+	}
 }
 
 

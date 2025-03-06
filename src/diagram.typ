@@ -531,7 +531,11 @@
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
 		let ctx-with-xyz-anchors
-		for i in range(2) {
+
+		// we run multiple passes so that anchors on enclose nodes
+		// have a chance to resolve
+		// (a better way would be to resolve coordinates and enclose nodes together)
+		for i in range(5) {
 			// now with grid determined, compute final (physical) coordinates for nodes and edges
 			(ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(
 				nodes, ctx: (target-system: "xyz", grid: grid))

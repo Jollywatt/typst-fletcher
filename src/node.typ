@@ -415,6 +415,9 @@
 				// if enclosed point resolves to a node
 				// enclose its bounding box
 				let (x, y) = near-node.pos.xyz
+				if "bounding-center" in near-node {
+					(x, y) = near-node.bounding-center
+				}
 				let (w, h) = near-node.size
 				(
 					(x - w/2, y - h/2),
@@ -428,6 +431,7 @@
 		let (center, size) = bounding-rect(enclosed-vertices)
 
 		node.pos.xyz = center
+		node.bounding-center = center
 		node.size = vector-max(
 			size.map(d => d + node.inset*2),
 			node.size,
