@@ -154,6 +154,13 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
+    <td style="background: white;">
+      <a href="docs/gallery/8-tree.typ">
+        <center>
+          <img src="docs/gallery/8-tree.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
   </tr>
 </table>
 
