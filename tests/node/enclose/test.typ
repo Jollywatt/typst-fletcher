@@ -1,5 +1,5 @@
 #set page(width: auto, height: auto, margin: 1em)
-#import "/src/exports.typ" as fletcher: diagram, node, edge
+#import "/src/exports.typ" as fletcher: diagram, node, edge, shapes
 
 #diagram(
 	node-stroke: 1pt,
@@ -108,3 +108,41 @@ Nested enclose nodes
 	node((-1,0), circle(fill: yellow, radius: 2mm), name: <3>)
 	node(enclose: (<outer>, <3>), stroke: 1pt, corner-radius: 6mm, name: <universe>)
 })
+
+#pagebreak()
+
+// Enclosing nodes with non-rect shapes
+
+#diagram(
+	node-stroke: 1pt,
+	node-shape: shapes.hexagon, // fallback shape
+	{
+		node((0,0), [Hello], name: <en>)
+		node((2,0), [Bonjour], name: <fr>)
+		node((1,1), [Quack], name: <dk>)
+
+		let a = (inset: 5pt, corner-radius: 5pt)
+		node(enclose: (<en>, <fr>), ..a, stroke: teal, name: <group1>,
+		     shape: shapes.pill)
+		node((0,0), enclose: (<en>, <dk>), ..a, stroke: orange, name: <group2>,
+				 shape: shapes.triangle.with(fit: .2))
+		node(enclose: ((1, 1),), stroke: red) // fallback hexagon
+		edge(<group1>, <dk>, stroke: teal, "->")
+		edge(<group2>, <fr>, stroke: orange, "->")
+	},
+)
+
+#pagebreak()
+
+// Enclosing nodes with circles. TODO: This is NOT working and needs to be fixed.
+
+#diagram(
+	node-stroke: 1pt,
+	node-shape: shapes.circle, // fallback shape
+	{
+		node((0,0), [smol string], name: <short>)
+		node((1,0), [a long string that keeps going], name: <long>)
+		// TODO: fix the `shapes.circle` enclose bug and uncomment this.
+		// node(enclose: (<short>, <long>))
+	},
+)

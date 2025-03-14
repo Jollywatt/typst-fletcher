@@ -370,8 +370,11 @@
 		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
 		if node.shape == auto {
+			// Infer the shape from the aspect ratio, but never infer "circle" for an
+			// enclosing node.
 			let is-roundish = calc.max(node.aspect, 1/node.aspect) < 1.5
-			node.shape = if is-roundish { "circle" } else { "rect" }
+			let enclosing = node.enclose.len() > 0
+			node.shape = if is-roundish and not enclosing { "circle" } else { "rect" }
 		}
 
 		// Add node inset
@@ -437,7 +440,11 @@
 			node.size,
 		)
 		node.resolved-enclose = true
-		node.shape = shapes.rect // TODO: support different node shapes with enclose
+		assert.ne(
+			node.shape,
+			shapes.circle,
+			message: "TODO: `shapes.circle` doesn't work. This is a bug.",
+		)
 
 		node
 	})
