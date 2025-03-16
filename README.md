@@ -169,6 +169,8 @@ Pull requests are most welcome!
 
 ### 0.5.7
 
+- Update `cetz` dependency to `0.3.4` fixing bugs with `typst` version `0.13.1` (#89, #90, #91).
+
 ### 0.5.6
 
 - **Require `typst` version `>=0.13.0`.**
