@@ -162,6 +162,15 @@ Pull requests are most welcome!
       </a>
     </td>
   </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/9-category-theory.typ">
+        <center>
+          <img src="docs/gallery/9-category-theory.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
 </table>
 
 
