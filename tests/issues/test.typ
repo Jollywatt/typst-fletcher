@@ -62,3 +62,38 @@ https://github.com/Jollywatt/typst-fletcher/issues/89
 	node-stroke: 1pt,
 	node((0,0), shape: shapes.ellipse, [Test])
 )
+
+https://github.com/Jollywatt/typst-fletcher/issues/93
+
+#box(width: 9cm)[
+	Test anchors on enclose nodes whose position is specified with absolute coordinates.
+]
+
+#diagram(
+
+	node((0, 0), [Origin], name: <o>),
+	node((rel: (2cm, 1cm), to: <o>), $+1$, name: <p>),
+	node((rel: (2cm, 0cm), to: <o>), $0$, name: <z>),
+	node((rel: (2cm, -1cm), to: <o>), $-1$, name: <m>),
+
+	edge(<o>, auto, "->"),
+	node(enclose: (<p>, <m>, <z>), name: <enclose>, stroke: black),
+
+	for anchor in (
+		"north",
+		"north-east",
+		"east",
+		"south-east",
+		"south",
+		"south-west",
+		"west",
+		"north-west",
+		"center",
+	) {
+		let pos = (name: <enclose>, anchor: anchor)
+		node(pos, text(red, {
+			$ dot.circle $
+			place(text(0.4em, raw(anchor)))
+		}))
+	}
+)
