@@ -19,7 +19,7 @@ See the [manual](docs/manual.pdf?raw=true) for documentation or ask the communit
 
 
 ```typ
-#import "@preview/fletcher:0.5.7" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 ```
 
 
@@ -166,6 +166,8 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.5.8
 
 ### 0.5.7
 

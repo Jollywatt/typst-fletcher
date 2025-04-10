@@ -1,4 +1,4 @@
-#import "@preview/fletcher:0.5.7" as fletcher: diagram, node, edge, shapes
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge, shapes
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 
 #let nodes = ("A", "B", "C", "D", "E", "F", "G")

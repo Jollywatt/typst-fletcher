@@ -34,6 +34,8 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.8
+
 ### 0.5.7
 
 - Update `cetz` dependency to `0.3.4` fixing bugs with `typst` version `0.13.1` (#89, #90, #91).
