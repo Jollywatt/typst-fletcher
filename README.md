@@ -100,89 +100,80 @@ Pull requests are most welcome!
 <table>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/1-commutative.typ">
+      <a href="docs/gallery/01-commutative.typ">
         <center>
-          <img src="docs/gallery/1-commutative.svg" width="100%"/>
+          <img src="docs/gallery/01-commutative.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/10-feynman-diagram.typ">
+      <a href="docs/gallery/02-algebra-cube.typ">
         <center>
-          <img src="docs/gallery/10-feynman-diagram.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td style="background: white;">
-      <a href="docs/gallery/2-algebra-cube.typ">
-        <center>
-          <img src="docs/gallery/2-algebra-cube.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-    <td style="background: white;">
-      <a href="docs/gallery/3-ml-architecture.typ">
-        <center>
-          <img src="docs/gallery/3-ml-architecture.svg" width="100%"/>
+          <img src="docs/gallery/02-algebra-cube.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/4-io-flowchart.typ">
+      <a href="docs/gallery/03-ml-architecture.typ">
         <center>
-          <img src="docs/gallery/4-io-flowchart.svg" width="100%"/>
+          <img src="docs/gallery/03-ml-architecture.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/5-digraph.typ">
+      <a href="docs/gallery/04-io-flowchart.typ">
         <center>
-          <img src="docs/gallery/5-digraph.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td style="background: white;">
-      <a href="docs/gallery/6-node-groups.typ">
-        <center>
-          <img src="docs/gallery/6-node-groups.svg" width="100%"/>
-        </center>
-      </a>
-    </td>
-    <td style="background: white;">
-      <a href="docs/gallery/7-uml-diagram.typ">
-        <center>
-          <img src="docs/gallery/7-uml-diagram.svg" width="100%"/>
+          <img src="docs/gallery/04-io-flowchart.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/8-tree.typ">
+      <a href="docs/gallery/05-digraph.typ">
         <center>
-          <img src="docs/gallery/8-tree.svg" width="100%"/>
+          <img src="docs/gallery/05-digraph.svg" width="100%"/>
         </center>
       </a>
     </td>
     <td style="background: white;">
-      <a href="docs/gallery/9-category-theory.typ">
+      <a href="docs/gallery/06-node-groups.typ">
         <center>
-          <img src="docs/gallery/9-category-theory.svg" width="100%"/>
+          <img src="docs/gallery/06-node-groups.svg" width="100%"/>
         </center>
       </a>
     </td>
   </tr>
   <tr>
     <td style="background: white;">
-      <a href="docs/gallery/9-feynman-diagram.typ">
+      <a href="docs/gallery/07-uml-diagram.typ">
         <center>
-          <img src="docs/gallery/9-feynman-diagram.svg" width="100%"/>
+          <img src="docs/gallery/07-uml-diagram.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td style="background: white;">
+      <a href="docs/gallery/08-tree.typ">
+        <center>
+          <img src="docs/gallery/08-tree.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/09-feynman-diagram.typ">
+        <center>
+          <img src="docs/gallery/09-feynman-diagram.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td style="background: white;">
+      <a href="docs/gallery/10-category-theory.typ">
+        <center>
+          <img src="docs/gallery/10-category-theory.svg" width="100%"/>
         </center>
       </a>
     </td>
