@@ -162,6 +162,15 @@ Pull requests are most welcome!
       </a>
     </td>
   </tr>
+  <tr>
+    <td style="background: white;">
+      <a href="docs/gallery/9-feynman-diagram.typ">
+        <center>
+          <img src="docs/gallery/9-feynman-diagram.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
 </table>
 
 
