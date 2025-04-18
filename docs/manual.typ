@@ -562,7 +562,7 @@ The predefined shapes are:
 	}
 )
 
-Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `edge()`.
+Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `node()`.
 
 
 == Node groups
@@ -617,7 +617,7 @@ For example, `<A.north>` and `(name: "A", anchor: "north")` are equivalent coord
 )
 ````)
 
-Node anchors count as _absolute_ coordinates, meaning that nodes positioned with anchors are _floating_ and never affect the diagram's grid (the sizes of the rows and columns used for elastic coordinates).
+Node anchors count as _absolute_ coordinates, meaning that nodes positioned with anchors are _floating_ and never affect row and column sizes.
 
 = Edges
 

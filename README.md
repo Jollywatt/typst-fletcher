@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-0.5.7-green)
+![Version](https://img.shields.io/badge/version-0.5.8-green)
 [![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fdev%2Ftypst.toml&query=package.version&label=dev&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/dev)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
@@ -19,7 +19,7 @@ See the [manual](docs/manual.pdf?raw=true) for documentation or ask the communit
 
 
 ```typ
-#import "@preview/fletcher:0.5.7" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 ```
 
 
@@ -107,14 +107,21 @@ Pull requests are most welcome!
       </a>
     </td>
     <td style="background: white;">
+      <a href="docs/gallery/10-feynman-diagram.typ">
+        <center>
+          <img src="docs/gallery/10-feynman-diagram.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td style="background: white;">
       <a href="docs/gallery/2-algebra-cube.typ">
         <center>
           <img src="docs/gallery/2-algebra-cube.svg" width="100%"/>
         </center>
       </a>
     </td>
-  </tr>
-  <tr>
     <td style="background: white;">
       <a href="docs/gallery/3-ml-architecture.typ">
         <center>
@@ -122,6 +129,8 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
+  </tr>
+  <tr>
     <td style="background: white;">
       <a href="docs/gallery/4-io-flowchart.typ">
         <center>
@@ -129,8 +138,6 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
-  </tr>
-  <tr>
     <td style="background: white;">
       <a href="docs/gallery/5-digraph.typ">
         <center>
@@ -138,6 +145,8 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
+  </tr>
+  <tr>
     <td style="background: white;">
       <a href="docs/gallery/6-node-groups.typ">
         <center>
@@ -145,8 +154,6 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
-  </tr>
-  <tr>
     <td style="background: white;">
       <a href="docs/gallery/7-uml-diagram.typ">
         <center>
@@ -154,10 +161,19 @@ Pull requests are most welcome!
         </center>
       </a>
     </td>
+  </tr>
+  <tr>
     <td style="background: white;">
       <a href="docs/gallery/8-tree.typ">
         <center>
           <img src="docs/gallery/8-tree.svg" width="100%"/>
+        </center>
+      </a>
+    </td>
+    <td style="background: white;">
+      <a href="docs/gallery/9-category-theory.typ">
+        <center>
+          <img src="docs/gallery/9-category-theory.svg" width="100%"/>
         </center>
       </a>
     </td>
@@ -175,6 +191,10 @@ Pull requests are most welcome!
 
 
 ## Change log
+
+### 0.5.8
+
+- Fix bug with anchors of absolutely-positioned enclose nodes (#95).
 
 ### 0.5.7
 

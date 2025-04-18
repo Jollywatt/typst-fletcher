@@ -34,6 +34,10 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.8
+
+- Fix bug with anchors of absolutely-positioned enclose nodes (#95).
+
 ### 0.5.7
 
 - Update `cetz` dependency to `0.3.4` fixing bugs with `typst` version `0.13.1` (#89, #90, #91).

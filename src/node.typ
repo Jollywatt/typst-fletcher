@@ -448,7 +448,6 @@
 
 #let register-node-anchors(ctx, node) = {
 	if node.name == none { return ctx }
-	let node-origin = node.pos.at(ctx.target-system)
 	let calculate-anchors
 
 	if ctx.target-system == "uv" {
@@ -460,14 +459,24 @@
 				("default",)
 			} else {
 				if a == "default" {
-					node-origin
+					node.pos.uv
 				} else {
 					NAN_COORD
 				}
 			}
 		}
 	} else if ctx.target-system == "xyz" {
-		if is-nan-vector(node-origin) { return ctx }
+		// get node center, taking care for enclose nodes
+		let physical-origin = node.at("bounding-center", default: node.pos.xyz)
+		let uv-origin = node.pos.xyz
+		// enclose nodes are a bit confusing because they have two 'centers'...
+		// the physical center of the shape which is drawn is node.bounding-center,
+		// whereas node.pos.xyz is the uv-space midpoint (which can be different to the xyz
+		// midpoint for irregular grids.)
+		// This is a deliberate design decision - often, edges should connect to enclose
+		// nodes and be straight, not angled toward the exact centre.
+
+		if is-nan-vector(physical-origin) { return ctx }
 
 		// do not compute anchors for enclose nodes before they have been resolved
 		if node.enclose.len() > 0 and "resolved-enclose" not in node {
@@ -475,12 +484,12 @@
 		} else {
 			let cetz-obj = (node.shape)(node, node.outset).at(0)
 			calculate-anchors = (k) => {
-				if k == "default" { return node-origin }
+				if k == "default" { return uv-origin }
 				let a = ((cetz-obj)(ctx).anchors)(k)
 				if not is-number-vector(a) { return a }
 				a.at(1) *= -1 // CETZ Y AXIS
 				vector.add(
-					node-origin, // node center
+					physical-origin, // node center
 					vector-2d(vector.scale(a, ctx.length)),
 				)
 			}
