@@ -467,3 +467,151 @@
 	)
 	draw.group(obj) // enables cetz border anchors
 }
+
+
+/// A stretched glyph along one side of a node.
+///
+/// #diagram(node((0,0), [Like this!], shape: fletcher.shapes.brace))
+/// 
+/// This is especially useful when used with #param[node][enclose] nodes.
+/// 
+/// ```example
+/// #import fletcher.shapes: brace, bracket
+/// #diagram(
+/// 	spacing: 1cm,
+/// 	node-stroke: teal,
+/// 	node((0,0), $A$),
+/// 	node((1,0), $B$),
+/// 	node((1,1), $C$),
+/// 	node(enclose: ((0,0), (1,0)), shape: brace.with(
+/// 		dir: top, size: 2em)),
+/// 	node(enclose: ((1,0), (1,1)), shape: bracket.with(
+/// 		dir: right, length: 100% - 1em, sep: 10pt)),
+/// )
+/// ```
+/// 
+/// Note that there is also `shapes.brace`, `shapes.bracket`, and `shapes.paren`. These are just aliases for `stretched-glyph` with the symbol variant automatically matching the #param[stretched-glyph][dir] option.
+/// 
+/// - dir (direction): The side of the node to place the glyph across.
+///   Note that the glyph must be chosen to match the direction.
+/// 
+///   #for (i, dir) in (top, bottom, left, right).enumerate() {
+///   	let s = fletcher.shapes.brace.with(dir: dir)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("dir: " + repr(dir)),
+///  	)
+///   	diagram(node((i, 0), l,
+///  		inset: 0pt,
+///   		shape: s,
+///   		stroke: aqua,
+///   		fill: aqua.lighten(90%),
+///   		))
+///   	h(5mm)
+///   }
+/// 
+/// - sep (length): Extra distance between the glyph and the node's edge.
+/// 
+///   #for (i, sep) in (-5pt, 0pt, 5pt).enumerate() {
+///   	let s = fletcher.shapes.brace.with(sep: sep)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("sep: " + repr(sep)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: aqua,
+///   		fill: aqua.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+/// 
+/// - length (relative): Size of the glyph. A relative length such as `100% + 5pt` means `5pt` more than the size of the node. This is ultimately given to the `stretch()` function.
+///
+///   #for (i, length) in (100%, 100% - 2em, 150%).enumerate() {
+///   	let s = fletcher.shapes.brace.with(length: length)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("length: " + repr(length)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: teal,
+///   		fill: teal.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+///
+/// - glyph (symbol, content): The glyph to use. This works best with glyphs that can be stretched with the #link("https://typst.app/docs/reference/math/stretch/")[`stretch()` function], but any glyph or equation can be used.
+/// 
+/// #for (i, glyphtxt) in ("brace.b", "bracket.b", "paren.b", "arrow.l.r", "sqrt(pi)").enumerate() {
+/// 	let s = fletcher.shapes.stretched-glyph.with(glyph: eval(glyphtxt, mode: "math"))
+/// 	let l = box(
+/// 		inset: 10pt,
+/// 		raw(glyphtxt),
+/// 	)
+/// 	diagram(node((i, 0), l,
+/// 		inset: 0pt,
+/// 		shape: s,
+/// 		stroke: teal,
+/// 		fill: teal.lighten(90%),
+/// 	))
+/// 	h(5mm)
+/// }
+///
+/// - size (length): Font size for the glyph, defining its overall scale without affecting its stretch length.
+/// 
+/// #for (i, size) in (1em, 2em, 5em).enumerate() {
+/// 	let s = fletcher.shapes.brace.with(size: size)
+/// 	let l = box(
+/// 		stroke: (dash: "dashed", thickness: 0.5pt),
+/// 		inset: 10pt,
+/// 		raw("size: " + repr(size)),
+/// 	)
+/// 	diagram(node((i, 0), l,
+/// 		inset: 0pt,
+/// 		shape: s,
+/// 		stroke: teal,
+/// 		fill: teal.lighten(90%),
+/// 	))
+/// 	h(5mm)
+/// }
+///
+#let stretched-glyph(node, extrude, glyph: sym.brace.t, dir: bottom, sep: 0pt, length: 100%, size: 1em) = {
+	assert(type(dir) == alignment, message: "Expected direction, got " + repr(type(dir)))
+
+	let (w, h) = node.size
+
+	let (span, pos, anchor) = (
+		top:    (w, (0, +h/2 + sep), "south"),
+		bottom: (w, (0, -h/2 - sep), "north"),
+		left:   (h, (-w/2 - sep, 0), "east"),
+		right:  (h, (+w/2 + sep, 0), "west"),
+	).at(repr(dir))
+
+	if type(length) == ratio { length = length + 0pt }
+	if type(length) == type(1pt) { length = length + 0% }
+
+
+	length = span*float(length.ratio) + length.length
+
+	let obj = {
+		draw.content(pos, text(size, $ stretch(glyph, size: #length) $), anchor: anchor)
+	}
+	draw.group(obj)
+}
+
+#let (brace, bracket, paren) = (
+	(top: math.brace.t, bottom: math.brace.b, left: math.brace.l, right: math.brace.r),
+	(top: math.bracket.t, bottom: math.bracket.b, left: math.bracket.l, right: math.bracket.r),
+	(top: math.paren.t, bottom: math.paren.b, left: math.paren.l, right: math.paren.r),
+).map(glyphs => {
+	(..args, dir: bottom) => {
+		stretched-glyph(..args, glyph: glyphs.at(repr(dir)), dir: dir)
+	}
+})

@@ -564,6 +564,17 @@ The predefined shapes are:
 
 Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `node()`.
 
+There is also a special "shape" for drawing a `stretched-glyph()` along a node edge:
+
+#grid(
+	columns: (1fr,)*3,
+	align: center,
+	..("brace", "bracket", "paren").map(shape => {
+		diagram(
+			node((0,0), raw(shape), shape: dictionary(fletcher.shapes).at(shape))
+		)
+	})
+)
 
 == Node groups
 

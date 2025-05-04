@@ -131,3 +131,15 @@ Fit factor
 		}
 	}
 )
+
+#pagebreak()
+
+#diagram(
+	node-stroke: blue,
+	axes: (ttb, ltr),
+	for (j, shape) in (shapes.brace, shapes.bracket, shapes.paren).enumerate() {
+		for (i, dir) in (left, top, right, bottom).enumerate() {
+			node((i,j), [#dir], shape: shape.with(dir: dir))
+		}
+	},
+)
