@@ -5,11 +5,14 @@
 }
 
 #(
-	"1-commutative",
-	"2-algebra-cube",
-	"3-ml-architecture",
-	"4-io-flowchart",
-	"5-digraph",
-	"6-node-groups",
-	"7-uml-diagram",
+	"01-commutative",
+	"02-algebra-cube",
+	"03-ml-architecture",
+	"04-io-flowchart",
+	"05-digraph",
+	"06-node-groups",
+	"07-uml-diagram",
+	"08-tree",
+	"09-feynman-diagram",
+	"10-category-theory",
 ).map(render-example).join()
