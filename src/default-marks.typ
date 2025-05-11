@@ -273,6 +273,38 @@
 		cap-offset: (mark, y) => calc.tan(mark.angle + 90deg)*calc.abs(y),
 	),
 
+  bracket: (
+    rev: false,
+    size: 6,
+    depth: 3,
+    draw: mark => draw.line(
+      (-mark.depth, mark.size),
+      (0, mark.size),
+      (0, -mark.size),
+      (-mark.depth, -mark.size),
+      fill: none,
+    ),
+    tail-origin: mark => -mark.depth,
+  ),
+
+  parenthesis: (
+    rev: false,
+    size: 8,
+    angle: 50deg,
+    draw: mark => draw.arc(
+      (0, 0),
+      start: -mark.angle,
+      stop: mark.angle,
+      radius: mark.size,
+      anchor: "origin",
+      fill: none,
+    ),
+    tail-end: mark => mark.size,
+    tip-end: mark => mark.size,
+    tip-origin: mark => mark.size,
+    tail-origin: mark => mark.size * calc.cos(mark.angle),
+  ),
+
 	hook: (
 		size: 2.88,
 		rim: 0.85,
@@ -341,6 +373,11 @@
 	"[]": (inherit: "square"),
 	"<>": (inherit: "diamond"),
 
+  "]": (inherit: "bracket", rev: false),
+  "[": (inherit: "bracket", rev: true),
+
+  ")": (inherit: "parenthesis", rev: false),
+  "(": (inherit: "parenthesis", rev: true),
 
 
 
