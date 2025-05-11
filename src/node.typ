@@ -133,9 +133,8 @@
 ///     extruded outwards by. This serves two functions: to support automatic
 ///     edge anchoring with a non-zero node `outset`, and to create multi-stroke
 ///     effects using the `extrude` node option.
-///   See the
-///   #link("https://github.com/Jollywatt/typst-fletcher/blob/master/src/shapes.typ", 
-///   ```plain src/shapes.typ```) source file for example shape implementations.
+///   See the ```plain src/shapes.typ``` source file for example shape
+///   implementations.
 ///
 ///   Defaults to #the-param[diagram][node-shape].
 ///

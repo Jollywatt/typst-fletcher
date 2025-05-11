@@ -1,5 +1,5 @@
 ![Version](https://img.shields.io/badge/version-0.5.8-green)
-[![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fdev%2Ftypst.toml&query=package.version&label=dev&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/dev)
+[![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fmain%2Ftypst.toml&query=package.version&label=main&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/main)
 [![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
 
 # fletcher
@@ -179,6 +179,7 @@ Pull requests are most welcome!
     </td>
   </tr>
 </table>
+
 
 
 ## Change log
