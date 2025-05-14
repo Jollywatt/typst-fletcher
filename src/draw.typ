@@ -465,7 +465,7 @@
 				Δphase += vector-len(vector.sub(from, to))
 
 				for d in edge.extrude {
-					if delta != 0deg {
+					if calc.abs(delta) > 1deg {
 						cetz.draw.arc(
 							arc-center,
 							radius: arc-radius - d,

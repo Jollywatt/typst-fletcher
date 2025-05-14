@@ -97,3 +97,22 @@ https://github.com/Jollywatt/typst-fletcher/issues/93
 		}))
 	}
 )
+
+https://github.com/Jollywatt/typst-fletcher/issues/100
+
+#table(
+	columns: 3,
+	..range(1, 10).map(x => {
+		diagram(
+			spacing: (2mm, 6mm),
+
+			node-stroke: 1pt,
+
+			node((0, 0), "aa"   , shape: circle, name: <a>),
+			node((1, 1), "d" * x, shape: circle),
+			node((0, 2), "bb"   , shape: circle, name: <b>),
+
+			edge(<b>, "r,r,u,u", <a>),
+		)
+	})
+)
