@@ -233,9 +233,10 @@
 	// Draw marks
 	let total-path-len = vector-len(vector.sub(from, to))
 	let curve(t) = {
-		// panic(t, total-path-len)
-		t = relative-to-float(t, len: total-path-len)
-		vector.lerp(from, to, t)
+		if calc.abs(total-path-len) > 1e-3pt {
+			t = relative-to-float(t, len: total-path-len)
+			vector.lerp(from, to, t)
+		} else { from }
 	}
 
 	for mark in edge.marks {

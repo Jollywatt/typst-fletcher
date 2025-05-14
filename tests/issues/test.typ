@@ -116,3 +116,18 @@ https://github.com/Jollywatt/typst-fletcher/issues/100
 		)
 	})
 )
+
+https://github.com/Jollywatt/typst-fletcher/issues/105
+
+#diagram(
+	node-stroke: 0.2pt,
+	edge-stroke: 1pt,
+	node-corner-radius: 5pt,
+	{
+		node((1, 1), [x], shape: rect, name: <x>)
+		node((<x.south>, "-|", <x.west>), radius: 1pt, fill: blue, stroke: none, name: <y>)
+		for x in range(30) {
+			edge((<x.south>, "-|", <x.west>), (rel: (0pt,  x*1pt)), [xedge])  // caused division by zero
+		}
+	}
+)
