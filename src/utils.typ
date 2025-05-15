@@ -129,6 +129,19 @@
 // Ensure angle is in range -180deg <= θ <= 180deg
 #let wrap-angle-180(θ) = (θ/360deg - calc.round(θ/360deg))*360deg
 
+#let dir-to-anchor(dir) = {
+	(
+		repr(top): "north",
+		repr(top + right): "north-east",
+		repr(right): "east",
+		repr(bottom + right): "south-east",
+		repr(bottom): "south",
+		repr(bottom + left): "south-west",
+		repr(left): "west",
+		repr(top + left): "north-west",
+	).at(repr(dir))
+}
+
 #let angle-to-anchor(θ) = {
 	let i = calc.rem(8*θ/1rad/calc.tau, 8)
 	(

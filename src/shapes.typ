@@ -1,5 +1,6 @@
 #import "deps.typ": cetz
 #import cetz: draw, vector
+#import "utils.typ": dir-to-anchor
 
 /// The standard rectangle node shape.
 ///
@@ -582,26 +583,32 @@
 /// 	h(5mm)
 /// }
 ///
-#let stretched-glyph(node, extrude, glyph: sym.brace.t, dir: bottom, sep: 0pt, length: 100%, size: 1em) = {
+#let stretched-glyph(node, extrude, glyph: sym.brace.t, dir: bottom, sep: 0pt, length: 100%, size: 1em, label: none, label-sep: 0.25em) = {
 	assert(type(dir) == alignment, message: "Expected direction, got " + repr(type(dir)))
 
 	let (w, h) = node.size
 
-	let (span, pos, anchor) = (
-		top:    (w, (0, +h/2 + sep), "south"),
-		bottom: (w, (0, -h/2 - sep), "north"),
-		left:   (h, (-w/2 - sep, 0), "east"),
-		right:  (h, (+w/2 + sep, 0), "west"),
+	let (span, pos) = (
+		top:    (w, (0, +h/2 + sep)),
+		bottom: (w, (0, -h/2 - sep)),
+		left:   (h, (-w/2 - sep, 0)),
+		right:  (h, (+w/2 + sep, 0)),
 	).at(repr(dir))
 
 	if type(length) == ratio { length = length + 0pt }
 	if type(length) == type(1pt) { length = length + 0% }
 
-
 	length = span*float(length.ratio) + length.length
 
 	let obj = {
-		draw.content(pos, text(size, $ stretch(glyph, size: #length) $), anchor: anchor)
+		let stretched = text(size, $ stretch(glyph, size: #length) $)
+		draw.content(pos, stretched, anchor: dir-to-anchor(dir.inv()), name: "content")
+
+		if label != none {
+			let label-pos = (name: "content", anchor: dir-to-anchor(dir))
+			let padded = pad(label-sep, label)
+			draw.content(label-pos, padded, anchor: dir-to-anchor(dir.inv()))
+		}
 	}
 	draw.group(obj)
 }

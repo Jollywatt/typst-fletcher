@@ -118,8 +118,8 @@ Nested enclose nodes
 	node((0,0), $A$, name: <A>),
 	node((2,0), $B$, name: <B>),
 	node((2,1), $C$, name: <C>),
-	node(enclose: (<A>, <B>), shape: shapes.brace),
-	node(enclose: (<C>, <B>), shape: shapes.bracket.with(dir: right, sep: 1em)),
+	node(enclose: (<A>, <B>), shape: shapes.brace.with(label: $oo$)),
+	node(enclose: (<C>, <B>), shape: shapes.bracket.with(dir: right, sep: 1em, label: [label])),
 	node(enclose: (<A>, <C>, <B>), shape: shapes.stretched-glyph.with(glyph: $integral$, dir: left)),
-	node(enclose: <C>, shape: shapes.paren.with(dir: left))
+	node(enclose: <C>, shape: shapes.paren.with(dir: left, label: [X], label-sep: 0mm))
 )
