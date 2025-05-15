@@ -22,7 +22,6 @@
 	edge("u", "->", bend: -30deg),
 
 )
-
 #pagebreak()
 
 Diagram `node-shape` option
@@ -49,8 +48,8 @@ Diagram `node-shape` option
 #set align(center)
 
 
-#for (name, shape) in dictionary(shapes) {
-	if type(shape) == module { continue }
+#for (name, shape) in shapes.ALL_SHAPES {
+	if type(shape) != function { continue }
 	diagram(debug: 0, node((0, 0), name, shape: shape, stroke: 1pt, extrude: (0, 2)))
 	linebreak()
 }
@@ -135,7 +134,6 @@ Fit factor
 #pagebreak()
 
 #diagram(
-	node-stroke: blue,
 	axes: (ttb, ltr),
 	for (j, shape) in (shapes.brace, shapes.bracket, shapes.paren).enumerate() {
 		for (i, dir) in (left, top, right, bottom).enumerate() {

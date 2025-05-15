@@ -31,27 +31,8 @@
 
 #pagebreak()
 
-#let shapes = (
-  "rect",
-  "circle",
-  "ellipse",
-  "pill",
-  "parallelogram",
-  "trapezium",
-  "diamond",
-  "triangle",
-  "house",
-  "chevron",
-  "hexagon",
-  "octagon",
-  "brace",
-  "bracket",
-  "paren",
-)
-
 #let a = 0deg
-#for name in shapes {
-	let shape = dictionary(fletcher.shapes).at(name)
+#for (name, shape) in fletcher.shapes.ALL_SHAPES {
 	show raw: set text(0.6em)
 	diagram(
 		node((0,0), name, shape: shape, fill: color.hsv(a, 50%, 100%), name: <A>),

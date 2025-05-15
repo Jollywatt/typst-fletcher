@@ -118,7 +118,7 @@
 ///   Other shapes are defined in the `fletcher.shapes`
 ///   submodule, including
 ///   #{
-///   	dictionary(fletcher.shapes).pairs()
+///   	fletcher.shapes.ALL_SHAPES.pairs()
 ///   	.filter(((k, v)) => type(v) != module)
 ///   	.map(((k, v)) => [#raw(k)])
 ///   	.join(last: [, and ])[, ]

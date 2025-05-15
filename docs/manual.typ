@@ -552,7 +552,7 @@ The predefined shapes are:
 			aqua,
 			maroon,
 		)
-		dictionary(fletcher.shapes).pairs()
+		fletcher.shapes.ALL_SHAPES.pairs()
 			.filter(((key, value)) => type(value) != module)
 			.zip(colors)
 			.map((((name, shape), color)) => {
@@ -563,17 +563,20 @@ The predefined shapes are:
 )
 
 Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `node()`.
-
-There is also a special "shape" for drawing a `stretched-glyph()` along a node edge:
+There are also node "shapes" for placing a `stretched-glyph()` along the edge of a nodes, especially useful with #param[node][enclose].
 
 #grid(
-	columns: (1fr,)*3,
+	columns: (1fr,)*4,
 	align: center,
-	..("brace", "bracket", "paren").map(shape => {
+	..("brace", "bracket", "paren").map(name => {
+		let shape = fletcher.shapes.ALL_SHAPES.at(name)
 		diagram(
-			node((0,0), raw(shape), shape: dictionary(fletcher.shapes).at(shape))
+			node((0,0), raw(name), shape: shape)
 		)
-	})
+	}),
+	diagram(
+		node((0,0), raw("stretched-glyph"), shape: fletcher.shapes.stretched-glyph.with(glyph: $<->$))
+	)
 )
 
 == Node groups

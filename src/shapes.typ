@@ -471,6 +471,7 @@
 
 
 /// A stretched glyph along one side of a node.
+/// See also `shapes.brace`, `shapes.bracket`, and `shapes.paren`, which are implemented using this shape.
 ///
 /// #diagram(node((0,0), [Like this!], shape: fletcher.shapes.brace))
 /// 
@@ -481,17 +482,16 @@
 /// #diagram(
 /// 	spacing: 1cm,
 /// 	node-stroke: teal,
-/// 	node((0,0), $A$),
-/// 	node((1,0), $B$),
-/// 	node((1,1), $C$),
-/// 	node(enclose: ((0,0), (1,0)), shape: brace.with(
+/// 	node((0,0), $A$, name: <A>),
+/// 	node((1,0), $B$, name: <B>),
+/// 	node((1,1), $C$, name: <C>),
+/// 	node(enclose: (<A>, <B>), shape: bracket.with(
 /// 		dir: top, size: 2em)),
-/// 	node(enclose: ((1,0), (1,1)), shape: bracket.with(
-/// 		dir: right, length: 100% - 1em, sep: 10pt)),
+/// 	node(enclose: (<B>, <C>), shape: brace.with(
+/// 		dir: right, length: 100% - 1em,
+/// 		sep: 10pt, label: $B C$)),
 /// )
 /// ```
-/// 
-/// Note that there is also `shapes.brace`, `shapes.bracket`, and `shapes.paren`. These are just aliases for `stretched-glyph` with the symbol variant automatically matching the #param[stretched-glyph][dir] option.
 /// 
 /// - dir (direction): The side of the node to place the glyph across.
 ///   Note that the glyph must be chosen to match the direction.
@@ -550,40 +550,67 @@
 ///
 /// - glyph (symbol, content): The glyph to use. This works best with glyphs that can be stretched with the #link("https://typst.app/docs/reference/math/stretch/")[`stretch()` function], but any glyph or equation can be used.
 /// 
-/// #for (i, glyphtxt) in ("brace.b", "bracket.b", "paren.b", "arrow.l.r", "sqrt(pi)").enumerate() {
-/// 	let s = fletcher.shapes.stretched-glyph.with(glyph: eval(glyphtxt, mode: "math"))
-/// 	let l = box(
-/// 		inset: 10pt,
-/// 		raw(glyphtxt),
-/// 	)
-/// 	diagram(node((i, 0), l,
-/// 		inset: 0pt,
-/// 		shape: s,
-/// 		stroke: teal,
-/// 		fill: teal.lighten(90%),
-/// 	))
-/// 	h(5mm)
-/// }
+///   #for (i, glyphtxt) in ("brace.b", "bracket.b", "paren.b", "arrow.l.r", "sqrt(pi)").enumerate() {
+///   	let s = fletcher.shapes.stretched-glyph.with(glyph: eval(glyphtxt, mode: "math"))
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw(glyphtxt),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: teal,
+///   		fill: teal.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
 ///
 /// - size (length): Font size for the glyph, defining its overall scale without affecting its stretch length.
 /// 
-/// #for (i, size) in (1em, 2em, 5em).enumerate() {
-/// 	let s = fletcher.shapes.brace.with(size: size)
-/// 	let l = box(
-/// 		stroke: (dash: "dashed", thickness: 0.5pt),
-/// 		inset: 10pt,
-/// 		raw("size: " + repr(size)),
-/// 	)
-/// 	diagram(node((i, 0), l,
-/// 		inset: 0pt,
-/// 		shape: s,
-/// 		stroke: teal,
-/// 		fill: teal.lighten(90%),
-/// 	))
-/// 	h(5mm)
-/// }
+///   #for (i, size) in (1em, 2em, 5em).enumerate() {
+///   	let s = fletcher.shapes.brace.with(size: size)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("size: " + repr(size)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: teal,
+///   		fill: teal.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+/// 
+/// - label (content): Content to be placed at the top/bottom/left/right of the glyph, depending on #param[stretched-glyph][dir].
+/// 
+///   #for (i, dir) in (top, bottom, left, right).enumerate() {
+///   	let s = fletcher.shapes.brace.with(dir: dir, label: emph[label])
+///   	diagram(node((i, 0), strong[NODE],
+///   		inset: 4pt,
+///   		shape: s,
+///   		stroke: aqua,
+///   		fill: aqua.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
 ///
-#let stretched-glyph(node, extrude, glyph: sym.brace.t, dir: bottom, sep: 0pt, length: 100%, size: 1em, label: none, label-sep: 0.25em) = {
+/// - label-sep (length): Separation between label and glyph.
+/// 
+///   #for (i, sep) in (-5pt, 0pt, 5pt, 10pt).enumerate() {
+///   	let s = fletcher.shapes.brace.with(dir: top, label: [#sep], label-sep: sep)
+///   	diagram(node((i, 0), strong[NODE],
+///   		inset: 4pt,
+///   		shape: s,
+///   		stroke: aqua,
+///   		fill: aqua.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+///
+#let stretched-glyph(node, extrude, glyph: sym.brace.b, dir: bottom, sep: 0pt, length: 100%, size: 1em, label: none, label-sep: 0.25em) = {
 	assert(type(dir) == alignment, message: "Expected direction, got " + repr(type(dir)))
 
 	let (w, h) = node.size
@@ -606,7 +633,7 @@
 
 		if label != none {
 			let label-pos = (name: "content", anchor: dir-to-anchor(dir))
-			let padded = pad(label-sep, label)
+			let padded = pad(..(repr(dir.inv()): label-sep), label)
 			draw.content(label-pos, padded, anchor: dir-to-anchor(dir.inv()))
 		}
 	}
@@ -622,3 +649,21 @@
 		stretched-glyph(..args, glyph: glyphs.at(repr(dir)), dir: dir)
 	}
 })
+
+#let ALL_SHAPES = (
+	rect: rect,
+	circle: circle,
+	ellipse: ellipse,
+	pill: pill,
+	parallelogram: parallelogram,
+	trapezium: trapezium,
+	diamond: diamond,
+	triangle: triangle,
+	house: house,
+	chevron: chevron,
+	hexagon: hexagon,
+	octagon: octagon,
+	brace: brace,
+	bracket: bracket,
+	paren: paren,
+)
