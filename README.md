@@ -186,8 +186,9 @@ Pull requests are most welcome!
 
 ### 0.5.8
 
-- Fix bug with anchors of absolutely-positioned enclose nodes (#95).
 - Added bracket and parenthesis mark types, with shorthands `"["`, `"]"`, `"("`, `")"`, `"bracket"`, `"parenthesis"` (#102).
+- Added `brace`, `bracket`, `paren` and `stretched-glyph` node shapes (#99).
+- Fix bug with anchors of absolutely-positioned enclose nodes (#95).
 - Fix some instabilities with edges related to division by zero (#100, #105).
 
 ### 0.5.7
