@@ -309,9 +309,10 @@
 
 	node.shape = map-auto(node.shape, options.node-shape)
 
-	if node.shape == auto {
-		if node.radius != auto { node.shape = "circle" }
-		if node.size != (auto, auto) { node.shape = "rect" }
+	node.auto-shape = node.shape == auto
+	if node.shape == auto and node.enclose == () {
+		if node.radius != auto { node.shape = shapes.circle }
+		if node.size != (auto, auto) { node.shape = shapes.rect }
 	}
 
 	let thickness = if node.stroke == none { 1pt } else {
@@ -368,9 +369,14 @@
 
 		node.aspect = if width == 0pt or height == 0pt { 1 } else { width/height }
 
+		// automatically choose a node shape
 		if node.shape == auto {
-			let is-roundish = calc.max(node.aspect, 1/node.aspect) < 1.5
-			node.shape = if is-roundish { "circle" } else { "rect" }
+			if node.enclose.len() > 0 {
+				node.shape = rect
+			} else {
+				let is-roundish = calc.max(node.aspect, 1/node.aspect) < 1.5
+				node.shape = if is-roundish { "circle" } else { "rect" }
+			}
 		}
 
 		// Add node inset
@@ -436,7 +442,7 @@
 			node.size,
 		)
 		node.resolved-enclose = true
-		node.shape = shapes.rect // TODO: support different node shapes with enclose
+		assert(node.shape != auto)
 
 		node
 	})

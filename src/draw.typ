@@ -19,7 +19,7 @@
 #let draw-node(node, debug: 0) = {
 
 	let result = {
-		if node.stroke != none or node.fill != none {
+		if node.stroke != none or node.fill != none or not node.auto-shape {
 			cetz.draw.group({
 				cetz.draw.translate(node.pos.xyz)
 				for (i, extrude) in node.extrude.enumerate() {

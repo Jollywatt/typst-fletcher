@@ -108,3 +108,18 @@ Nested enclose nodes
 	node((-1,0), circle(fill: yellow, radius: 2mm), name: <3>)
 	node(enclose: (<outer>, <3>), stroke: 1pt, corner-radius: 6mm, name: <universe>)
 })
+
+#pagebreak()
+
+#import fletcher.shapes
+#diagram(
+	node-inset: 4pt,
+	node-fill: teal,
+	node((0,0), $A$, name: <A>),
+	node((2,0), $B$, name: <B>),
+	node((2,1), $C$, name: <C>),
+	node(enclose: (<A>, <B>), shape: shapes.brace),
+	node(enclose: (<C>, <B>), shape: shapes.bracket.with(dir: right, sep: 1em)),
+	node(enclose: (<A>, <C>, <B>), shape: shapes.stretched-glyph.with(glyph: $integral$, dir: left)),
+	node(enclose: <C>, shape: shapes.paren.with(dir: left))
+)
