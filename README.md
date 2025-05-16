@@ -1,6 +1,7 @@
 ![Version](https://img.shields.io/badge/version-0.5.8-green)
-[![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fmain%2Ftypst.toml&query=package.version&label=main&color=blue)](https://github.com/Jollywatt/typst-fletcher/tree/main)
-[![Repo](https://img.shields.io/badge/GitHub-repo-blue)](https://github.com/Jollywatt/typst-fletcher)
+[![Typst Universe](https://img.shields.io/badge/Typst-Universe-239dad)](https://typst.app/universe/package/fletcher/)
+[![Repo](https://img.shields.io/badge/GitHub-repo-444)](https://github.com/Jollywatt/typst-fletcher)
+[![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fmain%2Ftypst.toml&query=package.version&label=main&color=444)](https://github.com/Jollywatt/typst-fletcher/tree/main)
 
 # fletcher
 
