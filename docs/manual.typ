@@ -324,12 +324,12 @@ Avoid importing everything with `*` as many internal functions are also exported
 #let code-example-row(src) = stack(
 	dir: ltr,
 	spacing: 1fr,
-	..code-example(src)
+	..code-example(src).map(align.with(horizon))
 )
 
 #table(
 	columns: (2fr, 1fr),
-	align: (top, center),
+	align: (horizon, center + horizon),
 	stroke: none,
 	inset: (x: 0pt, y: 7pt),
 
@@ -380,17 +380,19 @@ Avoid importing everything with `*` as many internal functions are also exported
 
 
 	..code-example(```typ
-	#import fletcher.shapes: diamond
+	#import fletcher.shapes: diamond, brace
 	#diagram(
+		debug: 3,
 		node-stroke: black + 0.5pt,
 		node-fill: gradient.radial(white, blue, center: (40%, 20%),
 		                           radius: 150%),
 		spacing: (10mm, 5mm),
 		node((0,0), [1], name: <1>, extrude: (0, -4)), // double stroke
+		edge("=>"),
 		node((1,0), [2], name: <2>, shape: diamond),
 		node((2,-1), [3a], name: <3a>),
 		node((2,+1), [3b], name: <3b>),
-		edge(<1>, "->", <2>)[go],
+		node(enclose: (<1>, <2>), shape: brace.with(dir: top, label: [12])),
 		edge(<2.east>, "->", <3a>, bend: -15deg),
 		edge(<2.east>, "->", <3b>, bend: +15deg),
 		edge(<3b>, "~>", <3b>, bend: -130deg, loop-angle: 120deg)[loop!],
