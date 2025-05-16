@@ -123,3 +123,15 @@ Nested enclose nodes
 	node(enclose: (<A>, <C>, <B>), shape: shapes.stretched-glyph.with(glyph: $integral$, dir: left)),
 	node(enclose: <C>, shape: shapes.paren.with(dir: left, label: [X], label-sep: 0mm))
 )
+
+#pagebreak()
+#import fletcher.shapes
+
+#diagram(
+		// debug: 10,
+		node-fill: blue.transparentize(80%),
+		node((0,0), [1], name: <1>),
+		edge("=>"),
+		node((1,0.0), [2], name: <2>, shape: shapes.diamond),
+		node(enclose: (<1>, <2>), shape: shapes.brace.with(dir: top, label: $f$), stroke: teal),
+)

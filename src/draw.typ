@@ -622,7 +622,7 @@
 	let dummy-line = cetz.draw.line(from, to)
 
 	let intersection-objects = nodes.map(nodes => {
-		nodes.map(draw-node-outline).join()
+		cetz.draw.group(nodes.map(draw-node-outline).join())
 		dummy-line
 	})
 
@@ -649,7 +649,7 @@
 		))
 
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		nodes.map(draw-node-outline).join()
+		cetz.draw.group(nodes.map(draw-node-outline).join())
 		dummy-line
 	})
 
@@ -673,7 +673,7 @@
 	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
 
 	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		nodes.map(draw-node-outline).join()
+		cetz.draw.group(nodes.map(draw-node-outline).join())
 		dummy-line
 	})
 
@@ -837,8 +837,8 @@
 		first-last(edge.final-vertices),
 	).map(((given, vertex, xy)) => {
 		if given == none { return () } // user explicitly disabled snapping
-		let key = map-auto(given, if type(vertex) == label { vertex } else { xy })
-		select-nodes(key)
+		let key = if type(vertex) == label { vertex } else { xy }
+		select-nodes(map-auto(given, key))
 	})
 }
 
