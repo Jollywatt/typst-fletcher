@@ -566,23 +566,20 @@
 ///   	h(5mm)
 ///   }
 ///
-/// - size (length): Font size for the glyph, defining its overall scale without affecting its stretch length.
+/// - ..args (any): Arguments given to the `text()` element containing the glyph.
+///   Useful for changing color or the font size (defining overall scale without affecting its stretch length).
 /// 
-///   #for (i, size) in (1em, 2em, 5em).enumerate() {
-///   	let s = fletcher.shapes.brace.with(size: size)
-///   	let l = box(
+///   #diagram({
+///   	let l(key, value) = box(
 ///   		stroke: (dash: "dashed", thickness: 0.5pt),
 ///   		inset: 10pt,
-///   		raw("size: " + repr(size)),
+///   		raw(key + ": " + value)
 ///   	)
-///   	diagram(node((i, 0), l,
-///   		inset: 0pt,
-///   		shape: s,
-///   		stroke: teal,
-///   		fill: teal.lighten(90%),
-///   	))
-///   	h(5mm)
-///   }
+///   	let n(i, key, value) = node((i, 0), l(key, value),
+///   		shape: fletcher.shapes.brace.with(..((key): eval(value))))
+///   	n(1, "size", "3em")
+///   	n(2, "fill", "red")
+///   })
 /// 
 /// - label (content): Content to be placed at the top/bottom/left/right of the glyph, depending on #param[stretched-glyph][dir].
 /// 
@@ -610,7 +607,7 @@
 ///   	h(5mm)
 ///   }
 ///
-#let stretched-glyph(node, extrude, glyph: sym.brace.b, dir: bottom, sep: 0pt, length: 100%, size: 1em, label: none, label-sep: 0.25em) = {
+#let stretched-glyph(node, extrude, glyph: sym.brace.b, dir: bottom, sep: 0pt, length: 100%, label: none, label-sep: 0.25em, ..args) = {
 	assert(type(dir) == alignment, message: "Expected direction, got " + repr(type(dir)))
 
 	let (w, h) = node.size
@@ -628,7 +625,7 @@
 	length = span*float(length.ratio) + length.length
 
 	let obj = {
-		let stretched = text(size, $ stretch(glyph, size: #length) $)
+		let stretched = text($ stretch(glyph, size: #length) $, ..args)
 		draw.content(pos, stretched, anchor: dir-to-anchor(dir.inv()), name: "content")
 
 		if label != none {
