@@ -1,7 +1,7 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge
 
-#for pos in (0.2, 20%, 20pt, 2em, 100% - 10pt) [
+#for pos in (0.2, 20%, 20pt, 2em, 100% - 10pt, (0, 50%), (1, 50%), (2, 50%)) [
 	#raw("label-pos: " + repr(pos))
 
 	#for w in (20mm, 40mm) {

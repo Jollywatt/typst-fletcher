@@ -322,8 +322,6 @@
 
 
 
-
-
 /// Draw a connecting edge in a diagram.
 ///
 ///
@@ -429,13 +427,13 @@
 ///    - roughly above the connector, in the case of straight lines; or
 ///    - on the outside of the curve, in the case of arcs.
 ///
-/// - label-pos (float, ratio, relative length): Position of the label along the
+/// - label-pos (float, ratio, relative length, array): Position of the label along the
 ///   edge, from the start to end.
 ///
 ///   A number or ratio between zero and one is interpreted as a fraction of the
 ///   edge length. Physical and relative relative lengths work too. For example,
 ///   `100% - 1em` means `1em` from the end.
-///
+/// 
 ///   #stack(
 ///   	dir: ltr,
 ///   	spacing: 1fr,
@@ -448,6 +446,12 @@
 ///   For `"poly"` edges (see @edge-types), a number does not specify a fraction
 ///   of the path length; instead, the $k$th vertex is at position $k/n$ where
 ///   $n$ is the number of vertices. Each midpoint is then at $k/n + 0.5$.
+/// 
+///   As an alternative, the position can be specified by an array
+///   `(segment, position)`, where `segment` is an integer that indicates which
+///   segment the label is placed on (segment $s$ is the one between vertices
+///   $s$ and $s+1$). `position` is then relative to the specified segment; the
+///   segment midpoint is at `(s, 50%)`.
 ///
 /// - label-sep (length): Separation between the connector and the label anchor.
 ///
@@ -787,7 +791,7 @@
 	let options = (
 		vertices: vertices,
 		label: label,
-		label-pos: as-relative(label-pos),
+		label-pos: label-pos,
 		label-sep: label-sep,
 		label-angle: label-angle,
 		label-anchor: label-anchor,
@@ -835,8 +839,6 @@
 	}
 	options.vertices = options.vertices.map(interpret-coord-str)
 
-
-
 	if options.label-side not in (left, center, right, auto) {
 		error("`label-side` must be one of `left`, `center`, `right`, or `auto`; got #0.", options.label-side)
 	}
@@ -867,10 +869,59 @@
 
 
 
+// Convert to `(segment, pos)`, where `segment` is an `int` and `pos` is a
+// `relative`. `pos` is relative to segment `segment`.
+// 
+// Possible inputs:
+//   * `(segment, pos)`, where `segment` is an int and `pos` is accepted by
+//     `as-relative`. `pos` will be interpreted as relative to segment
+//     `segment`.
+//   * `pos`, where `pos` is accepted by `as-relative`. `pos` will be
+//     interpreted as relative to the whole edge.
+#let normalize-position(position, n-segments) = {
+	if type(position) == array and type(position.at(0)) == int {
+		// Segment specified
+		(
+			segment: position.at(0),
+			position: as-relative(position.at(1)),
+		)
+
+	} else {
+		// No segment specified
+		position = as-relative(position)
+		position = position.ratio * n-segments + position.length
+
+		// Which segment does the position refer to?
+		// Use ceil-1 instead of floor to put positions that fall on the boundary
+		// between two segment on the end of the first, not the beginning of the
+		// second. There's no particular reason to do it like this, other than
+		// compatibility.
+		let segment = calc.ceil(float(position.ratio)) - 1
+		if segment < 0 { segment = 0 }
+		if segment > n-segments - 1 { segment = n-segments - 1 }
+
+		// Make the position relative to the selected segment. This applies only to
+		// the `ratio` part of the `relative` position, not to the `length` part.
+		let position = (position.ratio - 100% * segment) + position.length
+
+		(segment: segment, position: position)
+	}
+}
+
+
+
 #let resolve-edge-options(edge, options) = {
 	// let to-pt(len) = to-abs-length(len, options.em-size)
 
 	edge += interpret-marks-arg(edge.marks)
+
+	// Determine the number of segments
+	let n-segments = edge.vertices.len() - 1
+	if edge.corner != none { n-segments += 1 }
+
+	// Now that we know the number of segments, we can normalize the label
+	// positions
+	edge.label-pos = normalize-position(edge.label-pos, n-segments)
 
 	if edge.stroke == none {
 		// hack: for no stroke, it's easier to do the following.
