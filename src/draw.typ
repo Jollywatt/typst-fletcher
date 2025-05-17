@@ -102,8 +102,8 @@
 ///   the edge in $x y$ coordinates.
 #let place-edge-label-on-curve(edge, curve, debug: 0) = {
 
-	let curve-point = curve(edge.label-pos)
-	let curve-point-ε = curve(edge.label-pos + 1e-3%)
+	let curve-point = curve(edge.label-pos.position)
+	let curve-point-ε = curve(edge.label-pos.position + 1e-3%)
 
 	let θ = wrap-angle-180(angle-between(curve-point, curve-point-ε))
 	let θ-normal = θ + if edge.label-side == right { +90deg } else { -90deg }
@@ -244,7 +244,11 @@
 	}
 
 	// Draw label
-	if edge.label != none {
+	// This edge only has a single segment, so don't draw the label unless it's 
+	// placed on segment 0. This means that when calling this function for the
+	// individual segments of an edge (`draw-edge-polyline`), the `segment` field
+	// of `label-pos` must be set to 0.
+	if edge.label != none and edge.label-pos.segment == 0 {
 
 		// Choose label anchor based on edge direction,
 		// preferring to place labels above the edge
@@ -308,7 +312,7 @@
 	}
 
 	// Draw label
-	if edge.label != none {
+	if edge.label != none and edge.label-pos.segment == 0 {
 
 		if edge.label-side == auto {
 			// Choose label side to be on outside of arc
@@ -499,9 +503,15 @@
 			mark
 		}).filter(mark => mark.pos != none)
 
-		let label-pos = lerp-scale(edge.label-pos, i)
-		let label-options = if label-pos == none { (label: none) }
-		else { (label-pos: label-pos, label: edge.label) }
+		// If the current segment is the one where the label is placed, keep the
+		// label (but change its segment to 0 because `draw-edge-line` will consider
+		// this segment a single-segment edge and only draw labels on segment 0).
+		// Otherwise, draw no label.
+		let label-options = if i == edge.label-pos.segment {
+			(label-pos: edge.label-pos + (segment: 0), label: edge.label)
+		} else {
+			(label: none)
+		}
 
 
 		draw-edge-line(
