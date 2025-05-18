@@ -141,3 +141,13 @@ Fit factor
 		}
 	},
 )
+
+#pagebreak()
+
+#diagram(
+	node-stroke: green,
+	node-fill: green.lighten(90%),
+	node((0,0), [Local], shape: shapes.cylinder, name: <cylinder-local>),
+	node((2,0), [Remote], shape: shapes.database, name: <db-remote>),
+	edge(<cylinder-local>, <db-remote>, ">->", [Backup])
+)
