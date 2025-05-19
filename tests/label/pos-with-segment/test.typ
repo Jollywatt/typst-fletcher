@@ -25,7 +25,9 @@
       (2, 100%-6pt),
       (2, 100%+6pt),
 
-      (3, 50%),
+      // Panic
+      // (-1, 50%),  // Segment must be non-negative
+      // (3, 50%),  // Segment out of range
     ) {
       edge((0, 0), "d,drr,ddd", "-}>",
         [#i],
