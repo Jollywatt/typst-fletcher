@@ -144,10 +144,14 @@ Fit factor
 
 #pagebreak()
 
-#diagram(
-	node-stroke: green,
-	node-fill: green.lighten(90%),
-	node((0,0), [Local], shape: shapes.cylinder, name: <cylinder-local>),
-	node((2,0), [Remote], shape: shapes.database, name: <db-remote>),
-	edge(<cylinder-local>, <db-remote>, ">->", [Backup])
-)
+#for tilt in (-5deg, 0deg, 5deg, 10deg, 20deg) {
+	diagram(
+		node-stroke: green,
+		node-fill: green.lighten(90%),
+		node-outset: 5pt,
+		node((0,0), [Local], shape: shapes.cylinder.with(tilt: tilt), name: <cylinder-local>),
+		node((2,0), [Remote], shape: shapes.database.with(tilt: tilt), name: <db-remote>),
+		edge(<cylinder-local>, <db-remote>, ">->", [Backup], center)
+	)
+	linebreak()
+}

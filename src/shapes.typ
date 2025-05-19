@@ -647,63 +647,38 @@
 	}
 })
 
-
-/// A pseudo-3D cylindrical shape.
-///
-/// #diagram(
-/// 	node-stroke: green,
-/// 	node-fill: green.lighten(90%),
-/// 	node((0,0), [cylinder], shape: fletcher.shapes.cylinder),
-/// )
-///
-#let cylinder(node, extrude) = {
-  let (w, h) = node.size
-  let x = 0.5 * w
-  let y = 0.5 * h
-  let y_offset = 0.15 * h
-
-  y += extrude
-  x += extrude
-
-  let obj = {
-    draw.rect((-x, -y + y_offset), (x, y + y_offset), stroke: 0pt)
-    draw.line((-x, -y + y_offset), (-x, y + y_offset))
-    draw.line((x, -y + y_offset), (x, y + y_offset))
-    draw.circle((0, y + y_offset), radius: (x, 0.2))
-    draw.arc((x, -y+ y_offset), start: 0deg, stop: -180deg, radius: (x, 0.2))
+#let cylinder(node, extrude, tilt: 54deg, rings: (), fit: 1.25) = {
+	let sign = if tilt >= 0deg { +1 } else {
+		rings = rings.map(ring => 100% - ring)
+		-1
 	}
-  draw.group(obj)
+	let sintilt = calc.abs(calc.sin(tilt))
+
+	let (w, h) = node.size
+	let (x, y) = (w/2, sign*h/2)
+	let ry = sign*x*sintilt
+	x += extrude
+	ry += sign*extrude
+
+	let obj = {
+		draw.translate(y: y*sintilt*fit)
+		draw.merge-path({
+			draw.arc((-x, +y), radius: (x, ry), start: 180deg, stop: 0deg)
+			draw.arc((+x, -y), radius: (x, ry), start: 0deg, stop: -180deg)
+		}, close: true)
+		if true {
+			for ring in (0%, ..rings) {
+				ring = ring + 0pt + 0%
+				let t = float(ring.ratio) + sign*ring.length.to-absolute()/(2*y)
+				let yt = y*(1 - t) - y*t
+				draw.arc((+x, yt), radius: (x, ry), start: 0deg, stop: -180deg, fill: none)
+			}
+		}
+	}
+	draw.group(obj)
 }
 
-
-/// A database shape (stacked pseudo-3D cylindrical shape).
-///
-/// #diagram(
-/// 	node-stroke: luma(120),
-/// 	node-fill: blue.lighten(90%),
-/// 	node((0,0), [database], shape: fletcher.shapes.database),
-/// )
-///
-#let database(node, extrude) = {
-  let (w, h) = node.size
-  let y_offset = 0.25 * h
-  let y = 0.6 * h
-  let x = 0.5 * w
-
-  y += extrude
-  x += extrude
-
-  let obj = {
-    draw.rect((-x, -y + y_offset), (x, y + y_offset), stroke: (0pt))
-    draw.line((-x, -y + y_offset), (-x, y + y_offset))
-    draw.line((x, -y + y_offset), (x, y + y_offset))
-    draw.arc((x, y), start: 0deg, stop: -180deg, radius: (x, 0.2))
-    draw.circle((0, y + y_offset), radius: (x, 0.2))
-    draw.arc((x, -y+ y_offset), start: 0deg, stop: -180deg, radius: (x, 0.2))
-  }
-  draw.group(obj)
-}
-
+#let database = cylinder.with(rings: (0pt, 15%), fit: 1.75)
 
 #let ALL_SHAPES = (
 	rect: rect,
