@@ -647,6 +647,64 @@
 	}
 })
 
+
+/// A pseudo-3D cylindrical shape.
+///
+/// #diagram(
+/// 	node-stroke: green,
+/// 	node-fill: green.lighten(90%),
+/// 	node((0,0), [cylinder], shape: fletcher.shapes.cylinder),
+/// )
+///
+#let cylinder(node, extrude) = {
+  let (w, h) = node.size
+  let x = 0.5 * w
+  let y = 0.5 * h
+  let y_offset = 0.15 * h
+
+  y += extrude
+  x += extrude
+
+  let obj = {
+    draw.rect((-x, -y + y_offset), (x, y + y_offset), stroke: 0pt)
+    draw.line((-x, -y + y_offset), (-x, y + y_offset))
+    draw.line((x, -y + y_offset), (x, y + y_offset))
+    draw.circle((0, y + y_offset), radius: (x, 0.2))
+    draw.arc((x, -y+ y_offset), start: 0deg, stop: -180deg, radius: (x, 0.2))
+	}
+  draw.group(obj)
+}
+
+
+/// A database shape (stacked pseudo-3D cylindrical shape).
+///
+/// #diagram(
+/// 	node-stroke: luma(120),
+/// 	node-fill: blue.lighten(90%),
+/// 	node((0,0), [database], shape: fletcher.shapes.database),
+/// )
+///
+#let database(node, extrude) = {
+  let (w, h) = node.size
+  let y_offset = 0.25 * h
+  let y = 0.6 * h
+  let x = 0.5 * w
+
+  y += extrude
+  x += extrude
+
+  let obj = {
+    draw.rect((-x, -y + y_offset), (x, y + y_offset), stroke: (0pt))
+    draw.line((-x, -y + y_offset), (-x, y + y_offset))
+    draw.line((x, -y + y_offset), (x, y + y_offset))
+    draw.arc((x, y), start: 0deg, stop: -180deg, radius: (x, 0.2))
+    draw.circle((0, y + y_offset), radius: (x, 0.2))
+    draw.arc((x, -y+ y_offset), start: 0deg, stop: -180deg, radius: (x, 0.2))
+  }
+  draw.group(obj)
+}
+
+
 #let ALL_SHAPES = (
 	rect: rect,
 	circle: circle,
@@ -663,4 +721,6 @@
 	brace: brace,
 	bracket: bracket,
 	paren: paren,
+	cylinder: cylinder,
+	database: database,
 )
