@@ -191,7 +191,7 @@ Pull requests are most welcome!
 - Added `brace`, `bracket`, `paren` and `stretched-glyph` node shapes (#99).
 - Fix bug with anchors of absolutely-positioned enclose nodes (#95).
 - Fix some instabilities with edges related to division by zero (#100, #105).
-- Allow specifying label positions as `(segment, position)` (#107, [@deffi](https://github.com/deffi)).
+- Allow specifying label positions as `(segment, position)` (#107, #112, [@deffi](https://github.com/deffi)).
 
 ### 0.5.7
 
