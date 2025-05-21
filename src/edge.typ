@@ -322,6 +322,55 @@
 
 
 
+
+// Convert to `(segment, pos)`, where `segment` is an `int` and `pos` is a
+// `relative`. `pos` is relative to segment `segment`.
+// 
+// Possible inputs:
+//   * `(segment, pos)`, where `segment` is an int and `pos` is accepted by
+//     `as-relative`. `pos` will be interpreted as relative to segment
+//     `segment`.
+//   * `pos`, where `pos` is accepted by `as-relative`. `pos` will be
+//     interpreted as relative to the whole edge.
+#let normalize-label-pos(pos, n-segments) = {
+	// panic(pos, n-segments)
+
+	let segment
+	let position
+	
+	if type(pos) == array and type(pos.at(0)) == int {
+		// Segment specified
+		segment = pos.at(0)
+		position = as-relative(pos.at(1))
+
+	} else {
+		// No segment specified
+		pos = as-relative(pos)
+		pos = pos.ratio*n-segments + pos.length
+
+		// Which segment does the position refer to?
+		// Use ceil-1 instead of floor to put positions that fall on the boundary
+		// between two segment on the end of the first, not the beginning of the
+		// second. There's no particular reason to do it like this, other than
+		// compatibility.
+		segment = calc.ceil(float(pos.ratio)) - 1
+		segment = calc.clamp(segment, 0, n-segments - 1)
+
+		// Make the position relative to the selected segment. This applies only to
+		// the `ratio` part of the `relative` position, not to the `length` part.
+		position = (pos.ratio - 100% * segment) + pos.length
+	}
+
+	if segment < 0 or segment >= n-segments {
+		error("segment of `label-pos` must be at least zero and less than number of segments (#1); got #0.", segment, n-segments)
+	}
+
+	(segment: segment, position: position)
+}
+
+
+
+
 /// Draw a connecting edge in a diagram.
 ///
 ///
@@ -839,6 +888,12 @@
 	}
 	options.vertices = options.vertices.map(interpret-coord-str)
 
+	// guess the number of segments
+	let n-segments = options.vertices.len() - 1
+	if options.corner != none { n-segments += 1 }
+	options.label-pos = normalize-label-pos(options.label-pos, n-segments)
+
+
 	if options.label-side not in (left, center, right, auto) {
 		error("`label-side` must be one of `left`, `center`, `right`, or `auto`; got #0.", options.label-side)
 	}
@@ -868,69 +923,10 @@
 }
 
 
-
-// Convert to `(segment, pos)`, where `segment` is an `int` and `pos` is a
-// `relative`. `pos` is relative to segment `segment`.
-// 
-// Possible inputs:
-//   * `(segment, pos)`, where `segment` is an int and `pos` is accepted by
-//     `as-relative`. `pos` will be interpreted as relative to segment
-//     `segment`.
-//   * `pos`, where `pos` is accepted by `as-relative`. `pos` will be
-//     interpreted as relative to the whole edge.
-#let normalize-position(position, n-segments) = {
-	if type(position) == array and type(position.at(0)) == int {
-		// Segment specified
-		(
-			segment: position.at(0),
-			position: as-relative(position.at(1)),
-		)
-
-	} else {
-		// No segment specified
-		position = as-relative(position)
-		position = position.ratio * n-segments + position.length
-
-		// Which segment does the position refer to?
-		// Use ceil-1 instead of floor to put positions that fall on the boundary
-		// between two segment on the end of the first, not the beginning of the
-		// second. There's no particular reason to do it like this, other than
-		// compatibility.
-		let segment = calc.ceil(float(position.ratio)) - 1
-		if segment < 0 { segment = 0 }
-		if segment > n-segments - 1 { segment = n-segments - 1 }
-
-		// Make the position relative to the selected segment. This applies only to
-		// the `ratio` part of the `relative` position, not to the `length` part.
-		let position = (position.ratio - 100% * segment) + position.length
-
-		(segment: segment, position: position)
-	}
-}
-
-
-
 #let resolve-edge-options(edge, options) = {
 	// let to-pt(len) = to-abs-length(len, options.em-size)
 
 	edge += interpret-marks-arg(edge.marks)
-
-	// Determine the number of segments
-	let n-segments = edge.vertices.len() - 1
-	if edge.corner != none { n-segments += 1 }
-
-	// Now that we know the number of segments, we can normalize the label
-	// positions
-	edge.label-pos = normalize-position(edge.label-pos, n-segments)
-	if edge.label-pos.segment < 0 {
-		panic("Label segment " + str(edge.label-pos.segment) + " must be "
-			+ "non-negative: " + repr(edge.label))
-	}
-	if edge.label-pos.segment >= n-segments {
-		panic("Label segment " + str(edge.label-pos.segment) + " is out of range"
-			+ " because the edge only has " + str(n-segments) + " segments: "
-			+ repr(edge.label))
-	}
 
 	if edge.stroke == none {
 		// hack: for no stroke, it's easier to do the following.
