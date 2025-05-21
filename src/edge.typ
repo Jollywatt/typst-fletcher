@@ -922,6 +922,15 @@
 	// Now that we know the number of segments, we can normalize the label
 	// positions
 	edge.label-pos = normalize-position(edge.label-pos, n-segments)
+	if edge.label-pos.segment < 0 {
+		panic("Label segment " + str(edge.label-pos.segment) + " must be "
+			+ "non-negative: " + repr(edge.label))
+	}
+	if edge.label-pos.segment >= n-segments {
+		panic("Label segment " + str(edge.label-pos.segment) + " is out of range"
+			+ " because the edge only has " + str(n-segments) + " segments: "
+			+ repr(edge.label))
+	}
 
 	if edge.stroke == none {
 		// hack: for no stroke, it's easier to do the following.
