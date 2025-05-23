@@ -647,7 +647,7 @@
 	}
 })
 
-#let cylinder(node, extrude, tilt: 54deg, rings: (), fit: 1.25) = {
+#let cylinder(node, extrude, tilt: 10deg, rings: (), fit: 1.25) = {
 	let sign = if tilt >= 0deg { +1 } else {
 		rings = rings.map(ring => 100% - ring)
 		-1
