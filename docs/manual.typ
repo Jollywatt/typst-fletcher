@@ -519,7 +519,7 @@ By default, nodes are circular or rectangular depending on the aspect ratio of t
 The #param[node][shape] option accepts `rect`, `circle`, various shapes provided in the #link(<shapes>, `fletcher.shapes`) submodule, or a function.
 
 #code-example-row(```typ
-#import fletcher.shapes: pill, parallelogram, diamond, hexagon
+#import fletcher.shapes: pill, parallelogram, diamond, hexagon, brace
 #diagram(
 	node-fill: gradient.radial(white, blue, radius: 200%),
 	node-stroke: blue,
@@ -528,58 +528,57 @@ The #param[node][shape] option accepts `rect`, `circle`, various shapes provided
 		node((1,0), [_Slant_], shape: parallelogram.with(angle: 20deg)),
 		node((0,1), [Choice], shape: diamond),
 		node((1,1), [Stop], shape: hexagon, extrude: (-3, 0), inset: 10pt),
-	).intersperse(edge("o--|>")).join()
+	).intersperse(edge("o--|>")).join(),
+	node(enclose: ((0,0), (1,1)), shape: brace.with(label: [Group]))
 )
 ```)
 
-Custom node shapes may be implemented with CeTZ via #the-param[node][shape], but it is up to the user to support outline extrusion for custom shapes.
-The predefined shapes are:
+The predefined shapes, many of which are configurable, are:
 
 #table(
 	columns: (1fr,)*4,
 	stroke: none,
 	align: center + horizon,
 	..{
-		let colors = (
-			blue,
-			red,
-			orange,
-			teal,
-			olive,
-			green,
-			purple,
-			fuchsia,
-			eastern,
-			yellow,
-			aqua,
-			maroon,
-		)
-		fletcher.shapes.ALL_SHAPES.pairs()
-			.filter(((key, value)) => type(value) != module)
-			.zip(colors)
-			.map((((name, shape), color)) => {
+		import fletcher.shapes: *
+		(
+			(blue, rect),
+			(red, circle),
+			(orange, ellipse),
+			(teal, pill),
+			(olive, parallelogram),
+			(green, trapezium),
+			(eastern, house),
+			(eastern, house.with(dir: left, angle: -20deg)),
+			(purple, diamond),
+			(fuchsia, triangle),
+			(yellow, chevron),
+			(yellow, chevron.with(dir: top)),
+			(aqua, hexagon),
+			(maroon, octagon),
+			(gray, cylinder),
+			(gray, cylinder.with(rings: 2pt)),
+		).map(((color, shape)) => {
+				let name = repr(shape)
 				diagram(node((0,0), box(inset: 1pt, link(label(name + "()"), raw(name))), shape: shape,
 					fill: color.lighten(90%), stroke: color))
 			})
-	}
-)
-
-Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `node()`.
-There are also node "shapes" for placing a `stretched-glyph()` along the edge of a nodes, especially useful with #param[node][enclose].
-
-#grid(
-	columns: (1fr,)*4,
-	align: center,
+	},
+	diagram(
+		node((0,0), link(label("stretched-glyph()"), `stretched-glyph`), shape: fletcher.shapes.stretched-glyph.with(glyph: $<->$))
+	),
 	..("brace", "bracket", "paren").map(name => {
 		let shape = fletcher.shapes.ALL_SHAPES.at(name)
 		diagram(
 			node((0,0), raw(name), shape: shape)
 		)
 	}),
-	diagram(
-		node((0,0), raw("stretched-glyph"), shape: fletcher.shapes.stretched-glyph.with(glyph: $<->$))
-	)
 )
+
+Shapes respect the #param[node][stroke], #param[node][fill], #param[node][width], #param[node][height], and #param[node][extrude] options of `node()`.
+There are also node "shapes" for placing a `stretched-glyph()` along the edge of a nodes, especially useful with #param[node][enclose].
+
+Custom node shapes may be implemented with CeTZ via #the-param[node][shape], but it is up to the user to support outline extrusion for custom shapes.
 
 == Node groups
 
