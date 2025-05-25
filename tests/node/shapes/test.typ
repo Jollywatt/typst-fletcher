@@ -150,7 +150,7 @@ Fit factor
 		node-fill: green.lighten(90%),
 		node-outset: 5pt,
 		node((0,0), [Local], shape: shapes.cylinder.with(tilt: tilt), name: <cylinder-local>),
-		node((2,0), [Remote], shape: shapes.database.with(tilt: tilt), name: <db-remote>),
+		node((2,0), [Remote], shape: shapes.cylinder.with(tilt: tilt, rings: 2pt), name: <db-remote>),
 		edge(<cylinder-local>, <db-remote>, ">->", [Backup], center)
 	)
 	linebreak()

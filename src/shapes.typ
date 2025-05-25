@@ -470,6 +470,100 @@
 }
 
 
+/// A 3D cylinder node shape.
+///
+/// #diagram(
+/// 	node-stroke: gray,
+/// 	node-fill: gray.lighten(90%),
+/// 	node((0,0), `cylinder`, shape: fletcher.shapes.cylinder)
+/// )
+///
+/// - fit (number): Adjusts how exactly the cylinder fits around the label's bounding box.
+///
+///   #for (i, fit) in (0, 0.5, 1).enumerate() {
+///   	let s = fletcher.shapes.cylinder.with(fit: fit)
+///   	let l = box(
+///   		stroke: (dash: "dashed", thickness: 0.5pt),
+///   		inset: 10pt,
+///   		raw("fit: " + repr(fit)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: gray,
+///   		fill: gray.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+/// 
+/// - tilt (angle): Controls the perspective tilt: `0deg` is side on.
+///
+///   #for (i, tilt) in (10deg, 5deg, 0deg, -2deg).enumerate() {
+///   	let s = fletcher.shapes.cylinder.with(tilt: tilt)
+///   	let l = box(
+///   		inset: 10pt,
+///   		raw("tilt: " + repr(tilt)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		shape: s,
+///   		stroke: gray,
+///   		fill: gray.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+/// 
+/// - rings (length, array): Array of vertical positions to draw arcs around the body.
+///   Often used to represent databases.
+///
+///   #for (i, rings) in ((), 4pt, 100% - 4pt, (10%, 20%)).enumerate() {
+///   	let s = fletcher.shapes.cylinder.with(rings: rings)
+///   	let l = box(
+///   		inset: 10pt,
+///   		raw("rings:\n" + repr(rings)),
+///   	)
+///   	diagram(node((i, 0), l,
+///   		inset: 0pt,
+///   		width: 3cm,
+///   		shape: s,
+///   		stroke: gray,
+///   		fill: gray.lighten(90%),
+///   	))
+///   	h(5mm)
+///   }
+#let cylinder(node, extrude, fit: 0.6, tilt: 8deg, rings: ()) = {
+	if type(rings) != array { rings = (rings,) }
+
+	let sign = if tilt >= 0deg { +1 } else {
+		rings = rings.map(ring => 100% - ring)
+		-1
+	}
+
+	let (w, h) = node.size
+	let (x, y) = (w/2, sign*h/2)
+	let ry = sign*x*calc.abs(calc.sin(tilt))
+	x += extrude
+	ry += sign*extrude
+
+	let obj = {
+		draw.translate(y: ry*fit)
+		draw.merge-path({
+			draw.arc((-x, +y), radius: (x, ry), start: 180deg, stop: 0deg)
+			draw.arc((+x, -y), radius: (x, ry), start: 0deg, stop: -180deg)
+		}, close: true)
+		if true {
+			for ring in (0%, ..rings) {
+				ring = ring + 0pt + 0%
+				let t = float(ring.ratio) + sign*ring.length.to-absolute()/(2*y)
+				let yt = y*(1 - t) - y*t
+				draw.arc((+x, yt), radius: (x, ry), start: 0deg, stop: -180deg, fill: none)
+			}
+		}
+	}
+	draw.group(obj)
+}
+
+
 /// A stretched glyph along one side of a node.
 /// See also `shapes.brace`, `shapes.bracket`, and `shapes.paren`, which are implemented using this shape.
 ///
@@ -647,39 +741,6 @@
 	}
 })
 
-#let cylinder(node, extrude, tilt: 10deg, rings: (), fit: 1.25) = {
-	let sign = if tilt >= 0deg { +1 } else {
-		rings = rings.map(ring => 100% - ring)
-		-1
-	}
-	let sintilt = calc.abs(calc.sin(tilt))
-
-	let (w, h) = node.size
-	let (x, y) = (w/2, sign*h/2)
-	let ry = sign*x*sintilt
-	x += extrude
-	ry += sign*extrude
-
-	let obj = {
-		draw.translate(y: y*sintilt*fit)
-		draw.merge-path({
-			draw.arc((-x, +y), radius: (x, ry), start: 180deg, stop: 0deg)
-			draw.arc((+x, -y), radius: (x, ry), start: 0deg, stop: -180deg)
-		}, close: true)
-		if true {
-			for ring in (0%, ..rings) {
-				ring = ring + 0pt + 0%
-				let t = float(ring.ratio) + sign*ring.length.to-absolute()/(2*y)
-				let yt = y*(1 - t) - y*t
-				draw.arc((+x, yt), radius: (x, ry), start: 0deg, stop: -180deg, fill: none)
-			}
-		}
-	}
-	draw.group(obj)
-}
-
-#let database = cylinder.with(rings: (0pt, 15%), fit: 1.75)
-
 #let ALL_SHAPES = (
 	rect: rect,
 	circle: circle,
@@ -693,9 +754,8 @@
 	chevron: chevron,
 	hexagon: hexagon,
 	octagon: octagon,
+	cylinder: cylinder,
 	brace: brace,
 	bracket: bracket,
 	paren: paren,
-	cylinder: cylinder,
-	database: database,
 )
