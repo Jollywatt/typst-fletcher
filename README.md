@@ -188,10 +188,10 @@ Pull requests are most welcome!
 ### 0.5.8
 
 - Added bracket and parenthesis mark types, with shorthands `"["`, `"]"`, `"("`, `")"`, `"bracket"`, `"parenthesis"` (#102).
-- Added `brace`, `bracket`, `paren` and `stretched-glyph` node shapes (#99).
-- Fix bug with anchors of absolutely-positioned enclose nodes (#95).
-- Fix some instabilities with edges related to division by zero (#100, #105).
+- Added `cylinder`, `brace`, `bracket`, `paren` and `stretched-glyph` node shapes (#99, #109).
 - Allow specifying label positions as `(segment, position)` (#107, #112, [@deffi](https://github.com/deffi)).
+- Fix bugs with anchors of absolutely-positioned enclose nodes (#95, #113).
+- Fix some instabilities with edges related to division by zero (#100, #105).
 
 ### 0.5.7
 
