@@ -478,14 +478,19 @@
 		// the physical center of the shape which is drawn is node.bounding-center,
 		// whereas node.pos.xyz is the uv-space midpoint (which can be different to the xyz
 		// midpoint for irregular grids.)
-		// This is a deliberate design decision - often, edges should connect to enclose
-		// nodes and be straight, not angled toward the exact centre.
+		// This is a deliberate design decision - often, edges connecting to enclose
+		// nodes should be nice and straight, not angled toward the exact centre.
 
 		if is-nan-vector(physical-origin) { return ctx }
 
 		// do not compute anchors for enclose nodes before they have been resolved
 		if node.enclose.len() > 0 and "resolved-enclose" not in node {
-			calculate-anchors = (k) => NAN_COORD
+			// we should return NAN_COORD to indicate the anchors are not yet resolvable
+			// however, units must be length (float.nan + length panics) but there is
+			// so such thing as nan length (float.nan*1pt == 0pt, interestingly)
+			calculate-anchors = (k) => (0pt, 0pt)
+			// so we just return zero, hoping it doesn't cause incorrect anchors --
+			// it's better than crashing -- and they might get resolved properly later
 		} else {
 			let cetz-obj = (node.shape)(node, node.outset).at(0)
 			calculate-anchors = (k) => {

@@ -85,7 +85,7 @@
 
 
 
-#let NAN_COORD = (float("nan"),)*2
+#let NAN_COORD = (float.nan, float.nan)
 
 #let default-ctx = (
 	prev: (pt: (0, 0)),

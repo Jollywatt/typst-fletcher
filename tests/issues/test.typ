@@ -131,3 +131,14 @@ https://github.com/Jollywatt/typst-fletcher/issues/105
 		}
 	}
 )
+
+https://github.com/Jollywatt/typst-fletcher/issues/113
+
+#diagram(
+  node-stroke: 1pt,
+  cell-size: 3cm,
+  node((0, 0), [A], shape: circle, name: <A>),
+  node(enclose: (<A>,), [], inset: 1cm, fill: blue.lighten(50%), name: <Group>),
+  node((0, 1), [B], name: <B>),
+  node((<Group.south>, 50%, <B.north>), $ + $)
+)
