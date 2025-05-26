@@ -1,4 +1,4 @@
-#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
 #set page(width: auto, height: auto, margin: 5mm, fill: white)
 
 #let member(..args) = edge(..args, " ", label: $in$, label-side: center, label-angle: right)
