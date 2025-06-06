@@ -542,6 +542,7 @@
 
 			// resolve enclosing nodes
 			nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
+
 		}
 
 		// resolve edges
@@ -552,6 +553,7 @@
 
 			edge = convert-edge-corner-to-poly(edge)
 			edge = apply-edge-shift(grid, edge)
+			edge = resolve-edge-anchors(edge, nodes, ctx-with-xyz-anchors)
 			edge
 		})
 

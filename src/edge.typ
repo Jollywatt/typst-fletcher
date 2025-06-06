@@ -1,6 +1,6 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "coords.typ": vector-polar-with-xy-or-uv-length, resolve, default-ctx
+#import "coords.typ": vector-polar-with-xy-or-uv-length, resolve, default-ctx, find-farthest-intersection
 
 #let EDGE_FLAGS = (
 	"dashed": (dash: "dashed"),
@@ -1171,3 +1171,173 @@
 	else { edge }
 }
 
+
+
+
+
+
+
+
+// Find candidate nodes that an edge should snap to
+//
+// Returns an array of zero or more nodes. False positives are acceptable.
+#let find-snapping-nodes(grid, nodes, key) = {
+	if type(key) == label {
+		return nodes.filter(node => node.name == key)
+	}
+
+	if type(key) == array and key.len() == 2 {
+
+		let xy-pos = key
+		let candidates = nodes.filter(node => {
+			if node.snap == false { return false }
+			point-is-in-rect(xy-pos, (
+				center: node.pos.xyz,
+				size: node.size,
+			))
+		})
+
+		if candidates.len() > 0 {
+			// filter out nodes with lower snap priority
+			let max-snap-priority = calc.max(..candidates.map(node => node.snap))
+			candidates = candidates.filter(node => node.snap == max-snap-priority)
+		}
+
+		return candidates.sorted(key: node => node.stroke == none)
+	}
+
+	error("Couldn't find node corresponding to #0 in diagram.", key)
+}
+
+
+// return a pair of arrays of nodes to which the edge should snap
+#let find-nodes-for-edge(grid, nodes, edge) = {
+	let select-nodes = find-snapping-nodes.with(grid, nodes)
+	let first-last(x) = (x.at(0), x.at(-1))
+	array.zip(
+		edge.snap-to,
+		first-last(edge.vertices),
+		first-last(edge.final-vertices),
+	).map(((snap-to, vertex, final-vertex)) => {
+		if snap-to == none { return () } // user explicitly disabled snapping
+		let key = if type(vertex) == label { vertex } else { final-vertex }
+		select-nodes(map-auto(snap-to, key))
+	})
+}
+
+
+#let resolve-anchor-pair((from-group, to-group), (from-point, to-point)) = {
+	let from-anchor = find-farthest-intersection(from-group, from-point)
+	let to-anchor = find-farthest-intersection(to-group, to-point)
+	(from-anchor, to-anchor)
+}
+
+
+
+/// Return the anchor point for an edge connecting to a node with the "defocus"
+/// adjustment.
+///
+/// Basically, for very long/wide nodes, don't make edges coming in from all
+/// angles go to the exact node center, but "spread them out" a bit.
+///
+/// See https://www.desmos.com/calculator/irt0mvixky.
+#let defocus-adjustment(node, θ) = {
+	if node == none { return (0pt, 0pt) }
+	let μ = calc.pow(node.aspect, node.defocus)
+	(
+		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
+		calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
+	)
+}
+
+
+#let draw-node-outline(node) = {
+	cetz.draw.group({
+		cetz.draw.translate(node.pos.xyz)
+		(node.shape)(node, node.outset)
+	})
+}
+
+
+#let resolve-anchored-line(edge, nodes, debug: 0) = {
+	let (from, to) = edge.final-vertices
+	let θ = angle-between(from, to) + 90deg
+
+	// TODO: do defocus adjustment sensibly
+	if nodes.at(0).len() == 1 {
+		from = vector.add(from, defocus-adjustment(nodes.at(0).at(0), θ - 90deg))
+	}
+	if nodes.at(1).len() == 1 {
+		to = vector.add(to, defocus-adjustment(nodes.at(1).at(0), θ + 90deg))
+	}
+
+	let dummy-line = cetz.draw.line(from, to)
+	let intersection-objects = nodes.map(nodes => {
+		cetz.draw.group(nodes.map(draw-node-outline).join())
+		dummy-line
+	})
+
+	let anchors = resolve-anchor-pair(intersection-objects, (from, to))
+	
+	edge + (final-vertices: anchors)
+}
+
+#let resolve-anchored-arc(edge, nodes, debug: 0) = {
+	let (from, to) = edge.final-vertices
+	let θ = angle-between(from, to)
+	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
+
+	let dummy-lines = (from, to).zip(θs, nodes)
+		.map(((point, φ, node)) => cetz.draw.line(
+			point,
+			vector.add(point, vector-polar(10cm, φ)), // ray emanating from node
+		))
+
+	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
+		cetz.draw.group(nodes.map(draw-node-outline).join())
+		dummy-line
+	})
+
+	let anchors = resolve-anchor-pair(intersection-objects, (from, to))
+	edge + (final-vertices: anchors)
+}
+
+
+#let resolve-anchored-polyline(edge, nodes, debug: 0) = {
+	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
+	let verts = edge.final-vertices
+	let (from, to) = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
+
+	let end-segments = (
+		edge.final-vertices.slice(0, 2), // first two vertices
+		edge.final-vertices.slice(-2), // last two vertices
+	)
+
+	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
+
+	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
+		cetz.draw.group(nodes.map(draw-node-outline).join())
+		dummy-line
+	})
+
+	let (anchors) = resolve-anchor-pair(intersection-objects, (from, to))
+	edge.final-vertices.at(0) = anchors.at(0)
+	edge.final-vertices.at(-1) = anchors.at(1)
+	
+	edge
+}
+
+
+
+#let resolve-edge-anchors(edge, nodes, ctx) = {
+	let nodes = find-nodes-for-edge(grid, nodes, edge)
+
+	if edge.kind == "line" {
+		resolve-anchored-line(edge, nodes)
+	} else if edge.kind == "arc" {
+		resolve-anchored-arc(edge, nodes)
+	} else if edge.kind == "poly" {
+		resolve-anchored-polyline(edge, nodes)
+	}
+
+}

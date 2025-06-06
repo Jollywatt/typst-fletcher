@@ -1,6 +1,7 @@
 #import "utils.typ": *
 #import "marks.typ": *
-#import "coords.typ": uv-to-xy
+#import "coords.typ": uv-to-xy, default-ctx, find-farthest-intersection
+#import "edge.typ": find-nodes-for-edge
 
 #let DEBUG_COLOR = rgb("f008")
 #let DEBUG_COLOR2 = rgb("0f08")
@@ -538,52 +539,8 @@
 }
 
 
-
-/// Of all the intersection points within a set of CeTZ objects, find the one
-/// which is farthest from a target point and pass it to a callback.
-///
-/// If no intersection points are found, use the target point itself.
-///
-/// - objects (cetz array, none): Objects to search within for intersections. If
-///  `none`, callback is immediately called with `target`.
-/// - target (point): Target point to sort intersections by proximity with, and
-///  to use as a fallback if no intersections are found.
-#let find-farthest-intersection(objects, target, callback) = {
-
-	if objects == none { return callback(target) }
-
-	let node-name = "intersection-finder"
-	cetz.draw.hide(cetz.draw.intersections(node-name, objects))
-
-	cetz.draw.get-ctx(ctx => {
-
-		let calculate-anchors = ctx.nodes.at(node-name).anchors
-		let anchor-names = calculate-anchors(())
-		let anchor-points = anchor-names.map(calculate-anchors)
-			.map(point => {
-				point.at(1) *= -1 // CETZ Y AXIS
-				vector-2d(vector.scale(point, 1cm))
-			}).sorted(key: point => vector-len(vector.sub(point, target)))
-
-		let anchor = anchor-points.at(-1, default: target)
-
-		callback(anchor)
-
-	})
-
-}
-
-#let find-anchor-pair((from-group, to-group), (from-point, to-point), callback) = {
-	find-farthest-intersection(from-group, from-point, from-anchor => {
-		find-farthest-intersection(to-group, to-point, to-anchor => {
-			callback((from-anchor, to-anchor))
-		})
-	})
-
-}
-
 /// Get the anchor point around a node outline at a certain angle.
-#let get-node-anchor(node, θ, callback) = {
+#let get-node-anchor(node, θ) = {
 	let outline = cetz.draw.group({
 		cetz.draw.translate(node.pos.xyz)
 		(node.shape)(node, node.outset)
@@ -593,123 +550,22 @@
 		(rel: (θ, 10*node.radius))
 	)
 
-	find-farthest-intersection(outline + dummy-line, node.pos.xyz, callback)
-}
-
-/// Return the anchor point for an edge connecting to a node with the "defocus"
-/// adjustment.
-///
-/// Basically, for very long/wide nodes, don't make edges coming in from all
-/// angles go to the exact node center, but "spread them out" a bit.
-///
-/// See https://www.desmos.com/calculator/irt0mvixky.
-#let defocus-adjustment(node, θ) = {
-	if node == none { return (0pt, 0pt) }
-	let μ = calc.pow(node.aspect, node.defocus)
-	(
-		calc.max(0pt, node.size.at(0)/2*(1 - 1/μ))*calc.cos(θ),
-		calc.max(0pt, node.size.at(1)/2*(1 - μ/1))*calc.sin(θ),
-	)
-
-}
-
-
-
-#let draw-anchored-line(edge, nodes, debug: 0) = {
-	let (from, to) = edge.final-vertices
-	let θ = angle-between(from, to) + 90deg
-
-	// TODO: do defocus adjustment sensibly
-	if nodes.at(0).len() == 1 {
-		from = vector.add(from, defocus-adjustment(nodes.at(0).at(0), θ - 90deg))
-	}
-	if nodes.at(1).len() == 1 {
-		to = vector.add(to, defocus-adjustment(nodes.at(1).at(0), θ + 90deg))
-
-	}
-
-
-	let dummy-line = cetz.draw.line(from, to)
-
-	let intersection-objects = nodes.map(nodes => {
-		cetz.draw.group(nodes.map(draw-node-outline).join())
-		dummy-line
-	})
-
-
-	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		let obj = draw-edge-line(edge + (
-			final-vertices: anchors,
-		), debug: debug)
-		(edge.post)(obj) // post-process (e.g., hide)
-	})
-
-}
-
-
-#let draw-anchored-arc(edge, nodes, debug: 0) = {
-	let (from, to) = edge.final-vertices
-	let θ = angle-between(from, to)
-	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
-
-	let dummy-lines = (from, to).zip(θs, nodes)
-		.map(((point, φ, node)) => cetz.draw.line(
-			point,
-			vector.add(point, vector-polar(10cm, φ)), // ray emanating from node
-		))
-
-	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		cetz.draw.group(nodes.map(draw-node-outline).join())
-		dummy-line
-	})
-
-	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		let obj = draw-edge-arc(edge + (final-vertices: anchors), debug: debug)
-		(edge.post)(obj) // post-process (e.g., hide)
-	})
-}
-
-
-#let draw-anchored-polyline(edge, nodes, debug: 0) = {
-	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
-	let verts = edge.final-vertices
-	let (from, to) = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
-
-	let end-segments = (
-		edge.final-vertices.slice(0, 2), // first two vertices
-		edge.final-vertices.slice(-2), // last two vertices
-	)
-
-	let dummy-lines = end-segments.map(points => cetz.draw.line(..points))
-
-	let intersection-objects = nodes.zip(dummy-lines).map(((nodes, dummy-line)) => {
-		cetz.draw.group(nodes.map(draw-node-outline).join())
-		dummy-line
-	})
-
-	find-anchor-pair(intersection-objects, (from, to), anchors => {
-		let edge = edge
-		edge.final-vertices.at(0) = anchors.at(0)
-		edge.final-vertices.at(-1) = anchors.at(1)
-		let obj = draw-edge-polyline(edge, debug: debug)
-		(edge.post)(obj) // post-process (e.g., hide)
-	})
-
+	find-farthest-intersection(outline + dummy-line, node.pos.xyz)
 }
 
 
 #let draw-edge(edge, ..args) = {
 	let obj = if edge.kind == "line" {
-		draw-anchored-line(edge, ..args)
+		draw-edge-line(edge, ..args)
 	} else if edge.kind == "arc" {
-		draw-anchored-arc(edge, ..args)
+		draw-edge-arc(edge, ..args)
 	} else if edge.kind == "poly" {
-		draw-anchored-polyline(edge, ..args)
+		draw-edge-polyline(edge, ..args)
 	} else { error("Invalid edge kind #0.", edge.kind) }
 
 	if edge.layer != 0 { obj = cetz.draw.on-layer(edge.layer, obj)}
 
-	obj
+	(edge.post)(obj)
 }
 
 
@@ -805,52 +661,7 @@
 	}
 }
 
-// Find candidate nodes that an edge should snap to
-//
-// Returns an array of zero or more nodes. False positives are acceptable.
-#let find-snapping-nodes(grid, nodes, key) = {
-	if type(key) == label {
-		return nodes.filter(node => node.name == key)
-	}
 
-	if type(key) == array and key.len() == 2 {
-
-		let xy-pos = key
-		let candidates = nodes.filter(node => {
-			if node.snap == false { return false }
-			point-is-in-rect(xy-pos, (
-				center: node.pos.xyz,
-				size: node.size,
-			))
-		})
-
-		if candidates.len() > 0 {
-			// filter out nodes with lower snap priority
-			let max-snap-priority = calc.max(..candidates.map(node => node.snap))
-			candidates = candidates.filter(node => node.snap == max-snap-priority)
-		}
-
-		return candidates
-	}
-
-	error("Couldn't find node corresponding to #0 in diagram.", key)
-}
-
-
-// return a pair of arrays of nodes to which the edge should snap
-#let find-nodes-for-edge(grid, nodes, edge) = {
-	let select-nodes = find-snapping-nodes.with(grid, nodes)
-	let first-last(x) = (x.at(0), x.at(-1))
-	array.zip(
-		edge.snap-to,
-		first-last(edge.vertices),
-		first-last(edge.final-vertices),
-	).map(((given, vertex, xy)) => {
-		if given == none { return () } // user explicitly disabled snapping
-		let key = if type(vertex) == label { vertex } else { xy }
-		select-nodes(map-auto(given, key))
-	})
-}
 
 #let draw-diagram(
 	grid,
@@ -861,7 +672,7 @@
 
 	for edge in edges {
 		let nodes = find-nodes-for-edge(grid, nodes, edge)
-		draw-edge(edge, nodes, debug: debug)
+		draw-edge(edge, debug: debug)
 	}
 
 	for node in nodes {

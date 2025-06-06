@@ -87,26 +87,6 @@
 
 #let NAN_COORD = (float.nan, float.nan)
 
-#let default-ctx = (
-	prev: (pt: (0, 0)),
-
-	// cetz anchors assume y axis going up.
-	// see lines ending with the comment
-	// CETZ Y AXIS
-	transform: 
-		((1, 0, 0, 0),
-		 (0,-1, 0, 0),
-		 (0, 0, 1, 0),
-		 (0, 0, 0, 1)),
-
-	nodes: (:),
-	length: 1cm,
-	em-size: (width: 11pt, height: 11pt),
-	style: cetz.styles.default,
-	groups: (),
-	debug: false,
-)
-
 
 #let resolve-system(coord) = {
 	if type(coord) == dictionary and ("u", "v").all(k => k in coord) {
@@ -291,6 +271,63 @@
 
 	return (ctx, ..result)
 }
+
+
+
+#let default-ctx = (
+	prev: (pt: (0, 0)),
+
+	// cetz anchors assume y axis going up.
+	// see lines ending with the comment
+	// CETZ Y AXIS
+	transform: 
+		((1, 0, 0, 0),
+		 (0,-1, 0, 0),
+		 (0, 0, 1, 0),
+		 (0, 0, 0, 1)),
+
+	nodes: (:),
+	length: 1cm,
+	em-size: (width: 11pt, height: 11pt),
+	style: cetz.styles.default,
+	groups: (),
+	debug: false,
+)
+
+
+
+
+/// Of all the intersection points within a set of CeTZ objects, find the one
+/// which is farthest from a target point and pass it to a callback.
+///
+/// If no intersection points are found, use the target point itself.
+///
+/// - objects (cetz array, none): Objects to search within for intersections. If
+///  `none`, callback is immediately called with `target`.
+/// - target (point): Target point to sort intersections by proximity with, and
+///  to use as a fallback if no intersections are found.
+#let find-farthest-intersection(objects, target) = {
+
+	if objects == none { return target }
+
+	let node-name = "intersection-finder"
+	let (inter,) = cetz.draw.intersections(node-name, objects)
+
+	let calculate-anchors = inter(default-ctx).anchors
+	let anchor-names = calculate-anchors(())
+	let anchor-points = anchor-names.map(calculate-anchors)
+		.map(point => {
+			point.at(1) *= -1 // CETZ Y AXIS
+			vector-2d(vector.scale(point, 1cm))
+		}).sorted(key: point => vector-len(vector.sub(point, target)))
+
+	let anchor = anchor-points.at(-1, default: target)
+
+	anchor
+
+}
+
+
 
 
 #let is-grid-independent-uv-coordinate(coord) = {
