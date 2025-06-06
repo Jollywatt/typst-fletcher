@@ -1166,33 +1166,26 @@ Here is an example of how you might hack together a Bézier edge using the same 
 
 #code-example-row(```typ
 #diagram(
-	node((0,1), $A$, stroke: 1pt, shape: fletcher.shapes.diamond),
-	node((2,0), [Bézier], fill: purple.lighten(80%)),
-
+	node((0,1), $A$, stroke: 1pt),
+	node((2,0), [Bézier], stroke: 1pt, shape: fletcher.shapes.diamond),
 	render: (grid, nodes, edges, options) => {
-		// cetz is also exported as fletcher.cetz
-		cetz.canvas({
-			// this is the default code to render the diagram
+		fletcher.cetz.canvas({
 			fletcher.draw-diagram(grid, nodes, edges, debug: options.debug)
 
-			// retrieve node data by coordinates
 			let n1 = fletcher.find-node-at(nodes, (0,1))
 			let n2 = fletcher.find-node-at(nodes, (2,0))
 
-			let out-angle = 45deg
-			let in-angle = -110deg
+			let θ1 = 0deg
+			let θ2 = -90deg
 
-			fletcher.get-node-anchor(n1, out-angle, p1 => {
-				fletcher.get-node-anchor(n2, in-angle, p2 => {
-					// make some control points
-					let c1 = (to: p1, rel: (out-angle, 10mm))
-					let c2 = (to: p2, rel: (in-angle, 20mm))
-					cetz.draw.bezier(
-						p1, p2, c1, c2,
-						mark: (end: ">") // cetz-style mark
-					)
-				})
-			})
+			let p1 = fletcher.get-node-anchor(n1, θ1)
+			let p2 = fletcher.get-node-anchor(n2, θ2)
+
+			let c1 = (rel: (θ1, 30pt), to: p1)
+			let c2 = (rel: (θ2, 70pt), to: p2)
+
+			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+			fletcher.draw-mark("head", origin: p1, angle: 180deg, stroke: 1pt)
 		})
 	}
 )

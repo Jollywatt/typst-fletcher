@@ -14,15 +14,14 @@
 			let θ1 = 0deg
 			let θ2 = -90deg
 
-			fletcher.get-node-anchor(n1, θ1, p1 => {
-				fletcher.get-node-anchor(n2, θ2, p2 => {
-					let c1 = (rel: (θ1, 30pt), to: p1)
-					let c2 = (rel: (θ2, 70pt), to: p2)
-					fletcher.cetz.draw.bezier(p1, p2, c1, c2)
-					fletcher.draw-mark("head", origin: p1, angle: 180deg, stroke: 1pt)
-				})
-			})
+			let p1 = fletcher.get-node-anchor(n1, θ1)
+			let p2 = fletcher.get-node-anchor(n2, θ2)
 
+			let c1 = (rel: (θ1, 30pt), to: p1)
+			let c2 = (rel: (θ2, 70pt), to: p2)
+
+			fletcher.cetz.draw.bezier(p1, p2, c1, c2)
+			fletcher.draw-mark("head", origin: p1, angle: 180deg, stroke: 1pt)
 		})
 	}
 )
