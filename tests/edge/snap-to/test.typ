@@ -49,3 +49,15 @@ Allow `snap-to` to be `none`.
 	edge(<group>, <z>, "->"),
 	node((2.5,0.5), [Z], name: <z>),
 )
+
+#pagebreak()
+
+Snap to farthest intersection
+
+#diagram(
+	node-stroke: blue,
+	node((0,0), $A$),
+	edge("rr", ">->", snap-to: (auto, <B>,)),
+	node((1,0), $B$, name: <B>),
+	node((2,0), $C$),
+)
