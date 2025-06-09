@@ -119,7 +119,7 @@ https://github.com/Jollywatt/typst-fletcher/issues/100
 
 https://github.com/Jollywatt/typst-fletcher/issues/105
 
-#diagram(
+#let _ = diagram(
 	node-stroke: 0.2pt,
 	edge-stroke: 1pt,
 	node-corner-radius: 5pt,
@@ -131,6 +131,8 @@ https://github.com/Jollywatt/typst-fletcher/issues/105
 		}
 	}
 )
+No visual output; was causing a division by zero error.
+
 
 https://github.com/Jollywatt/typst-fletcher/issues/113
 
