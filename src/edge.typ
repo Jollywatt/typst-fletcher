@@ -1022,30 +1022,27 @@
 
 #let resolve-edge-vertices(edge, ctx: (:), nodes) = {
 
-	let adjacent-node-pos(forward, default) = {
-		if edge.node-index == none { return default }
-		let indices = if forward {
-			range(edge.node-index, nodes.len())
-		} else {
-			range(0, edge.node-index).rev()
+	// edge(auto, auto) -> edge(prev-node, next-node)
+	if edge.vertices.at(0) == auto {
+		let prev = (0, 0) // fallback if no previous node
+		for node in nodes.slice(0, edge.node-index).rev() {
+			if node.snap == false { continue }
+			prev = node.pos.at(ctx.target-system)
+			break
 		}
-		for i in indices {
-			if nodes.at(i).snap != false {
-				return nodes.at(i).pos.at(ctx.target-system)
-			}
-		}
-		return default
+		ctx += (prev: (pt: prev))
+		edge.vertices.at(0) = prev
 	}
 
-	let prev-pos = adjacent-node-pos(false, (0, 0))
-	let next-pos = adjacent-node-pos(true, (rel: (1, 0)))
-
-	let ctx = default-ctx + ctx + (
-		prev: (pt: prev-pos),
-	)
-
-	edge.vertices.at(0) = map-auto(edge.vertices.at(0), prev-pos)
-	edge.vertices.at(-1) = map-auto(edge.vertices.at(-1), next-pos)
+	if edge.vertices.at(-1) == auto {
+		let next = (rel: (1, 0)) // fallback if no following node
+		for node in nodes.slice(edge.node-index) {
+			if node.snap == false { continue }
+			next = node.pos.at(ctx.target-system)
+			break
+		}
+		edge.vertices.at(-1) = next
+	}
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
 	verts.map(vector-2d)
