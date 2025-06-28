@@ -327,11 +327,11 @@
 // `relative`. `pos` is relative to segment `segment`.
 // 
 // Possible inputs:
-//   * `(segment, pos)`, where `segment` is an int and `pos` is accepted by
-//     `as-relative`. `pos` will be interpreted as relative to segment
-//     `segment`.
-//   * `pos`, where `pos` is accepted by `as-relative`. `pos` will be
-//     interpreted as relative to the whole edge.
+// - `(segment, pos)`, where `segment` is an int and `pos` is accepted by
+//   `as-relative`. `pos` will be interpreted as relative to segment
+//   `segment`.
+// - `pos`, where `pos` is accepted by `as-relative`. `pos` will be
+//   interpreted as relative to the whole edge.
 #let normalize-label-pos(pos, n-segments) = {
 	// panic(pos, n-segments)
 
@@ -832,6 +832,7 @@
 	crossing-thickness: auto,
 	crossing-fill: auto,
 	snap-to: (auto, auto),
+	name: none,
 	layer: 0,
 	floating: false,
 	post: x => x,
@@ -864,6 +865,7 @@
 		crossing-thickness: crossing-thickness,
 		crossing-fill: crossing-fill,
 		snap-to: as-pair(snap-to),
+		name: pass-none(as-label)(name),
 		layer: layer,
 		post: post,
 		floating: as-bool(floating, message: "`floating` must be boolean"),
@@ -1045,10 +1047,11 @@
 	}
 
 	let (ctx, ..verts) = resolve(ctx, ..edge.vertices)
-	verts.map(vector-2d)
+	verts = verts.map(vector-2d)
+
+	verts
 
 }
-
 
 
 #let convert-edge-corner-to-poly(edge) = {
@@ -1324,8 +1327,7 @@
 	edge
 }
 
-
-
+// apply edge snapping
 #let resolve-edge-anchors(edge, nodes, ctx) = {
 	let nodes = find-nodes-for-edge(grid, nodes, edge)
 
@@ -1338,3 +1340,82 @@
 	}
 
 }
+
+
+
+
+#let parametrised-edge-line(edge) = {
+	let (from, to) = edge.final-vertices
+	let total-path-len = vector-len(vector.sub(from, to))
+
+	if calc.abs(total-path-len) < 1e-3pt {
+		t => from
+	} else {
+		t => {
+			t = relative-to-float(t, len: total-path-len)
+			vector.lerp(from, to, t)
+		}
+	}
+}
+
+#let parametrised-edge-arc(edge) = {
+	let (from, to) = edge.final-vertices
+	let (center, radius, start, stop) = get-arc-connecting-points(from, to, edge.bend)
+	let total-path-len = calc.abs(stop - start)/1rad*radius
+
+	t => {
+		t = relative-to-float(t, len: total-path-len)
+		vector.add(center, vector-polar(radius, lerp(start, stop, t)))
+	}
+}
+
+#let parametrised-edge(edge) = {
+	if edge.kind == "line" {
+		parametrised-edge-line(edge)
+	} else if edge.kind == "arc" {
+		parametrised-edge-arc(edge)
+	} else { panic(edge) }
+}
+
+
+
+// register anchors for named edges.
+// named edges define path anchors which requires knowing the exact positions of their vertices
+#let register-edge-anchors(edge, ctx) = {
+	if edge.name == none { return ctx }
+
+	assert(ctx.target-system == "xyz")
+
+	let calculate-anchors = (k) => {
+		if k == "default" { k = 50% }
+		let curve = parametrised-edge(edge)
+		if type(k) == ratio { k = float(k) }
+		curve(float(k))
+			// error("unsupported edge anchor: #0", k)
+	}
+
+	ctx.nodes.insert(str(edge.name), (anchors: calculate-anchors))
+	return ctx
+}
+
+
+#let resolve-edges(grid, edges, nodes, ctx) = {
+	// resolve edges
+	for (i, edge) in edges.enumerate() {
+	// edges = edges.map(edge => {
+		edge.final-vertices = resolve-edge-vertices(
+			edge, nodes, ctx: ctx
+		)
+
+		edge = convert-edge-corner-to-poly(edge)
+		edge = apply-edge-shift(grid, edge)
+		edge = resolve-edge-anchors(edge, nodes, ctx)
+		ctx = register-edge-anchors(edge, ctx)
+		edges.at(i) = edge
+	}
+
+	return (ctx, edges)
+
+}
+
+

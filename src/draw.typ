@@ -1,7 +1,7 @@
 #import "utils.typ": *
 #import "marks.typ": *
 #import "coords.typ": uv-to-xy, default-ctx, find-farthest-intersection
-#import "edge.typ": find-nodes-for-edge
+#import "edge.typ": find-nodes-for-edge, parametrised-edge
 
 #let DEBUG_COLOR = rgb("f008")
 #let DEBUG_COLOR2 = rgb("0f08")
@@ -195,6 +195,7 @@
 	decor(path)
 }
 
+
 /// Draw a straight edge.
 ///
 /// - edge (dictionary): The edge object, a dictionary, containing:
@@ -239,6 +240,7 @@
 			vector.lerp(from, to, t)
 		} else { from }
 	}
+	let curve = parametrised-edge(edge)
 
 	for mark in edge.marks {
 		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
@@ -304,10 +306,12 @@
 
 	// Draw marks
 	let total-path-len = calc.abs(stop - start)/1rad*radius
-	let curve(t) = {
-		t = relative-to-float(t, len: total-path-len)
-		vector.add(center, vector-polar(radius, lerp(start, stop, t)))
-	}
+	// let curve(t) = {
+	// 	t = relative-to-float(t, len: total-path-len)
+	// 	vector.add(center, vector-polar(radius, lerp(start, stop, t)))
+	// }
+	let curve = parametrised-edge(edge)
+
 	for mark in edge.marks {
 		place-mark-on-curve(mark, curve, stroke: edge.stroke, debug: debug >= 3)
 	}

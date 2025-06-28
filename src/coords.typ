@@ -131,7 +131,7 @@
 
 	// Resolve length anchors
 	if type(anchor) == length {
-		anchor = util.resolve-number(ctx, anchor)
+		anchor = cetz.util.resolve-number(ctx, anchor)
 	}
 
 	let calculate-anchors = ctx.nodes.at(name).anchors

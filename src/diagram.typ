@@ -508,10 +508,19 @@
 
 		// PHASE 1: Resolve uv coordinates where possible
 
+
+		let dummy-edge-anchors = edges
+			.filter(edge => edge.name != none)
+			.map(edge => (str(edge.name), (anchors: k => NAN_COORD)))
+			.to-dict()
+
+
+		let ctx = default-ctx + (target-system: "uv") + (nodes: dummy-edge-anchors)
+
 		// try resolving node uv coordinates. this resolves to NaN coords if the
 		// resolution fails (e.g., if the coords depend on physical lengths)
-		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(
-			nodes, ctx: (target-system: "uv"))
+		let (ctx, nodes) = resolve-node-coordinates(
+			nodes, ctx: ctx)
 
 
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
@@ -520,7 +529,7 @@
 			.map(node => (center: node.pos.uv, size: node.size))
 
 		let vertices-affecting-grid = (edges
-			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx-with-uv-anchors + (target-system: "uv")))
+			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx))
 			.join() + ()) // coerce none to ()
 			.filter(vert => not is-nan-vector(vert))
 
@@ -530,33 +539,30 @@
 		// determine diagram's elastic grid layout
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
-		let ctx-with-xyz-anchors
+		let dummy-edge-anchors = edges
+			.filter(edge => edge.name != none)
+			.map(edge => (str(edge.name), (anchors: k => (0pt, 0pt))))
+			.to-dict()
+
+
+		let ctx = default-ctx + (target-system: "xyz", grid: grid) + (nodes: dummy-edge-anchors)
+
+		// PHASE 3: With the grid defined, fully resolve xy coordinates for all nodes and edges
 
 		// we run multiple passes so that anchors on enclose nodes
 		// have a chance to resolve
 		// (a better way would be to resolve coordinates and enclose nodes together)
 		for i in range(5) {
+			ctx.prev.pt = (0, 0)
+
 			// now with grid determined, compute final (physical) coordinates for nodes and edges
-			(ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(
-				nodes, ctx: (target-system: "xyz", grid: grid))
+			(ctx, nodes) = resolve-node-coordinates(nodes, ctx: ctx)
 
 			// resolve enclosing nodes
-			nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
+			nodes = resolve-node-enclosures(nodes, ctx)
 
+			(ctx, edges) = resolve-edges(grid, edges, nodes, ctx)
 		}
-
-		// resolve edges
-		edges = edges.map(edge => {
-			edge.final-vertices = resolve-edge-vertices(
-				edge, ctx: ctx-with-xyz-anchors + (target-system: "xyz", grid: grid), nodes
-			)
-
-			edge = convert-edge-corner-to-poly(edge)
-			edge = apply-edge-shift(grid, edge)
-			edge = resolve-edge-anchors(edge, nodes, ctx-with-xyz-anchors)
-			edge
-		})
-
 
 		render(grid, nodes, edges, options)
 	})
