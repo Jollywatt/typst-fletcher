@@ -1066,25 +1066,17 @@
 		else { error("Edge `corner` option must be `left` or `right`.") }
 	)
 
-	let θ-floor = calc.floor(θ/90deg)*90deg
-	let θ-ceil = calc.ceil(θ/90deg)*90deg
-	let θs = if bend-dir {
-		(θ-ceil, θ-floor + 180deg)
-	} else {
-		(θ-floor, θ-ceil + 180deg)
-	}
-
 	let corner-point = if calc.even(calc.floor(θ/90deg) + int(bend-dir)) {
-		(to.at(0), from.at(1))
+		"-|"
 	} else {
-		(from.at(0), to.at(1))
+		"|-"
 	}
 
 	let label-side = map-auto(edge.label-side, if bend-dir { left } else { right })
 
 	edge + (
 		kind: "poly",
-		final-vertices: (from, corner-point, to),
+		vertices: (from, (from, corner-point, to), to),
 		label-side: label-side,
 	)
 }
@@ -1402,7 +1394,6 @@
 #let resolve-edges(grid, edges, nodes, ctx) = {
 	// resolve edges
 	for (i, edge) in edges.enumerate() {
-	// edges = edges.map(edge => {
 		edge.final-vertices = resolve-edge-vertices(
 			edge, nodes, ctx: ctx
 		)
