@@ -185,6 +185,10 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.5.9
+
+- Support named edges (#16, #96).
+
 ### 0.5.8
 
 - Added bracket and parenthesis mark types, with shorthands `"["`, `"]"`, `"("`, `")"`, `"bracket"`, `"parenthesis"` (#102).
