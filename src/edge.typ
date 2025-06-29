@@ -1173,7 +1173,7 @@
 // Find candidate nodes that an edge should snap to
 //
 // Returns an array of zero or more nodes. False positives are acceptable.
-#let find-snapping-nodes(grid, nodes, key) = {
+#let find-snapping-nodes(nodes, key) = {
 	if type(key) == label {
 		return nodes.filter(node => node.name == key)
 	}
@@ -1203,16 +1203,20 @@
 
 
 // return a pair of arrays of nodes to which the edge should snap
-#let find-nodes-for-edge(grid, nodes, edge) = {
-	let select-nodes = find-snapping-nodes.with(grid, nodes)
+#let find-nodes-for-edge(nodes, edge) = {
+	let select-nodes = find-snapping-nodes.with(nodes)
 	let first-last(x) = (x.at(0), x.at(-1))
 	array.zip(
 		edge.snap-to,
 		first-last(edge.vertices),
 		first-last(edge.final-vertices),
-	).map(((snap-to, vertex, final-vertex)) => {
+	).map(((snap-to, vert, final-vertex)) => {
 		if snap-to == none { return () } // user explicitly disabled snapping
-		let key = if type(vertex) == label { vertex } else { final-vertex }
+		let key = (
+			if type(vert) == label { vert } // user passed node name; search for that exact node
+			else if type(vert) == dictionary and "name" in vert { label(vert.name) } // full form (name: .., anchor: ..)
+			else { final-vertex }
+		)
 		select-nodes(map-auto(snap-to, key))
 	})
 }
@@ -1321,7 +1325,7 @@
 
 // apply edge snapping
 #let resolve-edge-anchors(edge, nodes, ctx) = {
-	let nodes = find-nodes-for-edge(grid, nodes, edge)
+	let nodes = find-nodes-for-edge(nodes, edge)
 
 	if edge.kind == "line" {
 		resolve-anchored-line(edge, nodes)

@@ -675,7 +675,7 @@
 ) = {
 
 	for edge in edges {
-		let nodes = find-nodes-for-edge(grid, nodes, edge)
+		let nodes = find-nodes-for-edge(nodes, edge)
 		draw-edge(edge, debug: debug)
 	}
 
