@@ -529,7 +529,7 @@
 			.map(node => (center: node.pos.uv, size: node.size))
 
 		let vertices-affecting-grid = (edges
-			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx))
+			.map(edge => resolve-edge-vertices(ctx, edge, nodes))
 			.join() + ()) // coerce none to ()
 			.filter(vert => not is-nan-vector(vert))
 

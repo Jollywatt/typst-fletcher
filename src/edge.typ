@@ -1022,7 +1022,7 @@
 }
 
 
-#let resolve-edge-vertices(edge, ctx: (:), nodes) = {
+#let resolve-edge-vertices(ctx, edge, nodes) = {
 
 	// edge(auto, auto) -> edge(prev-node, next-node)
 	if edge.vertices.at(0) == auto {
@@ -1255,7 +1255,7 @@
 }
 
 
-#let resolve-anchored-line(edge, nodes, debug: 0) = {
+#let apply-edge-snapping-line(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
 	let θ = angle-between(from, to) + 90deg
 
@@ -1278,7 +1278,7 @@
 	edge + (final-vertices: anchors)
 }
 
-#let resolve-anchored-arc(edge, nodes, debug: 0) = {
+#let apply-edge-snapping-arc(edge, nodes, debug: 0) = {
 	let (from, to) = edge.final-vertices
 	let θ = angle-between(from, to)
 	let θs = (θ + edge.bend, θ - edge.bend + 180deg)
@@ -1299,7 +1299,7 @@
 }
 
 
-#let resolve-anchored-polyline(edge, nodes, debug: 0) = {
+#let apply-edge-snapping-polyline(edge, nodes, debug: 0) = {
 	assert(edge.vertices.len() >= 2, message: "Polyline requires at least two vertices")
 	let verts = edge.final-vertices
 	let (from, to) = (edge.final-vertices.at(0), edge.final-vertices.at(-1))
@@ -1323,16 +1323,14 @@
 	edge
 }
 
-// apply edge snapping
-#let resolve-edge-anchors(edge, nodes, ctx) = {
-	let nodes = find-nodes-for-edge(nodes, edge)
-
+#let apply-edge-snapping(edge, nodes) = {
+ 	let nodes = find-nodes-for-edge(nodes, edge)
 	if edge.kind == "line" {
-		resolve-anchored-line(edge, nodes)
+		apply-edge-snapping-line(edge, nodes)
 	} else if edge.kind == "arc" {
-		resolve-anchored-arc(edge, nodes)
+		apply-edge-snapping-arc(edge, nodes)
 	} else if edge.kind == "poly" {
-		resolve-anchored-polyline(edge, nodes)
+		apply-edge-snapping-polyline(edge, nodes)
 	}
 
 }
@@ -1377,7 +1375,7 @@
 
 // register anchors for named edges.
 // named edges define path anchors which requires knowing the exact positions of their vertices
-#let register-edge-anchors(edge, ctx) = {
+#let register-edge-anchors(ctx, edge) = {
 	if edge.name == none { return ctx }
 
 	assert(ctx.target-system == "xyz")
@@ -1398,14 +1396,12 @@
 #let resolve-edges(grid, edges, nodes, ctx) = {
 	// resolve edges
 	for (i, edge) in edges.enumerate() {
-		edge.final-vertices = resolve-edge-vertices(
-			edge, nodes, ctx: ctx
-		)
+		edge.final-vertices = resolve-edge-vertices(ctx, edge, nodes)
 
 		edge = convert-edge-corner-to-poly(edge)
 		edge = apply-edge-shift(grid, edge)
-		edge = resolve-edge-anchors(edge, nodes, ctx)
-		ctx = register-edge-anchors(edge, ctx)
+		edge = apply-edge-snapping(edge, nodes)
+		ctx = register-edge-anchors(ctx, edge)
 		edges.at(i) = edge
 	}
 
