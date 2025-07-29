@@ -256,7 +256,9 @@
 		// Choose label anchor based on edge direction,
 		// preferring to place labels above the edge
 		if edge.label-side == auto {
-			edge.label-side = if calc.abs(θ) < 90deg { left } else { right }
+			// edges are often exactly vertical, but tiny floating point errors make θ unstable
+			// so choose 89.5deg to avoid flickering
+			edge.label-side = if calc.abs(θ) < 89.5deg { left } else { right }
 		}
 
 		place-edge-label-on-curve(edge, curve, debug: debug)
