@@ -9,7 +9,7 @@
 		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
 		delta: 53.5deg, // angle spanned by arc of curved arrow edge
 
-		tip-origin: 0.5,
+		tip-origin: mark => 0.5/float(mark.scale),
 		tail-end: mark => calc.min(..mark.extrude),
 		tail-origin: mark => {
 			let dx = calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)
@@ -70,7 +70,8 @@
 		size: 10,
 		sharpness: 20deg,
 
-		tip-origin: mark => 0.5/calc.sin(mark.sharpness),
+		tip-end: mark => -0.25/calc.sin(mark.sharpness)/float(mark.scale),
+		tip-origin: mark => 0.5/calc.sin(mark.sharpness)/float(mark.scale),
 		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
 
 		fill: none,
@@ -90,8 +91,8 @@
 		inherit: "straight",
 
 		tip-origin: 0,
-		tip-end: mark => -0.5/calc.sin(mark.sharpness),
-		tail-end: mark => -0.5/calc.sin(mark.sharpness),
+		tip-end: mark => -1/calc.sin(mark.sharpness)/float(mark.scale),
+		tail-end: mark => -0.5/calc.sin(mark.sharpness)/float(mark.scale),
 
 		stroke: none,
 		fill: auto,
@@ -103,7 +104,7 @@
 		angle: 25deg,
 		rear-angle: mark => calc.atan2(mark.stealth, calc.tan(mark.angle)),
 
-		tip-origin: mark => 0.5/calc.sin(mark.angle),
+		tip-origin: mark => 0.5/calc.sin(mark.angle)/float(mark.scale),
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
 		tail-origin: mark => {
 			if mark.stealth > 0 {
@@ -112,7 +113,7 @@
 				let miter-limit = if mark.stroke == none { 0 }
 					else { stroke(mark.stroke).miter-limit }
 
-				let miter-length = 1/calc.sin(wing-angle)
+				let miter-length = 1/float(mark.scale)/calc.sin(wing-angle)
 				// stealth arrows with sharp wings look bigger due to long miter lengths
 				let extra-size = if miter-length < miter-limit {
 					// so account for extra apparent size

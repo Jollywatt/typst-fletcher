@@ -39,6 +39,7 @@ Pull requests are most welcome!
 ### 0.5.9
 
 - Support named edges (#16, #96).
+- Minor improvements too mark scaling.
 
 ### 0.5.8
 

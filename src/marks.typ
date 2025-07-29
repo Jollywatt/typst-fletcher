@@ -312,12 +312,12 @@
 		let l = calc.max(5, max - min)
 
 		draw.line(
-			(t*mark.tip-end, 0),
+			(t*mark.tip-end*scale, 0),
 			(t*(min - l), 0),
 			stroke: rgb("0f06") + t,
 		)
 		draw.line(
-			(t*mark.tail-end, 0),
+			(t*mark.tail-end*scale, 0),
 			(t*(max + l), 0),
 			stroke: rgb("f006") + t,
 		)
