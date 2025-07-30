@@ -309,7 +309,7 @@
 ///   		node((2, 0), $C$)
 ///   		node((3, 0), $D$)
 ///   	},
-///   	for x in range(4) { node((x, 1) [#x]) },
+///   	for x in range(4) { node((x, 1), [#x]) },
 ///   )
 ///   ```
 ///
