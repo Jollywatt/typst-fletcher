@@ -1,7 +1,7 @@
 #import "utils.typ"
 #import "@preview/cetz:0.4.1"
 
-#let grid-from-rects(rects, gutter: 0) = {
+#let cell-sizes-from-rects(rects) = {
   let (x-min, x-max) = (0, 0)
   let (y-min, y-max) = (0, 0)
 
@@ -17,7 +17,7 @@
   (y-min, y-max) = (calc.floor(y-min), calc.ceil(y-max))
 
   let (n-cols, n-rows) = (x-max - x-min + 1, y-max - y-min + 1)
-  let (col-widths, row-heights) = ((0,)*n-cols, (0,)*n-rows)
+  let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
   for rect in rects {
     let (x, y) = rect.pos
@@ -27,38 +27,42 @@
 
     let (w, h) = rect.size
 
-    col-widths.at(i-floor) = calc.max(col-widths.at(i-floor), w*(1 - i-fract))
+    col-sizes.at(i-floor) = calc.max(col-sizes.at(i-floor), w*(1 - i-fract))
     if i-floor + 1 < n-cols {
-      col-widths.at(i-floor + 1) = calc.max(col-widths.at(i-floor + 1), w*i-fract)
+      col-sizes.at(i-floor + 1) = calc.max(col-sizes.at(i-floor + 1), w*i-fract)
     }
 
-    row-heights.at(j-floor) = calc.max(row-heights.at(j-floor), h*(1 - j-fract))
+    row-sizes.at(j-floor) = calc.max(row-sizes.at(j-floor), h*(1 - j-fract))
     if j-floor + 1 < n-rows {
-      row-heights.at(j-floor + 1) = calc.max(row-heights.at(j-floor + 1), h*j-fract)
+      row-sizes.at(j-floor + 1) = calc.max(row-sizes.at(j-floor + 1), h*j-fract)
     }
   }
 
-  let centers = (x: (), y: ())
-  let x = 0
-  for (i, col) in col-widths.enumerate() {
-    x += col
-    centers.x.push(x - col/2 + i*gutter)
-  }
-  let y = 0
-  for (i, row) in row-heights.enumerate() {
-    y += row
-    centers.y.push(y - row/2 + i*gutter)
-  }
-
-  (
+  return (
     x-min: x-min,
     x-max: x-max,
     y-min: y-min,
     y-max: y-max,
-    col-widths: col-widths,
-    row-heights: row-heights,
-    centers: centers,
+    col-sizes: col-sizes,
+    row-sizes: row-sizes,
   )
+}
+
+#let cell-centers-from-sizes((col-sizes, row-sizes), gutter: 0) = {
+
+  let centers = (x: (), y: ())
+  let x = 0
+  for (i, col) in col-sizes.enumerate() {
+    x += col
+    centers.x.push(x - col/2 + i*gutter)
+  }
+  let y = 0
+  for (i, row) in row-sizes.enumerate() {
+    y += row
+    centers.y.push(y - row/2 + i*gutter)
+  }
+
+  return centers
 }
 
 #let uv-to-xy(grid, uv) = {
@@ -74,10 +78,8 @@
     cetz.draw.set-style(stroke: red.transparentize(50%))
     for (i, x) in grid.centers.x.enumerate() {
       for (j, y) in grid.centers.y.enumerate() {
-        cetz.draw.line((to: (x, y), rel: (0, -s)), (to: (x, y), rel: (0, +s)))
-        cetz.draw.line((to: (x, y), rel: (-s, 0)), (to: (x, y), rel: (+s, 0)))
-        let (w, h) = (grid.col-widths.at(i), grid.row-heights.at(j))
-
+        let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
+        cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
         cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
       }
     }
@@ -85,13 +87,13 @@
     for (i, x) in grid.centers.x.enumerate() {
       let coord = i + grid.x-min
       cetz.draw.content((x, -0.5em), text(10pt, red, raw(str(coord))), anchor: "north")
-      let w = grid.col-widths.at(i)
+      let w = grid.col-sizes.at(i)
       cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: 2pt + red)
     }
     for (j, y) in grid.centers.y.enumerate() {
       let coord = j + grid.y-min
       cetz.draw.content((-0.5em, y), text(10pt, red, raw(str(coord))), anchor: "east")
-      let h = grid.row-heights.at(j)
+      let h = grid.row-sizes.at(j)
       cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: 2pt + red)
     }
   })
@@ -99,13 +101,30 @@
 }
 
 
-#let flexigrid(objects, gutter: 0, debug: 0, origin: (0,0)) = {
+#let flexigrid(
+  objects,
+  gutter: 0,
+  debug: 0,
+  origin: (0,0),
+  columns: i => auto,
+  rows: j => auto,
+) = {
   let objects = cetz.draw.get-ctx(ctx => {
     let objects = objects.map(obj => {
       obj + (size: cetz.util.measure(ctx, obj.content))
     })
 
-    let grid = grid-from-rects(objects, gutter: gutter)
+    let grid = cell-sizes-from-rects(objects)
+
+    for (i, col) in grid.col-sizes.enumerate() {
+      grid.col-sizes.at(i) = utils.map-auto((columns)(i), col)
+    }
+    for (j, row) in grid.row-sizes.enumerate() {
+      grid.row-sizes.at(j) = utils.map-auto((rows)(j), row)
+    }
+
+    grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
+
 
     if debug > 0 {
       cetz.draw.group(draw-flexigrid(grid))

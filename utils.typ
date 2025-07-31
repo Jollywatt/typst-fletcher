@@ -29,3 +29,5 @@
 	}
 	array
 }
+
+#let map-auto(value, fallback) = if value == auto { fallback } else { value }

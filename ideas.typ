@@ -45,6 +45,7 @@
     gutter: 1,
     debug: 1,
     origin: (0,0),
+    columns: i => auto,
   )
   draw.line("A.north-east", "B.west")
   draw.circle((0,0), radius: 5mm)
