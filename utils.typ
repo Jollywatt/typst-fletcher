@@ -20,3 +20,12 @@
 		)
 	}
 }
+
+#let cumsum(array) = {
+	let sum = array.at(0)
+	for i in range(1, array.len()) {
+		sum += array.at(i)
+		array.at(i) = sum
+	}
+	array
+}

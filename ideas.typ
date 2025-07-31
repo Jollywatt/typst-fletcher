@@ -29,11 +29,13 @@ We want an interface something like this:
 #let grid = (
   centers: (x: (0cm, 1cm, 3cm, 4.5cm), y: (0cm, 0.5cm, 2cm)),
   origin: (x: -1, y: 10),
+  x-min: -1,
+  y-min: 10,
 )
 
 #let uv-to-xy(grid, uv) = {
   let (u, v) = uv
-  let (i, j) = (u - grid.origin.x, v - grid.origin.y)
+  let (i, j) = (u - grid.x-min, v - grid.y-min)
   (interp(grid.centers.x, i), interp(grid.centers.y, j))
 }
 
@@ -49,28 +51,83 @@ We want an interface something like this:
     cetz.draw.set-style(stroke: red.transparentize(50%))
     for (i, x) in grid.centers.x.enumerate() {
       for (j, y) in grid.centers.y.enumerate() {
-        cetz.draw.line((x, y - s), (x, y + s))
-        cetz.draw.line((x - s, y), (x + s, y))
+        cetz.draw.line((to: (x, y), rel: (0, -s)), (to: (x, y), rel: (0, +s)))
+        cetz.draw.line((to: (x, y), rel: (-s, 0)), (to: (x, y), rel: (+s, 0)))
+        let (w, h) = (grid.col-widths.at(i), grid.row-heights.at(j))
+
+        cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
       }
     }
 
     for (i, x) in grid.centers.x.enumerate() {
-      let coord = i + grid.origin.x
-      cetz.draw.content((x, -0.5em), text(0.7em, red, raw(str(coord))), anchor: "north")
+      let coord = i + grid.x-min
+      cetz.draw.content((x, -0.5em), text(10pt, red, raw(str(coord))), anchor: "north")
+      let w = grid.col-widths.at(i)
+      cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: 2pt + red)
     }
     for (j, y) in grid.centers.y.enumerate() {
-      let coord = j + grid.origin.y
-      cetz.draw.content((-0.5em, y), text(0.7em, red, raw(str(coord))), anchor: "east")
+      let coord = j + grid.y-min
+      cetz.draw.content((-0.5em, y), text(10pt, red, raw(str(coord))), anchor: "east")
+      let h = grid.row-heights.at(j)
+      cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: 2pt + red)
     }
+  })
+
+}
+
+// #context cetz.canvas({
+//   import cetz.draw
+  
+//   draw-flexigrid(grid)
+//   node(grid, (1,12))[Hello Worlds]
+//   node(grid, (-1,10))[Hello Worlds]
+// })
+
+#import "elastic-grid.typ": *
+#let elastic-layout(objects, gutter: 0, debug: 0) = {
+  cetz.draw.get-ctx(ctx => {
+    let objects = objects.map(obj => {
+      obj + (size: cetz.util.measure(ctx, obj.content))
+    })
+
+    let grid = grid-from-rects(objects, gutter: gutter)
+
+    if debug > 0 {
+      cetz.draw.group(draw-flexigrid(grid))
+    }
+
+    for object in objects {
+      let c = uv-to-xy(grid, object.pos)
+      let (w, h) = object.size
+      cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
+      cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
+    }
+
   })
 }
 
-#context cetz.canvas({
-  import cetz.draw
-  
+#cetz.draw.content
 
-  draw-flexigrid(grid)
-  node(grid, (1,12))[Hello Worlds]
-  node(grid, (-1,10))[Hello Worlds]
+#let node(pos, content, name: none) = {
+  ((
+    class: "node",
+    pos: pos,
+    content: content,
+    name: name,
+  ),)
+}
+
+#v(1cm)
+#set text(5em)
+
+#let fig = cetz.canvas({
+  import cetz.draw
+  elastic-layout({
+    node((0,0), $U$, name: "A")
+    node((1,2), $V  times W$, name: "B")
+    node((2,0), $frak(B)$)
+  }, gutter: 1, debug: 1)
+  draw.line("A.north-east", "B.west")
 })
 
+#box(fill: luma(96%), fig)
