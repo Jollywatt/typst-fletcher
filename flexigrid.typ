@@ -99,8 +99,8 @@
 }
 
 
-#let flexigrid(objects, gutter: 0, debug: 0) = {
-  cetz.draw.get-ctx(ctx => {
+#let flexigrid(objects, gutter: 0, debug: 0, origin: (0,0)) = {
+  let objects = cetz.draw.get-ctx(ctx => {
     let objects = objects.map(obj => {
       obj + (size: cetz.util.measure(ctx, obj.content))
     })
@@ -117,6 +117,9 @@
       cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
       cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
     }
-
   })
+
+  cetz.draw.translate(origin)
+  objects
+  cetz.draw.translate(cetz.vector.scale(origin, -1))
 }
