@@ -17,23 +17,27 @@
   y-min = calc.floor(y-min)
   y-max = calc.ceil(y-max)
 
-  let (cols, rows) = (x-max - x-min + 1, y-max - y-min + 1)
+  let (n-cols, n-rows) = (x-max - x-min + 1, y-max - y-min + 1)
 
-  let (col-widths, row-heights) = ((gutter,)*cols, (gutter,)*rows)
+  let (col-widths, row-heights) = ((0,)*n-cols, (0,)*n-rows)
 
   for rect in rects {
     let (x, y) = rect.pos
     let (i, j) = (x - x-min, y - y-min)
 
     let (w, h) = rect.size
-    col-widths.at(i) = calc.max(col-widths.at(i), w)
-    row-heights.at(j) = calc.max(row-heights.at(j), h)
+    let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
+    col-widths.at(i-floor) = calc.max(col-widths.at(i-floor), w*(1 - i + i-floor))
+    if i-floor < n-cols - 1 {
+      col-widths.at(i-floor + 1) = calc.max(col-widths.at(i-floor + 1), w*(i - i-floor))
+    }
+    row-heights.at(j-floor) = calc.max(row-heights.at(j-floor), h*(1 - j + j-floor))
+    if j-floor < n-rows - 1 {
+      row-heights.at(j-floor + 1) = calc.max(row-heights.at(j-floor + 1), h*(j - j-floor))
+    }
   }
 
   let centers = (x: (), y: ())
-  // for col in col-widths { centers.x.push(centers.x.at(-1) - col/2) }
-  // for row in row-heights { centers.y.push(centers.y.at(-1) - row/2) }
-  // 
   let x = 0
   for (i, col) in col-widths.enumerate() {
     x += col

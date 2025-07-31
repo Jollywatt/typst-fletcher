@@ -118,15 +118,15 @@ We want an interface something like this:
 }
 
 #v(1cm)
-#set text(5em)
+#set text(3em)
 
 #let fig = cetz.canvas({
   import cetz.draw
   elastic-layout({
     node((0,0), $U$, name: "A")
-    node((1,2), $V  times W$, name: "B")
+    node((1,1), $V times W$, name: "B")
     node((2,0), $frak(B)$)
-  }, gutter: 1, debug: 1)
+  }, gutter: 2, debug: 1)
   draw.line("A.north-east", "B.west")
 })
 
