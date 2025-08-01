@@ -37,18 +37,20 @@
 
 #let fig = cetz.canvas({
   import cetz.draw
-  flexigrid({
-    node((0,0), $U$, name: "A")
-    node((1,1), $ a + b/c $, name: "B")
-    node((2,0), $ frak(B)/oo $)
-  },
-    gutter: 3pt,
+  draw.circle((0, 0), radius: 30mm, name: "phil", stroke: yellow.transparentize(70%))
+
+  flexigrid(
+    {
+      node((0, 0), $U$, name: "A")
+      node((1, 1), $ a + b/c $, name: "B")
+      node((2, 0), $ frak(B)/oo $)
+    },
+    gutter: 5pt,
     debug: 1,
-    origin: (0,0),
-    columns: i => if i == 1 { 4cm }
+    origin: "phil.south",
+    name: "f",
   )
-  draw.line("A.north-east", "B.west")
-  draw.circle((0,0), radius: 5mm)
+  draw.line("f.A.north-east", "f.B.west")
 })
 
 #box(fill: luma(96%), fig)

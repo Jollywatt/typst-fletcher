@@ -114,17 +114,24 @@
   origin: (0,0),
   columns: auto,
   rows: auto,
+  name: none,
 ) = {
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
 
-  let objects = cetz.draw.get-ctx(ctx => {
+  let objs = cetz.draw.get-ctx(ctx => {
     let gutter = cetz.util.resolve-number(ctx, gutter)
 
-    let objects = objects.map(obj => {
+    let (_, origin) = cetz.coordinate.resolve(ctx, origin)
+    cetz.draw.translate(origin)
+
+
+    // phase 1: measure the sizes of all nodes
+    let objects = (objects + ()).map(obj => {
       obj + (size: cetz.util.measure(ctx, obj.content))
     })
 
+    // phase 2: compute the cell sizes and positions in flexigrid
     let grid = cell-sizes-from-rects(objects)
 
     let apply-rowcol-spec(fn, defaults) = {
@@ -142,20 +149,19 @@
 
     grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
 
-
     if debug > 0 {
       cetz.draw.group(draw-flexigrid(grid))
     }
 
+    // phase 3: place objects at resolved locations
     for object in objects {
       let c = uv-to-xy(grid, object.pos)
       let (w, h) = object.size
       cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
       cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
     }
+
   })
 
-  cetz.draw.translate(origin)
-  objects
-  cetz.draw.translate(cetz.vector.scale(origin, -1))
+  cetz.draw.group(objs, name: name)
 }
