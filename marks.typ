@@ -34,6 +34,8 @@
 
 
 
+
+
 /// Resolve a mark dictionary by applying inheritance, adding any required
 /// entries, and evaluating any closure entries.
 ///
@@ -69,6 +71,24 @@
 
 	return mark
 }
+
+#let interpret-marks(marks) = {
+	marks = marks.enumerate().map(((i, mark)) => {
+		resolve-mark(mark, defaults: (
+			pos: i/calc.max(1, marks.len() - 1),
+			rev: i == 0,
+		))
+	}).filter(mark => mark != none) // drop empty marks
+
+	marks = marks.map(mark => {
+		mark.tip = (mark.pos == 0) == mark.rev
+		if (mark.pos not in (0, 1)) { mark.tip = none }
+		mark
+	})
+
+	marks
+}
+
 
 
 /// Draw a mark at a given position and angle
@@ -154,222 +174,20 @@
 	})
 }
 
-/// Visualise a mark's anatomy.
-///
-/// ```example
-/// #context {
-/// 	let mark = fletcher.MARKS.get().stealth
-/// 	// make a wide stealth arrow
-/// 	mark += (angle: 45deg)
-/// 	fletcher.mark-debug(mark)
-/// }
-/// ```
-///
-/// - Green/left stroke: the edge's stroke when the mark is at the tip.
-/// - Red/right stroke: edge's stroke if the mark is at the start acting as a
-///   tail.
-/// - Blue-white dot: the origin point $(0, 0)$ in the mark's coordinate frame.
-/// - `tip-origin`: the $x$-coordinate of the point of the mark's tip.
-/// - `tail-origin`: the $x$-coordinate of the mark's tip when it is acting as a
-///   reversed tail mark.
-/// - `tip-end`: The $x$-coordinate of the end point of the edge's stroke (green
-///   stroke).
-/// - `tail-end`: The $x$-coordinate of the end point of the edge's stroke when
-///   acting as a tail mark (red stroke).
-/// - Dashed green/red lines: The stroke end points as a function of $y$. This
-///   is controlled by the special `cap-offset` mark property and is used for
-///   multi-stroke effects like #diagram(edge(">==>")). See `cap-offset()`.
-///
-/// This is mainly useful for designing your own marks.
-///
-/// - mark (string, dictionary): The mark name or dictionary.
-/// - stroke (stroke): The stroke style, whose paint and thickness applies both
-///   to the stroke and the mark itself.
-///
-/// - show-labels (bool): Whether to label the tip/tail origin/end points.
-/// - show-offsets (bool): Whether to visualise the `cap-offset()` values.
-/// - offset-range (number): The span above and below the stroke line to plot
-///   the cap offsets, in multiples of the stroke's thickness.
-#let mark-debug(
-	mark,
-	stroke: 5pt,
-	show-labels: true,
-	show-offsets: true,
-	offset-range: 6,
-) = context {
-	let mark = resolve-mark(mark)
-	let stroke = utils.as-stroke(stroke)
-
-	let t = stroke.thickness
-	let scale = float(mark.scale)
 
 
-	cetz.canvas({
-    import cetz.draw
+#let draw-marks-on-path(ctx, obj, marks) = {
+	let marks = interpret-marks(marks)
+  let (segments, close) = utils.get-segments(ctx, obj)
+  let inv-transform = cetz.matrix.inverse(ctx.transform)
 
-		draw-mark(mark, stroke: stroke)
+  for mark in marks {
+    let point-info = cetz.path-util.point-at(segments, mark.pos*100%)
+    let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
+    let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
 
-		if mark.at("rev", default: false) {
-			draw.scale(x: -1)
-			draw.translate(x: -t*mark.tail-origin*scale)
-		} else {
-			draw.translate(x: -t*mark.tip-origin*scale)
-		}
-
-
-		if show-offsets {
-
-			let samples = 100
-			let ys = range(samples + 1)
-				.map(n => n/samples)
-				.map(y => (2*y - 1)*offset-range)
-
-			let tip-points = ys.map(y => {
-				let o = cap-offset(mark + (tip: true), y)
-				(o*t, y*t)
-			})
-
-			let tail-points = ys.map(y => {
-				let o = cap-offset(mark + (tip: false), y)
-				(o*t, y*t)
-			})
-
-			draw.line(
-				..tip-points,
-				stroke: (
-					paint: rgb("0f0"),
-					thickness: 0.4pt,
-					dash: (array: (3pt, 3pt), phase: 0pt),
-				),
-			)
-			draw.line(
-				..tail-points,
-				stroke: (
-					paint: rgb("f00"),
-					thickness: 0.4pt,
-					dash: (array: (3pt, 3pt), phase: 3pt),
-				),
-			)
-
-
-		}
-
-		if show-labels {
-			for (i, (item, y, color)) in (
-				("tip-end",     +1.00, "0f0"),
-				("tail-end",    -1.00, "f00"),
-				("tip-origin",  +0.75,  "0ff"),
-				("tail-origin", -0.75,  "f0f"),
-			).enumerate() {
-				let x = mark.at(item)*float(mark.scale)
-				let c = rgb(color)
-				draw.line((t*x, 0), (t*x, y), stroke: 0.5pt + c)
-				draw.content(
-					(t*x, y),
-					pad(2pt, text(0.75em, fill: c, raw(item))),
-					anchor: if y < 0 { "north" } else { "south" },
-				)
-			}
-		}
-
-		// draw tip/tail stroke previews
-		let (min, max) = min-max((
-			"tip-end",
-			"tail-end",
-			"tip-origin",
-			"tail-origin",
-		).map(i => mark.at(i)))
-
-		let l = calc.max(5, max - min)
-
-		draw.line(
-			(t*mark.tip-end*scale, 0),
-			(t*(min - l), 0),
-			stroke: rgb("0f06") + t,
-		)
-		draw.line(
-			(t*mark.tail-end*scale, 0),
-			(t*(max + l), 0),
-			stroke: rgb("f006") + t,
-		)
-
-		// draw true origin dot
-		draw.circle(
-			(0, 0),
-			radius: t/4,
-			stroke: rgb("00f") + 1pt,
-			fill: white,
-		)
-	})
+    draw-mark(mark, origin: origin, angle: angle, stroke: ctx.style.stroke)
+  }
 }
 
-
-
-#let mark-demo(
-	mark,
-	stroke: 2pt,
-	width: 3cm,
-	height: 1cm,
-) = context {
-	let mark = resolve-mark(mark)
-	let stroke = utils.as-stroke(stroke)
-
-	let t = stroke.thickness*float(mark.scale)
-
-	cetz.canvas({
-    import cetz.draw
-
-		for x in (0, width) {
-			draw.line(
-				(x, +0.5*height),
-				(x, -1.5*height),
-				stroke: red.transparentize(50%) + 0.5pt,
-			)
-		}
-
-		let x = t*(mark.tip-origin - mark.tip-end)
-		draw.line(
-			(x, 0),
-			(rel: (-x, 0), to: (width, 0)),
-			stroke: stroke,
-		)
-
-		let mark-length = t*(mark.tip-origin - mark.tail-origin)
-		draw-mark(
-			mark + (rev: true),
-			stroke: stroke,
-			origin: (mark-length, 0),
-			angle: 0deg,
-		)
-		draw-mark(
-			mark + (rev: false),
-			stroke: stroke,
-			origin: (width, 0),
-			angle: 0deg,
-		)
-
-		draw.translate((0, -height))
-
-		let x = t*(mark.tail-end - mark.tail-origin)
-		draw.line(
-			(x, 0),
-			(rel: (-x, 0), to: (width, 0)),
-			stroke: stroke,
-		)
-
-		draw-mark(
-			mark + (rev: true),
-			stroke: stroke,
-			origin: (0, 0),
-			angle: 180deg,
-		)
-		draw-mark(
-			mark + (rev: false),
-			stroke: stroke,
-			origin: (width - mark-length, 0),
-			angle: 180deg,
-		)
-
-	})
-}
 

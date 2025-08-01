@@ -35,7 +35,11 @@
 #let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
 
 
-
+#let as-array(o) = {
+	if type(o) == array { return o }
+	if o == none { return () }
+	panic("expected array", o)
+}
 
 #import "@preview/elembic:1.1.1" as e
 #let as-stroke(o) = {

@@ -1,5 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
+#import "nodes.typ"
 
 
 #let cell-sizes-from-rects(rects) = {
@@ -50,8 +51,8 @@
 }
 
 #let cell-centers-from-sizes((col-sizes, row-sizes), gutter: 0) = {
-
   let centers = (x: (), y: ())
+
   let x = 0
   for (i, col) in col-sizes.enumerate() {
     x += col
@@ -113,6 +114,17 @@
   return i => input
 }
 
+#let apply-rowcol-spec(fn, defaults) = {
+  for (i, col) in defaults.enumerate() {
+    let given = (fn)(i)
+    if given not in (none, auto) {
+      defaults.at(i) = cetz.util.resolve-number(ctx, given)
+    }
+  }
+  return defaults
+}
+
+
 #let flexigrid(
   objects,
   gutter: 0,
@@ -124,6 +136,8 @@
 ) = {
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
+
+  objects = utils.as-array(objects)
 
 
   let objs = cetz.draw.get-ctx(ctx => {
@@ -144,43 +158,19 @@
 
     // phase 2: compute the cell sizes and positions in flexigrid
     let grid = cell-sizes-from-rects(objects.filter(utils.is-node))
-
-    let apply-rowcol-spec(fn, defaults) = {
-      for (i, col) in defaults.enumerate() {
-        let given = (fn)(i)
-        if given not in (none, auto) {
-          defaults.at(i) = cetz.util.resolve-number(ctx, given)
-        }
-      }
-      return defaults
-    }
-
     grid.col-sizes = apply-rowcol-spec(col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
-
     grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
 
     if debug > 0 {
       cetz.draw.group(draw-flexigrid(grid))
     }
 
-    // phase 3: place objects at resolved locations
+    // phase 3: draw objects at resolved locations
     for object in objects {
       if utils.is-node(object) {
-        let node = object
-        let (w, h) = node.size
-
-        let cell = interp-grid-cell(grid, node.pos)
-
-        let (x-shift, y-shift) = (0, 0)
-        if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
-        if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
-        if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
-        if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
-
-        let coord = (to: (cell.x, cell.y), rel: (x-shift, y-shift))
-        cetz.draw.content(coord, text(top-edge: "cap-height", bottom-edge: "baseline", node.content))
-        (node.shape)(coord, node)
+        let cell = interp-grid-cell(grid, object.pos)
+        nodes.draw-node-in-cell(object, cell)
       } else {
         (object,)
       }
@@ -190,3 +180,5 @@
 
   cetz.draw.group(objs, name: name)
 }
+
+#let diagram(..args) = cetz.canvas(flexigrid(..args))
