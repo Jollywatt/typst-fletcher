@@ -1,5 +1,6 @@
 #import "utils.typ"
-#import "@preview/cetz:0.4.1"
+#import "deps.typ": cetz
+
 
 #let cell-sizes-from-rects(rects) = {
   let (x-min, x-max) = (0, 0)

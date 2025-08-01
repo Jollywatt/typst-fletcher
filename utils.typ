@@ -33,3 +33,56 @@
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
 
 #let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
+
+
+
+
+#import "@preview/elembic:1.1.1" as e
+#let as-stroke(o) = {
+  let (succeeded, stroke) = e.types.cast(o, stroke)
+  if not succeeded { panic(stroke) }
+  return stroke
+}
+
+
+#let stroke-to-dict(s) = {
+	let s = as-stroke(s)
+	let d = (
+		paint: s.paint,
+		thickness: s.thickness,
+		cap: s.cap,
+		join: s.join,
+		dash: s.dash,
+		miter-limit: s.miter-limit,
+	)
+
+	// remove auto entries to allow folding strokes by joining dicts
+	for (key, value) in d {
+		if value == auto {
+			let _ = d.remove(key)
+		}
+	}
+
+	return d
+}
+
+#import "deps.typ": cetz
+
+
+// inaccessible cetz utilities
+#let get-segments(ctx, target) = {
+  if type(target) == array {
+    assert.eq(target.len(), 1,
+      message: "Expected a single element, got " + str(target.len()))
+    target = target.first()
+  }
+
+  let (ctx, drawables, ..) = cetz.process.element(ctx, target)
+  if drawables == none or drawables == () {
+    return ()
+  }
+
+  let first = drawables.first()
+  let closed = cetz.path-util.first-subpath-closed(first.segments)
+  return (segments: first.segments, close: closed)
+}
