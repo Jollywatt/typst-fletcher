@@ -8,12 +8,13 @@
 
 
 
-#let node(pos, content, name: none) = {
+#let node(pos, content, name: none, align: center + horizon) = {
   ((
     class: "node",
     pos: pos,
     content: content,
     name: name,
+    align: align,
   ),)
 }
 
@@ -29,6 +30,7 @@
       node((0, 0), $U$, name: "A")
       node((1, 1), $ a + b/c $, name: "B")
       node((2, 0), $ frak(B)/oo $)
+      node((1, 0), circle(fill: teal), align: top)
       cetz.draw.circle("A.north", radius: 3pt, fill: blue)
     },
     gutter: 10pt,

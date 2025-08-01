@@ -65,10 +65,15 @@
   return centers
 }
 
-#let uv-to-xy(grid, uv) = {
-  let (u, v) = uv
-  let (i, j) = (u - grid.x-min, v - grid.y-min)
-  (utils.interp(grid.centers.x, i), utils.interp(grid.centers.y, j))
+
+#let interp-grid-cell(grid, (x, y)) = {
+  let (i, j) = (x - grid.x-min, y - grid.y-min)
+  (
+    x: utils.interp(grid.centers.x, i),
+    y: utils.interp(grid.centers.y, j),
+    w: utils.interp(grid.col-sizes, i),
+    h: utils.interp(grid.row-sizes, j),
+  )
 }
 
 
@@ -161,10 +166,20 @@
     // phase 3: place objects at resolved locations
     for object in objects {
       if utils.is-node(object) {
-        let c = uv-to-xy(grid, object.pos)
-        let (w, h) = object.size
-        cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
-        cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
+        let node = object
+        let (w, h) = node.size
+
+        let cell = interp-grid-cell(grid, node.pos)
+
+        let (x-shift, y-shift) = (0, 0)
+        if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
+        if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
+        if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
+        if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
+
+        let coord = (to: (cell.x, cell.y), rel: (x-shift, y-shift))
+        cetz.draw.content(coord, text(top-edge: "cap-height", bottom-edge: "baseline", node.content))
+        cetz.draw.rect((to: coord, rel: (-w/2, -h/2)), (to: coord, rel: (w/2, h/2)), name: node.name)
       } else {
         (object,)
       }
