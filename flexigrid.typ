@@ -179,7 +179,7 @@
 
         let coord = (to: (cell.x, cell.y), rel: (x-shift, y-shift))
         cetz.draw.content(coord, text(top-edge: "cap-height", bottom-edge: "baseline", node.content))
-        cetz.draw.rect((to: coord, rel: (-w/2, -h/2)), (to: coord, rel: (w/2, h/2)), name: node.name)
+        (node.shape)(coord, node)
       } else {
         (object,)
       }
