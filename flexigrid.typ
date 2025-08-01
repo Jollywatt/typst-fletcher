@@ -100,28 +100,45 @@
 
 }
 
+#let interpret-rowcol-spec(input) = {
+  if input == auto { return i => auto }
+  if type(input) == array { return i => input.at(i) }
+  if type(input) == function { return input }
+  return i => input
+}
 
 #let flexigrid(
   objects,
   gutter: 0,
   debug: 0,
   origin: (0,0),
-  columns: i => auto,
-  rows: j => auto,
+  columns: auto,
+  rows: auto,
 ) = {
+  let col-spec = interpret-rowcol-spec(columns)
+  let row-spec = interpret-rowcol-spec(rows)
+
   let objects = cetz.draw.get-ctx(ctx => {
+    let gutter = cetz.util.resolve-number(ctx, gutter)
+
     let objects = objects.map(obj => {
       obj + (size: cetz.util.measure(ctx, obj.content))
     })
 
     let grid = cell-sizes-from-rects(objects)
 
-    for (i, col) in grid.col-sizes.enumerate() {
-      grid.col-sizes.at(i) = utils.map-auto((columns)(i), col)
+    let apply-rowcol-spec(fn, defaults) = {
+      for (i, col) in defaults.enumerate() {
+        let given = (fn)(i)
+        if given not in (none, auto) {
+          defaults.at(i) = cetz.util.resolve-number(ctx, given)
+        }
+      }
+      return defaults
     }
-    for (j, row) in grid.row-sizes.enumerate() {
-      grid.row-sizes.at(j) = utils.map-auto((rows)(j), row)
-    }
+
+    grid.col-sizes = apply-rowcol-spec(col-spec, grid.col-sizes)
+    grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
 
     grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
 

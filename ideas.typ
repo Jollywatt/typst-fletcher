@@ -39,13 +39,13 @@
   import cetz.draw
   flexigrid({
     node((0,0), $U$, name: "A")
-    node((1,1), $V times W$, name: "B")
-    node((2,0), $frak(B)$)
+    node((1,1), $ a + b/c $, name: "B")
+    node((2,0), $ frak(B)/oo $)
   },
-    gutter: 1,
+    gutter: 3pt,
     debug: 1,
     origin: (0,0),
-    columns: i => auto,
+    columns: i => if i == 1 { 4cm }
   )
   draw.line("A.north-east", "B.west")
   draw.circle((0,0), radius: 5mm)
