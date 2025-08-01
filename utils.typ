@@ -31,3 +31,5 @@
 }
 
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
+
+#let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"

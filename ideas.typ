@@ -4,21 +4,6 @@
 
 #import "utils.typ": *
 
-#let grid = (
-  centers: (x: (0cm, 1cm, 3cm, 4.5cm), y: (0cm, 0.5cm, 2cm)),
-  origin: (x: -1, y: 10),
-  x-min: -1,
-  y-min: 10,
-)
-
-
-#let node(grid, pos, label) = {
-  let size = measure(label)
-  let xy = uv-to-xy(grid, pos)
-  cetz.draw.rect((to: xy, rel: (size.width/2, size.height/2)), (to: xy, rel: (-size.width/2, -size.height/2)))
-  cetz.draw.content(xy, label)
-}
-
 #import "flexigrid.typ": *
 
 
@@ -44,8 +29,9 @@
       node((0, 0), $U$, name: "A")
       node((1, 1), $ a + b/c $, name: "B")
       node((2, 0), $ frak(B)/oo $)
+      cetz.draw.circle("A.north", radius: 3pt, fill: blue)
     },
-    gutter: 5pt,
+    gutter: 10pt,
     debug: 1,
     origin: "phil.south",
     name: "f",

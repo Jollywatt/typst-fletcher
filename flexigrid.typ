@@ -119,6 +119,7 @@
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
 
+
   let objs = cetz.draw.get-ctx(ctx => {
     let gutter = cetz.util.resolve-number(ctx, gutter)
 
@@ -127,12 +128,16 @@
 
 
     // phase 1: measure the sizes of all nodes
-    let objects = (objects + ()).map(obj => {
-      obj + (size: cetz.util.measure(ctx, obj.content))
+    let objects = objects.map(obj => {
+      if utils.is-node(obj) {
+        obj + (size: cetz.util.measure(ctx, obj.content))
+      } else {
+        obj
+      }
     })
 
     // phase 2: compute the cell sizes and positions in flexigrid
-    let grid = cell-sizes-from-rects(objects)
+    let grid = cell-sizes-from-rects(objects.filter(utils.is-node))
 
     let apply-rowcol-spec(fn, defaults) = {
       for (i, col) in defaults.enumerate() {
@@ -155,10 +160,14 @@
 
     // phase 3: place objects at resolved locations
     for object in objects {
-      let c = uv-to-xy(grid, object.pos)
-      let (w, h) = object.size
-      cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
-      cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
+      if utils.is-node(object) {
+        let c = uv-to-xy(grid, object.pos)
+        let (w, h) = object.size
+        cetz.draw.content(c, text(top-edge: "cap-height", bottom-edge: "baseline", object.content))
+        cetz.draw.rect((to: c, rel: (-w/2, -h/2)), (to: c, rel: (w/2, h/2)), name: object.name)
+      } else {
+        (object,)
+      }
     }
 
   })
