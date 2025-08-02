@@ -1,6 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "default-marks.typ": *
+#import "parsing.typ"
 
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
@@ -72,6 +73,7 @@
 	return mark
 }
 
+
 #let interpret-marks(marks) = {
 	marks = marks.enumerate().map(((i, mark)) => {
 		resolve-mark(mark, defaults: (
@@ -88,7 +90,6 @@
 
 	marks
 }
-
 
 
 /// Draw a mark at a given position and angle
@@ -191,3 +192,11 @@
 }
 
 
+
+#let with-marks(obj, marks) = {
+  let (marks,) = parsing.parse-mark-shorthand(marks)
+  obj
+  cetz.draw.get-ctx(ctx => {
+    draw-marks-on-path(ctx, obj, marks)
+  })
+}

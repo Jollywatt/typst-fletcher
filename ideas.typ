@@ -1,4 +1,3 @@
-#import "@preview/fletcher:0.5.8"
 #import "exports.typ": flexigrid, diagram, node, edge, shapes, cetz, utils
 
 #set page(width: 13cm)
@@ -39,7 +38,6 @@ This is some text for size.
 #let dotmark = cetz.draw.circle.with(radius: 1.5pt, stroke: none)
 
 #import "marks.typ": draw-mark, DEFAULT_MARKS
-#fletcher.MARKS.update(m => DEFAULT_MARKS)
 
 #context cetz.canvas({
   import cetz.draw
@@ -72,13 +70,7 @@ This is some text for size.
 
 #import "marks.typ" as _marks
 
-#let with-marks(obj, marks) = {
-  let (marks,) = fletcher.interpret-marks-arg(marks)
-  obj
-  cetz.draw.get-ctx(ctx => {
-    _marks.draw-marks-on-path(ctx, obj, marks)
-  })
-}
+
 
 #context cetz.canvas({
   import cetz.draw
@@ -92,7 +84,7 @@ This is some text for size.
     _marks.draw-marks-on-path(ctx, path, (none, ">"))
   })
 
-  with-marks(draw.line((0,2), (3,0), stroke: red), "->")
+  _marks.with-marks(draw.line((0,2), (3,0), stroke: red), "-latex")
 })
 
 = demo

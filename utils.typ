@@ -1,3 +1,18 @@
+#let error(message, ..args) = {
+	let pairs = args.pos().enumerate() + args.named().pairs()
+	let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
+	for (k, v) in pairs {
+		if type(v) == array {
+			let replacement = if v.len() > 0 {
+				v.map(ticks).join(", ", last: " and ")
+			} else { "()" }
+			message = message.replace("#.." + str(k), replacement)
+		}
+		if type(v) != str { v = repr(v) }
+		message = message.replace("#" + str(k), ticks(v))
+	}
+	assert(false, message: message)
+}
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
