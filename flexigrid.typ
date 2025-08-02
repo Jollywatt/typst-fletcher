@@ -5,26 +5,26 @@
 
 
 #let cell-sizes-from-rects(rects) = {
-  let (x-min, x-max) = (0, 0)
-  let (y-min, y-max) = (0, 0)
+  let (u-min, u-max) = (float.inf, -float.inf)
+  let (v-min, v-max) = (float.inf, -float.inf)
 
   for rect in rects {
-    let (x, y) = rect.pos
-    if x < x-min { x-min = x }
-    if x-max < x { x-max = x }
-    if y < y-min { y-min = y }
-    if y-max < y { y-max = y }
+    let (u, v) = rect.pos
+    if u < u-min { u-min = u }
+    if u-max < u { u-max = u }
+    if v < v-min { v-min = v }
+    if v-max < v { v-max = v }
   }
 
-  (x-min, x-max) = (calc.floor(x-min), calc.ceil(x-max))
-  (y-min, y-max) = (calc.floor(y-min), calc.ceil(y-max))
+  (u-min, u-max) = (calc.floor(u-min), calc.ceil(u-max))
+  (v-min, v-max) = (calc.floor(v-min), calc.ceil(v-max))
 
-  let (n-cols, n-rows) = (x-max - x-min + 1, y-max - y-min + 1)
+  let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
   for rect in rects {
-    let (x, y) = rect.pos
-    let (i, j) = (x - x-min, y - y-min)
+    let (u, v) = rect.pos
+    let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
     let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
 
@@ -42,38 +42,46 @@
   }
 
   return (
-    x-min: x-min,
-    x-max: x-max,
-    y-min: y-min,
-    y-max: y-max,
+    u-min: u-min,
+    u-max: u-max,
+    v-min: v-min,
+    v-max: v-max,
     col-sizes: col-sizes,
     row-sizes: row-sizes,
   )
 }
 
 #let cell-centers-from-sizes((col-sizes, row-sizes), gutter: 0) = {
-  let centers = (x: (), y: ())
+  let col-centers = ()
+  let row-centers = ()
 
   let x = 0
   for (i, col) in col-sizes.enumerate() {
     x += col
-    centers.x.push(x - col/2 + i*gutter)
+    col-centers.push(x - col/2 + i*gutter)
   }
   let y = 0
   for (i, row) in row-sizes.enumerate() {
     y += row
-    centers.y.push(y - row/2 + i*gutter)
+    row-centers.push(y - row/2 + i*gutter)
   }
 
-  return centers
+  return (
+    col-centers: col-centers,
+    row-centers: row-centers,
+    x-min: 0,
+    y-min: 0,
+    x-max: col-centers.at(-1) + col-sizes.at(-1)/2,
+    y-max: row-centers.at(-1) + row-sizes.at(-1)/2,
+  )
 }
 
 
-#let interp-grid-cell(grid, (x, y)) = {
-  let (i, j) = (x - grid.x-min, y - grid.y-min)
+#let interp-grid-cell(grid, (u, v)) = {
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
   (
-    x: utils.interp(grid.centers.x, i),
-    y: utils.interp(grid.centers.y, j),
+    x: utils.interp(grid.col-centers, i),
+    y: utils.interp(grid.row-centers, j),
     w: utils.interp(grid.col-sizes, i),
     h: utils.interp(grid.row-sizes, j),
   )
@@ -86,37 +94,38 @@
   let draw-cells = debug-level(debug, "grid.cells")
 
   cetz.draw.floating({
-    cetz.draw.set-style(stroke: red.transparentize(50%))
-    for (i, x) in grid.centers.x.enumerate() {
-      for (j, y) in grid.centers.y.enumerate() {
-        let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-        if draw-cells {
-          cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
-          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
-        }
+    cetz.draw.set-style(stroke: (paint: red.transparentize(60%)))
+
+    for (i, x) in grid.col-centers.enumerate() {
+      if draw-lines {
+        cetz.draw.line((x, grid.y-min), (x, grid.y-max), stroke: (thickness: 0.5pt))
+      }
+      if draw-coords {
+        let coord = i + grid.u-min
+        cetz.draw.content((x, -4pt), text(10pt, red, raw(str(coord))), anchor: "north")
+        let w = grid.col-sizes.at(i)
+        cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: (thickness: 1pt))
+      }
+    }
+    for (j, y) in grid.row-centers.enumerate() {
+      if draw-lines {
+        cetz.draw.line((grid.x-min, y), (grid.x-max, y), stroke: (thickness: 0.5pt))
+      }
+      if draw-coords {
+        let coord = j + grid.v-min
+        cetz.draw.content((-4pt, y), text(10pt, red, raw(str(coord))), anchor: "east")
+        let h = grid.row-sizes.at(j)
+        cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: (thickness: 1pt))
       }
     }
 
-    for (i, x) in grid.centers.x.enumerate() {
-      if draw-coords {
-        let coord = i + grid.x-min
-        cetz.draw.content((x, -0.5em), text(10pt, red, raw(str(coord))), anchor: "north")
-        let w = grid.col-sizes.at(i)
-        cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: 1pt + red)
-      }
-      if draw-lines {
-        cetz.draw.line((x, grid.y-min), (x, grid.y-max))
-      }
-    }
-    for (j, y) in grid.centers.y.enumerate() {
-      if draw-coords {
-        let coord = j + grid.y-min
-        cetz.draw.content((-0.5em, y), text(10pt, red, raw(str(coord))), anchor: "east")
-        let h = grid.row-sizes.at(j)
-        cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: 1pt + red)
-      }
-      if draw-lines {
-        cetz.draw.line((grid.x-min, y), (grid.x-max, y))
+    if draw-cells {
+      for (i, x) in grid.col-centers.enumerate() {
+        for (j, y) in grid.row-centers.enumerate() {
+          let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
+          cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
+          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
+        }
       }
     }
   })
@@ -177,7 +186,7 @@
     let grid = cell-sizes-from-rects(objects.filter(utils.is-node))
     grid.col-sizes = apply-rowcol-spec(col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
-    grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
+    grid += cell-centers-from-sizes(grid, gutter: gutter)
 
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))

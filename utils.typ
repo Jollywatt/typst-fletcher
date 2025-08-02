@@ -6,7 +6,7 @@
 /// - values (array): Array of lengths defining interpolation function.
 /// - index (int, float): Index-coordinate to sample.
 /// - spacing (length): Gradient for linear extrapolation beyond array bounds.
-#let interp(values, index, spacing: 0pt) = {
+#let interp(values, index, spacing: 0) = {
 	let max-index = values.len() - 1
 	if index < 0 {
 		values.at(0) + spacing*index

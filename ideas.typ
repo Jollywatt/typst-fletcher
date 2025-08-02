@@ -6,12 +6,11 @@
 
 = FlexiCeTZ
 
-
-
-#diagram(debug: 1, {
+This is some text for size.
+#diagram(debug: (grid: 8, nodes: 100), {
   node((0,0), [hello], name: "A")
   node((1,1), [world], name: "B")
-}, gutter: 0mm)
+}, gutter: 5mm)
 
 #let fig = cetz.canvas({
   import cetz.draw
@@ -95,3 +94,12 @@
 
   with-marks(draw.line((0,2), (3,0), stroke: red), "->")
 })
+
+= demo
+
+#diagram({
+  node((10,0), circle(), shape: shapes.circle)
+  node((9,-1), circle(), shape: shapes.circle, name: "A")
+  node((11,-1), circle(), shape: shapes.circle)
+  cetz.draw.content("A.east", [Hello], anchor: "west")
+}, gutter: 1cm, debug: true)

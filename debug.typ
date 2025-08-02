@@ -10,6 +10,7 @@
 )
 
 #let debug-level(debug, option) = {
+  if type(debug) == bool { return debug }
   if type(debug) == int { return DEBUG_LEVELS.at(option) <= debug }
   if type(debug) == str { return option.starts-with(debug) or debug.starts-with(option) }
   if type(debug) == array { return debug.any(d => debug-level(d, option)) }
@@ -18,6 +19,7 @@
       option.starts-with(scope) and debug-level(debug, option)
     })
   }
+  panic(debug)
 }
 
 #assert(debug-level("grid", "grid.coords"))
