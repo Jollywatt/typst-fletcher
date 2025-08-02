@@ -11,7 +11,7 @@
 #diagram(debug: 1, {
   node((0,0), [hello], name: "A")
   node((1,1), [world], name: "B")
-}, gutter: 5mm)
+}, gutter: 0mm)
 
 #let fig = cetz.canvas({
   import cetz.draw

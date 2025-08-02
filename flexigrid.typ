@@ -1,6 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "nodes.typ"
+#import "debug.typ": debug-level
 
 
 #let cell-sizes-from-rects(rects) = {
@@ -79,29 +80,44 @@
 }
 
 
-#let draw-flexigrid(grid) = {
-  let s = 3pt
+#let draw-flexigrid(grid, debug: true) = {
+  let draw-lines = debug-level(debug, "grid.lines")
+  let draw-coords = debug-level(debug, "grid.coords")
+  let draw-cells = debug-level(debug, "grid.cells")
+
   cetz.draw.floating({
     cetz.draw.set-style(stroke: red.transparentize(50%))
     for (i, x) in grid.centers.x.enumerate() {
       for (j, y) in grid.centers.y.enumerate() {
         let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-        cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
-        cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
+        if draw-cells {
+          cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
+          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
+        }
       }
     }
 
     for (i, x) in grid.centers.x.enumerate() {
-      let coord = i + grid.x-min
-      cetz.draw.content((x, -0.5em), text(10pt, red, raw(str(coord))), anchor: "north")
-      let w = grid.col-sizes.at(i)
-      cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: 2pt + red)
+      if draw-coords {
+        let coord = i + grid.x-min
+        cetz.draw.content((x, -0.5em), text(10pt, red, raw(str(coord))), anchor: "north")
+        let w = grid.col-sizes.at(i)
+        cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: 1pt + red)
+      }
+      if draw-lines {
+        cetz.draw.line((x, grid.y-min), (x, grid.y-max))
+      }
     }
     for (j, y) in grid.centers.y.enumerate() {
-      let coord = j + grid.y-min
-      cetz.draw.content((-0.5em, y), text(10pt, red, raw(str(coord))), anchor: "east")
-      let h = grid.row-sizes.at(j)
-      cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: 2pt + red)
+      if draw-coords {
+        let coord = j + grid.y-min
+        cetz.draw.content((-0.5em, y), text(10pt, red, raw(str(coord))), anchor: "east")
+        let h = grid.row-sizes.at(j)
+        cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: 1pt + red)
+      }
+      if draw-lines {
+        cetz.draw.line((grid.x-min, y), (grid.x-max, y))
+      }
     }
   })
 
@@ -125,10 +141,11 @@
 }
 
 
+
 #let flexigrid(
   objects,
   gutter: 0,
-  debug: 0,
+  debug: false,
   origin: (0,0),
   columns: auto,
   rows: auto,
@@ -162,8 +179,8 @@
     grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
     grid.centers = cell-centers-from-sizes(grid, gutter: gutter)
 
-    if debug > 0 {
-      cetz.draw.group(draw-flexigrid(grid))
+    if debug-level(debug, "grid") {
+      cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
     // phase 3: draw objects at resolved locations
