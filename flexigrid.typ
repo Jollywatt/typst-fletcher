@@ -4,12 +4,12 @@
 #import "debug.typ": debug-level
 
 
-#let cell-sizes-from-rects(rects) = {
+#let cell-sizes-from-nodes(nodes) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
-  for rect in rects {
-    let (u, v) = rect.pos
+  for node in nodes {
+    let (u, v) = node.pos
     if u < u-min { u-min = u }
     if u-max < u { u-max = u }
     if v < v-min { v-min = v }
@@ -22,13 +22,15 @@
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
-  for rect in rects {
-    let (u, v) = rect.pos
+  for node in nodes {
+    let (u, v) = node.pos
     let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
     let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
 
-    let (w, h) = rect.size
+    let (w, h) = node.size
+    w *= node.weight
+    h *= node.weight
 
     col-sizes.at(i-floor) = calc.max(col-sizes.at(i-floor), w*(1 - i-fract))
     if i-floor + 1 < n-cols {
@@ -183,7 +185,7 @@
     })
 
     // phase 2: compute the cell sizes and positions in flexigrid
-    let grid = cell-sizes-from-rects(objects.filter(utils.is-node))
+    let grid = cell-sizes-from-nodes(objects.filter(utils.is-node))
     grid.col-sizes = apply-rowcol-spec(col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)

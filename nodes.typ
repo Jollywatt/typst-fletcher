@@ -6,6 +6,7 @@
   name: none,
   align: center + horizon,
   shape: shapes.rect,
+  weight: 1,
 ) = {
   ((
     class: "node",
@@ -14,6 +15,7 @@
     name: name,
     align: align,
     shape: shape,
+    weight: weight,
   ),)
 }
 
