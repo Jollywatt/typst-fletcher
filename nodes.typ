@@ -1,20 +1,31 @@
 #import "shapes.typ"
+#import "utils.typ"
 
 #let node(
   pos,
   body,
+  shape: shapes.rect,
+  inset: 0pt,
+  outset: 0pt,
   name: none,
   align: center + horizon,
-  shape: shapes.rect,
   weight: 1,
 ) = {
+
+  // apply inset
+  body = utils.switch-type(inset,
+    length: inset => pad(inset, body),
+    dictionary: args => pad(..args, body),
+  )
+
   ((
     class: "node",
     pos: pos,
     body: body,
+    shape: shape,
+    outset: outset,
     name: name,
     align: align,
-    shape: shape,
     weight: weight,
   ),)
 }

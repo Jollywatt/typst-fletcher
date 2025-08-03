@@ -14,6 +14,11 @@
 	assert(false, message: message)
 }
 
+#let switch-type(input, ..types) = {
+	let fn = types.named().at(str(type(input)))
+	fn(input)
+}
+
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
 /// Linearly interpolate an array with linear behaviour outside bounds

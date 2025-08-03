@@ -178,7 +178,8 @@
     // phase 1: measure the sizes of all nodes
     let objects = objects.map(obj => {
       if utils.is-node(obj) {
-        obj + (size: cetz.util.measure(ctx, obj.body))
+        let node = obj
+        node + (size: cetz.util.measure(ctx, node.body))
       } else {
         obj
       }
