@@ -30,10 +30,12 @@
   if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
   if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
 
-  let coord = (to: (cell.x, cell.y), rel: (x-shift, y-shift))
+  let origin = cetz.vector.add((cell.x, cell.y), (x-shift, y-shift))
 
   let body = text(top-edge: "cap-height", bottom-edge: "baseline", node.content)
-  cetz.draw.content(coord, body)
   
-  (node.shape)(coord, node)
+  cetz.draw.group({
+    cetz.draw.translate(origin)
+    (node.shape)(node)
+  }, name: node.name)
 }

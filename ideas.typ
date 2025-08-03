@@ -90,7 +90,7 @@ This is some text for size.
 = demo
 
 #diagram({
-  node((10,0), circle(), shape: shapes.circle)
+  node((10,0), [Hello], shape: shapes.rect)
   node((9,-1), circle(), shape: shapes.circle, name: "A")
   node((11,-1), circle(), shape: shapes.circle)
   cetz.draw.content("A.east", [Hello], anchor: "west")

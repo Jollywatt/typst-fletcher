@@ -2,11 +2,15 @@
 
 #import cetz.draw
 
-#let rect(coord, node) = {
+#let rect(node) = {
   let (w, h) = node.size
-  cetz.draw.rect((to: coord, rel: (-w/2, -h/2)), (to: coord, rel: (w/2, h/2)), name: node.name)
+  draw.content((0,0), node.content)
+  draw.rect((-w/2, -h/2), (w/2, h/2), name: "shape")
+  draw.copy-anchors("shape")
 }
-#let circle(coord, node) = {
+#let circle(node) = {
   let (w, h) = node.size
-  cetz.draw.circle(coord, radius: (w/2, h/2), name: node.name)
+  draw.content((0,0), node.content)
+  draw.circle((0,0), radius: (w/2, h/2), name: "shape")
+  draw.copy-anchors("shape")
 }
