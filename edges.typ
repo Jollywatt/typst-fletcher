@@ -21,7 +21,7 @@
 
 
 
-#let edge(
+#let draw-edge-with-snapping(
   source,
   target,
   snap-to: (auto, auto),
@@ -41,17 +41,17 @@
     let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
     let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
     
-    let path = draw(src-snapped, tgt-snapped)
-    path
-    _marks.draw-marks-on-path(ctx, path, marks)
+    let obj = draw(src-snapped, tgt-snapped)
+    _marks.draw-with-marks(ctx, obj, marks)
   })
 
 
-
-  if debug >= 1 {
-    cetz.draw.group({
-      cetz.draw.set-style(stroke: green.transparentize(60%))
-      test-draw
-    })
-  }
+  // if debug >= 1 {
+  //   cetz.draw.group({
+  //     cetz.draw.set-style(stroke: (paint: green.transparentize(60%)))
+  //     test-draw
+  //   })
+  // }
 }
+
+#let edge() = {}

@@ -95,18 +95,16 @@
 /// Draw a mark at a given position and angle
 ///
 /// - mark (dictionary): Mark object to draw. Must contain a `draw` entry.
-/// - stroke (stroke): Stroke style for the mark. The stroke's paint is used as
-///   the default fill style.
-/// - origin (point): Coordinate of the mark's origin (as defined by 
-///   `tip-origin` or `tail-origin`).
+/// - stroke (stroke): Default stroke style for the mark. The stroke's paint
+///   is used as the default fill style. If the mark itself has `stroke`
+///   entry, this takes precedence.
+/// - origin (point): Coordinate of the origin in the mark's frame, `(0,0)`.
 /// - angle (angle): Angle of the mark, `0deg` being $->$, counterclockwise.
-/// - debug (bool): Whether to draw the origin points.
 #let draw-mark(
 	mark,
 	stroke: 1pt,
 	origin: (0,0),
 	angle: 0deg,
-	debug: false
 ) = {
 	mark = resolve-mark(mark)
 	stroke = utils.as-stroke(stroke)
@@ -132,47 +130,37 @@
 
   import cetz.draw
 
-	draw.group({
-		draw.set-style(
-			stroke: stroke,
-			fill: fill,
-		)
+	draw.get-ctx(ctx => {
+		draw.group({
+			draw.set-style(
+				stroke: stroke,
+				fill: fill,
+			)
 
-		draw.translate(origin)
-		draw.rotate(angle)
-		draw.scale(thickness/1cm*float(mark.scale))
+			draw.translate(origin)
+			draw.rotate(angle)
+			draw.scale(thickness/ctx.length*float(mark.scale))
 
-		if mark.at("rev", default: false) {
-			draw.translate(x: mark.tail-origin)
-			draw.scale(x: -1)
-			if debug {
-				draw.content((0,10), text(0.25em, red)[rev])
+			if mark.rev { draw.scale(x: -1) }
+			if mark.flip { draw.scale(y: -1) }
+
+			for e in mark.extrude {
+				draw.group({
+					draw.translate(x: e)
+					mark.draw
+				})
 			}
-		} else {
-			draw.translate(x: -mark.tip-origin)
-		}
 
-		if mark.flip {
-			draw.scale(y: -1)
-		}
-
-		for e in mark.extrude {
-			draw.group({
-				draw.translate(x: e)
-				mark.draw
+			draw.on-layer(100, if true {
+				let x = if mark.pos != float(mark.rev) { mark.tip-origin } else { mark.tail-origin }
+				draw.line((0,0), (x,0), stroke: thickness + red.transparentize(50%))
+				let x = if mark.pos != float(mark.rev) { mark.tip-end } else { mark.tail-end }
+				draw.line((0,0), (x,0), stroke: thickness + blue.transparentize(50%))
+				draw.circle((0,0), radius: 0.5, fill: white.transparentize(50%), stroke: none)
 			})
-		}
-
-		if debug {
-			let tip = mark.at("tip", default: none)
-			if tip == true {
-				draw.content((0,-10), text(0.25em, green)[tip])
-			} else if tip == false {
-				draw.content((0,-10), text(0.25em, orange)[tail])
-			}
-		}
-
+		})
 	})
+
 }
 
 
@@ -188,6 +176,71 @@
     let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
 
     draw-mark(mark, origin: origin, angle: angle, stroke: ctx.style.stroke)
+  }
+}
+
+#let path-from-obj(ctx, obj) = {
+  assert(type(obj) == array)
+  assert(obj.len() == 1)
+  let obj-ctx = obj.first()(ctx)
+  assert(obj-ctx.drawables.len() == 1)
+  assert(obj-ctx.drawables.first().type == "path")
+  return obj-ctx.drawables.first().segments
+}
+
+#let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
+
+#let draw-with-marks(ctx, obj, marks) = {
+	let path = path-from-obj(ctx, obj)
+	let obj-ctx = obj.first()(ctx)
+	let stroke-style = obj-ctx.drawables.first().stroke
+	let t = std.stroke(stroke-style).thickness/ctx.length
+
+	let end-marks = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
+	let mark-origins = end-marks.map(mark => {
+		if mark == none { return 0 }
+		// if mark.pos == 1 or mark.rev {
+		if mark.pos != float(mark.rev) {
+			mark.tip-origin*t
+			// tgt acting as tip
+			// rev src acting as tip
+		} else {
+			// rev tgt acting as tail
+			// src acting as tail
+			-mark.tail-origin*t
+		}
+	})
+	let stroke-ends = end-marks.zip(mark-origins).map(((mark, origin)) => {
+		if mark == none { return 0 }
+		origin - if mark.pos != float(mark.rev) {
+			mark.tip-end*t
+		} else {
+			-mark.tail-end*t
+		}
+	})
+	
+
+	let shortened-path = cetz.path-util.shorten-to(path, stroke-ends, snap-to: (none, none))
+	obj-ctx.drawables.first().segments = shortened-path
+	(ctx => obj-ctx,)
+
+  let inv-transform = cetz.matrix.inverse(ctx.transform)
+
+	for (mark, origin) in end-marks.zip(mark-origins) {
+		let rev = mark.pos == 1
+		let point-info = cetz.path-util.point-at(path, origin, reverse: rev)
+		let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
+		let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
+		if rev { angle += 180deg }
+		draw-mark(mark, origin: origin, angle: angle, stroke: stroke-style)
+	}
+
+  for mark in marks {
+		if mark.pos in (0, 1) { continue }
+    let point-info = cetz.path-util.point-at(shortened-path, mark.pos*100%)
+    let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
+    let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
+    draw-mark(mark, origin: origin, angle: angle, stroke: stroke-style)
   }
 }
 
