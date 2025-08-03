@@ -4,13 +4,13 @@
 
 #let rect(node) = {
   let (w, h) = node.size
-  draw.content((0,0), node.content)
+  draw.content((0,0), node.body)
   draw.rect((-w/2, -h/2), (w/2, h/2), name: "shape")
   draw.copy-anchors("shape")
 }
 #let circle(node) = {
   let (w, h) = node.size
-  draw.content((0,0), node.content)
+  draw.content((0,0), node.body)
   draw.circle((0,0), radius: (w/2, h/2), name: "shape")
   draw.copy-anchors("shape")
 }

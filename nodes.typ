@@ -2,7 +2,7 @@
 
 #let node(
   pos,
-  content,
+  body,
   name: none,
   align: center + horizon,
   shape: shapes.rect,
@@ -11,7 +11,7 @@
   ((
     class: "node",
     pos: pos,
-    content: content,
+    body: body,
     name: name,
     align: align,
     shape: shape,
@@ -32,7 +32,7 @@
 
   let origin = cetz.vector.add((cell.x, cell.y), (x-shift, y-shift))
 
-  let body = text(top-edge: "cap-height", bottom-edge: "baseline", node.content)
+  let body = text(top-edge: "cap-height", bottom-edge: "baseline", node.body)
   
   cetz.draw.group({
     cetz.draw.translate(origin)
