@@ -7,8 +7,8 @@
 
 This is some text for size.
 #diagram(debug: (grid: 8, nodes: 100), {
-  node((0,0), [hello], name: "A")
-  node((1,1), [world], name: "B")
+  node((0,0), [he fllo], name: "A")
+  node((1,1), [Royal], name: "B")
 }, gutter: 5mm)
 
 #let fig = cetz.canvas({
@@ -21,7 +21,8 @@ This is some text for size.
       node((1, 1), $ a + b/c $, name: "B")
       node((2, 0), $ frak(B)/oo $)
       node((1, 0), circle(fill: teal), align: left, shape: shapes.circle, name: "C")
-      cetz.draw.circle("C.30deg", radius: 3pt, fill: blue)
+      cetz.draw.circle("C.40deg", radius: 3pt, fill: blue)
+      cetz.draw.circle("A.north", radius: 3pt, fill: blue)
     },
     gutter: 10pt,
     debug: 1,
@@ -50,7 +51,7 @@ This is some text for size.
   a + b + c
 
 
-  edge(((0,1), (5,3)),  snap-to: (a, c),
+  edge((0,1), (5,3),  snap-to: (a, c),
     draw: (a, b) => draw.arc-through(a, (2,3), b),
     debug: 1,
     marks: (">>", ">"),
@@ -94,4 +95,7 @@ This is some text for size.
   node((9,-1), circle(), shape: shapes.circle, name: "A")
   node((11,-1), circle(), shape: shapes.circle)
   cetz.draw.content("A.east", [Hello], anchor: "west")
+  // edge(((10,0), (11,-1)), draw: (a, b) => cetz.draw.line(a, b))
 }, gutter: 1cm, debug: true)
+
+
