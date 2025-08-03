@@ -21,22 +21,28 @@
 
 
 
-#let edge((src, tgt), snap-to: (auto, auto),  draw: none, debug: 0, marks: ()) = {
+#let edge(
+  source,
+  target,
+  snap-to: (auto, auto),
+  draw: none,
+  debug: 0,
+  marks: (),
+) = {
 
   let marks = _marks.interpret-marks(marks)
 
-  let test-draw = (draw)(src, tgt)
+  let test-draw = (draw)(source, target)
   cetz.draw.hide(cetz.draw.intersections("inter-src", snap-to.at(0) + test-draw))
   cetz.draw.hide(cetz.draw.intersections("inter-tgt", snap-to.at(1) + test-draw))
 
   cetz.draw.get-ctx(ctx => {
 
-    let src-snapped = find-farthest-anchor(ctx, "inter-src", src)
-    let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", tgt)
+    let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
+    let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
     
     let path = draw(src-snapped, tgt-snapped)
     path
-    // let (marks, ) = fletcher.interpret-marks-arg(marks)
     _marks.draw-marks-on-path(ctx, path, marks)
   })
 
