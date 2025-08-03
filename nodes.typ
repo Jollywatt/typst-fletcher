@@ -18,6 +18,8 @@
     dictionary: args => pad(..args, body),
   )
 
+  body = text(body, top-edge: "cap-height", bottom-edge: "baseline")
+
   ((
     class: "node",
     pos: pos,
