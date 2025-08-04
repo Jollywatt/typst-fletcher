@@ -80,13 +80,7 @@
 }
 
 
-#let interp-grid-point(grid, (u, v)) = {
-  let (i, j) = (u - grid.u-min, v - grid.v-min)
-  (
-    utils.interp(grid.col-centers, i),
-    utils.interp(grid.row-centers, j),
-  )
-}
+
 
 #let interp-grid-cell(grid, (u, v)) = {
   let (i, j) = (u - grid.u-min, v - grid.v-min)
@@ -204,9 +198,16 @@
 
     for (object, element) in objects.zip(elements) {
       if "fletcher" in element {
-        let node = element.fletcher
-        let cell = interp-grid-cell(grid, node.pos)
-        Nodes.draw-node-in-cell(node, cell)
+        if element.fletcher.class == "node" {
+          let node = element.fletcher
+          let cell = interp-grid-cell(grid, node.pos)
+          Nodes.draw-node-in-cell(node, cell)
+        } else if element.fletcher.class == "edge" {
+          let edge = element.fletcher
+          edges.draw-edge-in-flexigrid(edge, grid)
+        } else {
+          panic(element.fletcher)
+        }
       } else {
         (object,)
       }
@@ -215,10 +216,7 @@
   })
 
   cetz.draw.group({
-    cetz.draw.set-ctx(ctx => {
-      ctx.fletcher-debug = debug
-      return ctx
-    })
+    (ctx => (ctx: ctx + (fletcher-debug: debug)),)
     scene
   }, name: name)
 }

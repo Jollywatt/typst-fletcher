@@ -28,8 +28,8 @@
   target,
   snap-to: (auto, auto),
   draw: none,
-  debug: 0,
   marks: (),
+  debug: false,
 ) = {
 
   let marks = _marks.interpret-marks(marks)
@@ -68,6 +68,13 @@
   }
 }
 
+#let draw-edge(edge) = {
+  cetz.draw.get-ctx(ctx => {
+    _marks.draw-with-marks-and-shrinking(ctx, edge.draw, edge.marks)
+  })
+}
+
+
 #let edge(
   ..args,
   marks: ()
@@ -79,21 +86,28 @@
   
   options += parsing.interpret-edge-args(args, options)
   options += interpret-marks-arg(options.marks)
-  
 
-  ((
+  let edge-data = (
     class: "edge",
     ..options
-  ),)
+  )
+
+  edge-data.draw = cetz.draw.line(..edge-data.vertices)
+  
+  (ctx => {
+
+    let (obj,) = draw-edge(edge-data)
+
+    obj(ctx) + (fletcher: edge-data)
+
+  },)
+
 }
 
-#let resolve-edge(edge, uv-to-xy, objects) = {
-  edge.draw = cetz.draw.line(..edge.vertices.map(uv-to-xy))
-  edge
-}
 
-#let draw-edge(edge) = {
-  cetz.draw.get-ctx(ctx => {
-    _marks.draw-with-marks(ctx, edge.draw, edge.marks)
-  })
+
+#let draw-edge-in-flexigrid(edge, grid) = {
+  let vertices-xy = edge.vertices.map(utils.interp-grid-point.with(grid))
+  edge.draw = cetz.draw.line(..vertices-xy)
+  draw-edge(edge)
 }

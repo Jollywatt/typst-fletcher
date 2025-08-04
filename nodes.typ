@@ -59,9 +59,8 @@
     )
 
     let (obj,) = draw-node-at(node-data, pos)
-    obj(ctx) + (
-      fletcher: node-data
-    )
+    
+    obj(ctx) + (fletcher: node-data)
   },)
 }
 

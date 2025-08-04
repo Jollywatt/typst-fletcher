@@ -51,6 +51,14 @@
 	}
 }
 
+#let interp-grid-point(grid, (u, v)) = {
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
+  (
+    interp(grid.col-centers, i),
+    interp(grid.row-centers, j),
+  )
+}
+
 #let cumsum(array) = {
 	let sum = array.at(0)
 	for i in range(1, array.len()) {

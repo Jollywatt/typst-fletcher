@@ -64,13 +64,14 @@
 ///   - `rev` whether to reverse the direction
 ///   - parameters specific to the kind of mark, e.g., `size` or `sharpness`
 /// -> dictiony
-#let parse-mark-shorthand(text) = {
-	if type(text) == symbol {
-		if str(text) in MARK_SYMBOL_ALIASES { text = MARK_SYMBOL_ALIASES.at(text) }
-		else { utils.error("Unrecognised marks symbol #0.", text) }
+#let parse-mark-shorthand(arg) = {
+	if type(arg) == symbol {
+		if str(arg) in MARK_SYMBOL_ALIASES { arg = MARK_SYMBOL_ALIASES.at(arg) }
+		else { utils.error("Unrecognised marks symbol #0.", arg) }
 	}
 
-	assert(type(text) == str)
+	assert(type(arg) == str)
+	let text = arg
 
 	// let mark-names = MARKS.get().keys().sorted(key: i => -i.len())
 	let mark-names = DEFAULT_MARKS.keys().sorted(key: i => -i.len())
@@ -107,7 +108,7 @@
 		// line, <[-]x->>
 		(text, line) = eat(text, LINES)
 		if line == none {
-			let suggestion = arg.slice(0, -text.len()) + "-" + text
+			let suggestion = text.slice(0, -text.len()) + "-" + text
 			parse-error(suggestion)
 		}
 		lines.push(line)

@@ -8,15 +8,16 @@
 #cetz.canvas({
   import cetz.draw
 
-  flexigrid({
-    node((0,0), [Hello\ World], inset: 5pt, name: "hi")
-    node((2,0), [_fletcher_], inset: 5pt, name: "bi")
-    cetz.draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
-    marks.with-marks(draw.line("bi.north", (2,2)), ">->")
-  },
+  flexigrid(
     name: "a",
-    debug: "grid",
+    debug: false,
     gutter: 1,
-  )
+  {
+    node((2,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi")
+    node((0,0), [Hello\ World], inset: 5pt, name: "hi")
+    draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
+    edge((0,3), "latex-o-|>", (3,3))
+    marks.with-marks(draw.line("bi.north", (2,2)), "<>->")
+  })
 
 })

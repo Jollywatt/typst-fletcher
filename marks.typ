@@ -154,13 +154,13 @@
 				})
 			}
 
-			draw.on-layer(100, if debug-level(get-debug(ctx, debug), "mark") {
+			if debug-level(get-debug(ctx, debug), "mark") {
 				let x = if mark.pos != float(mark.rev) { mark.tip-origin } else { mark.tail-origin }
-				draw.line((0,0), (x,0), stroke: thickness + red.transparentize(50%))
+				draw.line((0,0), (x,0), stroke: thickness + red.transparentize(20%))
 				let x = if mark.pos != float(mark.rev) { mark.tip-end } else { mark.tail-end }
-				draw.line((0,0), (x,0), stroke: thickness + blue.transparentize(50%))
-				draw.circle((0,0), radius: 0.5, fill: white.transparentize(50%), stroke: none)
-			})
+				draw.line((0,0), (x,0), stroke: thickness + blue.transparentize(20%))
+				draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
+			}
 		})
 	})
 
