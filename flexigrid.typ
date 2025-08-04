@@ -197,7 +197,7 @@
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
     // draw things
-    
+
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
@@ -215,6 +215,10 @@
   })
 
   cetz.draw.group({
+    cetz.draw.set-ctx(ctx => {
+      ctx.fletcher-debug = debug
+      return ctx
+    })
     scene
   }, name: name)
 }

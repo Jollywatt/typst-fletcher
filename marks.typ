@@ -2,6 +2,7 @@
 #import "deps.typ": cetz
 #import "default-marks.typ": *
 #import "parsing.typ"
+#import "debug.typ": get-debug, debug-level
 
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
@@ -106,6 +107,7 @@
 	stroke: 1pt,
 	origin: (0,0),
 	angle: 0deg,
+	debug: false,
 ) = {
 	mark = resolve-mark(mark)
 	stroke = utils.as-stroke(stroke)
@@ -152,7 +154,7 @@
 				})
 			}
 
-			draw.on-layer(100, if true {
+			draw.on-layer(100, if debug-level(get-debug(ctx, debug), "mark") {
 				let x = if mark.pos != float(mark.rev) { mark.tip-origin } else { mark.tail-origin }
 				draw.line((0,0), (x,0), stroke: thickness + red.transparentize(50%))
 				let x = if mark.pos != float(mark.rev) { mark.tip-end } else { mark.tail-end }
@@ -166,7 +168,9 @@
 
 
 
-#let draw-marks-on-path(ctx, obj, marks) = {
+#let draw-with-marks(ctx, obj, marks) = {
+	obj
+
 	let marks = interpret-marks(marks)
   let (segments, close) = utils.get-segments(ctx, obj)
   let inv-transform = cetz.matrix.inverse(ctx.transform)
@@ -191,9 +195,7 @@
 
 #let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
 
-#let draw-with-marks(ctx, obj, marks) = {
-	// if marks
-	
+#let draw-with-marks-and-shrinking(ctx, obj, marks) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
 	let stroke-style = obj-ctx.drawables.first().stroke
@@ -251,8 +253,8 @@
 
 #let with-marks(obj, marks) = {
   let (marks,) = parsing.parse-mark-shorthand(marks)
-  obj
   cetz.draw.get-ctx(ctx => {
-    draw-marks-on-path(ctx, obj, marks)
+		let marks = interpret-marks(marks)
+    draw-with-marks-and-shrinking(ctx, obj, marks)
   })
 }

@@ -7,7 +7,13 @@
   "node.stroke": 3,
   "node.inset": 4,
   "node.outsetset": 4,
+
+  "mark": 4
 )
+
+#let get-debug(ctx, debug) = {
+  ctx.at("fletcher-debug", default: debug)
+}
 
 #let debug-level(debug, option) = {
   if type(debug) == bool { return debug }
