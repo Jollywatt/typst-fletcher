@@ -1,6 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "nodes.typ"
+#import "nodes.typ" as Nodes
 #import "edges.typ"
 #import "debug.typ": debug-level
 
@@ -179,48 +179,44 @@
 
   let scene = cetz.draw.get-ctx(ctx => {
     let gutter = cetz.util.resolve-number(ctx, gutter)
-
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     cetz.draw.translate(origin)
 
 
-    // phase 1: measure the sizes of all nodes
-    let objects = objects.map(object => {
-      utils.switch-type(object,
-        node: node => node + (size: cetz.util.measure(ctx, node.body)),
-        any: o => o,
-      )
-    })
+    let (elements,) = cetz.process.many(ctx, objects)
 
-    // phase 2: compute the cell sizes and positions in flexigrid
-    let grid = cell-sizes-from-nodes(objects.filter(utils.is-node))
+    // get elements that are fletcher objects
+    let nodes = elements.filter(element => {
+      "fletcher" in element and element.fletcher.class == "node"
+    }).map(element => element.fletcher)
+
+    // compute the cell sizes and positions in flexigrid
+    let grid = cell-sizes-from-nodes(nodes)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
+    // draw things
+    
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
-    // phase 3: draw objects at resolved locations
-    let uv-to-xy = interp-grid-point.with(grid)
-    for object in objects {
-      utils.switch-type(object,
-        node: node => {
-          let cell = interp-grid-cell(grid, node.pos)
-          nodes.draw-node-in-cell(node, cell)
-        },
-        edge: edge => {
-          edge = edges.resolve-edge(edge, uv-to-xy, objects)
-          edges.draw-edge(edge)
-        },
-        function: obj => (obj,)
-      )
+    for (object, element) in objects.zip(elements) {
+      if "fletcher" in element {
+        let node = element.fletcher
+        let cell = interp-grid-cell(grid, node.pos)
+        Nodes.draw-node-in-cell(node, cell)
+      } else {
+        (object,)
+      }
     }
 
   })
 
-  cetz.draw.group(scene, name: name)
+  cetz.draw.group({
+    scene
+  }, name: name)
 }
 
 #let diagram(..args) = cetz.canvas(flexigrid(..args))
