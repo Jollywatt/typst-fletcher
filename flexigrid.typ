@@ -80,6 +80,14 @@
 }
 
 
+#let interp-grid-point(grid, (u, v)) = {
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
+  (
+    utils.interp(grid.col-centers, i),
+    utils.interp(grid.row-centers, j),
+  )
+}
+
 #let interp-grid-cell(grid, (u, v)) = {
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   (
@@ -195,6 +203,7 @@
     }
 
     // phase 3: draw objects at resolved locations
+    let uv-to-xy = interp-grid-point.with(grid)
     for object in objects {
       utils.switch-type(object,
         node: node => {
@@ -202,7 +211,8 @@
           nodes.draw-node-in-cell(node, cell)
         },
         edge: edge => {
-          edges.draw-edge(edge, objects)
+          edge = edges.resolve-edge(edge, uv-to-xy, objects)
+          edges.draw-edge(edge)
         },
         function: obj => (obj,)
       )

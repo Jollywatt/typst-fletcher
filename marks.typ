@@ -16,7 +16,8 @@
 
 
 #let apply-mark-inheritances(mark) = {
-	let marks = MARKS.get()
+	// let marks = MARKS.get()
+	let marks = DEFAULT_MARKS
 	while "inherit" in mark {
 		if mark.inherit.at(-1) == "'" {
 			mark.flip = not mark.at("flip", default: false)
@@ -191,6 +192,8 @@
 #let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
 
 #let draw-with-marks(ctx, obj, marks) = {
+	// if marks
+	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
 	let stroke-style = obj-ctx.drawables.first().stroke
@@ -199,7 +202,6 @@
 	let end-marks = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 	let mark-origins = end-marks.map(mark => {
 		if mark == none { return 0 }
-		// if mark.pos == 1 or mark.rev {
 		if mark.pos != float(mark.rev) {
 			mark.tip-origin*t
 			// tgt acting as tip
@@ -227,6 +229,7 @@
   let inv-transform = cetz.matrix.inverse(ctx.transform)
 
 	for (mark, origin) in end-marks.zip(mark-origins) {
+		if mark == none { continue }
 		let rev = mark.pos == 1
 		let point-info = cetz.path-util.point-at(path, origin, reverse: rev)
 		let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)

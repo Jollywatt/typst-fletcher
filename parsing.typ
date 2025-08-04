@@ -1,4 +1,6 @@
-#import "default-marks.typ": MARKS
+#import "default-marks.typ": MARKS, DEFAULT_MARKS
+#import "utils.typ"
+
 
 #let EDGE_FLAGS = (
 	"dashed": (dash: "dashed"),
@@ -65,12 +67,13 @@
 #let parse-mark-shorthand(text) = {
 	if type(text) == symbol {
 		if str(text) in MARK_SYMBOL_ALIASES { text = MARK_SYMBOL_ALIASES.at(text) }
-		else { error("Unrecognised marks symbol #0.", text) }
+		else { utils.error("Unrecognised marks symbol #0.", text) }
 	}
 
 	assert(type(text) == str)
 
-	let mark-names = MARKS.get().keys().sorted(key: i => -i.len())
+	// let mark-names = MARKS.get().keys().sorted(key: i => -i.len())
+	let mark-names = DEFAULT_MARKS.keys().sorted(key: i => -i.len())
 	let LINES = LINE_ALIASES.keys().sorted(key: i => -i.len())
 
 	let eat(arg, options) = {
@@ -98,7 +101,7 @@
 
 	marks.push(mark)
 
-	let parse-error(suggestion) = error("Invalid marks shorthand #0. Try #1.", arg, suggestion)
+	let parse-error(suggestion) = utils.error("Invalid marks shorthand #0. Try #1.", arg, suggestion)
 
 	while true {
 		// line, <[-]x->>
@@ -154,7 +157,7 @@
 
 	return (
 		marks: marks,
-		..LINE_ALIASES.at(lines.at(0))
+		options: LINE_ALIASES.at(lines.at(0))
 	)
 }
 
@@ -175,7 +178,7 @@
 /// ```
 #let interpret-edge-args(args, options) = {
 	if args.named().len() > 0 {
-		error("Unexpected named argument(s) #..0.", args.named().keys())
+		utils.error("Unexpected named argument(s) #..0.", args.named().keys())
 	}
 
 	let new-options = (:)
@@ -201,7 +204,7 @@
 	let assert-not-set(key, default, ..value) = {
 		if key not in options { return }
 		if options.at(key) == default { return }
-		error(
+		utils.error(
 			"#0 specified twice with positional argument(s) #..pos and named argument #named.",
 			key, pos: value.pos().map(repr), named: repr(options.at(key)),
 		)
@@ -238,7 +241,7 @@
 		has-tail-coords = true
 
 		if peek(pos, is-rel-coord) {
-			error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
+			utils.error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
 		}
 	}
 	if coords.len() > 0 {
@@ -276,7 +279,7 @@
 
 	if marks != none {
 		if "marks" in new-options {
-			error("Marks argument passed to `edge()` twice; found #0 and #1.", repr(new-options.marks), repr(marks))
+			utils.error("Marks argument passed to `edge()` twice; found #0 and #1.", repr(new-options.marks), repr(marks))
 		}
 		assert-not-set("marks", (), marks)
 		new-options.marks = marks
@@ -292,7 +295,7 @@
 	}
 
 	if pos.len() > 0 {
-		error("Couldn't interpret `edge()` arguments #..0. Try using named arguments. Interpreted previous arguments as #1", pos, new-options)
+		utils.error("Couldn't interpret `edge()` arguments #..0. Try using named arguments. Interpreted previous arguments as #1", pos, new-options)
 	}
 
 	new-options

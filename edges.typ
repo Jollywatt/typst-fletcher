@@ -1,4 +1,5 @@
 #import "deps.typ": cetz
+#import "utils.typ"
 #import "marks.typ" as _marks
 #import "parsing.typ"
 
@@ -55,17 +56,44 @@
   // }
 }
 
+#let interpret-marks-arg(marks) = {
+  if marks == none { (marks: ()) }
+  else if type(marks) == array {
+    (marks: _marks.interpret-marks(marks))
+  } else if type(marks) in (str, symbol) {
+    let (marks, options) = parsing.parse-mark-shorthand(marks)
+    (marks: _marks.interpret-marks(marks), ..options)
+  } else {
+    utils.error("could not interpret marks argument: #0", marks)
+  }
+}
+
 #let edge(
-  ..args
+  ..args,
+  marks: ()
 ) = {
-  let args = parsing.interpret-edge-args(args, (:))
+
+  let options = (
+    marks: marks,
+  )
+  
+  options += parsing.interpret-edge-args(args, options)
+  options += interpret-marks-arg(options.marks)
+  
 
   ((
     class: "edge",
-    ..args
+    ..options
   ),)
 }
 
-#let draw-edge(edge, objects) = {
-  cetz.draw.line(..edge.vertices)
+#let resolve-edge(edge, uv-to-xy, objects) = {
+  edge.draw = cetz.draw.line(..edge.vertices.map(uv-to-xy))
+  edge
+}
+
+#let draw-edge(edge) = {
+  cetz.draw.get-ctx(ctx => {
+    _marks.draw-with-marks(ctx, edge.draw, edge.marks)
+  })
 }

@@ -16,7 +16,7 @@ This is some text for size.
 
   flexigrid({
     node((0,0), [hello])
-    // edge((0,0))
+    edge((0,0), "<-->", (2,0))
     node((2,0), [a])
   }, columns: 1cm, debug: "grid.cells", gutter: 5mm)
 })
