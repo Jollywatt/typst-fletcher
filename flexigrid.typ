@@ -1,6 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "nodes.typ"
+#import "edges.typ"
 #import "debug.typ": debug-level
 
 
@@ -141,7 +142,7 @@
   return i => input
 }
 
-#let apply-rowcol-spec(fn, defaults) = {
+#let apply-rowcol-spec(ctx, fn, defaults) = {
   for (i, col) in defaults.enumerate() {
     let given = (fn)(i)
     if given not in (none, auto) {
@@ -168,7 +169,7 @@
   objects = utils.as-array(objects)
 
 
-  let objs = cetz.draw.get-ctx(ctx => {
+  let scene = cetz.draw.get-ctx(ctx => {
     let gutter = cetz.util.resolve-number(ctx, gutter)
 
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
@@ -176,19 +177,17 @@
 
 
     // phase 1: measure the sizes of all nodes
-    let objects = objects.map(obj => {
-      if utils.is-node(obj) {
-        let node = obj
-        node + (size: cetz.util.measure(ctx, node.body))
-      } else {
-        obj
-      }
+    let objects = objects.map(object => {
+      utils.switch-type(object,
+        node: node => node + (size: cetz.util.measure(ctx, node.body)),
+        any: o => o,
+      )
     })
 
     // phase 2: compute the cell sizes and positions in flexigrid
     let grid = cell-sizes-from-nodes(objects.filter(utils.is-node))
-    grid.col-sizes = apply-rowcol-spec(col-spec, grid.col-sizes)
-    grid.row-sizes = apply-rowcol-spec(row-spec, grid.row-sizes)
+    grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
+    grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
     if debug-level(debug, "grid") {
@@ -197,17 +196,21 @@
 
     // phase 3: draw objects at resolved locations
     for object in objects {
-      if utils.is-node(object) {
-        let cell = interp-grid-cell(grid, object.pos)
-        nodes.draw-node-in-cell(object, cell)
-      } else {
-        (object,)
-      }
+      utils.switch-type(object,
+        node: node => {
+          let cell = interp-grid-cell(grid, node.pos)
+          nodes.draw-node-in-cell(node, cell)
+        },
+        edge: edge => {
+          edges.draw-edge(edge, objects)
+        },
+        function: obj => (obj,)
+      )
     }
 
   })
 
-  cetz.draw.group(objs, name: name)
+  cetz.draw.group(scene, name: name)
 }
 
 #let diagram(..args) = cetz.canvas(flexigrid(..args))

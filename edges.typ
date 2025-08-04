@@ -1,5 +1,6 @@
 #import "deps.typ": cetz
 #import "marks.typ" as _marks
+#import "parsing.typ"
 
 #let find-farthest-anchor(ctx, name, reference-point) = {
 
@@ -54,4 +55,17 @@
   // }
 }
 
-#let edge() = {}
+#let edge(
+  ..args
+) = {
+  let args = parsing.interpret-edge-args(args, (:))
+
+  ((
+    class: "edge",
+    ..args
+  ),)
+}
+
+#let draw-edge(edge, objects) = {
+  cetz.draw.line(..edge.vertices)
+}

@@ -1,21 +1,31 @@
 #let error(message, ..args) = {
 	let pairs = args.pos().enumerate() + args.named().pairs()
-	let ticks(x) = "`" + if type(x) == str { x } else { repr(x) } + "`"
 	for (k, v) in pairs {
 		if type(v) == array {
 			let replacement = if v.len() > 0 {
-				v.map(ticks).join(", ", last: " and ")
+				v.map(repr).join(", ")
 			} else { "()" }
 			message = message.replace("#.." + str(k), replacement)
 		}
 		if type(v) != str { v = repr(v) }
-		message = message.replace("#" + str(k), ticks(v))
+		message = message.replace("#" + str(k), v)
 	}
 	assert(false, message: message)
 }
 
-#let switch-type(input, ..types) = {
-	let fn = types.named().at(str(type(input)))
+#let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
+#let is-edge(o) = type(o) == dictionary and "class" in o and o.class == "edge"
+
+#let switch-type(input, ..args) = {
+	let types = args.named().keys()
+	let t = str(type(input))
+	if is-node(input) { t = "node" }
+	if is-edge(input) { t = "edge" }
+	if t not in types {
+		if "any" in types { t = "any" }
+		else { error("expected #0; got #1", types.join(", ", last: " or "), t) }
+	}
+	let fn = args.named().at(t)
 	fn(input)
 }
 
@@ -52,7 +62,6 @@
 
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
 
-#let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
 
 
 #let as-array(o) = {

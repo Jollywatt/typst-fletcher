@@ -7,9 +7,19 @@
 
 This is some text for size.
 #diagram(debug: (grid: 8, nodes: 100), {
-  node((0,0), [he fllo], name: "A")
+  node((0,0), [Hello\ World], name: "A")
   node((1,1), [Royal], name: "B")
 }, gutter: 5mm)
+
+#cetz.canvas({
+  import cetz.draw
+
+  flexigrid({
+    node((0,0), [hello])
+    // edge((0,0))
+    node((2,0), [a])
+  }, columns: 1cm, debug: "grid.cells", gutter: 5mm)
+})
 
 #let fig = cetz.canvas({
   import cetz.draw
@@ -60,7 +70,7 @@ This is some text for size.
     snap-to: (c, a),
     draw: (a, b) => draw.arc-through(a, (2,3), b),
     debug: 1,
-    marks: ("o", "o", "o"),
+    marks: ("cone", ">", "<<<"),
   )
   edges.draw-edge-with-snapping((5,3), (0,1),
     snap-to: (c, a),
