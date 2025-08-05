@@ -59,6 +59,18 @@
   )
 }
 
+
+#let interp-grid-cell(grid, (u, v)) = {
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
+  (
+    x: interp(grid.col-centers, i),
+    y: interp(grid.row-centers, j),
+    w: interp(grid.col-sizes, i),
+    h: interp(grid.row-sizes, j),
+  )
+}
+
+
 #let cumsum(array) = {
 	let sum = array.at(0)
 	for i in range(1, array.len()) {

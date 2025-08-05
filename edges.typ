@@ -2,6 +2,7 @@
 #import "utils.typ"
 #import "marks.typ" as _marks
 #import "parsing.typ"
+#import "nodes.typ" as Nodes
 
 #let find-farthest-anchor(ctx, name, reference-point) = {
 
@@ -21,12 +22,10 @@
 
 
 
-
-
 #let draw-edge-with-snapping(
   source,
   target,
-  snap-to: (auto, auto),
+  snap-to: (none, none),
   draw: none,
   marks: (),
   debug: false,
@@ -42,7 +41,7 @@
 
     let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
     let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
-    
+    snap-to.at(0)
     let obj = draw(src-snapped, tgt-snapped)
     _marks.draw-with-marks(ctx, obj, marks)
   })
@@ -77,11 +76,13 @@
 
 #let edge(
   ..args,
-  marks: ()
+  marks: (),
+  snap-to: (auto, auto)
 ) = {
 
   let options = (
     marks: marks,
+    snap-to: snap-to,
   )
   
   options += parsing.interpret-edge-args(args, options)
@@ -105,9 +106,37 @@
 }
 
 
+#let find-snapping-nodes(key, nodes) = {
+  if key == none { return none }
+  let (u0, v0) = key
+  let node = nodes.sorted(key: node => {
+    let (u, v) = node.pos
+    calc.abs(u - u0) + calc.abs(v - v0)
+  }).first()
 
-#let draw-edge-in-flexigrid(edge, grid) = {
+  Nodes.draw-node-at(node, node.origin)
+
+}
+
+#let draw-edge-in-flexigrid(edge, grid, nodes) = {
   let vertices-xy = edge.vertices.map(utils.interp-grid-point.with(grid))
+  let (src, ..mid-vertices, tgt) = vertices-xy
   edge.draw = cetz.draw.line(..vertices-xy)
-  draw-edge(edge)
+
+  let (src-snap-to, tgt-snap-to) = edge.snap-to
+  if src-snap-to == auto { src-snap-to = src }
+  if tgt-snap-to == auto { tgt-snap-to = tgt }
+  let src-snap-nodes = find-snapping-nodes(src-snap-to, nodes)
+  let tgt-snap-nodes = find-snapping-nodes(tgt-snap-to, nodes)
+
+  draw-edge-with-snapping(
+    src,
+    tgt,
+    draw: (src, tgt) => {
+      let edge = edge
+      edge.draw = cetz.draw.line(src, ..mid-vertices, tgt)
+      draw-edge(edge)
+    },
+    snap-to: (src-snap-nodes, tgt-snap-nodes),
+  )
 }

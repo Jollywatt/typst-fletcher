@@ -66,9 +66,8 @@
 
 
 
-#let draw-node-in-cell(node, cell) = {
-  import "deps.typ": cetz
-
+#let get-node-origin(node, grid) = {
+  let cell = utils.interp-grid-cell(grid, node.pos)
   let (w, h) = node.size
   let (x-shift, y-shift) = (0, 0)
 
@@ -77,7 +76,6 @@
   if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
   if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
 
-  let origin = cetz.vector.add((cell.x, cell.y), (x-shift, y-shift))
-  
-  draw-node-at(node, origin)
+  return (cell.x + x-shift, cell.y + y-shift)
+
 }

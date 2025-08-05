@@ -81,18 +81,6 @@
 
 
 
-
-#let interp-grid-cell(grid, (u, v)) = {
-  let (i, j) = (u - grid.u-min, v - grid.v-min)
-  (
-    x: utils.interp(grid.col-centers, i),
-    y: utils.interp(grid.row-centers, j),
-    w: utils.interp(grid.col-sizes, i),
-    h: utils.interp(grid.row-sizes, j),
-  )
-}
-
-
 #let draw-flexigrid(grid, debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")
@@ -190,21 +178,27 @@
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
+    nodes = nodes.map(node => {
+      node.origin = Nodes.get-node-origin(node, grid)
+      return node
+    })
+
     // draw things
 
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
+    // phase 1: draw nodes and cetz objects
     for (object, element) in objects.zip(elements) {
       if "fletcher" in element {
         if element.fletcher.class == "node" {
           let node = element.fletcher
-          let cell = interp-grid-cell(grid, node.pos)
-          Nodes.draw-node-in-cell(node, cell)
+          let origin = Nodes.get-node-origin(node, grid)
+          Nodes.draw-node-at(node, origin)
         } else if element.fletcher.class == "edge" {
           let edge = element.fletcher
-          edges.draw-edge-in-flexigrid(edge, grid)
+          edges.draw-edge-in-flexigrid(edge, grid, nodes)
         } else {
           panic(element.fletcher)
         }
@@ -212,6 +206,7 @@
         (object,)
       }
     }
+
 
   })
 
