@@ -121,7 +121,6 @@
 #let draw-edge-in-flexigrid(edge, grid, nodes) = {
   let vertices-xy = edge.vertices.map(utils.interp-grid-point.with(grid))
   let (src, ..mid-vertices, tgt) = vertices-xy
-  edge.draw = cetz.draw.line(..vertices-xy)
 
   let (src-snap-to, tgt-snap-to) = edge.snap-to
   if src-snap-to == auto { src-snap-to = src }
@@ -133,9 +132,9 @@
     src,
     tgt,
     draw: (src, tgt) => {
-      let edge = edge
-      edge.draw = cetz.draw.line(src, ..mid-vertices, tgt)
-      draw-edge(edge)
+      draw-edge(edge + (
+        draw: cetz.draw.line(src, ..mid-vertices, tgt)
+      ))
     },
     snap-to: (src-snap-nodes, tgt-snap-nodes),
   )

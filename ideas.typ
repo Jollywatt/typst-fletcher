@@ -10,13 +10,13 @@
 
   flexigrid(
     name: "a",
-    debug: "grid",
+    debug: false,
     gutter: 1,
   {
-    node((2,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi")
-    node((0,1), [Hello\ World], inset: 5pt, name: "hi")
+    node((2,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi", stroke: red + 4pt)
+    node((0,1), [Hello\ World], inset: 5pt, name: "hi", fill: teal)
     draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
-    edge((0,1), "->", (2,0))
+    edge((0,1), (2,1), (2,0), "->")
     // marks.with-marks(draw.line("bi.north", (2,2)), "<>->")
   })
     // edge((0,3), "latex-o-|>", (3,3))
