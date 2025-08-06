@@ -81,6 +81,7 @@
 }
 
 #let map-auto(value, fallback) = if value == auto { fallback } else { value }
+#let map-none(value, fallback) = if value == none { fallback } else { value }
 
 
 
@@ -90,16 +91,13 @@
 	panic("expected array", o)
 }
 
-#import "@preview/elembic:1.1.1" as e
-#let as-stroke(o) = {
-  let (succeeded, stroke) = e.types.cast(o, stroke)
-  if not succeeded { panic(stroke) }
-  return stroke
+
+#let stroke-thickness(s) = {
+	if s == none { 1pt }
 }
 
-
 #let stroke-to-dict(s) = {
-	let s = as-stroke(s)
+	let s = stroke(s)
 	let d = (
 		paint: s.paint,
 		thickness: s.thickness,

@@ -6,8 +6,21 @@
 #let draw-node-at(node, origin) = {
   cetz.draw.group({
     cetz.draw.translate(origin)
-    cetz.draw.set-style(stroke: node.stroke, fill: node.fill)
-    (node.shape)(node)
+    cetz.draw.get-ctx(ctx => { 
+      let styles = ctx.style
+
+      let style = cetz.styles.resolve(
+        ctx.style,
+        root: ("fletcher", "node"),
+        merge: (fletcher: (node: (stroke: node.stroke, fill: node.fill))),
+        base: (stroke: none, fill: none),
+      )
+      // let t = if node.stroke == none { 1pt } else {styles.stroke.thickness }
+      for (i, extrude) in node.extrude.enumerate() {
+        cetz.draw.set-style(stroke: style.stroke, fill: if i >= 0 { style.fill })
+        (node.shape)(node, 0)
+      }
+    })
   }, name: node.name)
 
   // (ctx => {
@@ -28,8 +41,9 @@
   pos,
   body,
   shape: shapes.rect,
-  stroke: none,
-  fill: none,
+  stroke: auto,
+  fill: auto,
+  extrude: (0,),
   inset: 0pt,
   outset: 0pt,
   name: none,
@@ -56,6 +70,7 @@
       shape: shape,
       stroke: stroke,
       fill: fill,
+      extrude: extrude,
       outset: outset,
       name: name,
       size: (w, h),

@@ -34,14 +34,14 @@
   let marks = _marks.interpret-marks(marks)
 
   let test-draw = (draw)(source, target)
-  cetz.draw.hide(cetz.draw.intersections("inter-src", snap-to.at(0) + test-draw))
-  cetz.draw.hide(cetz.draw.intersections("inter-tgt", snap-to.at(1) + test-draw))
+  cetz.draw.hide({
+    cetz.draw.intersections("inter-src", snap-to.at(0) + test-draw)
+    cetz.draw.intersections("inter-tgt", snap-to.at(1) + test-draw)
+  })
 
   cetz.draw.get-ctx(ctx => {
-
     let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
     let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
-    snap-to.at(0)
     let obj = draw(src-snapped, tgt-snapped)
     _marks.draw-with-marks(ctx, obj, marks)
   })

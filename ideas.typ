@@ -10,14 +10,16 @@
 
   flexigrid(
     name: "a",
-    debug: false,
+    debug: true,
     gutter: 1,
   {
-    node((2,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi", stroke: red + 4pt)
-    node((0,1), [Hello\ World], inset: 5pt, name: "hi", fill: teal)
+    node((1,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi")
+    node((0,1), [Hello\ World], inset: 5pt, name: "hi", stroke: teal)
+    draw.set-style(fletcher: (node: (stroke: blue + 3pt)))
+    node((0,0), [Hello\ World], inset: 5pt, name: "hi", fill: teal)
     draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
     edge((0,1), (2,1), (2,0), "->")
-    // marks.with-marks(draw.line("bi.north", (2,2)), "<>->")
+    marks.with-marks(draw.line("bi.north", (2,2)), "<>->")
   })
     // edge((0,3), "latex-o-|>", (3,3))
 
@@ -32,3 +34,17 @@
     draw.circle((ctx.flexigrid)((0,.5)), radius: 5pt, fill: blue)
   })
 })
+
+
+#let defaults = (
+  fletcher: (
+    node: (stroke: none, fill: none),
+    edge: (stroke: 1pt, mark: none, fill: none),
+  )
+)
+#let defaults = defaults.fletcher.node
+#let ctx = (
+  stroke: "black",
+  fill: none,
+)
+#cetz.styles.resolve(ctx, merge: (fletcher: (node: (stroke: red))), root: ("fletcher", "node"), base: defaults)

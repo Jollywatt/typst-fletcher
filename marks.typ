@@ -110,7 +110,7 @@
 	debug: false,
 ) = {
 	mark = resolve-mark(mark)
-	stroke = utils.as-stroke(stroke)
+	stroke = std.stroke(stroke)
 
 	let thickness = stroke.thickness
 
