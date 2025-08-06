@@ -16,6 +16,7 @@
 }
 
 #let debug-level(debug, option) = {
+  if debug == none { return false }
   if type(debug) == bool { return debug }
   if type(debug) == int { return DEBUG_LEVELS.at(option) <= debug }
   if type(debug) == str { return option.starts-with(debug) or debug.starts-with(option) }

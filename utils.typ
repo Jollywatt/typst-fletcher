@@ -92,8 +92,11 @@
 }
 
 
-#let stroke-thickness(s) = {
-	if s == none { 1pt }
+#let get-thickness(s) = {
+	if s == none { return 1pt }
+	let t = stroke(s).thickness
+	if t == auto { return 1pt }
+	return t
 }
 
 #let stroke-to-dict(s) = {
