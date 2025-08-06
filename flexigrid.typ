@@ -165,7 +165,9 @@
     cetz.draw.translate(origin)
 
 
-    let (elements,) = cetz.process.many(ctx, objects)
+    let (elements,) = cetz.process.many(ctx + (
+      flexigrid: pos => (0, 0, 0)
+    ), objects)
 
     // get elements that are fletcher objects
     let nodes = elements.filter(element => {
@@ -182,6 +184,12 @@
       node.origin = Nodes.get-node-origin(node, grid)
       return node
     })
+
+
+    // provide extra context
+    (ctx => (ctx: ctx + (
+      flexigrid: utils.interp-grid-point.with(grid)
+    )),)
 
     // draw things
 
@@ -210,8 +218,12 @@
 
   })
 
+  let extra-ctx = (
+    fletcher-debug: debug,
+  )
+
   cetz.draw.group({
-    (ctx => (ctx: ctx + (fletcher-debug: debug)),)
+    (ctx => (ctx: ctx + extra-ctx),)
     scene
   }, name: name)
 }

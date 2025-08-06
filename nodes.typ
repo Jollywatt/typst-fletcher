@@ -6,6 +6,7 @@
 #let draw-node-at(node, origin) = {
   cetz.draw.group({
     cetz.draw.translate(origin)
+    cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: green))
     (node.shape)(node)
   }, name: node.name)
 
