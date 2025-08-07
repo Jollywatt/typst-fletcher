@@ -103,9 +103,18 @@
     calc.abs(u - u0) + calc.abs(v - v0)
   }).first()
 
-  Nodes.draw-node-at(node, node.origin, debug: false)
+  return node
 
 }
+
+#let draw-node-snapping-outline(node, outset) = {
+  let node = node
+  if outset == auto { outset = node.style.outset }
+  node.style.extrude = (outset,)
+  node.name = none
+  Nodes.draw-node-at(node, node.origin, debug: false)
+}
+
 
 #let draw-edge-in-flexigrid(edge, grid, nodes, debug: false) = {
   let vertices-xy = edge.vertices.map(utils.interp-grid-point.with(grid))
@@ -114,16 +123,36 @@
   let (src-snap-to, tgt-snap-to) = edge.snap-to
   if src-snap-to == auto { src-snap-to = src }
   if tgt-snap-to == auto { tgt-snap-to = tgt }
-  let src-snap-nodes = find-snapping-nodes(src-snap-to, nodes)
-  let tgt-snap-nodes = find-snapping-nodes(tgt-snap-to, nodes)
 
-  draw-edge-with-snapping(
-    edge + (path: vertices-xy),
-    src,
-    tgt,
-    snap-to: (src-snap-nodes, tgt-snap-nodes),
-    debug: utils.map-auto(edge.debug, debug),
-  )
+  cetz.draw.get-ctx(ctx => {
+
+    let style = cetz.styles.resolve(
+      ctx.style,
+      base: BASE_EDGE_STYLE,
+      merge: (edge: edge.style),
+    ).edge
+
+    let snapping-outlines = (src-snap-to, tgt-snap-to)
+      .zip(edge.style.outset)
+      .map(((snap-to, outset)) => {
+        let node = find-snapping-nodes(snap-to, nodes)
+        node.style = cetz.styles.resolve(
+          ctx.style,
+          base: Nodes.BASE_NODE_STYLE,
+          merge: (node: node.style),
+          root: "node",
+        ).node
+        draw-node-snapping-outline(node, outset)
+      })
+
+    draw-edge-with-snapping(
+      edge + (path: vertices-xy),
+      src,
+      tgt,
+      snap-to: snapping-outlines,
+      debug: utils.map-auto(edge.debug, debug),
+    )
+  })
 }
 
 
@@ -162,11 +191,13 @@
   marks: (),
   snap-to: (auto, auto),
   debug: auto,
+  outset: auto,
 ) = {
 
   let options = (
     marks: marks,
     snap-to: snap-to,
+    outset: outset,
   )
   
   options += parsing.interpret-edge-args(args, options)
@@ -176,6 +207,7 @@
     options.vertices,
     style: (
       marks: options.marks,
+      outset: utils.as-pair(options.outset),
     ),
     snap-to: options.snap-to,
     debug: debug,

@@ -91,6 +91,12 @@
 	panic("expected array", o)
 }
 
+#let as-pair(o) = {
+	if type(o) == array {
+		if o.len() != 2 { error("expected one or a pair of values; got #0.", o) }
+		return o
+	} else { return (o, o) }
+}
 
 #let get-thickness(s) = {
 	if s == none { return 1pt }
