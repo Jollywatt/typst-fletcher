@@ -2,27 +2,37 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 
+#let BASE_NODE_STYLE = (
+  stroke: none,
+  fill: none,
+  extrude: (0,),
+  inset: 5pt,
+  outset: 0pt,
+)
 
 #let draw-node-at(node, origin) = {
   cetz.draw.group({
     cetz.draw.get-ctx(ctx => { 
       let style = cetz.styles.resolve(
         ctx.style,
-        base: (stroke: none, fill: none),
+        base: BASE_NODE_STYLE,
         merge: (node: node.style),
         root: "node",
-      )
+      ).node
 
       cetz.draw.translate(origin)
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
       let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
-      let extrude = node.extrude.map(e => {
+      let extrude = style.extrude.map(e => {
         if type(e) == length { return cetz.util.resolve-number(ctx, e) }
         if type(e) in (int, float) { return e*thickness }
       })
 
+      let node = node
+      node.size = node.size.map(a => a + cetz.util.resolve-number(ctx, 2*style.inset))
+
       for (i, extrude) in extrude.enumerate() {
-        cetz.draw.set-style(..style.node, fill: if i == 0 { style.node.fill })
+        cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
         (node.shape)(node, extrude)
       }
     })
@@ -46,21 +56,17 @@
   pos,
   body,
   shape: shapes.rect,
-  stroke: auto,
-  fill: auto,
-  extrude: (0,),
-  inset: 0pt,
-  outset: 0pt,
+  ..style,
   name: none,
   align: center + horizon,
   weight: 1,
 ) = {
 
-  // apply inset
-  body = utils.switch-type(inset,
-    length: inset => pad(inset, body),
-    dictionary: args => pad(..args, body),
-  )
+  // // apply inset
+  // body = utils.switch-type(inset,
+  //   length: inset => pad(inset, body),
+  //   dictionary: args => pad(..args, body),
+  // )
 
   body = text(body, top-edge: "cap-height", bottom-edge: "baseline")
 
@@ -73,12 +79,7 @@
       pos: pos,
       body: body,
       shape: shape,
-      style: (
-        stroke: stroke,
-        fill: fill,
-      ),
-      extrude: extrude,
-      outset: outset,
+      style: style.named(),
       name: name,
       size: (w, h),
       weight: weight,

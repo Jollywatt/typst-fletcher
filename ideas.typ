@@ -10,13 +10,13 @@
 
   flexigrid(
     name: "a",
-    debug: none,
-    gutter: 1,
+    debug: "grid.cells",
+    gutter: 1cm,
   {
-    node((1,0), $"up"(bold(x))^2$, inset: 5pt, name: "bi", stroke: .5pt)
-    node((0,1), [Hello\ World], inset: 5pt, name: "hi", stroke: teal)
-    draw.set-style(node: (stroke: blue + 1pt, fill: yellow))
-    node((0,0), [CeTZ], inset: 5pt, name: "hi", fill: yellow, extrude: (0, 2pt,))
+    node((1,0), $"up"(bold(x))^2$, name: "bi", stroke: .5pt)
+    draw.set-style(node: (stroke: blue + 1pt, fill: yellow.transparentize(50%)))
+    node((0,1), [Hello\ World], inset: 5mm, name: "hi", stroke: teal)
+    node((0,0), [CeTZ], inset: 5pt, name: "hi", fill: lime, extrude: (0, 2pt,))
     draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
     edge((0,1), (2,1), (2,0), "->")
     marks.with-marks(draw.line("bi.north-east", (5,2)), "->")
