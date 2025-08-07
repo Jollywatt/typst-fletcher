@@ -70,9 +70,9 @@
   })
 
 
-  if debug-level(debug, "edge") {
+  if debug-level(debug, "edge.snap") {
     cetz.draw.group({
-      cetz.draw.set-style(stroke: (paint: green.transparentize(60%)))
+      cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
       test-path
     })
   }
@@ -177,7 +177,8 @@
     style: (
       marks: options.marks,
     ),
-    snap-to: options.snap-to
+    snap-to: options.snap-to,
+    debug: debug,
   )
 
 }

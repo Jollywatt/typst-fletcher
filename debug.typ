@@ -2,13 +2,13 @@
   "grid": 1,
   "grid.coords": 1,
   "grid.lines": 2,
-  "grid.cells": 3,
+  "grid.cells": 2,
 
   "node.stroke": 3,
   "node.inset": 4,
-  "node.outsetset": 4,
+  "node.outset": 4,
 
-  "edge": 4,
+  "edge.snap": 3,
 
   "mark": 4
 )
@@ -34,4 +34,4 @@
 #assert(debug-level("grid", "grid.coords"))
 #assert(debug-level("grid.coords", "grid"))
 #assert(debug-level((grid: 2, node: 100), "grid.lines"))
-#assert(not debug-level((grid: 2, node: 100), "grid.cells"))
+#assert(not debug-level((grid: 1, node: 100), "grid.cells"))
