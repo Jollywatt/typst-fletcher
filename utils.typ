@@ -106,6 +106,7 @@
 }
 
 #let stroke-to-dict(s) = {
+	if s == auto { return (:) }
 	let s = stroke(s)
 	let d = (
 		paint: s.paint,

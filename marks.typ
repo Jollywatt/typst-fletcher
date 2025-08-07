@@ -112,7 +112,7 @@
 	mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
 
-	let thickness = stroke.thickness
+	let thickness = utils.map-auto(stroke.thickness, 1pt)
 
 	let fill = mark.at("fill", default: auto)
 	fill = utils.map-auto(fill, stroke.paint)

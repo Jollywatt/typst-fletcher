@@ -7,7 +7,7 @@
 
 #let BASE_EDGE_STYLE = (
   marks: (),
-  stroke: 0.048em,
+  stroke: (thickness: 0.048em, cap: "round"),
 )
 
 #let draw-edge(edge) = {
@@ -221,14 +221,16 @@
   
   options += parsing.interpret-edge-args(args, options)
   options += interpret-marks-arg(options.marks)
+
+  let stroke = (dash: options.at("dash", default: auto)) + utils.stroke-to-dict(options.stroke)
+
   
   _edge(
     options.vertices,
     style: (
       marks: options.marks,
       outset: utils.as-pair(options.outset),
-      stroke: options.stroke,
-      dash: options.at("dash", default: none),
+      stroke: stroke,
     ),
     snap-to: options.snap-to,
     name: name,

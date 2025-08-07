@@ -70,7 +70,7 @@
     let styles = cetz.styles.resolve(
       ctx.style,
       base: BASE_EDGE_STYLE,
-      merge: (edge: (stroke: (dash: "dashed"))),
+      merge: (edge: (stroke: (paint: red), dash: "dashed")),
       root: "edge",
     )
     cetz.draw.content((0,0), [#styles])
