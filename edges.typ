@@ -36,9 +36,9 @@
       root: "edge",
     ).edge
 
-    let test-path = cetz.draw.line(..edge.path)
+    let base-path = cetz.draw.line(..edge.path, name: edge.name)
 
-    Marks.draw-with-marks-and-shrinking(ctx, test-path, style.marks, stroke: style.stroke)
+    Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
   })
 }
 
@@ -171,6 +171,7 @@
   vertices,
   style: (:),
   snap-to: (auto, auto),
+  name: none,
   debug: auto,
 ) = {
 
@@ -180,6 +181,7 @@
     vertices: vertices,
     style: style,
     snap-to: snap-to,
+    name: name,
     debug: debug,
   )
   
@@ -202,14 +204,17 @@
   ..args,
   marks: (),
   snap-to: (auto, auto),
-  debug: auto,
   outset: auto,
+  name: none,
+  stroke: auto,
+  debug: auto,
 ) = {
 
   let options = (
     marks: marks,
     snap-to: snap-to,
     outset: outset,
+    stroke: stroke,
   )
   
   options += parsing.interpret-edge-args(args, options)
@@ -220,8 +225,10 @@
     style: (
       marks: options.marks,
       outset: utils.as-pair(options.outset),
+      stroke: options.stroke,
     ),
     snap-to: options.snap-to,
+    name: name,
     debug: debug,
   )
 

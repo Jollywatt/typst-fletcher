@@ -45,21 +45,14 @@ j \* k
 #cetz.canvas({
   import cetz.draw
 
-  flexigrid(debug: 0, {
+  flexigrid(debug: 1, {
     node((0,0), $G$)
-    edge((0,0), "->", (1,0))
-    edge((0,0), "->>", (0,-1))
+    edge((0,0), "->", (1,0), name: "foo")
+    edge((0,0), "->>", (0,-1), outset: 5pt)
     node((1,0), $im(f)$)
-    edge((0,-1), "hook-->", (1,0))
+    edge((0,-1), "hook-->", (1,0), name: "bar")
     node((0,-1), $G slash ker(f)$)
+    marks.with-marks(cetz.draw.bezier("foo.50%", "bar", (1.7,1.4)), "*-o", shrink: false)
+    cetz.draw.circle("foo.75%", radius: 1pt, stroke: yellow)
   })
 })
-
-```typ
-#diagram(cell-size: 15mm,/*darkmode*/
-	edge-stroke: white,
-	crossing-fill: none,/*end*/ $
-	G edge(f, ->) edge("d", pi, ->>) & im(f) \
-	G slash ker(f) edge("ur", tilde(f), "hook-->")
-$)
-```

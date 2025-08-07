@@ -168,7 +168,9 @@
 
 
 
-#let draw-with-marks(ctx, obj, marks) = {
+#let draw-with-marks(ctx, obj, marks, stroke: 1pt) = {
+
+	cetz.draw.set-style(stroke: stroke)
 	obj
 
 	let marks = interpret-marks(marks)
@@ -180,7 +182,7 @@
     let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
     let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
 
-    draw-mark(mark, origin: origin, angle: angle, stroke: ctx.style.stroke)
+    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
   }
 }
 
@@ -251,10 +253,14 @@
 
 
 
-#let with-marks(obj, marks) = {
+#let with-marks(obj, marks, shrink: true) = {
   let (marks,) = parsing.parse-mark-shorthand(marks)
   cetz.draw.get-ctx(ctx => {
 		let marks = interpret-marks(marks)
-    draw-with-marks-and-shrinking(ctx, obj, marks)
+		if shrink {
+			draw-with-marks-and-shrinking(ctx, obj, marks)
+		} else {
+			draw-with-marks(ctx, obj, marks)
+		}
   })
 }
