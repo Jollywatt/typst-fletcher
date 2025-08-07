@@ -76,3 +76,22 @@
     cetz.draw.content((0,0), [#styles])
   })
 })
+
+
+
+#import "path-effects.typ"
+
+#cetz.canvas({
+  import cetz.draw
+
+  let l = draw.circle-through((0,0), (2,-1), (1,1))
+  l
+  path-effects.extrude(l, 2, stroke: 2pt + red)
+
+  draw.translate(y: 5)
+
+  let l = draw.arc-through((0,0), (2,-1), (1,1))
+  l
+  path-effects.extrude(l, -3mm, stroke: 2pt + red)
+})
+
