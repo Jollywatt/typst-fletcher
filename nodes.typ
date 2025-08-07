@@ -12,7 +12,7 @@
 )
 
 #let draw-node-at(node, origin, debug: false) = {
-  cetz.draw.group({
+  let (group-callback,) = cetz.draw.group({
     cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
       let style = cetz.styles.resolve(
@@ -45,16 +45,16 @@
     })
   }, name: node.name)
 
-  // (ctx => {
-  //   let group = group-callback(ctx)
-  //   let calc-anchors = if "node" in (group.anchors)(()) {
-  //     // defer all anchors to the node named "node" within the group
-  //     k => (group.anchors)(("node", ..k))
-  //   } else {
-  //     k => (group.anchors)(k)
-  //   }
-  //   return group + (anchors: calc-anchors)
-  // },)
+  (ctx => {
+    let group = group-callback(ctx)
+    let calc-anchors = if "node" in (group.anchors)(()) {
+      // defer all anchors to the node named "node" within the group
+      k => (group.anchors)(("node", ..k))
+    } else {
+      k => (group.anchors)(k)
+    }
+    return group + (anchors: calc-anchors)
+  },)
 
 }
 

@@ -35,7 +35,7 @@ j \* k
   node((0,0), $ (a z + b)/(c z + d) $)
   edge((0,0), "<->", (1,1), snap-to: (auto, auto))
   node((1,1), [hi there], name: "a", stroke: green, shape: shapes.circle)
-  draw.circle("a.east", radius: 5pt, fill: yellow)
+  draw.circle("a.45deg", radius: 5pt, fill: yellow)
   draw.get-ctx(ctx => {
     draw.circle((ctx.flexigrid)((0,.5)), radius: 5pt, fill: blue)
   })
