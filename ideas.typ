@@ -28,7 +28,7 @@
 
 })
 
-j \* k
+#lorem(7)
 
 #diagram(debug: true, {
   import cetz.draw
@@ -39,6 +39,8 @@ j \* k
   draw.get-ctx(ctx => {
     draw.circle((ctx.flexigrid)((0,.5)), radius: 5pt, fill: blue)
   })
+  node((2,0), inset: 4mm, fill: black, shape: shapes.circle, name: "a")
+  draw.content("a.east", $f(x)$, anchor: "west", padding: 5pt)
 })
 
 #lorem(20)

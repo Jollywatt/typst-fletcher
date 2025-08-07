@@ -33,8 +33,10 @@
       // node.size = node.size.map(a => a + cetz.util.resolve-number(ctx, 2*style.inset))
 
       for (i, extrude) in extrude.enumerate() {
-        cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.shape)(node, extrude)
+        cetz.draw.group({
+          cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
+          (node.shape)(node, extrude)
+        })
       }
     })
 
@@ -61,9 +63,8 @@
 
 #let node(
   pos,
-  body,
+  ..args,
   shape: shapes.rect,
-  ..style,
   name: none,
   align: center + horizon,
   weight: 1,
@@ -75,10 +76,19 @@
   //   length: inset => pad(inset, body),
   //   dictionary: args => pad(..args, body),
   // )
+  // 
+  if args.pos().len() > 1 { utils.error("invalid positional argument in node: #0", args.pos().slice(1)) }
+  let body = args.pos().at(0, default: none)
 
-  body = text(body, top-edge: "cap-height", bottom-edge: "baseline")
+  let style = args.named()
 
-  let style = style.named()
+  if body == none {
+    if style.at("inset", default: auto) == auto { style.inset = 0 }
+  } else {
+    body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
+  }
+
+
 
   (ctx => {
 
