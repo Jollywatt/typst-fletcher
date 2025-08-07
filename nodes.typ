@@ -10,7 +10,7 @@
   extrude: (0,),
 )
 
-#let draw-node-at(node, origin) = {
+#let draw-node-at(node, origin, debug: false) = {
   cetz.draw.group({
     cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
@@ -60,6 +60,7 @@
   name: none,
   align: center + horizon,
   weight: 1,
+  debug: false,
 ) = {
 
   // // apply inset
@@ -82,8 +83,9 @@
       style: style.named(),
       name: name,
       size: (w, h),
+      align: align,
       weight: weight,
-      align: align
+      debug: debug,
     )
 
     let (obj,) = draw-node-at(node-data, pos)

@@ -147,11 +147,11 @@
 #let flexigrid(
   objects,
   gutter: 0,
-  debug: false,
   origin: (0,0),
   columns: auto,
   rows: auto,
   name: none,
+  debug: false,
 ) = {
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
@@ -206,7 +206,7 @@
           Nodes.draw-node-at(node, origin)
         } else if element.fletcher.class == "edge" {
           let edge = element.fletcher
-          edges.draw-edge-in-flexigrid(edge, grid, nodes)
+          edges.draw-edge-in-flexigrid(edge, grid, nodes, debug: debug)
         } else {
           panic(element.fletcher)
         }
