@@ -11,10 +11,18 @@
   extrude: (0,),
 )
 
+
 #let draw-node-at(node, origin, debug: false) = {
   let (group-callback,) = cetz.draw.group({
     cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
+
+      debug-draw(debug, "node", {
+        cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+        let (w, h) = node.size
+        cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
+      })
+      
       let style = cetz.styles.resolve(
         ctx.style,
         base: BASE_NODE_STYLE,
@@ -29,29 +37,20 @@
         if type(e) in (int, float) { return e*thickness }
       })
 
-      let node = node
-      // node.size = node.size.map(a => a + cetz.util.resolve-number(ctx, 2*style.inset))
-
       for (i, extrude) in extrude.enumerate() {
-        cetz.draw.group({
-          cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-          (node.shape)(node, extrude)
-        })
+        cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
+        (node.shape)(node, extrude)
       }
     })
 
-    debug-draw(debug, "node", {
-      cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
-      let (w, h) = node.size
-      cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
-    })
   }, name: node.name)
 
   (ctx => {
     let group = group-callback(ctx)
+
     let calc-anchors = if "node" in (group.anchors)(()) {
       // defer all anchors to the node named "node" within the group
-      k => (group.anchors)(("node", ..k))
+      k => (group.anchors)(( "node", ..k))
     } else {
       k => (group.anchors)(k)
     }

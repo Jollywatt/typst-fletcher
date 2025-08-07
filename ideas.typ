@@ -5,13 +5,30 @@
 
 #import "marks.typ"
 
+
+#lorem(20)
+#cetz.canvas({
+  import cetz.draw
+
+  flexigrid(debug: 0, {
+    node((0,0), $G$)
+    edge((0,0), "->", (1,0), name: "foo")
+    edge((0,0), "->>", (0,-1))
+    node((1,0), $im(f)$)
+    edge((0,-1), "hook-->", (1,0), name: "bar")
+    node((0,-1), $G slash ker(f)$)
+    marks.with-marks(cetz.draw.bezier("foo.50%", "bar", (1.7,1.4)), "*-o", shrink: false)
+    cetz.draw.circle("foo.75%", radius: 1pt, stroke: yellow)
+  })
+})
+
+
 #cetz.canvas({
   import cetz.draw
 
   node((5,5), [fred], stroke: 1pt)
   flexigrid(
     name: "a",
-    debug: ("edge", "marks"),
     gutter: 1cm,
   {
     node((1,0), $"up"(bold(x))^2$, name: "bi", stroke: .5pt)
@@ -30,7 +47,7 @@
 
 #lorem(7)
 
-#diagram(debug: true, {
+#diagram(debug: 3, {
   import cetz.draw
   node((0,0), $ (a z + b)/(c z + d) $)
   edge((0,0), "<->", (1,1), snap-to: (auto, auto))
@@ -43,18 +60,19 @@
   draw.content("a.east", $f(x)$, anchor: "west", padding: 5pt)
 })
 
-#lorem(20)
-#cetz.canvas({
-  import cetz.draw
 
-  flexigrid(debug: 1, {
-    node((0,0), $G$)
-    edge((0,0), "->", (1,0), name: "foo")
-    edge((0,0), "->>", (0,-1), outset: 5pt)
-    node((1,0), $im(f)$)
-    edge((0,-1), "hook-->", (1,0), name: "bar")
-    node((0,-1), $G slash ker(f)$)
-    marks.with-marks(cetz.draw.bezier("foo.50%", "bar", (1.7,1.4)), "*-o", shrink: false)
-    cetz.draw.circle("foo.75%", radius: 1pt, stroke: yellow)
+#let BASE_EDGE_STYLE = (
+  marks: (),
+  stroke: (thickness: 0.048em),
+)
+#cetz.canvas({
+  cetz.draw.get-ctx(ctx => {
+    let styles = cetz.styles.resolve(
+      ctx.style,
+      base: BASE_EDGE_STYLE,
+      merge: (edge: (stroke: (dash: "dashed"))),
+      root: "edge",
+    )
+    cetz.draw.content((0,0), [#styles])
   })
 })

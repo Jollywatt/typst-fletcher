@@ -10,6 +10,23 @@
   stroke: 0.048em,
 )
 
+#let draw-edge(edge) = {
+  cetz.draw.get-ctx(ctx => {
+
+    let style = cetz.styles.resolve(
+      ctx.style,
+      base: BASE_EDGE_STYLE,
+      merge: (edge: edge.style),
+      root: "edge",
+    ).edge
+
+
+    let base-path = cetz.draw.line(..edge.path, name: edge.name)
+
+    Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
+  })
+}
+
 #let find-farthest-anchor(ctx, name, reference-point) = {
 
   let get-anchors = ctx.nodes.at(name).anchors
@@ -24,22 +41,6 @@
   let best = all-anchors.at(-1, default: reference-point)
 
   return best
-}
-
-#let draw-edge(edge) = {
-  cetz.draw.get-ctx(ctx => {
-
-    let style = cetz.styles.resolve(
-      ctx.style,
-      base: BASE_EDGE_STYLE,
-      merge: (edge: edge.style),
-      root: "edge",
-    ).edge
-
-    let base-path = cetz.draw.line(..edge.path, name: edge.name)
-
-    Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
-  })
 }
 
 
@@ -57,7 +58,6 @@
 
   let test-path = cetz.draw.line(..edge.path)
   cetz.draw.hide({
-    // cetz.draw.set-style(stroke: blue)
     cetz.draw.intersections("inter-src", snap-to.at(0) + test-path)
     cetz.draw.intersections("inter-tgt", snap-to.at(1) + test-path)
   })
@@ -86,21 +86,6 @@
 
 
 }
-
-
-
-#let interpret-marks-arg(marks) = {
-  if marks == none { (marks: ()) }
-  else if type(marks) == array {
-    (marks: Marks.interpret-marks(marks))
-  } else if type(marks) in (str, symbol) {
-    let (marks, options) = parsing.parse-mark-shorthand(marks)
-    (marks: Marks.interpret-marks(marks), ..options)
-  } else {
-    utils.error("could not interpret marks argument: #0", marks)
-  }
-}
-
 
 
 
@@ -200,6 +185,23 @@
 
 
 
+
+#let interpret-marks-arg(marks) = {
+  if marks == none { (marks: ()) }
+  else if type(marks) == array {
+    (marks: Marks.interpret-marks(marks))
+  } else if type(marks) in (str, symbol) {
+    let (marks, options) = parsing.parse-mark-shorthand(marks)
+    (marks: Marks.interpret-marks(marks), ..options)
+  } else {
+    utils.error("could not interpret marks argument: #0", marks)
+  }
+}
+
+
+
+
+
 #let edge(
   ..args,
   marks: (),
@@ -226,6 +228,7 @@
       marks: options.marks,
       outset: utils.as-pair(options.outset),
       stroke: options.stroke,
+      dash: options.at("dash", default: none),
     ),
     snap-to: options.snap-to,
     name: name,
