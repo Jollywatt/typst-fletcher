@@ -1,3 +1,5 @@
+#import "deps.typ": cetz
+
 #let DEBUG_LEVELS = (
   "grid": 1,
   "grid.coords": 1,
@@ -36,3 +38,9 @@
 #assert(debug-level("grid.coords", "grid"))
 #assert(debug-level((grid: 2, node: 100), "grid.lines"))
 #assert(not debug-level((grid: 1, node: 100), "grid.cells"))
+
+#let debug-draw(debug, level, body) = {
+  if debug-level(debug, level) {
+    cetz.draw.group(cetz.draw.on-layer(100, body))
+  }
+}

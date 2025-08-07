@@ -1,7 +1,7 @@
 #import "shapes.typ"
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level
+#import "debug.typ": debug-level, debug-draw
 
 #let BASE_NODE_STYLE = (
   stroke: none,
@@ -38,11 +38,11 @@
       }
     })
 
-    if debug-level(debug, "node") {
+    debug-draw(debug, "node", {
       cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
       let (w, h) = node.size
       cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
-    }
+    })
   }, name: node.name)
 
   // (ctx => {

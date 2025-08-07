@@ -11,11 +11,11 @@
   node((5,5), [fred], stroke: 1pt)
   flexigrid(
     name: "a",
-    debug: 2,
+    debug: ("edge", "marks"),
     gutter: 1cm,
   {
     node((1,0), $"up"(bold(x))^2$, name: "bi", stroke: .5pt)
-    edge((0,.2), (1,0), "->", debug: 10)
+    edge((0,0), (1,0), "->")
     draw.set-style(node: (stroke: blue + 1pt, fill: yellow.transparentize(50%)))
     draw.set-style(edge: (stroke: blue + 2pt))
     node((0,1), [Hello\ World], inset: 3mm, name: "hi", stroke: teal, outset: 5pt)
@@ -28,10 +28,13 @@
 
 })
 
+j \* k
+
 #diagram(debug: true, {
   import cetz.draw
   node((0,0), $ (a z + b)/(c z + d) $)
-  node((1,1), circle(), name: "a", stroke: 1pt)
+  edge((0,0), "<->", (1,1), snap-to: (auto, auto))
+  node((1,1), [hi there], name: "a", stroke: green, shape: shapes.circle)
   draw.circle("a.east", radius: 5pt, fill: yellow)
   draw.get-ctx(ctx => {
     draw.circle((ctx.flexigrid)((0,.5)), radius: 5pt, fill: blue)
