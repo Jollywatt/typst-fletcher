@@ -8,6 +8,8 @@
   "node.inset": 4,
   "node.outsetset": 4,
 
+  "edge": 4,
+
   "mark": 4
 )
 

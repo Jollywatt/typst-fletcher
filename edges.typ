@@ -1,8 +1,14 @@
 #import "deps.typ": cetz
 #import "utils.typ"
-#import "marks.typ" as _marks
+#import "marks.typ" as Marks
 #import "parsing.typ"
 #import "nodes.typ" as Nodes
+#import "debug.typ": debug-level
+
+#let BASE_EDGE_STYLE = (
+  marks: (),
+  stroke: 1pt,
+)
 
 #let find-farthest-anchor(ctx, name, reference-point) = {
 
@@ -31,7 +37,7 @@
   debug: false,
 ) = {
 
-  let marks = _marks.interpret-marks(marks)
+  let marks = Marks.interpret-marks(marks)
 
   let test-draw = (draw)(source, target)
   cetz.draw.hide({
@@ -43,25 +49,25 @@
     let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
     let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
     let obj = draw(src-snapped, tgt-snapped)
-    _marks.draw-with-marks(ctx, obj, marks)
+    Marks.draw-with-marks(ctx, obj, marks)
   })
 
 
-  // if debug >= 1 {
-  //   cetz.draw.group({
-  //     cetz.draw.set-style(stroke: (paint: green.transparentize(60%)))
-  //     test-draw
-  //   })
-  // }
+  if debug-level(debug, "edge") {
+    cetz.draw.group({
+      cetz.draw.set-style(stroke: (paint: green.transparentize(60%)))
+      test-draw
+    })
+  }
 }
 
 #let interpret-marks-arg(marks) = {
   if marks == none { (marks: ()) }
   else if type(marks) == array {
-    (marks: _marks.interpret-marks(marks))
+    (marks: Marks.interpret-marks(marks))
   } else if type(marks) in (str, symbol) {
     let (marks, options) = parsing.parse-mark-shorthand(marks)
-    (marks: _marks.interpret-marks(marks), ..options)
+    (marks: Marks.interpret-marks(marks), ..options)
   } else {
     utils.error("could not interpret marks argument: #0", marks)
   }
@@ -69,9 +75,49 @@
 
 #let draw-edge(edge) = {
   cetz.draw.get-ctx(ctx => {
-    _marks.draw-with-marks-and-shrinking(ctx, edge.draw, edge.marks)
+
+    let style = cetz.styles.resolve(
+      ctx.style,
+      base: BASE_EDGE_STYLE,
+      merge: (edge: edge.style),
+      root: "edge",
+    ).edge
+
+
+    // cetz.draw.set-style(stroke: style.stroke)
+    cetz.draw.set-style(stroke: 10pt)
+    Marks.draw-with-marks-and-shrinking(ctx, edge.draw, style.marks, stroke: style.stroke)
   })
 }
+
+
+
+#let _edge(
+  vertices,
+  style: (:),
+  snap-to: (auto, auto)
+) = {
+
+
+  let edge-data = (
+    class: "edge",
+    vertices: vertices,
+    style: style,
+    snap-to: snap-to,
+  )
+  
+  (ctx => {
+
+    let (obj,) = draw-edge(edge-data + (
+      draw: cetz.draw.line(..edge-data.vertices)
+    ))
+
+    obj(ctx) + (fletcher: edge-data)
+
+  },)
+
+}
+
 
 
 #let edge(
@@ -87,21 +133,14 @@
   
   options += parsing.interpret-edge-args(args, options)
   options += interpret-marks-arg(options.marks)
-
-  let edge-data = (
-    class: "edge",
-    ..options
-  )
-
-  edge-data.draw = cetz.draw.line(..edge-data.vertices)
   
-  (ctx => {
-
-    let (obj,) = draw-edge(edge-data)
-
-    obj(ctx) + (fletcher: edge-data)
-
-  },)
+  _edge(
+    options.vertices,
+    style: (
+      marks: options.marks,
+    ),
+    snap-to: options.snap-to
+  )
 
 }
 

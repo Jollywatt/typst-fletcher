@@ -8,14 +8,17 @@
 #cetz.canvas({
   import cetz.draw
 
+  node((5,5), [fred], stroke: 1pt)
   flexigrid(
     name: "a",
-    debug: "grid.cells",
+    debug: "edge",
     gutter: 1cm,
   {
     node((1,0), $"up"(bold(x))^2$, name: "bi", stroke: .5pt)
+    edge((0,0), (1,0), "->")
     draw.set-style(node: (stroke: blue + 1pt, fill: yellow.transparentize(50%)))
-    node((0,1), [Hello\ World], inset: 5mm, name: "hi", stroke: teal)
+    draw.set-style(edge: (stroke: blue + 2pt))
+    node((0,1), [Hello\ World], inset: 3mm, name: "hi", stroke: teal)
     node((0,0), [CeTZ], inset: 5pt, name: "hi", fill: lime, extrude: (0, 2pt,))
     draw.circle("bi.north-west", radius: 0.2, stroke: yellow)
     edge((0,1), (2,1), (2,0), "->")

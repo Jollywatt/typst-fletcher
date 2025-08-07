@@ -5,13 +5,14 @@
 #let BASE_NODE_STYLE = (
   stroke: none,
   fill: none,
-  extrude: (0,),
   inset: 5pt,
   outset: 0pt,
+  extrude: (0,),
 )
 
 #let draw-node-at(node, origin) = {
   cetz.draw.group({
+    cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
       let style = cetz.styles.resolve(
         ctx.style,
@@ -20,7 +21,6 @@
         root: "node",
       ).node
 
-      cetz.draw.translate(origin)
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
       let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
       let extrude = style.extrude.map(e => {

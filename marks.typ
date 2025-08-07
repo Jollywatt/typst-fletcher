@@ -195,11 +195,10 @@
 
 #let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
 
-#let draw-with-marks-and-shrinking(ctx, obj, marks) = {	
+#let draw-with-marks-and-shrinking(ctx, obj, marks, stroke: 1pt) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
-	let stroke-style = obj-ctx.drawables.first().stroke
-	let t = std.stroke(stroke-style).thickness/ctx.length
+	let t = utils.get-thickness(stroke)/ctx.length
 
 	let end-marks = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 	let mark-origins = end-marks.map(mark => {
@@ -226,6 +225,7 @@
 
 	let shortened-path = cetz.path-util.shorten-to(path, stroke-ends, snap-to: (none, none))
 	obj-ctx.drawables.first().segments = shortened-path
+	obj-ctx.drawables.first().stroke = stroke
 	(ctx => obj-ctx,)
 
   let inv-transform = cetz.matrix.inverse(ctx.transform)
@@ -237,7 +237,7 @@
 		let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
 		let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
 		if rev { angle += 180deg }
-		draw-mark(mark, origin: origin, angle: angle, stroke: stroke-style)
+		draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
 	}
 
   for mark in marks {
@@ -245,7 +245,7 @@
     let point-info = cetz.path-util.point-at(shortened-path, mark.pos*100%)
     let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
     let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
-    draw-mark(mark, origin: origin, angle: angle, stroke: stroke-style)
+    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
   }
 }
 
