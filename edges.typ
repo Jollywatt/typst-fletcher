@@ -7,7 +7,7 @@
 
 #let BASE_EDGE_STYLE = (
   marks: (),
-  stroke: 1pt,
+  stroke: 0.048em,
 )
 
 #let find-farthest-anchor(ctx, name, reference-point) = {

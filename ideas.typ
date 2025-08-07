@@ -40,3 +40,26 @@ j \* k
     draw.circle((ctx.flexigrid)((0,.5)), radius: 5pt, fill: blue)
   })
 })
+
+#lorem(20)
+#cetz.canvas({
+  import cetz.draw
+
+  flexigrid(debug: 0, {
+    node((0,0), $G$)
+    edge((0,0), "->", (1,0))
+    edge((0,0), "->>", (0,-1))
+    node((1,0), $im(f)$)
+    edge((0,-1), "hook-->", (1,0))
+    node((0,-1), $G slash ker(f)$)
+  })
+})
+
+```typ
+#diagram(cell-size: 15mm,/*darkmode*/
+	edge-stroke: white,
+	crossing-fill: none,/*end*/ $
+	G edge(f, ->) edge("d", pi, ->>) & im(f) \
+	G slash ker(f) edge("ur", tilde(f), "hook-->")
+$)
+```

@@ -142,7 +142,7 @@
 
 			draw.translate(origin)
 			draw.rotate(angle)
-			draw.scale(thickness/ctx.length*float(mark.scale))
+			draw.scale(thickness.to-absolute()/ctx.length*float(mark.scale))
 
 			if mark.rev { draw.scale(x: -1) }
 			if mark.flip { draw.scale(y: -1) }
@@ -198,7 +198,7 @@
 #let draw-with-marks-and-shrinking(ctx, obj, marks, stroke: 1pt) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
-	let t = utils.get-thickness(stroke)/ctx.length
+	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
 
 	let end-marks = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 	let mark-origins = end-marks.map(mark => {
