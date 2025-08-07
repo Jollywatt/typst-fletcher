@@ -1,6 +1,7 @@
 #import "shapes.typ"
 #import "utils.typ"
 #import "deps.typ": cetz
+#import "debug.typ": debug-level
 
 #let BASE_NODE_STYLE = (
   stroke: none,
@@ -29,13 +30,19 @@
       })
 
       let node = node
-      node.size = node.size.map(a => a + cetz.util.resolve-number(ctx, 2*style.inset))
+      // node.size = node.size.map(a => a + cetz.util.resolve-number(ctx, 2*style.inset))
 
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
         (node.shape)(node, extrude)
       }
     })
+
+    if debug-level(debug, "node") {
+      cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+      let (w, h) = node.size
+      cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
+    }
   }, name: node.name)
 
   // (ctx => {
@@ -60,7 +67,7 @@
   name: none,
   align: center + horizon,
   weight: 1,
-  debug: false,
+  debug: auto,
 ) = {
 
   // // apply inset
@@ -71,16 +78,28 @@
 
   body = text(body, top-edge: "cap-height", bottom-edge: "baseline")
 
+  let style = style.named()
+
   (ctx => {
 
+    let style = cetz.styles.resolve(
+      ctx.style,
+      base: BASE_NODE_STYLE,
+      merge: (node: style),
+      root: "node",
+    ).node
+
     let (w, h) = cetz.util.measure(ctx, body)
+    let inset = cetz.util.resolve-number(ctx, style.inset)
+    w += 2*inset
+    h += 2*inset
 
     let node-data = (
       class: "node",
       pos: pos,
       body: body,
       shape: shape,
-      style: style.named(),
+      style: style,
       name: name,
       size: (w, h),
       align: align,

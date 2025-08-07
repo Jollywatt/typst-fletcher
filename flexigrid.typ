@@ -116,7 +116,6 @@
       for (i, x) in grid.col-centers.enumerate() {
         for (j, y) in grid.row-centers.enumerate() {
           let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-          cetz.draw.circle((x, y), radius: 0.8pt, fill: red, stroke: none)
           cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
         }
       }
@@ -146,7 +145,7 @@
 
 #let flexigrid(
   objects,
-  gutter: 0,
+  gutter: 1,
   origin: (0,0),
   columns: auto,
   rows: auto,
@@ -203,7 +202,7 @@
         if element.fletcher.class == "node" {
           let node = element.fletcher
           let origin = Nodes.get-node-origin(node, grid)
-          Nodes.draw-node-at(node, origin)
+          Nodes.draw-node-at(node, origin, debug: debug)
         } else if element.fletcher.class == "edge" {
           let edge = element.fletcher
           edges.draw-edge-in-flexigrid(edge, grid, nodes, debug: debug)

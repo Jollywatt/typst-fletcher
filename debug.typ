@@ -4,6 +4,7 @@
   "grid.lines": 2,
   "grid.cells": 2,
 
+  "node": 2,
   "node.stroke": 3,
   "node.inset": 4,
   "node.outset": 4,
