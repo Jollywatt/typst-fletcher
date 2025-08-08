@@ -21,12 +21,8 @@
 #let path-normals(ctx, segments, sep, close: false) = {
   let len = cetz.path-util.length(segments)
   
-  let n = 20
-  let ts = if close { range(n) } else {
-    // sample more points near ends of path to improve look of curves
-    (0, 0.5,..range(1, n), n - 0.5, n)
-  }
-  ts.map(t => {
+  let n = 24
+  range(n + 1).map(t => {
     let (point, direction) = cetz.path-util.point-at(segments, t/n*len)
     let (x, y, ..) = cetz.vector.norm(direction)
     point = cetz.vector.add(point, (-y*sep, x*sep))
@@ -40,13 +36,8 @@
     let (segments, close) = get-segments(ctx, target)
 
     let sep = cetz.util.resolve-number(ctx, sep)
-
-
-    // let vertices = _path-effect(ctx, segments, fn, close: close, style)
     let vertices = path-normals(ctx, segments, sep, close: close)
-    let path = cetz.draw.hobby(..vertices, close: close)
-    // let path = cetz.draw.catmull(..vertices, close: close)
-    // let path = cetz.draw.line(..vertices, close: close)
+    let path = cetz.draw.hobby(..vertices, close: close, omega: (1,1))
     return cetz.draw.merge-path(path, close: false, stroke: stroke)
   })
 }

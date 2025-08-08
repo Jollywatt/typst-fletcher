@@ -79,19 +79,19 @@
 
 
 
-#import "path-effects.typ"
+#import "path-extrusion.typ" as path-effects
 
 #cetz.canvas({
   import cetz.draw
 
-  let l = draw.circle-through((0,0), (2,-1), (1,1))
+  let l = draw.circle((0,0), radius: (3,1))
   l
-  path-effects.extrude(l, 2, stroke: 2pt + red)
+  path-effects.extrude(l, 2pt)
 
-  draw.translate(y: 5)
+  draw.translate(y: 3)
 
   let l = draw.arc-through((0,0), (2,-1), (1,1))
   l
-  path-effects.extrude(l, -3mm, stroke: 2pt + red)
+  path-effects.extrude(l, -1mm, stroke: 2pt + red)
 })
 
