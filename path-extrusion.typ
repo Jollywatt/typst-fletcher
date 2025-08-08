@@ -38,6 +38,15 @@
     let sep = cetz.util.resolve-number(ctx, sep)
     let vertices = path-normals(ctx, segments, sep, close: close)
     let path = cetz.draw.hobby(..vertices, close: close, omega: (1,1))
+    let path = cetz.draw.line(..vertices, close: close, omega: (1,1))
     return cetz.draw.merge-path(path, close: false, stroke: stroke)
+  })
+}
+
+#let extrude-line(target, sep, stroke: auto) = {
+  cetz.draw.get-ctx(ctx => {
+    let (segments, close) = get-segments(ctx, target)
+
+    // panic(segments)
   })
 }

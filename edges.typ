@@ -8,6 +8,7 @@
 #let BASE_EDGE_STYLE = (
   marks: (),
   stroke: (thickness: 0.048em, cap: "round"),
+  extrude: (0,),
 )
 
 #let draw-edge(edge) = {
@@ -209,6 +210,7 @@
   outset: auto,
   name: none,
   stroke: auto,
+  extrude: auto,
   debug: auto,
 ) = {
 
@@ -216,6 +218,7 @@
     marks: marks,
     snap-to: snap-to,
     outset: outset,
+    extrude: extrude,
     stroke: stroke,
   )
   
@@ -228,9 +231,10 @@
   _edge(
     options.vertices,
     style: (
-      marks: options.marks,
-      outset: utils.as-pair(options.outset),
       stroke: stroke,
+      outset: utils.as-pair(options.outset),
+      marks: options.marks,
+      extrude: options.extrude,
     ),
     snap-to: options.snap-to,
     name: name,

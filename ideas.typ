@@ -93,5 +93,26 @@
   let l = draw.arc-through((0,0), (2,-1), (1,1))
   l
   path-effects.extrude(l, -1mm, stroke: 2pt + red)
+
+  draw.translate(x: 4)
+
+  let l = draw.line((0,0), (1,3), (3, 0), (2, 2), close: true)
+  l
+  path-effects.extrude-line(l, -1mm, stroke: 2pt + red)
+
 })
 
+#diagram({
+  cetz.draw.set-style(node: (fill: yellow))
+  node((0,0), [Fletcher node], name: "A")
+  node((1,1), [Fletcher node], name: "B")
+  import cetz.draw
+  draw.line("A.north", "B.south")
+})
+
+#cetz.canvas({
+  cetz.draw.set-style(node: (stroke: 1pt))
+  node((0,0), [Fletcher node], name: "A")
+  node((1,1), [Fletcher node], name: "B")
+  cetz.draw.circle("A.east", radius: 3pt, fill: yellow)
+})
