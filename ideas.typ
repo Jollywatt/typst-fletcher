@@ -31,6 +31,7 @@
     name: "a",
     gutter: 1cm,
   {
+    draw.rotate(x: 0deg)
     node((1,0), $"up"(bold(x))^2$, name: "bi", stroke: .5pt)
     edge((0,0), (1,0), "->")
     draw.set-style(node: (stroke: blue + 1pt, fill: yellow.transparentize(50%)))
@@ -38,9 +39,9 @@
     node((0,1), [Hello\ World], inset: 3mm, name: "hi", stroke: teal, outset: 5pt)
     node((0,0), [CeTZ], inset: 5pt, name: "hi", fill: lime, extrude: (0, -2pt,))
     draw.circle("bi.south-east", radius: 0.2, stroke: yellow)
-    edge((0,1), (1,1), (2,0), "->")
-    marks.with-marks(draw.line("bi.north-east", (5,2)), "->")
+    edge((0,1), (1,1), (2,0), "-<")
   })
+    marks.with-marks(draw.line("a.bi.north-east", (5,2)), "-<")
     edge((0,3), "latex-o-|>", (3,3))
 
 })
@@ -84,7 +85,7 @@
 #cetz.canvas({
   import cetz.draw
 
-  let l = draw.circle((0,0), radius: (3,1))
+  let l = draw.circle((0,0), radius: (2,.5))
   l
   path-effects.extrude(l, 2pt)
 
@@ -94,11 +95,13 @@
   l
   path-effects.extrude(l, -1mm, stroke: 2pt + red)
 
-  draw.translate(x: 4)
-
-  let l = draw.line((0,0), (1,3), (3, 0), (2, 2), close: true)
+  draw.translate(x: 3)
+  let l = draw.line((0,1), (1,2), (2,2), (1,1), close: true)
   l
-  path-effects.extrude-line(l, -1mm, stroke: 2pt + red)
+  path-effects.extrude-line(l, 2pt, stroke: blue)
+  let l = draw.line((3,1), (4,2), (4,0), (3,0), close: false)
+  l
+  path-effects.extrude-line(l, 2pt, stroke: blue)
 
 })
 

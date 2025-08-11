@@ -176,11 +176,12 @@
 	let marks = interpret-marks(marks)
   let (segments, close) = utils.get-segments(ctx, obj)
   let inv-transform = cetz.matrix.inverse(ctx.transform)
+	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
 
   for mark in marks {
     let point-info = cetz.path-util.point-at(segments, mark.pos*100%)
-    let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
-    let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
+    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
+    let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
 
     draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
   }
@@ -231,13 +232,14 @@
 	(ctx => obj-ctx,)
 
   let inv-transform = cetz.matrix.inverse(ctx.transform)
+	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
 
 	for (mark, origin) in end-marks.zip(mark-origins) {
 		if mark == none { continue }
 		let rev = mark.pos == 1
 		let point-info = cetz.path-util.point-at(path, origin, reverse: rev)
-		let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
-		let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
+		let origin = cetz.util.apply-transform(inv-transform, point-info.point)
+		let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
 		if rev { angle += 180deg }
 		draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
 	}
@@ -245,8 +247,8 @@
   for mark in marks {
 		if mark.pos in (0, 1) { continue }
     let point-info = cetz.path-util.point-at(shortened-path, mark.pos*100%)
-    let origin = cetz.matrix.mul4x4-vec3(inv-transform, point-info.point)
-    let angle = cetz.vector.angle2((0,0), cetz.matrix.mul4x4-vec3(inv-transform, point-info.direction))
+    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
+    let angle = cetz.vector.angle2((0,0), cetz.util.apply-transform(inv-transform, point-info.direction))
     draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
   }
 }
