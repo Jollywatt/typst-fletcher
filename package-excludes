@@ -1,0 +1,12 @@
+# this file contains paths that should not be included when submitting this package to https://github.com/typst/packages
+package-excludes
+tests/
+scripts/
+pixi.lock
+pixi.toml
+README.src.md
+.git
+.github
+.gitattributes
+.jj
+# plus anything in .gitignore

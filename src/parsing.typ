@@ -247,9 +247,14 @@
 	}
 	if coords.len() > 0 {
 		assert-not-set("vertices", (), ..coords)
-		if not has-tail-coords { coords = (auto, ..coords) }
 		if not has-first-coord { coords = (auto, ..coords) }
-		new-options.vertices = coords
+		if not has-tail-coords { coords = (..coords, auto) }
+		new-options.vertices = coords.map(coord => {
+			if type(coord) == label { str(coord) }
+			else { coord }
+		})
+	} else {
+		new-options.vertices = (auto, auto)
 	}
 
 

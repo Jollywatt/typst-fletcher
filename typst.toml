@@ -1,0 +1,25 @@
+[package]
+name = "fletcher"
+version = "0.5.9"
+compiler = "0.13.0"
+entrypoint = "src/exports.typ"
+authors = ["Joseph Wilson (Jollywatt)"]
+license = "MIT"
+description = "Draw diagrams with nodes and arrows."
+repository = "https://github.com/Jollywatt/typst-fletcher"
+categories = ["visualization", "components"]
+keywords = [
+	"commutative",
+	"commuting",
+	"commute",
+	"diagram",
+	"category",
+	"flowchart",
+	"DAG",
+	"graph",
+	"finite state",
+	"network",
+	"node",
+	"arrow",
+]
+exclude = ["docs/", "tests/"]
