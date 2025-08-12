@@ -91,6 +91,14 @@
 	panic("expected array", o)
 }
 
+#let one-or-array(o, types: none) = {
+	if type(o) != array { o = (o,) }
+	if types != none and not o.all(i => type(i) in types) {
+		error("Expected #..0 or an array of those; got #1.", types, o)
+	}
+	return o
+}
+
 #let as-pair(o) = {
 	if type(o) == array {
 		if o.len() != 2 { error("expected one or a pair of values; got #0.", o) }

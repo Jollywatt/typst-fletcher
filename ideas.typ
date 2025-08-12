@@ -96,12 +96,12 @@
   path-effects.extrude(l, -1mm, stroke: 2pt + red)
 
   draw.translate(x: 3)
-  let l = draw.line((0,1), (1,2), (2,2), (1,1), close: true)
+  let l = draw.line((0,1), (1,2), (2,2), (1,1), close: true, stroke: 2pt)
   l
-  path-effects.extrude-line(l, 2pt, stroke: blue)
-  let l = draw.line((3,1), (4,2), (4,0), (3,0), close: false)
-  l
-  path-effects.extrude-line(l, 2pt, stroke: blue)
+  path-effects.extrude-line(l, (+2, -2), stroke: blue)
+  
+  let l = draw.line((3,1), (4,2), (4,0), (3,0), close: false, stroke: (thickness: 1pt))
+  path-effects.extrude-line(l, (-2, 0, 2), stroke: blue)
 
 })
 

@@ -1,5 +1,6 @@
 #import "deps.typ": cetz
 #import cetz.vector
+#import "utils.typ"
 
 #let get-segments(ctx, target) = {
   if type(target) == array {
@@ -73,29 +74,42 @@
 }
 
 #let extrude-line(target, sep, stroke: auto) = {
+  let sep = utils.one-or-array(sep, types: (int, float, length))
+
   cetz.draw.get-ctx(ctx => {
-    let sep = cetz.util.resolve-number(ctx, sep)
+    let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
+    let thickness = utils.get-thickness(style.stroke)
+
+
     let (drawables, bounds) = cetz.process.many(ctx, target)
 
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")
 
-      let new-segments = drawable.segments.map(segment => {
-        let (start, close, path) = segment
+      let stroke = utils.stroke-to-dict(drawable.stroke) + utils.stroke-to-dict(stroke)
+      let thickness = utils.get-thickness(stroke)
 
-        let vertices = (start,) + path.map(((kind, coord, ..)) => {
-          assert.eq(kind, "l")
-          return coord
+      for s in sep {
+        if type(s) in (int, float) { s *= thickness/ctx.length }
+        else if type(s) == length { s /= ctx.length }
+
+        let new-segments = drawable.segments.map(segment => {
+          let (start, close, path) = segment
+
+          let vertices = (start,) + path.map(((kind, coord, ..)) => {
+            assert.eq(kind, "l")
+            return coord
+          })
+
+          let new-vertices = extrude-vertices(vertices, s, close: close)
+          let (start, ..vertices) = new-vertices
+
+          (start, close, vertices.map(v => ("l", v)))
         })
 
-        let new-vertices = extrude-vertices(vertices, sep, close: close)
-        let (start, ..vertices) = new-vertices
-
-        (start, close, vertices.map(v => ("l", v)))
-      })
-
-      return drawable + (segments: new-segments, stroke: stroke)
-    })
+        (drawable + (segments: new-segments, stroke: stroke),)
+      }
+    }).join()
 
   
     (ctx => {
