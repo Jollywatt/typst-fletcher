@@ -36,6 +36,10 @@ Pull requests are most welcome!
 
 ## Change log
 
+### 0.6.0
+
+- Complete rewrite.
+
 ### 0.5.9
 
 - Support named edges (#16, #96).
