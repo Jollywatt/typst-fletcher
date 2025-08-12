@@ -107,7 +107,7 @@
 }
 
 #let get-thickness(s) = {
-	if s == none { return 1pt }
+	if s in (none, auto) { return 1pt }
 	let t = stroke(s).thickness
 	if t == auto { return 1pt }
 	return t
