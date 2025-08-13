@@ -198,7 +198,7 @@
       let t0 = -lead.signum()*cetz.util.bezier.cubic-t-for-distance(..bezier, calc.abs(lead))
       let t1 = 1 + lag.signum()*(1 - cetz.util.bezier.cubic-t-for-distance(..bezier, -calc.abs(lag)))
 
-      let N = 18
+      let N = 20
       let start = if i == 0 { 0 } else { int(last-piece-was-line) }
       let stop = if i == n - 1 { N + 1 } else { N }
 

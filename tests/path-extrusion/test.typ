@@ -13,10 +13,7 @@
 
 #cetz.canvas({
   import cetz.draw
-  flexigrid(debug: "grid", {
-    node((0,0))
-    node((6,6))
-  })
+
   let l = draw.merge-path({
     draw.line((1,2), (2,2), (2,3), (3,2), (4,2))
     draw.arc-through((4,3), (4,5), (5,4))
