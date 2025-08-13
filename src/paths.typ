@@ -179,7 +179,6 @@
       start = vector.add(start, i-pt)
     }
 
-
     let (kind, ..pts) = piece
     if kind == "l" {
       if not last-piece-was-line {
@@ -199,7 +198,7 @@
       let t0 = -lead.signum()*cetz.util.bezier.cubic-t-for-distance(..bezier, calc.abs(lead))
       let t1 = 1 + lag.signum()*(1 - cetz.util.bezier.cubic-t-for-distance(..bezier, -calc.abs(lag)))
 
-      let N = 20
+      let N = 18
       let start = if i == 0 { 0 } else { int(last-piece-was-line) }
       let stop = if i == n - 1 { N + 1 } else { N }
 
@@ -212,8 +211,17 @@
         vector.add(pt, vector.scale(unit-normal, sep))
       })
 
-      for pt in curve-points {
-        new-pieces.push(("l", pt))
+      if true {
+        // approximate curves with a Catmull-Rom curve through samples points
+        let bezier = cetz.util.bezier.catmull-to-cubic(curve-points, .5)
+        for (s, e, c1, c2) in bezier {
+          new-pieces.push(("c", c1, c2, e))
+        }
+      } else {
+        // approximate curves with line segments
+        for pt in curve-points {
+          new-pieces.push(("l", pt))
+        }
       }
 
       last-piece-was-line = false
