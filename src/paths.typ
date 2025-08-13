@@ -149,11 +149,9 @@
   vertices.push(prev-pt)
 
   let new-pieces = ()
-
   let last-piece-was-line = false
 
   for (i, piece) in pieces.enumerate() {
-    // vertex angle
 
     // ----[o-angle-prev]->@-[i-angle]----[o-angle]->@-[i-angle-next]---->
     //                     ^ vertices.at(i)          ^ vertices.at(i + 1)
@@ -183,10 +181,10 @@
 
 
     let (kind, ..pts) = piece
-
     if kind == "l" {
-      // TODO: deduplicate
-      new-pieces.push(("l", vector.add(vertices.at(i), i-pt)))
+      if not last-piece-was-line {
+        new-pieces.push(("l", vector.add(vertices.at(i), i-pt)))
+      }
       new-pieces.push(("l", vector.add(vertices.at(i + 1), o-pt)))
       last-piece-was-line = true
 
@@ -214,17 +212,13 @@
         vector.add(pt, vector.scale(unit-normal, sep))
       })
 
-
-      for z in curve-points {
-        new-pieces.push(("l", z))
+      for pt in curve-points {
+        new-pieces.push(("l", pt))
       }
-      
-
-
 
       last-piece-was-line = false
 
-    } else { panic(kind) }
+    }
 
   }
 
