@@ -127,9 +127,22 @@
 }
 
 
+#let extrude-and-shorten(
+  target,
+  extrude: 0,
+  shorten-start: 0,
+  shorten-end: 0,
+  stroke: auto,
+) = {
+  let offsets = utils.one-or-array(extrude, types: (int, float, length))
 
-#let extrude(target, sep, stroke: auto) = {
-  let sep = utils.one-or-array(sep, types: (int, float, length))
+  if type(shorten-start) != array {
+    shorten-start = (shorten-start,)*offsets.len()
+  }
+  if type(shorten-end) != array { 
+    shorten-end = (shorten-end,)*offsets.len()
+  }
+
 
   cetz.draw.get-ctx(ctx => {
     let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
@@ -145,18 +158,30 @@
       }
       let thickness = utils.get-thickness(stroke).to-absolute()
 
-      for s in sep {
-        if type(s) in (int, float) { s *= thickness/ctx.length }
-        else if type(s) == length { s /= ctx.length }
+      for (i, offset) in offsets.enumerate() {
+        if type(offset) in (int, float) { offset *= thickness/ctx.length }
+        else if type(offset) == length { offset /= ctx.length }
 
-        if s == 0 {
-          (drawable + (stroke: stroke),)
-          continue
+        let start = shorten-start.at(i)*thickness/ctx.length
+        let end = shorten-end.at(i)*thickness/ctx.length
+
+        let new-path = drawable.segments
+
+        // path shortening
+        if start != 0 { 
+          new-path = cetz.path-util.shorten-to(new-path, start)
+        }
+        if end != 0 { 
+          new-path = cetz.path-util.shorten-to(new-path, end, reverse: true)
         }
         
-        let new-path = drawable.segments.map(subpath => {
-          extrude-subpath(subpath, s)
-        })
+        // path extrusion
+        if offset != 0 {
+          new-path = new-path.map(subpath => {
+            extrude-subpath(subpath, offset)
+          })
+        }
+
 
         (drawable + (segments: new-path, stroke: stroke),)
       }
