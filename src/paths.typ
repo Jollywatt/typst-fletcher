@@ -44,12 +44,22 @@
     //                     ^ vertices.at(i)          ^ vertices.at(i + 1)
 
     let (i-angle, o-angle) = io-angles.at(i)
-    let o-angle-prev = io-angles.at(calc.clamp(i - 1, 0, n - 1)).last()
-    let i-angle-next = io-angles.at(calc.clamp(i + 1, 0, n - 1)).first()
-    if close {
-      if i == 0 { o-angle-prev = io-angles.last().last() }
-      if i == n - 1 { i-angle-next = io-angles.first().first() }
+
+    let o-angle-prev = {
+      if i == 0 {
+        if close { io-angles.last().last() }
+        else { io-angles.first().first() }
+      }
+      else { io-angles.at(i - 1).last() }
     }
+
+    let i-angle-next = {
+      if i == n - 1 {
+        if close { io-angles.first().first() }
+        else { io-angles.last().last() }
+      } else { io-angles.at(i + 1).first() }
+    }
+    
 
     let i-mid = (o-angle-prev + i-angle)/2 + 90deg
     let o-mid = (o-angle + i-angle-next)/2 + 90deg
@@ -68,7 +78,7 @@
 
     let (kind, ..pts) = segment
     if kind == "l" {
-      if not last-segment-was-line {
+      if not last-segment-was-line and i > 0 {
         new-segments.push(("l", vector.add(vertices.at(i), i-pt)))
       }
       new-segments.push(("l", vector.add(vertices.at(i + 1), o-pt)))
@@ -84,12 +94,11 @@
 
       let t0 = -lead.signum()*bezier.cubic-t-for-distance(..ctrls, calc.abs(lead))
       let t1 = 1 + lag.signum()*(1 - bezier.cubic-t-for-distance(..ctrls, -calc.abs(lag)))
-
       let N = 20
-      let start = if i == 0 { 0 } else { int(last-segment-was-line) }
-      let stop = if i == n - 1 { N + 1 } else { N }
+      let lo = if i == 0 { 0 } else { int(last-segment-was-line) }
+      let hi = if i == n - 1 { N + 1 } else { N }
 
-      let curve-points = range(start, stop).map(n => {
+      let curve-points = range(lo, hi).map(n => {
         let t = utils.lerp(t0, t1, n/N)
         let pt = bezier.cubic-point(..ctrls, t)
         

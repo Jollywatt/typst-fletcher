@@ -14,6 +14,26 @@
 #cetz.canvas({
   import cetz.draw
 
+  let arc = draw.arc-through((0,0), (1,0), (0,1))
+
+  paths.extrude(arc, (-6, 0, +6))
+
+  draw.translate(y: -2)
+
+  let arc = draw.merge-path({
+    arc
+    draw.translate(x: 2)
+    draw.scale(x: -1)
+    arc
+  })
+  paths.extrude(arc, (-2, 0, +2))
+})
+
+#pagebreak()
+
+#cetz.canvas({
+  import cetz.draw
+
   let l = draw.merge-path({
     draw.line((1,2), (2,2), (2,3), (3,2), (4,2))
     draw.arc-through((4,3), (4,5), (5,4))
