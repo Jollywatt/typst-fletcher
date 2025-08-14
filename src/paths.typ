@@ -3,17 +3,23 @@
 #import cetz.util: bezier
 #import "utils.typ"
 
-#let extrude-segment(segment, sep) = {
-  let (start, close, pieces) = segment
-  pieces = pieces.dedup()
-  let n = pieces.len()
+/* TERMINOLOGY */
+// segment := ("l" | "c", vector*)
+// sub-path := (<origin>, <closed?>, (segment*,))
+// path := (sub-path*,)
+
+
+#let extrude-subpath(subpath, sep) = {
+  let (start, close, segments) = subpath
+  segments = segments.dedup()
+  let n = segments.len()
 
   // first, get the incoming and outgoing angles of each segment piece
   let io-angles = ()
   let vertices = ()
   let prev-pt = start
-  for piece in pieces {
-    let (kind, ..pts) = piece
+  for segment in segments {
+    let (kind, ..pts) = segment
     if kind == "l" {
       let angle = vector.angle2(prev-pt, pts.first())
       io-angles.push((angle, angle))
@@ -29,10 +35,10 @@
   }
   vertices.push(prev-pt)
 
-  let new-pieces = ()
-  let last-piece-was-line = false
+  let new-segments = ()
+  let last-segment-was-line = false
 
-  for (i, piece) in pieces.enumerate() {
+  for (i, segment) in segments.enumerate() {
 
     // ----[o-angle-prev]->@-[i-angle]----[o-angle]->@-[i-angle-next]---->
     //                     ^ vertices.at(i)          ^ vertices.at(i + 1)
@@ -60,13 +66,13 @@
       start = vector.add(start, i-pt)
     }
 
-    let (kind, ..pts) = piece
+    let (kind, ..pts) = segment
     if kind == "l" {
-      if not last-piece-was-line {
-        new-pieces.push(("l", vector.add(vertices.at(i), i-pt)))
+      if not last-segment-was-line {
+        new-segments.push(("l", vector.add(vertices.at(i), i-pt)))
       }
-      new-pieces.push(("l", vector.add(vertices.at(i + 1), o-pt)))
-      last-piece-was-line = true
+      new-segments.push(("l", vector.add(vertices.at(i + 1), o-pt)))
+      last-segment-was-line = true
 
     } else if kind == "c" {
 
@@ -80,7 +86,7 @@
       let t1 = 1 + lag.signum()*(1 - bezier.cubic-t-for-distance(..ctrls, -calc.abs(lag)))
 
       let N = 20
-      let start = if i == 0 { 0 } else { int(last-piece-was-line) }
+      let start = if i == 0 { 0 } else { int(last-segment-was-line) }
       let stop = if i == n - 1 { N + 1 } else { N }
 
       let curve-points = range(start, stop).map(n => {
@@ -94,22 +100,21 @@
 
       if true {
         // approximate curves with a Catmull-Rom curve through samples points
-        let bezier = bezier.catmull-to-cubic(curve-points, .5)
-        for (s, e, c1, c2) in bezier {
-          new-pieces.push(("c", c1, c2, e))
+        for (s, e, c1, c2) in bezier.catmull-to-cubic(curve-points, .5) {
+          new-segments.push(("c", c1, c2, e))
         }
       } else {
         // approximate curves with line segments
         for pt in curve-points {
-          new-pieces.push(("l", pt))
+          new-segments.push(("l", pt))
         }
       }
 
-      last-piece-was-line = false
+      last-segment-was-line = false
     }
   }
 
-  return (start, close, new-pieces)
+  return (start, close, new-segments)
 }
 
 
@@ -140,12 +145,11 @@
           continue
         }
         
-        let new-segments = drawable.segments.map(segment => {
-          extrude-segment(segment, s)
+        let new-path = drawable.segments.map(subpath => {
+          extrude-subpath(subpath, s)
         })
 
-        (drawable + (segments: new-segments, stroke: stroke),)
-
+        (drawable + (segments: new-path, stroke: stroke),)
       }
     }).join()
 
