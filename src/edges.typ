@@ -44,10 +44,12 @@
   return best
 }
 
-
+/// Draw an edge, snapping its ends to given CeTZ objects.
 #let draw-edge-with-snapping(
   edge,
+  /// -> cetz objects
   source,
+  /// -> cetz objects
   target,
   snap-to: (none, none),
   draw: none,

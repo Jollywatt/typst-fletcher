@@ -126,9 +126,27 @@
   return (start, close, new-segments)
 }
 
-
+/// Apply extrusions to a path and truncate the extrusions from the start and/or end.
+/// 
+/// ```example
+/// #cetz.canvas({
+///   import cetz.draw: *
+///   let obj = line(stroke: 3pt,
+///     (0,0), (1,1), (2,0), (4,0))
+///   obj
+///   fletcher.paths.extrude-and-shorten(
+///     obj,
+///     extrude: (-4, -2, 2, 4),
+///     shorten-start: (0, 0, 2, 4),
+///     shorten-end: (4, 4, 0, 0),
+///     stroke: red,
+///   )
+/// })
+/// ```
 #let extrude-and-shorten(
+  /// -> cetz objects
   target,
+  /// -> number | length | array
   extrude: 0,
   shorten-start: 0,
   shorten-end: 0,
