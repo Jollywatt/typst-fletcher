@@ -51,13 +51,7 @@
 	}
 }
 
-#let interp-grid-point(grid, (u, v)) = {
-  let (i, j) = (u - grid.u-min, v - grid.v-min)
-  (
-    interp(grid.col-centers, i),
-    interp(grid.row-centers, j),
-  )
-}
+
 
 
 #let interp-grid-cell(grid, (u, v)) = {

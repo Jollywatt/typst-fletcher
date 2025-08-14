@@ -5,27 +5,23 @@
 #import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-draw
 
-#let BASE_EDGE_STYLE = (
+#let DEFAULT_EDGE_STYLE = (
   marks: (),
   stroke: (thickness: 0.048em, cap: "round"),
   extrude: (0,),
 )
 
-#let draw-edge(edge) = {
-  cetz.draw.get-ctx(ctx => {
+#let draw-edge(ctx, edge) = {
+  let style = cetz.styles.resolve(
+    ctx.style,
+    base: DEFAULT_EDGE_STYLE,
+    merge: (edge: edge.style),
+    root: "edge",
+  ).edge
 
-    let style = cetz.styles.resolve(
-      ctx.style,
-      base: BASE_EDGE_STYLE,
-      merge: (edge: edge.style),
-      root: "edge",
-    ).edge
+  let base-path = cetz.draw.line(..edge.path, name: edge.name)
 
-
-    let base-path = cetz.draw.line(..edge.path, name: edge.name)
-
-    Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
-  })
+  Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
 }
 
 #let find-farthest-anchor(ctx, name, reference-point) = {
@@ -44,38 +40,64 @@
   return best
 }
 
-/// Draw an edge, snapping its ends to given CeTZ objects.
-#let draw-edge-with-snapping(
+
+/// -> (node, node)
+#let find-edge-snapping-nodes(edge, nodes) = {
+  let nodes-from-key(key) = {
+    if key == none { return none }
+    let (x0, y0) = key
+    let node = nodes.sorted(key: node => {
+      let (x, y) = node.origin
+      calc.abs(x - x0) + calc.abs(y - y0)
+    }).first()
+    return node
+  }
+
+  let (src-snap-to, tgt-snap-to) = edge.snap-to
+  if src-snap-to == auto { src-snap-to = edge.vertices.first() }
+  if tgt-snap-to == auto { tgt-snap-to = edge.vertices.last() }
+
+
+  let src-nodes = nodes-from-key(src-snap-to)
+  let tgt-nodes = nodes-from-key(tgt-snap-to)
+  return (src-nodes, tgt-nodes)
+}
+
+
+#let draw-node-snapping-outline(node, outset) = {
+  let node = node
+  if outset == auto { outset = node.style.outset }
+  node.style.extrude = (outset,)
+  node.name = none
+  node.body = none
+  Nodes.draw-node-at(node, node.origin, debug: false)
+}
+
+
+/// Draw an edge, snapping each end to given CeTZ objects.
+#let draw-edge-with-object-snapping(
   edge,
-  /// -> cetz objects
-  source,
-  /// -> cetz objects
-  target,
+  /// Shapes to snap the start and end of the edge to, respectively. -> (cetz, cetz)
   snap-to: (none, none),
-  draw: none,
-  marks: (),
   debug: false,
 ) = {
 
-  let marks = Marks.interpret-marks(marks)
-
-  let test-path = cetz.draw.line(..edge.path)
+  let test-path = cetz.draw.line(..edge.vertices)
   cetz.draw.hide({
-    cetz.draw.intersections("inter-src", snap-to.at(0) + test-path)
-    cetz.draw.intersections("inter-tgt", snap-to.at(1) + test-path)
+    cetz.draw.intersections("__src__", snap-to.at(0) + test-path)
+    cetz.draw.intersections("__tgt__", snap-to.at(1) + test-path)
   })
 
   cetz.draw.get-ctx(ctx => {
-    let src-snapped = find-farthest-anchor(ctx, "inter-src", source)
-    let tgt-snapped = find-farthest-anchor(ctx, "inter-tgt", target)
+    let src-snapped = find-farthest-anchor(ctx, "__src__", edge.vertices.first())
+    let tgt-snapped = find-farthest-anchor(ctx, "__tgt__", edge.vertices.last())
 
     if (src-snapped == tgt-snapped) {
       utils.error("edge snapping resulted in same source and target points")
     }
 
-    let (_, ..mid-vertices, _) = edge.path
-    let obj = draw-edge(edge + (path: (src-snapped, ..mid-vertices, tgt-snapped)))
-    Marks.draw-with-marks(ctx, obj, marks)
+    let (_, ..mid-vertices, _) = edge.vertices
+    draw-edge(ctx, edge + (path: (src-snapped, ..mid-vertices, tgt-snapped)))
 
     debug-draw(debug, "edge.snap", {
       cetz.draw.circle(src-snapped, radius: 0.5pt, fill: green, stroke: none)
@@ -90,66 +112,34 @@
 
 }
 
-
-
-#let find-snapping-nodes(key, nodes) = {
-  if key == none { return none }
-  let (u0, v0) = key
-  let node = nodes.sorted(key: node => {
-    let (u, v) = node.pos
-    calc.abs(u - u0) + calc.abs(v - v0)
-  }).first()
-
-  return node
-
-}
-
-#let draw-node-snapping-outline(node, outset) = {
-  let node = node
-  if outset == auto { outset = node.style.outset }
-  node.style.extrude = (outset,)
-  node.name = none
-  node.body = [1]
-  Nodes.draw-node-at(node, node.origin, debug: false)
-}
-
-
-#let draw-edge-in-flexigrid(edge, grid, nodes, debug: false) = {
-  let vertices-xy = edge.vertices.map(utils.interp-grid-point.with(grid))
-  let (src, ..mid-vertices, tgt) = vertices-xy
-
-  let (src-snap-to, tgt-snap-to) = edge.snap-to
-  if src-snap-to == auto { src-snap-to = edge.vertices.at(0) }
-  if tgt-snap-to == auto { tgt-snap-to = edge.vertices.at(-1) }
+/// Draw an edge, snapping each end to given fletcher nodes.
+#let draw-edge-with-node-snapping(edge, snapping-nodes, debug: false) = {
 
   cetz.draw.get-ctx(ctx => {
 
     let style = cetz.styles.resolve(
       ctx.style,
-      base: BASE_EDGE_STYLE,
+      base: DEFAULT_EDGE_STYLE,
       merge: (edge: edge.style),
     ).edge
 
-    let snapping-outlines = (src-snap-to, tgt-snap-to)
+    let snapping-outlines = snapping-nodes
       .zip(edge.style.outset)
-      .map(((snap-to, outset)) => {
-        if snap-to == none { return none }
-        let node = find-snapping-nodes(snap-to, nodes)
+      .map(((node, outset)) => {
         node.style = cetz.styles.resolve(
           ctx.style,
-          base: Nodes.BASE_NODE_STYLE,
+          base: Nodes.DEFAULT_NODE_STYLE,
           merge: (node: node.style),
           root: "node",
         ).node
         draw-node-snapping-outline(node, outset)
       })
 
-    draw-edge-with-snapping(
-      edge + (path: vertices-xy),
-      src,
-      tgt,
+    let (src, ..mid-vertices, tgt) = edge.vertices
+    draw-edge-with-object-snapping(
+      edge,
       snap-to: snapping-outlines,
-      debug: utils.map-auto(edge.debug, debug),
+      debug: debug,
     )
   })
 }
@@ -163,6 +153,9 @@
   debug: auto,
 ) = {
 
+  
+  // if snap-to.first() == auto { snap-to.first() = vertices.first() }
+  // if snap-to.last() == auto { snap-to.last() = vertices.last() }
 
   let edge-data = (
     class: "edge",
@@ -175,12 +168,17 @@
   
   (ctx => {
 
-    let (obj,) = draw-edge(edge-data + (
+    let objs = draw-edge(ctx, edge-data + (
       path: edge-data.vertices
     ))
 
-    // obj(ctx)
-    obj(ctx) + (fletcher: edge-data)
+    let (ctx, drawables) = cetz.process.many(ctx, objs)
+
+    return (
+      ctx: ctx,
+      drawables: drawables,
+      fletcher: edge-data,
+    )
 
   },)
 
@@ -200,7 +198,6 @@
     utils.error("could not interpret marks argument: #0", marks)
   }
 }
-
 
 
 

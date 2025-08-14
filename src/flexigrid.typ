@@ -80,6 +80,14 @@
 }
 
 
+#let interpolate-grid-point(grid, (u, v)) = {
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
+  (
+    utils.interp(grid.col-centers, i),
+    utils.interp(grid.row-centers, j),
+  )
+}
+
 
 #let draw-flexigrid(grid, debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
@@ -148,6 +156,7 @@
 
 
 
+
 #let flexigrid(
   objects,
   gutter: 1,
@@ -192,7 +201,7 @@
 
     // provide extra context
     (ctx => (ctx: ctx + (
-      flexigrid: utils.interp-grid-point.with(grid)
+      flexigrid: interpolate-grid-point.with(grid)
     )),)
 
     // draw things
@@ -204,13 +213,19 @@
     // phase 1: draw nodes and cetz objects
     for (object, element) in objects.zip(elements) {
       if "fletcher" in element {
+
         if element.fletcher.class == "node" {
           let node = element.fletcher
           let origin = Nodes.get-node-origin(node, grid)
           Nodes.draw-node-at(node, origin, debug: debug)
+
         } else if element.fletcher.class == "edge" {
           let edge = element.fletcher
-          edges.draw-edge-in-flexigrid(edge, grid, nodes, debug: debug)
+
+          edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
+          let snapping-nodes = edges.find-edge-snapping-nodes(edge, nodes) 
+          edges.draw-edge-with-node-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
+
         } else {
           panic(element.fletcher)
         }

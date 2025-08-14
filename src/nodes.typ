@@ -3,7 +3,7 @@
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-draw
 
-#let BASE_NODE_STYLE = (
+#let DEFAULT_NODE_STYLE = (
   stroke: none,
   fill: none,
   inset: 5pt,
@@ -25,7 +25,7 @@
       
       let style = cetz.styles.resolve(
         ctx.style,
-        base: BASE_NODE_STYLE,
+        base: DEFAULT_NODE_STYLE,
         merge: (node: node.style),
         root: "node",
       ).node
@@ -93,7 +93,7 @@
 
     let style = cetz.styles.resolve(
       ctx.style,
-      base: BASE_NODE_STYLE,
+      base: DEFAULT_NODE_STYLE,
       merge: (node: style),
       root: "node",
     ).node
