@@ -44,13 +44,19 @@
 /// -> (node, node)
 #let find-edge-snapping-nodes(edge, nodes) = {
   let nodes-from-key(key) = {
-    if key == none { return none }
-    let (x0, y0) = key
-    let node = nodes.sorted(key: node => {
-      let (x, y) = node.origin
-      calc.abs(x - x0) + calc.abs(y - y0)
-    }).first()
-    return node
+    if key == none { return none } // snapping disabled
+    else if type(key) == str { return key } // snap to object by name
+    else if type(key) == array { // snap to node by location
+      let (x0, y0) = key
+      // find closest node
+      let node = nodes.sorted(key: node => {
+        let (x, y) = node.origin
+        calc.abs(x - x0) + calc.abs(y - y0)
+      }).first()
+      return node
+    } else {
+      utils.error("invalid `snap-to` key: #0", key)
+    }
   }
 
   let (src-snap-to, tgt-snap-to) = edge.snap-to
@@ -75,7 +81,7 @@
 
 
 /// Draw an edge, snapping each end to given CeTZ objects.
-#let draw-edge-with-object-snapping(
+#let draw-edge-with-intersection-snapping(
   edge,
   /// Shapes to snap the start and end of the edge to, respectively. -> (cetz, cetz)
   snap-to: (none, none),
@@ -113,7 +119,7 @@
 }
 
 /// Draw an edge, snapping each end to given fletcher nodes.
-#let draw-edge-with-node-snapping(edge, snapping-nodes, debug: false) = {
+#let draw-edge-with-snapping(edge, snapping-nodes, debug: false) = {
 
   cetz.draw.get-ctx(ctx => {
 
@@ -125,18 +131,28 @@
 
     let snapping-outlines = snapping-nodes
       .zip(edge.style.outset)
-      .map(((node, outset)) => {
-        node.style = cetz.styles.resolve(
-          ctx.style,
-          base: Nodes.DEFAULT_NODE_STYLE,
-          merge: (node: node.style),
-          root: "node",
-        ).node
-        draw-node-snapping-outline(node, outset)
+      .map(((key, outset)) => {
+        if key == none { return }
+
+        if type(key) == str {
+          if key not in ctx.nodes { utils.error("couldn't find name #0", key) }
+          let drawables = ctx.nodes.at(key).drawables
+          return (ctx => (ctx: ctx, drawables: drawables),)
+        } else if utils.is-node(key) {
+          let node = key
+          node.style = cetz.styles.resolve(
+            ctx.style,
+            base: Nodes.DEFAULT_NODE_STYLE,
+            merge: (node: node.style),
+            root: "node",
+          ).node
+          draw-node-snapping-outline(node, outset)
+        }
+
       })
 
     let (src, ..mid-vertices, tgt) = edge.vertices
-    draw-edge-with-object-snapping(
+    draw-edge-with-intersection-snapping(
       edge,
       snap-to: snapping-outlines,
       debug: debug,

@@ -224,7 +224,7 @@
 
           edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
           let snapping-nodes = edges.find-edge-snapping-nodes(edge, nodes) 
-          edges.draw-edge-with-node-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
+          edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
 
         } else {
           panic(element.fletcher)
