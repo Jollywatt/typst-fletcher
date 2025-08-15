@@ -1,4 +1,4 @@
-#import "deps.typ": cetz
+2#import "deps.typ": cetz
 #import "utils.typ"
 #import "marks.typ" as Marks
 #import "parsing.typ"
@@ -21,9 +21,9 @@
   ).edge
 
   let path = (edge.draw)(edge.vertices)
-  assert(path.len() == 1, message: "edge.draw() should return single cetz element")
+  assert(path.len() == 1, message: "edge.draw should return single cetz element")
 
-  Marks.draw-with-marks-and-shrinking-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude)
+  Marks.draw-with-marks-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude)
 
   // create proxy named cetz object which contains edge anchors but draws nothing
   (ctx => {

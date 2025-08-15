@@ -20,6 +20,7 @@
 #let apply-mark-inheritances(mark) = {
 	// let marks = MARKS.get()
 	let marks = DEFAULT_MARKS
+	let ancestor = none
 	while "inherit" in mark {
 		if mark.inherit.at(-1) == "'" {
 			mark.flip = not mark.at("flip", default: false)
@@ -27,12 +28,15 @@
 		}
 
 		if mark.inherit not in marks {
-			error("Mark inherits from #0 which is not defined.", repr(mark.inherit))
+			utils.error("Mark inherits from #0 which is not defined.", repr(mark.inherit))
 		}
 
+
+		if ancestor == none { ancestor = mark.inherit }
 		let parent = marks.at(mark.remove("inherit"))
 		mark = parent + mark
 	}
+	if ancestor != none { mark = (kind: ancestor) + mark }
 	return mark
 }
 
@@ -197,72 +201,63 @@
   return obj-ctx.drawables.first().segments
 }
 
-#let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
+#let shrink-factor-from-mark(mark, extrude) = {
+	if mark == none { return (0, extrude.map(_ => 0)) }
 
-#let draw-with-marks-and-shrinking-and-extrusion(ctx, obj, marks, stroke: 1pt, extrude: (0,)) = {	
+	// a mark is acting as a tip if it is at the end of the edge and not reversed,
+	// or at the start of the edge and reversed.
+	let acting-as-tip = mark.pos != float(mark.rev)
+	
+	let origin = if acting-as-tip { mark.tip-origin } else { -mark.tail-origin }
+	let end = if acting-as-tip { mark.tip-end } else { -mark.tail-end }
+
+	let stroke-ends = extrude.map(e => {
+		let cap = if "cap-offset" in mark { (mark.cap-offset)(mark, e) } else { 0 }
+		if not acting-as-tip { cap *= -1 }
+		origin - end - cap
+	})
+	
+	return (origin, stroke-ends)
+}
+
+/// This does a few things:
+/// 
+/// Takes an edge path `obj` and:
+/// - calculates path shortening factor given end marks and extrusion
+/// - draws extruded and shortened path
+/// - draws end marks with origin shift
+/// - draws internal marks
+#let draw-with-marks-and-extrusion(ctx, obj, marks, stroke: 1pt, extrude: (0,)) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
 	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
 
-	let end-marks = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 
-	let mark-origins = end-marks.map(mark => {
-		if mark == none { return 0 }
-		if mark.pos != float(mark.rev) {
-			mark.tip-origin
-			// tgt acting as tip
-			// rev src acting as tip
-		} else {
-			// rev tgt acting as tail
-			// src acting as tail
-			-mark.tail-origin
-		}
-	})
+	let (i-mark, o-mark) = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
+	let (i-origin, i-shorten) = shrink-factor-from-mark(i-mark, extrude)
+	let (o-origin, o-shorten) = shrink-factor-from-mark(o-mark, extrude)
 
-
-	let stroke-ends = end-marks.zip(mark-origins).map(((mark, origin)) => {
-		extrude.map(e => {
-			if mark == none { return 0 }
-			let end = if mark.pos != float(mark.rev) {
-				mark.tip-end
-			} else {
-				-mark.tail-end
-			}
-			let cap-offset = if "cap-offset" in mark {
-				(mark.cap-offset)(mark, e)
-			} else { 0 }
-			origin - end - cap-offset
-		})
-	})
-	
-
-	// let shortened-path = cetz.path-util.shorten-to(path, stroke-ends, snap-to: (none, none))
-	// obj-ctx.drawables.first().segments = shortened-path
-	// obj-ctx.drawables.first().stroke = stroke
-	// (ctx => obj-ctx,)
-	let (i-shorten, o-shorten) = stroke-ends
 	let new-path = paths.extrude-and-shorten(obj, extrude: extrude, shorten-start: i-shorten, shorten-end: o-shorten, stroke: stroke)
+
 	new-path
 
   let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
 
-	for (mark, origin) in end-marks.zip(mark-origins) {
-		if mark == none { continue }
-		let rev = mark.pos == 1
-		let point-info = cetz.path-util.point-at(path, origin*t, reverse: rev)
-		let origin = cetz.util.apply-transform(inv-transform, point-info.point)
-		let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
-		if rev { angle += 180deg }
-		draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
+	let draw-mark-on-path(mark, pos, reverse: false) = {
+    let point-info = cetz.path-util.point-at(path, pos, reverse: reverse)
+    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
+    let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
+		if reverse { angle += 180deg }
+    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
 	}
+
+	if i-mark != none { draw-mark-on-path(i-mark, i-origin*t) }
+	if o-mark != none { draw-mark-on-path(o-mark, o-origin*t, reverse: true) }
 
   for mark in marks {
 		if mark.pos in (0, 1) { continue }
-    let point-info = cetz.path-util.point-at(path, mark.pos*100%)
-    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
-    let angle = cetz.vector.angle2((0,0), cetz.util.apply-transform(inv-transform, point-info.direction))
-    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
+		draw-mark-on-path(mark, mark.pos*100%)
   }
 }
 
@@ -273,7 +268,7 @@
   cetz.draw.get-ctx(ctx => {
 		let marks = interpret-marks(marks)
 		if shrink {
-			draw-with-marks-and-shrinking-and-extrusion(ctx, obj, marks)
+			draw-with-marks-and-extrusion(ctx, obj, marks)
 		} else {
 			draw-with-marks(ctx, obj, marks)
 		}
