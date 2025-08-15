@@ -19,9 +19,9 @@
     root: "edge",
   ).edge
 
-  let base-path = cetz.draw.line(..edge.path, name: edge.name)
+  let base-path = (edge.draw)(edge.vertices)
 
-  Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke)
+  Marks.draw-with-marks-and-shrinking(ctx, base-path, style.marks, stroke: style.stroke, name: edge.name)
 }
 
 #let find-farthest-anchor(ctx, name, reference-point) = {
@@ -102,8 +102,10 @@
       utils.error("edge snapping resulted in same source and target points")
     }
 
-    let (_, ..mid-vertices, _) = edge.vertices
-    draw-edge(ctx, edge + (path: (src-snapped, ..mid-vertices, tgt-snapped)))
+    let edge = edge
+    edge.vertices.first() = src-snapped
+    edge.vertices.last() = tgt-snapped
+    draw-edge(ctx, edge)
 
     debug-draw(debug, "edge.snap", {
       cetz.draw.circle(src-snapped, radius: 0.5pt, fill: green, stroke: none)
@@ -166,12 +168,11 @@
   style: (:),
   snap-to: (auto, auto),
   name: none,
+  draw: auto,
   debug: auto,
 ) = {
 
-  
-  // if snap-to.first() == auto { snap-to.first() = vertices.first() }
-  // if snap-to.last() == auto { snap-to.last() = vertices.last() }
+  draw = vertices => cetz.draw.line(..vertices)
 
   let edge-data = (
     class: "edge",
@@ -179,14 +180,13 @@
     style: style,
     snap-to: snap-to,
     name: name,
+    draw: draw,
     debug: debug,
   )
   
   (ctx => {
 
-    let objs = draw-edge(ctx, edge-data + (
-      path: edge-data.vertices
-    ))
+    let objs = draw-edge(ctx, edge-data)
 
     let (ctx, drawables) = cetz.process.many(ctx, objs)
 

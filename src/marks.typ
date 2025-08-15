@@ -198,7 +198,7 @@
 
 #let bip(coord, fill) = cetz.draw.on-layer(20, cetz.draw.circle(coord, radius: .5pt, fill: fill, stroke: none))
 
-#let draw-with-marks-and-shrinking(ctx, obj, marks, stroke: 1pt) = {	
+#let draw-with-marks-and-shrinking(ctx, obj, marks, stroke: 1pt, name: none) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
 	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
@@ -229,6 +229,7 @@
 	let shortened-path = cetz.path-util.shorten-to(path, stroke-ends, snap-to: (none, none))
 	obj-ctx.drawables.first().segments = shortened-path
 	obj-ctx.drawables.first().stroke = stroke
+	obj-ctx.name = name
 	(ctx => obj-ctx,)
 
   let inv-transform = cetz.matrix.inverse(ctx.transform)
