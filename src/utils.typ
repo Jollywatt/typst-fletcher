@@ -15,6 +15,7 @@
 
 #let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
 #let is-edge(o) = type(o) == dictionary and "class" in o and o.class == "edge"
+#let is-cetz(o) = type(o) == array and o.all(el => type(el) == function)
 
 #let switch-type(input, ..args) = {
 	let types = args.named().keys()

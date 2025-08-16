@@ -45,7 +45,7 @@
 
     let calc-anchors = if "node" in (group.anchors)(()) {
       // defer all anchors to the node named "node" within the group
-      k => (group.anchors)(( "node", ..k))
+      k => (group.anchors)(("node", k).flatten())
     } else {
       k => (group.anchors)(k)
     }
@@ -94,15 +94,10 @@
 
   let style = args.named()
 
-  if body == none {
-    if style.at("inset", default: auto) == auto { style.inset = 0 }
-  } else {
-    body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
-  }
-
-
 
   (ctx => {
+
+    let (body, shape) = (body, shape)
 
     let style = cetz.styles.resolve(
       ctx.style,
@@ -111,10 +106,20 @@
       root: "node",
     ).node
 
-    let (w, h) = cetz.util.measure(ctx, body)
-    let inset = cetz.util.resolve-number(ctx, style.inset)
-    w += 2*inset
-    h += 2*inset
+    let (w, h) = (0, 0)
+    if utils.is-cetz(body) {
+      let (low, high) = cetz.process.many(ctx, body).bounds
+      (w, h) = cetz.vector.sub(high, low).slice(0, 2)
+      shape = (node, extrude) => body
+      body = none
+    } else if body != none {
+      body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
+      (w, h) = cetz.util.measure(ctx, body)
+      let inset = cetz.util.resolve-number(ctx, style.inset)
+      w += 2*inset
+      h += 2*inset
+    }
+
 
     let node-data = (
       class: "node",
