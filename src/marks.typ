@@ -196,9 +196,13 @@
   assert(type(obj) == array)
   assert(obj.len() == 1)
   let obj-ctx = obj.first()(ctx)
-  assert(obj-ctx.drawables.len() == 1)
-  assert(obj-ctx.drawables.first().type == "path")
-  return obj-ctx.drawables.first().segments
+	let drawables = obj-ctx.drawables
+	if type(drawables) == array {
+		assert.eq(drawables.len(), 1)
+		drawables = drawables.first()
+	}
+  assert(drawables.type == "path")
+  return drawables.segments
 }
 
 #let shrink-factor-from-mark(mark, extrude) = {
@@ -232,14 +236,13 @@
 	let obj-ctx = obj.first()(ctx)
 	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
 
-
 	let (i-mark, o-mark) = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 	let (i-origin, i-shorten) = shrink-factor-from-mark(i-mark, extrude)
 	let (o-origin, o-shorten) = shrink-factor-from-mark(o-mark, extrude)
 
-	let new-path = paths.extrude-and-shorten(obj, extrude: extrude, shorten-start: i-shorten, shorten-end: o-shorten, stroke: stroke)
+	let shortened = paths.extrude-and-shorten(obj, extrude: extrude, shorten-start: i-shorten, shorten-end: o-shorten, stroke: stroke)
 
-	new-path
+	shortened
 
   let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))

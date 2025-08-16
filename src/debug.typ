@@ -40,7 +40,6 @@
 #assert(not debug-level((grid: 1, node: 100), "grid.cells"))
 
 #let debug-draw(debug, level, body) = {
-  if debug-level(debug, level) {
-    cetz.draw.group(cetz.draw.on-layer(100, body))
-  }
+  if not debug-level(debug, level) { return }
+  cetz.draw.floating(cetz.draw.group(cetz.draw.on-layer(100, body)))
 }

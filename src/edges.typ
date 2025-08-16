@@ -25,10 +25,11 @@
 
   Marks.draw-with-marks-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude)
 
-  // create proxy named cetz object which contains edge anchors but draws nothing
+  // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
+    let a =  path.first()(ctx)
+    if "anchors" not in a {panic(a.keys())}
     let (anchors, drawables) = path.first()(ctx)
-    assert.eq(drawables.len(), 1)
     return (
       ctx: ctx,
       name: edge.name,
@@ -103,7 +104,8 @@
   debug: false,
 ) = {
 
-  let test-path = cetz.draw.line(..edge.vertices)
+  let test-path = (edge.draw)(edge.vertices)
+
   cetz.draw.hide({
     cetz.draw.intersections("__src__", snap-to.at(0) + test-path)
     cetz.draw.intersections("__tgt__", snap-to.at(1) + test-path)
@@ -168,7 +170,6 @@
 
       })
 
-    let (src, ..mid-vertices, tgt) = edge.vertices
     draw-edge-with-intersection-snapping(
       edge,
       snap-to: snapping-outlines,
@@ -187,7 +188,9 @@
   debug: auto,
 ) = {
 
-  draw = vertices => cetz.draw.line(..vertices)
+  if draw == auto {
+    draw = vertices => cetz.draw.line(..vertices)
+  }
 
   let edge-data = (
     class: "edge",
@@ -241,6 +244,7 @@
   name: none,
   stroke: auto,
   extrude: auto,
+  draw: auto,
   debug: auto,
 ) = {
 
@@ -268,6 +272,7 @@
     ),
     snap-to: options.snap-to,
     name: name,
+    draw: draw,
     debug: debug,
   )
 

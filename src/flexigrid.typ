@@ -124,7 +124,7 @@
       for (i, x) in grid.col-centers.enumerate() {
         for (j, y) in grid.row-centers.enumerate() {
           let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%))
+          // cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(85%) + 0.5pt)
         }
       }
     }

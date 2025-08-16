@@ -165,7 +165,7 @@
   cetz.draw.get-ctx(ctx => {
     let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
 
-    let (drawables, bounds) = cetz.process.many(ctx, target)
+    let (drawables, bounds, elements) = cetz.process.many(ctx, target)
 
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")
