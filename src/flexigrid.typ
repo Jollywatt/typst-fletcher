@@ -1,11 +1,11 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "nodes.typ" as Nodes
-#import "edges.typ"
+#import "edges.typ" as Edges
 #import "debug.typ": debug-level
 
 
-#let cell-sizes-from-nodes(nodes) = {
+#let cell-sizes-from-rects(nodes) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
@@ -179,7 +179,7 @@
 
 
     let (elements,) = cetz.process.many(ctx + (
-      flexigrid: pos => (0, 0, 0)
+      flexigrid: pos => (0., 0., 0.)
     ), objects)
 
     // get elements that are fletcher objects
@@ -187,8 +187,16 @@
       "fletcher" in element and element.fletcher.class == "node"
     }).map(element => element.fletcher)
 
+    let edges = elements.filter(element => {
+      "fletcher" in element and element.fletcher.class == "edge"
+    }).map(element => element.fletcher)
+
     // compute the cell sizes and positions in flexigrid
-    let grid = cell-sizes-from-nodes(nodes)
+    let rects = nodes + edges.map(edge => {
+      edge.vertices.map(v => (pos: v, size: (0, 0), weight: 1))
+    }).join()
+
+    let grid = cell-sizes-from-rects(rects)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
@@ -223,8 +231,8 @@
           let edge = element.fletcher
 
           edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
-          let snapping-nodes = edges.find-edge-snapping-nodes(edge, nodes) 
-          edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
+          let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
+          Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
 
         } else {
           panic(element.fletcher)

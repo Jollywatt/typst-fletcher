@@ -45,44 +45,61 @@
   let get-anchors = ctx.nodes.at(name).anchors
   let anchor-names = (get-anchors)(())
 
-  let inv-transform = cetz.matrix.inverse(ctx.transform)
+  let b = cetz.util.revert-transform(ctx.transform, reference-point)
   let all-anchors = anchor-names
     .map(get-anchors)
-    .map(a => cetz.matrix.mul4x4-vec3(inv-transform, a))
-    .sorted(key: a => cetz.vector.dist(a, reference-point))
+    .sorted(key: a => cetz.vector.dist(a, b))
 
-  let best = all-anchors.at(-1, default: reference-point)
+  let best = all-anchors.at(-1, default: b)
 
-  return best
+  return cetz.util.apply-transform(ctx.transform, best)
 }
 
+/// Find a node by its approximate position.
+/// Returns `none` if no nodes are nearby.
+/// 
+/// -> node | none
+#let find-closest-node(nodes, key) = {
+  if key == none { return none }
 
-/// -> (node, node)
-#let find-edge-snapping-nodes(edge, nodes) = {
-  let nodes-from-key(key) = {
-    if key == none { return none } // snapping disabled
-    else if type(key) == str { return key } // snap to object by name
-    else if type(key) == array { // snap to node by location
-      let (x0, y0) = key
-      // find closest node
-      let node = nodes.sorted(key: node => {
-        let (x, y) = node.origin
-        calc.abs(x - x0) + calc.abs(y - y0)
-      }).first()
+  if type(key) == array {
+    key = (system: "uv", coord: key)
+  }
+
+  if type(key) == dictionary {
+    assert("system" in key and "coord" in key)
+
+    let dist
+    let max-dist
+
+    if key.system == "uv" {
+      // find node closest to given coordinate
+      dist(node) = cetz.vector.sub(key.coord, node.pos).map(calc.abs).sum()
+      let node = nodes.sorted(key: dist).first()
+      if dist(node) > 1 { return }
       return node
-    } else {
-      utils.error("invalid `snap-to` key: #0", key)
+    } else if key.system == "xy" {
+      let dist(node) = cetz.vector.len(cetz.vector.sub(key.coord, node.origin))
+      let node = nodes.sorted(key: dist).first()
+      max-dist = cetz.vector.len(node.size)
+      if dist(node) > max-dist { return }
+      return node
     }
   }
 
-  let (src-snap-to, tgt-snap-to) = edge.snap-to
-  if src-snap-to == auto { src-snap-to = edge.vertices.first() }
-  if tgt-snap-to == auto { tgt-snap-to = edge.vertices.last() }
+  utils.error("invalid `snap-to` key: #0", key)
+}
 
+/// -> (node, node)
+#let find-edge-snapping-nodes(edge, nodes) = {
 
-  let src-nodes = nodes-from-key(src-snap-to)
-  let tgt-nodes = nodes-from-key(tgt-snap-to)
-  return (src-nodes, tgt-nodes)
+  edge.snap-to.zip((edge.vertices.first(), edge.vertices.last()))
+    .map(((snap-to, vertex)) => {
+      if type(snap-to) == str { return snap-to } // snap to by name
+      if snap-to == auto { snap-to = (system: "xy", coord: vertex) }
+      find-closest-node(nodes, snap-to)
+    })
+
 }
 
 
@@ -116,7 +133,15 @@
     let tgt-snapped = find-farthest-anchor(ctx, "__tgt__", edge.vertices.last())
 
     if (src-snapped == tgt-snapped) {
-      utils.error("edge snapping resulted in same source and target points")
+      // edge snapping resulted in same start and end points
+      // make it so that only one end snaps, whichever one is closer
+      let src-dist = cetz.vector.dist(src-snapped, edge.vertices.first())
+      let tgt-dist = cetz.vector.dist(tgt-snapped, edge.vertices.last())
+      if src-dist < tgt-dist {
+        tgt-snapped = edge.vertices.last()
+      } else {
+        src-snapped = edge.vertices.first()
+      }
     }
 
     let edge = edge
