@@ -7,9 +7,9 @@
   "grid.cells": 2,
 
   "node": 2,
-  "node.stroke": 3,
+  "node.stroke": 2,
   "node.inset": 4,
-  "node.outset": 4,
+  "node.outset": 3,
 
   "edge.snap": 3,
 

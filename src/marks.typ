@@ -22,7 +22,7 @@
 	let marks = DEFAULT_MARKS
 	let ancestor = none
 	while "inherit" in mark {
-		if mark.inherit.at(-1) == "'" {
+		if mark.inherit.ends-with("'") {
 			mark.flip = not mark.at("flip", default: false)
 			mark.inherit = mark.inherit.slice(0, -1)
 		}
