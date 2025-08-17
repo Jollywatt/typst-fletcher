@@ -229,7 +229,12 @@
   
   (ctx => {
 
-    let objs = draw-edge(ctx, edge-data)
+    let edge = edge-data
+    // some edge vertices may be auto
+    if edge.vertices.first() == auto { edge.vertices.first() = ctx.prev.pt }
+    if edge.vertices.last() == auto { edge.vertices.last() = cetz.vector.add(ctx.prev.pt, (1, 0)) }
+
+    let objs = draw-edge(ctx, edge)
 
     let (ctx, drawables) = cetz.process.many(ctx, objs)
 
@@ -263,6 +268,7 @@
 
 #let edge(
   ..args,
+  vertices: (),
   marks: (),
   snap-to: (auto, auto),
   outset: auto,
@@ -274,6 +280,7 @@
 ) = {
 
   let options = (
+    vertices: vertices,
     marks: marks,
     snap-to: snap-to,
     outset: outset,

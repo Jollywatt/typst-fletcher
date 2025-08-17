@@ -157,8 +157,30 @@
 
 
 
-#let resolve-auto-edge-vertices(elements) = {
-  // for (i, element) in ele
+#let resolve-auto-edge-vertices(nodes, edge) = {
+	// vertices: (auto, .., auto) -> (prev-node, .., next-node)
+  let prev = (0, 0) // fallback if no previous node
+	if edge.vertices.first() == auto {
+		for node in nodes.slice(0, edge.node-index).rev() {
+			if node.snap == false { continue }
+			prev = node.pos
+			break
+		}
+		// ctx += (prev: (pt: prev))
+		edge.vertices.first() = prev
+	}
+
+  let next = cetz.vector.add(prev, (1, 0)) // fallback if no following node
+	if edge.vertices.last() == auto {
+		for node in nodes.slice(edge.node-index) {
+			if node.snap == false { continue }
+			next = node.pos
+			break
+		}
+		edge.vertices.last() = next
+	}
+
+  return edge
 }
 
 #let extract-nodes-and-edges(elements) = {
@@ -168,11 +190,19 @@
   for element in elements {
     if "fletcher" in element {
       if element.fletcher.class == "node" {
-        new-elements.push((fletcher-class: "node", index: nodes.len()))
+        new-elements.push((
+          fletcher: "node",
+          index: nodes.len(),
+        ))
         nodes.push(element.fletcher)
       } else if element.fletcher.class == "edge" {
-        new-elements.push((fletcher-class: "edge", index: edges.len()))
-        edges.push(element.fletcher)
+        new-elements.push((
+          fletcher: "edge",
+          index: edges.len(),
+        ))
+        edges.push(element.fletcher + (
+          node-index: nodes.len(), // used to determine prev/next node
+        ))
       }
     } else {
       new-elements.push(element)
@@ -210,6 +240,8 @@
     // get elements that are fletcher objects
     let (elements, nodes, edges) = extract-nodes-and-edges(elements)
 
+    edges = edges.map(resolve-auto-edge-vertices.with(nodes))
+
     // compute the cell sizes and positions in flexigrid
     let rects = nodes + edges.map(edge => {
       edge.vertices.map(v => (pos: v, size: (0, 0), weight: 1))
@@ -238,7 +270,7 @@
     // draw nodes and cetz objects
     for (object, element) in objects.zip(elements) {
 
-      let class = element.at("fletcher-class", default: none)
+      let class = element.at("fletcher", default: none)
 
       if class == "node" {
         let node = nodes.at(element.index)
@@ -250,7 +282,7 @@
         edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
         let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
         Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
-        
+
       } else {
         (object,)
       }

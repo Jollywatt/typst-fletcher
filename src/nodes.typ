@@ -80,6 +80,7 @@
   name: none,
   align: center + horizon,
   weight: 1,
+  snap: true,
   debug: auto,
 ) = {
 
@@ -131,6 +132,7 @@
       size: (w, h),
       align: align,
       weight: weight,
+      snap: snap,
       debug: debug,
     )
 
