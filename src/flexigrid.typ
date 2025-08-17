@@ -157,6 +157,30 @@
 
 
 
+#let resolve-auto-edge-vertices(elements) = {
+  // for (i, element) in ele
+}
+
+#let extract-nodes-and-edges(elements) = {
+  let new-elements = ()
+  let nodes = ()
+  let edges = ()
+  for element in elements {
+    if "fletcher" in element {
+      if element.fletcher.class == "node" {
+        new-elements.push((fletcher-class: "node", index: nodes.len()))
+        nodes.push(element.fletcher)
+      } else if element.fletcher.class == "edge" {
+        new-elements.push((fletcher-class: "edge", index: edges.len()))
+        edges.push(element.fletcher)
+      }
+    } else {
+      new-elements.push(element)
+    }
+  }
+  return (new-elements, nodes, edges)
+}
+
 #let flexigrid(
   objects,
   gutter: 1,
@@ -182,14 +206,9 @@
       flexigrid: pos => (0., 0., 0.)
     ), objects)
 
-    // get elements that are fletcher objects
-    let nodes = elements.filter(element => {
-      "fletcher" in element and element.fletcher.class == "node"
-    }).map(element => element.fletcher)
 
-    let edges = elements.filter(element => {
-      "fletcher" in element and element.fletcher.class == "edge"
-    }).map(element => element.fletcher)
+    // get elements that are fletcher objects
+    let (elements, nodes, edges) = extract-nodes-and-edges(elements)
 
     // compute the cell sizes and positions in flexigrid
     let rects = nodes + edges.map(edge => {
@@ -212,31 +231,26 @@
       flexigrid: interpolate-grid-point.with(grid)
     )),)
 
-    // draw things
-
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
-    // phase 1: draw nodes and cetz objects
+    // draw nodes and cetz objects
     for (object, element) in objects.zip(elements) {
-      if "fletcher" in element {
 
-        if element.fletcher.class == "node" {
-          let node = element.fletcher
-          let origin = Nodes.get-node-origin(node, grid)
-          Nodes.draw-node-at(node, origin, debug: debug)
+      let class = element.at("fletcher-class", default: none)
 
-        } else if element.fletcher.class == "edge" {
-          let edge = element.fletcher
+      if class == "node" {
+        let node = nodes.at(element.index)
+        let origin = Nodes.get-node-origin(node, grid)
+        Nodes.draw-node-at(node, origin, debug: debug)
 
-          edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
-          let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
-          Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
-
-        } else {
-          panic(element.fletcher)
-        }
+      } else if class == "edge" {
+        let edge = edges.at(element.index)
+        edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
+        let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
+        Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
+        
       } else {
         (object,)
       }
