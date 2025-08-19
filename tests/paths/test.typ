@@ -1,8 +1,6 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/deps.typ": cetz
 #import "/src/paths.typ"
-#import "/src/exports.typ": flexigrid, node
-
 
 Linear extrusion
 

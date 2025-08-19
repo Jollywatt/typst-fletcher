@@ -114,7 +114,7 @@
 	angle: 0deg,
 	debug: false,
 ) = {
-	mark = resolve-mark(mark)
+	// mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
 
 	let thickness = utils.map-auto(stroke.thickness, 1pt)
@@ -283,4 +283,70 @@
 			draw-with-marks(ctx, obj, marks)
 		}
   })
+}
+
+#let test-mark(m, stroke: 5pt, length: auto, debug: 3) = {
+	m = resolve-mark(m)
+	let t = utils.get-thickness(stroke)
+
+	let debug-level = debug-level.with(levels: (
+		"dots": 1,
+		"lines": 2,
+		"labels": 3,
+	))
+
+	let annot(x, label, color, y-min: 0, y-max: h) = {
+		if debug-level(debug, "lines") {
+			draw.line((x, y-min), (x, y-max), stroke: color + t/5)
+		}
+		if debug-level(debug, "dots") {
+			draw.circle((x,0), stroke: color + t/10, fill: white, radius: t/5)
+		}
+		if debug-level(debug, "labels") {
+			let a = if y-max > 0 { "south" } else { "north" }
+			draw.floating(draw.content((x, y-max), text(color, size: 2*t, label), anchor: a, padding: 0.5))
+		}
+	}
+		
+	cetz.canvas(length: t, {
+		import cetz.draw
+		
+		let mark-obj = draw-mark(m + (rev: false), stroke: stroke)
+
+		draw.get-ctx(ctx => {
+			let (bounds,) = cetz.process.many(ctx, mark-obj)
+			let (low, high) = bounds
+			let (w, h, _) = cetz.vector.sub(high, low)
+			
+			let y = h/2 + 2
+
+			let l = (
+				if length == auto { w + 15 }
+				else { length/t - m.tip-origin + m.tail-origin }
+			)
+
+			if m.rev { draw.scale(x: -1, origin: (l/2, 0)) }
+
+			annot(l + m.tip-origin, `tip-origin`, red, y-min: y, y-max: -y)
+			annot(m.tail-origin, `tail-origin`, red, y-min: y, y-max: -y)
+
+			draw.group({
+				mark-obj
+				draw.translate(x: l)
+				mark-obj
+			})
+
+			draw.line(
+				(m.tail-end,0),
+				(l + m.tip-end,0),
+				stroke: (thickness: t, paint: blue.transparentize(20%))
+			)
+
+			annot(0, `0`, green, y-max: -2)
+			annot(l, `0`, green, y-max: -2)
+
+			annot(l + m.tip-end, `tip-end`, blue, y-max: y)
+			annot(m.tail-end, `tail-end`, blue, y-max: y)
+		})		
+	})
 }

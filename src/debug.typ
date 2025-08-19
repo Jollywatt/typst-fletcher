@@ -20,11 +20,11 @@
   ctx.at("fletcher-debug", default: debug)
 }
 
-#let debug-level(debug, option) = {
+#let debug-level(debug, option, levels: DEBUG_LEVELS) = {
   if debug == none { return false }
   if type(debug) == bool { return debug }
-  if type(debug) == int { return DEBUG_LEVELS.at(option) <= debug }
-  if type(debug) == str { return option.starts-with(debug) or debug.starts-with(option) }
+  if type(debug) == int { return levels.at(option) <= debug }
+  if type(debug) == str { return option.starts-with(debug) or debug.contains(option) }
   if type(debug) == array { return debug.any(d => debug-level(d, option)) }
   if type(debug) == dictionary {
     return debug.pairs().any(((scope, debug)) => {
