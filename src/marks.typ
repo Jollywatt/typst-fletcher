@@ -14,6 +14,8 @@
 	tail-end: 0,
 	tip-origin: 0,
 	tail-origin: 0,
+	tip-hang: mark => mark.tail-origin,
+	tail-hang: mark => mark.tip-origin,
 )
 
 
@@ -285,7 +287,7 @@
   })
 }
 
-#let test-mark(m, stroke: 5pt, length: auto, debug: 3) = {
+#let test-mark(m, stroke: 4pt, length: auto, bend: 0deg, debug: 3) = {
 	m = resolve-mark(m)
 	let t = utils.get-thickness(stroke)
 
@@ -293,9 +295,10 @@
 		"dots": 1,
 		"lines": 2,
 		"labels": 3,
+		"path": 1,
 	))
 
-	let annot(x, label, color, y-min: 0, y-max: h) = {
+	let annot(x, (y-min, y-max), label, color, layer: 1) = draw.on-layer(layer, {
 		if debug-level(debug, "lines") {
 			draw.line((x, y-min), (x, y-max), stroke: color + t/5)
 		}
@@ -304,9 +307,9 @@
 		}
 		if debug-level(debug, "labels") {
 			let a = if y-max > 0 { "south" } else { "north" }
-			draw.floating(draw.content((x, y-max), text(color, size: 2*t, label), anchor: a, padding: 0.5))
+			draw.content((x, y-max), text(color, size: 2*t, label), anchor: a, padding: 0.5)
 		}
-	}
+	})
 		
 	cetz.canvas(length: t, {
 		import cetz.draw
@@ -314,39 +317,95 @@
 		let mark-obj = draw-mark(m + (rev: false), stroke: stroke)
 
 		draw.get-ctx(ctx => {
+			// get size of mark
 			let (bounds,) = cetz.process.many(ctx, mark-obj)
 			let (low, high) = bounds
-			let (w, h, _) = cetz.vector.sub(high, low)
+			let (w, h, ..) = cetz.vector.sub(high, low)
 			
 			let y = h/2 + 2
+			let length = if length == auto { w + 20 } else { length/t }
 
-			let l = (
-				if length == auto { w + 15 }
-				else { length/t - m.tip-origin + m.tail-origin }
-			)
+			// left side is tail, right side is tip
+			// if a mark is reversed, then just flip sides
+			if m.rev { draw.scale(x: -1) }
 
-			if m.rev { draw.scale(x: -1, origin: (l/2, 0)) }
-
-			annot(l + m.tip-origin, `tip-origin`, red, y-min: y, y-max: -y)
-			annot(m.tail-origin, `tail-origin`, red, y-min: y, y-max: -y)
-
+			// draw the edge stroke
 			draw.group({
-				mark-obj
-				draw.translate(x: l)
-				mark-obj
+				let s1 = (thickness: t/8, paint: blue.transparentize(50%), dash: "dashed")
+				let s2 = (thickness: t, paint: blue.transparentize(30%))
+				if bend == 0deg {
+					// straight line
+					if debug-level(debug, "path") {
+						draw.line((0,0), (length,0), stroke: s1)
+					}
+					draw.on-layer(1, draw.line(
+						(m.tail-end - m.tail-origin,0),
+						(length + m.tip-end - m.tip-origin,0),
+						stroke: s2,
+					))
+				} else {
+					// bent arc
+					let r = length/2/calc.sin(bend)
+					if debug-level(debug, "path") {
+						draw.arc(
+							(0,0),
+							start: 90deg + bend,
+							stop: 90deg - bend,
+							radius: r,
+							stroke: s1,
+						)
+					}
+					let tip-delta = (m.tip-end - m.tip-origin)/r*1rad
+					let tail-delta = (m.tail-end - m.tail-origin)/r*1rad
+					draw.on-layer(1, draw.arc(
+						(length/2,-length/2/calc.tan(bend)),
+						anchor: "origin",
+						start: 90deg + bend - tail-delta,
+						stop: 90deg - bend - tip-delta,
+						radius: r,
+						stroke: s2,
+					))
+				}
 			})
 
-			draw.line(
-				(m.tail-end,0),
-				(l + m.tip-end,0),
-				stroke: (thickness: t, paint: blue.transparentize(20%))
-			)
+			// draw tail and tip marks
 
-			annot(0, `0`, green, y-max: -2)
-			annot(l, `0`, green, y-max: -2)
+			let draw-mark-with-annotations(label, m) = draw.group({
+				if bend == 0deg {
+					draw.translate(x: -m.origin)
+				} else {
+					draw.rotate(m.angle)
+					let radius = length/2/calc.sin(bend)
+					draw.translate(y: -radius)
+					draw.rotate(1rad*(m.origin - m.end)/radius)
+					draw.translate(y: +radius)
+					draw.translate(x: -m.end)
+				}
 
-			annot(l + m.tip-end, `tip-end`, blue, y-max: y)
-			annot(m.tail-end, `tail-end`, blue, y-max: y)
+				annot(m.origin, (+y,-y), raw(label + "-origin"), red, layer: -1)
+				mark-obj
+				annot(0, (-1,0), `0`, green)
+				annot(m.hang, (0,2), raw(label + "-hang"), orange.mix(yellow))
+				annot(m.end, (0,y), raw(label + "-end"), blue)
+
+			})
+
+			draw-mark-with-annotations("tail", (
+				origin: m.tail-origin,
+				end: m.tail-end,
+				hang: m.tail-hang,
+				angle: +bend,
+			))
+
+			draw.translate(x: length)
+
+			draw-mark-with-annotations("tip", (
+				origin: m.tip-origin,
+				end: m.tip-end,
+				hang: m.tip-hang,
+				angle: -bend,
+			))
+
 		})		
 	})
 }

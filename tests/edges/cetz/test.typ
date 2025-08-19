@@ -15,7 +15,7 @@ Edges as CeTZ wrappers
 
   for m in (
     "--",
-    "<->",
+    ">>>->",
     "<=>",
     "o-||-O",
   ) {
