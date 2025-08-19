@@ -240,7 +240,13 @@
 	let (i-origin, i-shorten) = shrink-factor-from-mark(i-mark, extrude)
 	let (o-origin, o-shorten) = shrink-factor-from-mark(o-mark, extrude)
 
-	let shortened = paths.extrude-and-shorten(obj, extrude: extrude, shorten-start: i-shorten, shorten-end: o-shorten, stroke: stroke)
+	let shortened = paths.extrude-and-shorten(
+		obj,
+		extrude: extrude,
+		shorten-start: i-shorten,
+		shorten-end: o-shorten,
+		stroke: stroke,
+	)
 
 	shortened
 
@@ -267,11 +273,12 @@
 
 
 #let with-marks(obj, marks, shrink: true) = {
-  let (marks,) = parsing.parse-mark-shorthand(marks)
+  let (marks, options) = parsing.parse-mark-shorthand(marks)
+  let extrude = options.at("extrude", default: (0,))
   cetz.draw.get-ctx(ctx => {
 		let marks = interpret-marks(marks)
 		if shrink {
-			draw-with-marks-and-extrusion(ctx, obj, marks)
+			draw-with-marks-and-extrusion(ctx, obj, marks, extrude: extrude)
 		} else {
 			draw-with-marks(ctx, obj, marks)
 		}

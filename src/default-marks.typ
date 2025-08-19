@@ -12,8 +12,8 @@
 		tip-origin: mark => 0.5/float(mark.scale),
 		tail-end: mark => calc.min(..mark.extrude),
 		tail-origin: mark => {
-			let dx = calc.cos(mark.sharpness) + calc.cos(mark.sharpness + mark.delta)
-			mark.tail-end - mark.size*mark.delta/1.8rad*dx
+			let a = calc.sin(mark.sharpness + mark.delta) - calc.sin(mark.sharpness)
+			mark.tail-end - mark.size*a - 0.5
 		},
 
 		stroke: (cap: "round"),
