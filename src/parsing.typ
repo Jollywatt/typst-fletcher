@@ -186,7 +186,7 @@
 	let pos = args.pos()
 
 	// predicates to detect the kind of a positional argument
-	let is-coord(arg) = type(arg) in (array, dictionary, label) or arg == auto
+	let is-coord(arg) = type(arg) in (array, dictionary, label) and not utils.is-cetz(arg) or arg == auto
 	let is-rel-coord(arg) = is-coord(arg) or (
 		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none
 	)
@@ -214,6 +214,14 @@
 	let coords = ()
 	let has-first-coord = false
 	let has-tail-coords = false
+	let has-cetz-obj = false
+
+	// First argument is a cetz object
+	if peek(pos, utils.is-cetz) {
+		let obj = pos.remove(0)
+		new-options.draw = vertices => obj
+		has-cetz-obj = true
+	}
 
 	// First argument(s) are coordinates
 	// (<coord>, <rel-coord>*) => (<coord>, <rel-coord>*)

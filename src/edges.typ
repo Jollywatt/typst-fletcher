@@ -304,7 +304,7 @@
     ),
     snap-to: options.snap-to,
     name: name,
-    draw: draw,
+    draw: options.draw,
     debug: debug,
   )
 
