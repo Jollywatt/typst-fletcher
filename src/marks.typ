@@ -382,18 +382,18 @@
 	}
 
 
-	let place-terminal-mark(mark) = {
+	let place-terminal-mark(mark, end) = {
 
 		if mark == none { return (none, 0) }
 
 		let m = tip-or-tail-properties(mark)
-		let (path-end-pt, dir) = sample-pt(0, true)
+		let (path-end-pt, dir) = sample-pt(0, end)
 		bip(path-end-pt, red)
 		let obj
 		
-		if mark.rev {
+		if not m.is-tip {
 
-			let (stroke-end-pt, dir) = sample-pt((m.end - m.origin)*t, true)
+			let (stroke-end-pt, dir) = sample-pt((m.end - m.origin)*t, end)
 
 			let angle = (
 				if m.hang == none {
@@ -402,7 +402,7 @@
 				} else if m.hang == m.end { 
 					dir
 				} else {
-					let (hang-pt, _) = sample-pt((m.hang - m.origin)*t, true)
+					let (hang-pt, _) = sample-pt((m.hang - m.origin)*t, end)
 					// assert.ne(hang-pt, stroke-end-pt)
 					if m.end > m.hang {
 						cetz.vector.angle2(stroke-end-pt, hang-pt)
@@ -412,6 +412,7 @@
 				}
 			)
 
+			if not end { angle += 180deg }
 			let obj = draw-mark(mark, origin: stroke-end-pt, angle: angle, as-tip: false, anchor: "end")
 			let shorten-end = m.end - m.origin
 			return (obj, shorten-end)
@@ -427,13 +428,13 @@
 			let angle = (
 				if hang == m.origin { dir }
 				else {
-					let (hang-pt, _) = sample-pt(-(hang - m.origin)*t, true)
-					assert.ne(hang-pt, path-end-pt)
+					let (hang-pt, _) = sample-pt(-(hang - m.origin)*t, end)
+					// assert.ne(hang-pt, path-end-pt)
 					cetz.vector.angle2(hang-pt, path-end-pt)
 				}
 			)
 
-
+			if not end { angle += 180deg }
 			let obj = draw-mark(mark, origin: path-end-pt, angle: angle, as-tip: true)
 			let shorten-end = -(m.end - m.origin)
 			return (obj, shorten-end)
@@ -443,12 +444,12 @@
 
 	let src-mark = marks.find(mark => mark.pos == 0)
 	let tgt-mark = marks.find(mark => mark.pos == 1)
-	// let (src-mark-obj, shorten-start) = place-terminal-mark(src-mark)
-	let (tgt-mark-obj, shorten-end) = place-terminal-mark(tgt-mark)
+	let (src-mark-obj, shorten-start) = place-terminal-mark(src-mark, false)
+	let (tgt-mark-obj, shorten-end) = place-terminal-mark(tgt-mark, true)
 
-	// obj
-	paths.extrude-and-shorten(obj, shorten-start: 0, shorten-end: shorten-end)
-	// src-mark-obj
+	obj
+	paths.extrude-and-shorten(obj, shorten-start: shorten-start, shorten-end: shorten-end)
+	src-mark-obj
 	tgt-mark-obj
 }
 
