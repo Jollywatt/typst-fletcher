@@ -18,6 +18,6 @@
   page({
     raw(name)
     test-mark(m, debug: "dots lines")
-    test-mark(m, debug: "dots lines path", bend: 60deg)
+    test-mark(m, debug: "dots lines path", bend: 90deg)
   })
 }

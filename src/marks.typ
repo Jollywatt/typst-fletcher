@@ -380,6 +380,10 @@
 					draw.rotate(1rad*(m.origin - m.end)/radius)
 					draw.translate(y: +radius)
 					draw.translate(x: -m.end)
+
+					// apply mark hang/swing angle correction
+					let swing = calc.asin((m.end - m.hang)/(2*radius))
+					draw.rotate(swing, origin: (m.end, 0))
 				}
 
 				annot(m.origin, (+y,-y), raw(label + "-origin"), red, layer: -1)
