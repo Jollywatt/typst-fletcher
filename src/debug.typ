@@ -17,7 +17,8 @@
 )
 
 #let get-debug(ctx, debug) = {
-  ctx.at("fletcher-debug", default: debug)
+  let d = ctx.at("fletcher-debug", default: debug)
+  if d == auto { false } else { d }
 }
 
 #let debug-level(debug, option, levels: DEBUG_LEVELS) = {

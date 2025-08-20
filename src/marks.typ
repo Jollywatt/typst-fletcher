@@ -197,7 +197,7 @@
 				})
 			}
 
-			if debug-level(get-debug(ctx, debug), "mark") {
+			if debug-level(get-debug(ctx, debug), "mark.bands") {
 				let x = if as-tip { mark.tip-origin } else { mark.tail-origin }
 				draw.line((0,0), (x,0), stroke: t + red.transparentize(20%))
 				let x = if as-tip { mark.tip-end } else { mark.tail-end }
@@ -205,7 +205,7 @@
 				draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
 			}
 
-			if debug-level(get-debug(ctx, debug), "mark.dots") or true {
+			if debug-level(get-debug(ctx, debug), "mark.dots") {
 				let m = if as-tip { (
 					origin: mark.tip-origin,
 					end: mark.tip-end,
@@ -216,12 +216,17 @@
 					hang: mark.tail-hang
 				) }
 
+				draw.circle((m.origin,0), stroke: none, fill: white, radius: 1/2)
+				if m.hang != none { draw.circle((m.hang,0), stroke: none, fill: white, radius: 1/2) }
+				draw.circle((m.end,0), stroke: blue + t/4, fill: white, radius: 3/8)
+				draw.circle((m.origin,0), stroke: none, fill: red, radius: 1/4)
 				if m.hang != none {
-					draw.circle((m.hang,0), stroke: orange.mix(yellow) + t/6, fill: white, radius: 1/3)
+					draw.circle((m.hang,0), stroke: none, fill: green, radius: 1/4)
 				}
-				draw.circle((m.end,0), stroke: blue + t/6, fill: white, radius: 1/3)
-				draw.circle((m.origin,0), stroke: red + t/6, fill: white, radius: 1/3)
-				draw.circle((0,0), stroke: green + t/6, fill: white, radius: 1/6)
+
+				// draw.circle((0,0), stroke: green + t/4, fill: white, radius: 1/3)
+				// draw.line((0,0), (2/3,0), stroke: green + t/4)
+				// draw.line((0,-1), (0,+1), stroke: green + t/4)
 			}
 		})
 	})
@@ -357,10 +362,11 @@
 	ctx,
 	obj,
 	marks,
-	stroke: 1pt,
+	stroke: auto,
 	extrude: (0,),
 	/// Whether to enable mark angle correction on curved paths. -> bool
 	mark-swing: true,
+	debug: false,
 ) = {
 	
 	assert(marks.all(m => "pos" in m))
@@ -369,11 +375,15 @@
 	let (ctx, drawables,) = cetz.process.element(ctx, obj.first())
 	assert.eq(drawables.len(), 1)
 	let path = drawables.first().segments
-	let t = utils.get-thickness(drawables.first().stroke).to-absolute()/ctx.length
+
+	if stroke == auto { stroke = drawables.first().stroke }
+	else { 
+		stroke = utils.fold-strokes(drawables.first().stroke, stroke)
+	}
+	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
 
 	let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0.,0.,0.))
-
 	let sample-pt(t, reverse) = {
 		let info = cetz.path-util.point-at(path, t, reverse: reverse)
 		let pt = cetz.util.apply-transform(inv-transform, info.point)
@@ -381,74 +391,64 @@
 		(pt, dir)
 	}
 
-
-	let place-terminal-mark(mark, end) = {
-
+	let terminal-mark(mark, at-end) = {
 		if mark == none { return (none, 0) }
 
 		let m = tip-or-tail-properties(mark)
-		let (path-end-pt, dir) = sample-pt(0, end)
-		bip(path-end-pt, red)
-		let obj
-		
-		if not m.is-tip {
 
-			let (stroke-end-pt, dir) = sample-pt((m.end - m.origin)*t, end)
+		// tip marks pivot around the path end (tip-origin)
+		// tail marks pivot around the stroke end (tail-end)
+		let pivot = if m.is-tip { 0 } else { m.end - m.origin }
 
-			let angle = (
-				if m.hang == none {
-					// defaults to between stroke end and path end
-					cetz.vector.angle2(stroke-end-pt, path-end-pt)
-				} else if m.hang == m.end { 
-					dir
-				} else {
-					let (hang-pt, _) = sample-pt((m.hang - m.origin)*t, end)
-					// assert.ne(hang-pt, stroke-end-pt)
-					if m.end > m.hang {
-						cetz.vector.angle2(stroke-end-pt, hang-pt)
-					} else {
-						cetz.vector.angle2(hang-pt, stroke-end-pt)
-					}
-				}
-			)
+		// tip marks swing towards the stroke end (tip-end)
+		// tail marks swing towards the path end (tail-origin)
+		// both swing toward the hang point if specified (tip/tail-hang)
+		let swing = if m.hang == none {
+			if m.is-tip { m.end - m.origin } else { 0 }
+		} else { m.hang - m.origin }
 
-			if not end { angle += 180deg }
-			let obj = draw-mark(mark, origin: stroke-end-pt, angle: angle, as-tip: false, anchor: "end")
-			let shorten-end = m.end - m.origin
-			return (obj, shorten-end)
+		swing *= if m.is-tip { -1 } else { +1 }
 
-		} else {
+		let swing-pt = sample-pt(swing*t, at-end).first()
+		let (pivot-pt, dir) = sample-pt(pivot*t, at-end)
 
-			let hang = if not mark-swing or m.hang == none {
-				m.end
-			} else {
-				m.hang
-			}
+		let angle = (
+			if pivot == swing { dir }
+			else { cetz.vector.angle2(pivot-pt, swing-pt) }
+		)
 
-			let angle = (
-				if hang == m.origin { dir }
-				else {
-					let (hang-pt, _) = sample-pt(-(hang - m.origin)*t, end)
-					// assert.ne(hang-pt, path-end-pt)
-					cetz.vector.angle2(hang-pt, path-end-pt)
-				}
-			)
+		if swing <= pivot { angle += 180deg }
+		if at-end { angle += 180deg }
 
-			if not end { angle += 180deg }
-			let obj = draw-mark(mark, origin: path-end-pt, angle: angle, as-tip: true)
-			let shorten-end = -(m.end - m.origin)
-			return (obj, shorten-end)
+		let drawn = draw-mark(
+			mark,
+			origin: pivot-pt,
+			angle: angle,
+			as-tip: m.is-tip,
+			stroke: stroke,
+			debug: debug
+		)
 
-		}
+		let shorten-by = m.end - m.origin
+		if m.is-tip { shorten-by *= -1}
+
+		return (drawn, shorten-by)
 	}
 
 	let src-mark = marks.find(mark => mark.pos == 0)
 	let tgt-mark = marks.find(mark => mark.pos == 1)
-	let (src-mark-obj, shorten-start) = place-terminal-mark(src-mark, false)
-	let (tgt-mark-obj, shorten-end) = place-terminal-mark(tgt-mark, true)
 
-	obj
-	paths.extrude-and-shorten(obj, shorten-start: shorten-start, shorten-end: shorten-end)
+	let (src-mark-obj, shorten-start) = terminal-mark(src-mark, false)
+	let (tgt-mark-obj, shorten-end) = terminal-mark(tgt-mark, true)
+
+
+	paths.extrude-and-shorten(
+		obj,
+		shorten-start: shorten-start,
+		shorten-end: shorten-end,
+		stroke: stroke,
+	)
+
 	src-mark-obj
 	tgt-mark-obj
 }

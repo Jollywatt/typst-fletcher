@@ -130,6 +130,12 @@
 	return d
 }
 
+#let fold-strokes(..strokes) = {
+	for stroke in strokes.pos() {
+		stroke-to-dict(stroke)
+	}
+}
+
 #import "deps.typ": cetz
 
 

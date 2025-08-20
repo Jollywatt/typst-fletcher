@@ -4,7 +4,7 @@
 #import "parsing.typ"
 #import "paths.typ"
 #import "nodes.typ" as Nodes
-#import "debug.typ": debug-level, debug-draw
+#import "debug.typ": debug-level, debug-draw, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
   marks: (),
@@ -23,7 +23,7 @@
   let path = (edge.draw)(edge.vertices)
   assert(path.len() == 1, message: "edge.draw should return single cetz element")
 
-  Marks.draw-with-marks-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude)
+  Marks.draw-with-marks-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude, debug: edge.debug)
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -233,6 +233,8 @@
     // some edge vertices may be auto
     if edge.vertices.first() == auto { edge.vertices.first() = ctx.prev.pt }
     if edge.vertices.last() == auto { edge.vertices.last() = cetz.vector.add(ctx.prev.pt, (1, 0)) }
+
+    if debug == auto { edge.debug = get-debug(ctx, edge.debug) }
 
     let objs = draw-edge(ctx, edge)
 

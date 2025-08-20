@@ -256,7 +256,7 @@
 		angle: 90deg,
 
 		tail-origin: mark => calc.min(..mark.extrude),
-		// tip-hang: -5,
+		tip-hang: mark => mark.tail-origin,
 
 		draw: mark => draw.line(
 			(mark.angle, -mark.size),
@@ -361,7 +361,7 @@
 	"}>": (inherit: "stealth", rev: false),
 	"<{": (inherit: "stealth", rev: true),
 
-	"|": (inherit: "bar"),
+	"|": (inherit: "bar", rev: true),
 	"||": (inherit: "bar", extrude: (-3, 0)),
 	"|||": (inherit: "bar", extrude: (-6, -3, 0)),
 
