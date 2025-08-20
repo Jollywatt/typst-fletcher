@@ -14,8 +14,8 @@
 	tail-end: 0,
 	tip-origin: 0,
 	tail-origin: 0,
-	tip-hang: mark => mark.tail-origin,
-	tail-hang: mark => mark.tip-origin,
+	tip-hang: none,
+	tail-hang: none,
 )
 
 
@@ -382,14 +382,18 @@
 					draw.translate(x: -m.end)
 
 					// apply mark hang/swing angle correction
-					let swing = calc.asin((m.end - m.hang)/(2*radius))
-					draw.rotate(swing, origin: (m.end, 0))
+					if m.hang != none {
+						let swing = calc.asin((m.end - m.hang)/(2*radius))
+						draw.rotate(swing, origin: (m.end, 0))
+					}
 				}
 
 				annot(m.origin, (+y,-y), raw(label + "-origin"), red, layer: -1)
 				mark-obj
 				annot(0, (-1,0), `0`, green)
-				annot(m.hang, (0,2), raw(label + "-hang"), orange.mix(yellow))
+				if m.hang != none {
+					annot(m.hang, (0,2), raw(label + "-hang"), orange.mix(yellow))
+				}
 				annot(m.end, (0,y), raw(label + "-end"), blue)
 
 			})

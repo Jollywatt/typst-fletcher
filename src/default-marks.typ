@@ -15,6 +15,8 @@
 			let a = calc.sin(mark.sharpness + mark.delta) - calc.sin(mark.sharpness)
 			mark.tail-end - mark.size*a - 0.5
 		},
+		tip-hang: mark => mark.tail-origin*0.6,
+		tail-hang: mark => calc.max(..mark.extrude),
 
 		stroke: (cap: "round"),
 
@@ -73,6 +75,7 @@
 		tip-end: mark => -0.25/calc.sin(mark.sharpness)/float(mark.scale),
 		tip-origin: mark => 0.5/calc.sin(mark.sharpness)/float(mark.scale),
 		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
+		tip-hang: mark => mark.tail-origin*0.75,
 
 		fill: none,
 
@@ -93,6 +96,7 @@
 		tip-origin: 0,
 		tip-end: mark => -1/calc.sin(mark.sharpness)/float(mark.scale),
 		tail-end: mark => -0.5/calc.sin(mark.sharpness)/float(mark.scale),
+		tip-hang: mark => mark.tail-origin,
 
 		stroke: none,
 		fill: auto,
