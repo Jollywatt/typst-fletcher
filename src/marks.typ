@@ -119,7 +119,7 @@
 	// mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
 
-	let thickness = utils.map-auto(stroke.thickness, 1pt)
+	let t = utils.map-auto(stroke.thickness, 1pt)
 
 	let fill = mark.at("fill", default: auto)
 	fill = utils.map-auto(fill, stroke.paint)
@@ -149,7 +149,7 @@
 
 			draw.translate(origin)
 			draw.rotate(angle)
-			draw.scale(thickness.to-absolute()/ctx.length*float(mark.scale))
+			draw.scale(t.to-absolute()/ctx.length*float(mark.scale))
 
 			if mark.rev { draw.scale(x: -1) }
 			if mark.flip { draw.scale(y: -1) }
@@ -161,12 +161,32 @@
 				})
 			}
 
+			let is-tip = mark.at("pos", default: 1) != float(mark.rev)
 			if debug-level(get-debug(ctx, debug), "mark") {
-				let x = if mark.pos != float(mark.rev) { mark.tip-origin } else { mark.tail-origin }
-				draw.line((0,0), (x,0), stroke: thickness + red.transparentize(20%))
-				let x = if mark.pos != float(mark.rev) { mark.tip-end } else { mark.tail-end }
-				draw.line((0,0), (x,0), stroke: thickness + blue.transparentize(20%))
+				let x = if is-tip { mark.tip-origin } else { mark.tail-origin }
+				draw.line((0,0), (x,0), stroke: t + red.transparentize(20%))
+				let x = if is-tip { mark.tip-end } else { mark.tail-end }
+				draw.line((0,0), (x,0), stroke: t + blue.transparentize(20%))
 				draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
+			}
+
+			if debug-level(get-debug(ctx, debug), "mark.dots") or true {
+				let m = if is-tip { (
+					origin: mark.tip-origin,
+					end: mark.tip-end,
+					hang: mark.tip-hang
+				) } else { (
+					origin: mark.tail-origin,
+					end: mark.tail-end,
+					hang: mark.tail-hang
+				) }
+
+				if m.hang != none {
+					draw.circle((m.hang,0), stroke: orange.mix(yellow) + t/6, fill: white, radius: 1/3)
+				}
+				draw.circle((0,0), stroke: green + t/6, fill: white, radius: 1/3)
+				draw.circle((m.end,0), stroke: blue + t/6, fill: white, radius: 1/3)
+				draw.circle((m.origin,0), stroke: red + t/6, fill: white, radius: 1/3)
 			}
 		})
 	})
@@ -226,6 +246,21 @@
 	return (origin, stroke-ends)
 }
 
+#let tip-or-tail-properties(mark) = {
+	let is-tip = mark.at("pos", default: 1) != float(mark.rev)
+	if is-tip { (
+		is-tip: true,
+		origin: mark.tip-origin,
+		end: mark.tip-end,
+		hang: mark.tip-hang
+	) } else { (
+		is-tip: false,
+		origin: mark.tail-origin,
+		end: mark.tail-end,
+		hang: mark.tail-hang
+	) }
+}
+
 /// This does a few things:
 /// 
 /// Takes an edge path `obj` and:
@@ -236,7 +271,7 @@
 #let draw-with-marks-and-extrusion(ctx, obj, marks, stroke: 1pt, extrude: (0,)) = {	
 	let path = path-from-obj(ctx, obj)
 	let obj-ctx = obj.first()(ctx)
-	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
+	let t = utils.get-thickness(stroke).to-absolute()
 
 	let (i-mark, o-mark) = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
 	let (i-origin, i-shorten) = shrink-factor-from-mark(i-mark, extrude)
@@ -255,16 +290,38 @@
   let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
 
+	let sample-pt(t, reverse) = {
+		let p = cetz.path-util.point-at(path, t, reverse: reverse, samples: 60)
+		cetz.util.apply-transform(inv-transform, p.point)
+	}
+
 	let draw-mark-on-path(mark, pos, reverse: false) = {
     let point-info = cetz.path-util.point-at(path, pos, reverse: reverse)
     let origin = cetz.util.apply-transform(inv-transform, point-info.point)
-    let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
+
+		let m = tip-or-tail-properties(mark)
+
+		assert(m.hang != none)
+		// assert(m.hang != 0)
+		let angle
+		if m.hang == 0 {
+			angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
+
+		} else {
+			let p2 = sample-pt((m.origin - m.hang)*t/ctx.length, reverse)
+			draw.mark(origin, (0,0), "x", stroke: 0.2pt + blue)
+			draw.mark(p2, (0,0), "x", stroke: 0.2pt + orange)
+			angle = cetz.vector.angle2(origin, p2)
+		}
+
 		if reverse { angle += 180deg }
     draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
+
+
 	}
 
-	if i-mark != none { draw-mark-on-path(i-mark, i-origin*t) }
-	if o-mark != none { draw-mark-on-path(o-mark, o-origin*t, reverse: true) }
+	if i-mark != none { draw-mark-on-path(i-mark, i-origin*t/ctx.length) }
+	if o-mark != none { draw-mark-on-path(o-mark, o-origin*t/ctx.length, reverse: true) }
 
   for mark in marks {
 		if mark.pos in (0, 1) { continue }
