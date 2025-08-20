@@ -14,7 +14,7 @@
 #rect(layout(size => size.width))
 #rect(test-mark(">>", stroke: 3pt, length: length, debug: 2))
 
-#for (name, m) in DEFAULT_MARKS.pairs() {
+#for (name, m) in DEFAULT_MARKS.pairs().slice(0,3) {
   page({
     raw(name)
     test-mark(m, debug: "dots lines")

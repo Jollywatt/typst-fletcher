@@ -8,18 +8,22 @@ Edges as CeTZ wrappers
 #cetz.canvas({
   import cetz.draw: *
 
-  set-style(edge: (stroke: 1pt))
-
-  let obj = bezier((0,0), (3,0), (1,1), (2,-1))
+  let obj = bezier((0,0), (3,0), (1,1), (2,-1), stroke: purple.transparentize(50%))
   obj
 
   for m in (
-    "--",
-    ">>>->",
-    "<=>",
-    "o-||-O",
+    "<->",
+    "<<->>",
+    "<|-|>",
+    "<{-}>",
+    "[-]",
+    "-[",
+    "<-<",
+    "-<<",
+    "-<|",
+    "-<{",
   ) {
-    translate(y: -1)
+    translate(y: -.4)
     edge(obj, m)
   }
 

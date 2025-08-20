@@ -16,7 +16,8 @@
 			mark.tail-end - mark.size*a - 0.5
 		},
 		tip-hang: mark => mark.tail-origin*0.6,
-		tail-hang: mark => calc.max(..mark.extrude),
+		// tail-hang: mark => calc.max(..mark.extrude),
+		tail-hang: 0,
 
 		stroke: (cap: "round"),
 
@@ -75,7 +76,8 @@
 		tip-end: mark => -0.25/calc.sin(mark.sharpness)/float(mark.scale),
 		tip-origin: mark => 0.5/calc.sin(mark.sharpness)/float(mark.scale),
 		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
-		tip-hang: mark => mark.tail-origin*0.75,
+		tip-hang: mark => mark.tail-origin*0.8,
+		tail-hang: -4,
 
 		fill: none,
 
@@ -96,7 +98,6 @@
 		tip-origin: 0,
 		tip-end: mark => -1/calc.sin(mark.sharpness)/float(mark.scale),
 		tail-end: mark => -0.5/calc.sin(mark.sharpness)/float(mark.scale),
-		tip-hang: mark => mark.tail-origin,
 
 		stroke: none,
 		fill: auto,
@@ -255,6 +256,7 @@
 		angle: 90deg,
 
 		tail-origin: mark => calc.min(..mark.extrude),
+		// tip-hang: -5,
 
 		draw: mark => draw.line(
 			(mark.angle, -mark.size),
