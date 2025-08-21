@@ -14,18 +14,14 @@ Edges as CeTZ wrappers
   for m in (
     "<->",
     "<<->>",
-    "<|-|>",
-    "<{-}>",
-    "[-]",
-    "|-|",
-    "]-[",
     ">-<",
-    ">>-<<",
-    "|>-<|",
-    "}>-<{",
+    "<=>",
+    ")==(",
+    "x--x",
+    "o..O",
   ) {
-    translate(y: -.4)
-    edge(obj, m, stroke: 1pt)
+    translate(y: -.75)
+    edge(obj, m, stroke: 1pt, debug: "mark.dots")
   }
 
 })

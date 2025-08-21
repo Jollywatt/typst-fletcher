@@ -432,6 +432,17 @@
 		let shorten-by = m.end - m.origin
 		if m.is-tip { shorten-by *= -1}
 
+		shorten-by = extrude.map(e => {
+			let end = if "cap-offset" in (mark) {
+				(mark.cap-offset)(mark, e) + m.end
+			} else {
+				m.end
+			}
+			let s = end - m.origin
+			if m.is-tip { s *= -1 }
+			return s
+		})
+
 		return (drawn, shorten-by)
 	}
 
@@ -447,6 +458,7 @@
 		shorten-start: shorten-start,
 		shorten-end: shorten-end,
 		stroke: stroke,
+		extrude: extrude,
 	)
 
 	src-mark-obj

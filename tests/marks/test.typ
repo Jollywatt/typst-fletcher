@@ -17,7 +17,7 @@
 #for (name, m) in DEFAULT_MARKS.pairs().slice(0,3) {
   page({
     raw(name)
-    test-mark(m, debug: "dots lines")
+    test-mark(m, debug: "dots lines labels")
     test-mark(m, debug: "dots lines path", bend: 90deg)
   })
 }
