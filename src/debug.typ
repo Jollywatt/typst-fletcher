@@ -13,7 +13,10 @@
 
   "edge.snap": 3,
 
-  "mark": 4
+  "mark": 4,
+  "mark.dots": 4 ,
+  "mark.bands": 5,
+  "mark.path": 5,
 )
 
 #let get-debug(ctx, debug) = {

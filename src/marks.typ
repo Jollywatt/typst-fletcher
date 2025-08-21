@@ -171,6 +171,8 @@
   import cetz.draw
 
 	draw.get-ctx(ctx => {
+		let debug = get-debug(ctx, debug)
+
 		draw.group({
 			draw.set-style(
 				stroke: stroke,
@@ -197,15 +199,15 @@
 				})
 			}
 
-			if debug-level(get-debug(ctx, debug), "mark.bands") {
-				let x = if as-tip { mark.tip-origin } else { mark.tail-origin }
-				draw.line((0,0), (x,0), stroke: t + red.transparentize(20%))
-				let x = if as-tip { mark.tip-end } else { mark.tail-end }
-				draw.line((0,0), (x,0), stroke: t + blue.transparentize(20%))
-				draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
-			}
+			// if debug-level(get-debug(ctx, debug), "mark.bands") {
+			// 	let x = if as-tip { mark.tip-origin } else { mark.tail-origin }
+			// 	draw.line((0,0), (x,0), stroke: t + red.transparentize(20%))
+			// 	let x = if as-tip { mark.tip-end } else { mark.tail-end }
+			// 	draw.line((0,0), (x,0), stroke: t + blue.transparentize(20%))
+			// 	draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
+			// }
 
-			if debug-level(get-debug(ctx, debug), "mark.dots") {
+			if debug-level(debug, "mark") {
 				let m = if as-tip { (
 					origin: mark.tip-origin,
 					end: mark.tip-end,
@@ -215,18 +217,19 @@
 					end: mark.tail-end,
 					hang: mark.tail-hang
 				) }
+				let m = tip-or-tail-properties(mark, tip: as-tip)
 
-				draw.circle((m.origin,0), stroke: none, fill: white, radius: 1/2)
-				if m.hang != none { draw.circle((m.hang,0), stroke: none, fill: white, radius: 1/2) }
-				draw.circle((m.end,0), stroke: blue + t/4, fill: white, radius: 3/8)
-				draw.circle((m.origin,0), stroke: none, fill: red, radius: 1/4)
-				if m.hang != none {
-					draw.circle((m.hang,0), stroke: none, fill: green, radius: 1/4)
+				if debug-level(debug, "mark.dots") {
+					draw.on-layer(1, {
+						let dot(x, r, ..args) = draw.circle((x,0), radius: r, stroke: none, ..args)
+
+						dot(m.origin, 1/2, fill: white) // red origin bg
+						if m.hang != none { dot(m.hang, 1/2, fill: white) } // green hang bg
+						dot(m.end, 3/8, stroke: blue + t/4, fill: white) // blue end
+						dot(m.origin, 1/4, fill: red) // red origin fg
+						if m.hang != none { dot(m.hang, 1/4, fill: green) } // green hang fg
+					})
 				}
-
-				// draw.circle((0,0), stroke: green + t/4, fill: white, radius: 1/3)
-				// draw.line((0,0), (2/3,0), stroke: green + t/4)
-				// draw.line((0,-1), (0,+1), stroke: green + t/4)
 			}
 		})
 	})
@@ -492,18 +495,6 @@
 		"path": 1,
 	))
 
-	let annot(x, (y-min, y-max), label, color, layer: 1) = draw.on-layer(layer, {
-		if debug-level(debug, "lines") {
-			draw.line((x, y-min), (x, y-max), stroke: color + t/5)
-		}
-		if debug-level(debug, "dots") {
-			draw.circle((x,0), stroke: color + t/10, fill: white, radius: t/5)
-		}
-		if debug-level(debug, "labels") {
-			let a = if y-max > 0 { "south" } else { "north" }
-			draw.content((x, y-max), text(color, size: 2*t, label), anchor: a, padding: 0.5)
-		}
-	})
 		
 	cetz.canvas(length: t, {
 		import cetz.draw
@@ -516,7 +507,7 @@
 			let (low, high) = bounds
 			let (w, h, ..) = cetz.vector.sub(high, low)
 			
-			let y = h/2 + 2
+			let y = calc.max(4, h/2) + 2
 			let length = if length == auto { w + 20 } else { length/t }
 
 			// left side is tail, right side is tip
@@ -564,6 +555,17 @@
 
 			// draw tail and tip marks
 
+			let ruler(x, (y-min, y-max), label, color) = {
+				if debug-level(debug, "lines") {
+					draw.line((x, y-min), (x, y-max), stroke: color + t/6)
+				}
+				if debug-level(debug, "labels") {
+					let a = if y-max > 0 { "south" } else { "north" }
+					let body = text(color, size: 2*t, label)
+					draw.content((x, y-max), body, anchor: a, padding: 0.25)
+				}
+			}
+
 			let draw-mark-with-annotations(label, m) = draw.group({
 				if bend == 0deg {
 					draw.translate(x: -m.origin)
@@ -582,16 +584,29 @@
 					}
 				}
 
-				annot(m.origin, (+y,-y), raw(label + "-origin"), red, layer: -1)
-				draw-mark(mark, stroke: stroke, as-tip: label == "tip")
-				annot(0, (-1,0), `0`, green)
-				if m.hang != none {
-					annot(m.hang, (0,2), raw(label + "-hang"), orange.mix(yellow))
-				}
-				annot(m.end, (0,y), raw(label + "-end"), blue)
+				ruler(m.origin, (+y,-y), `origin`, red)
+
+				draw-mark(
+					mark,
+					stroke: stroke,
+					angle: if mark.rev { 180deg } else { 0deg },
+					as-tip: label == "tip",
+					debug: if debug-level(debug, "dots") { "mark.dots" },
+					anchor: "zero",
+				)
+
+				if m.hang != none { ruler(m.hang, (0,-4), `hang`, green) }
+				ruler(m.end, (0,y), `end`, blue)
+				
+				draw.circle((0,0), radius: t/4, fill: gray, stroke: none)
+				ruler(0, (0,-2), `zero`, gray) // coordinate origin
 
 			})
 
+			if debug-level(debug, "labels") {
+				let a = if mark.rev { "west" } else { "east" }
+				draw.floating(draw.content((0,0), text(2*t, `tail`), anchor: a, padding: 1))
+			}
 			draw-mark-with-annotations("tail", (
 				origin: mark.tail-origin,
 				end: mark.tail-end,
@@ -600,6 +615,11 @@
 			))
 
 			draw.translate(x: length)
+
+			if debug-level(debug, "labels") {
+				let a = if mark.rev { "east" } else { "west" }
+				draw.floating(draw.content((0,0), text(2*t, `tip`), anchor: a, padding: 1))
+			}
 
 			draw-mark-with-annotations("tip", (
 				origin: mark.tip-origin,

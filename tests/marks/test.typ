@@ -6,7 +6,6 @@
 #set align(center)
 
 #test-mark
-
 #test-mark(">")
 
 #let length = 100pt
@@ -14,10 +13,10 @@
 #rect(layout(size => size.width))
 #rect(test-mark(">>", stroke: 3pt, length: length, debug: 2))
 
-#for (name, m) in DEFAULT_MARKS.pairs().slice(0,3) {
+#for (name, m) in DEFAULT_MARKS.pairs() {
   page({
     raw(name)
-    test-mark(m, debug: "dots lines labels")
-    test-mark(m, debug: "dots lines path", bend: 90deg)
+    test-mark(m, debug: "dots lines")
+    test-mark(m, debug: "dots lines", bend: 60deg)
   })
 }
