@@ -252,7 +252,7 @@
 	),
 
 	bar: (
-		size: 4.9,
+		size: 5,
 		angle: 90deg,
 
 		tail-origin: mark => calc.min(..mark.extrude),
@@ -281,8 +281,8 @@
 	),
 
 	bracket: (
-		size: 6,
-		depth: 3,
+		size: 5,
+		depth: 2,
 		draw: mark => draw.line(
 			(-mark.depth, mark.size),
 			(0, mark.size),
