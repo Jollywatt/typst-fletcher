@@ -12,10 +12,10 @@
 	extrude: (0,),
 	tip-end: 0,
 	tail-end: 0,
-	tip-origin: 0,
-	tail-origin: 0,
 	tip-hang: none,
 	tail-hang: none,
+	tip-origin: 0,
+	tail-origin: 0,
 )
 
 
@@ -41,9 +41,6 @@
 	if ancestor != none { mark = (kind: ancestor) + mark }
 	return mark
 }
-
-
-
 
 
 /// Resolve a mark dictionary by applying inheritance, adding any required
@@ -81,7 +78,6 @@
 
 	return mark
 }
-
 
 #let interpret-marks(marks) = {
 	marks = marks.enumerate().map(((i, mark)) => {
@@ -124,10 +120,11 @@
 ///   is used as the default fill style. If the mark itself has `stroke`
 ///   entry, this takes precedence.
 /// - origin (point): Coordinate of the origin in the mark's frame, `(0,0)`.
-/// - anchor ("origin" | "end" | "hang"): Which mark center to use as the origin.
-///   These correspond to the marks `tip-` and `tail-` properties, e.g., `tip-origin`,
-///   depending on whether the mark is acting as a tip (`pos: 1` and `rev: false` or
-/// 	`pos: 0` and `rev: true`) or a tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
+/// - anchor ("zero" | "origin" | "end" | "hang"): Which mark center to use as the origin.
+///   The coordinate frame origin is `zero`, and the others correspond to the mark's
+///   `tip-` and `tail-` properties, e.g., `tip-origin`, depending on whether the mark
+///   is acting as a tip (`pos: 1` and `rev: false` or `pos: 0` and `rev: true`) or a
+///   tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
 /// - angle (angle): Angle of the mark, `0deg` being $->$, counterclockwise.
 #let draw-mark(
 	mark,
@@ -238,129 +235,6 @@
 
 
 
-#let draw-with-marks(ctx, obj, marks, stroke: 1pt) = {
-
-	cetz.draw.set-style(stroke: stroke)
-	obj
-
-	let marks = interpret-marks(marks)
-  let (segments, close) = utils.get-segments(ctx, obj)
-  let inv-transform = cetz.matrix.inverse(ctx.transform)
-	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
-
-  for mark in marks {
-    let point-info = cetz.path-util.point-at(segments, mark.pos*100%)
-    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
-    let angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
-
-    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
-  }
-}
-
-#let path-from-obj(ctx, obj) = {
-  assert(type(obj) == array)
-  assert(obj.len() == 1)
-  let obj-ctx = obj.first()(ctx)
-	let drawables = obj-ctx.drawables
-	if type(drawables) == array {
-		assert.eq(drawables.len(), 1)
-		drawables = drawables.first()
-	}
-  assert(drawables.type == "path")
-  return drawables.segments
-}
-
-#let shrink-factor-from-mark(mark, extrude) = {
-	if mark == none { return (0, extrude.map(_ => 0)) }
-
-	// a mark is acting as a tip if it is at the end of the edge and not reversed,
-	// or at the start of the edge and reversed.
-	let acting-as-tip = mark.pos != float(mark.rev)
-	
-	let origin = if acting-as-tip { mark.tip-origin } else { -mark.tail-origin }
-	let end = if acting-as-tip { mark.tip-end } else { -mark.tail-end }
-
-	let stroke-ends = extrude.map(e => {
-		let cap = if "cap-offset" in mark { (mark.cap-offset)(mark, e) } else { 0 }
-		if not acting-as-tip { cap *= -1 }
-		origin - end - cap
-	})
-	
-	return (origin, stroke-ends)
-}
-
-
-
-/// This does a few things:
-/// 
-/// Takes an edge path `obj` and:
-/// - calculates path shortening factor given end marks and extrusion
-/// - draws extruded and shortened path
-/// - draws end marks with origin shift
-/// - draws internal marks
-#let draw-with-marks-and-extrusion(ctx, obj, marks, stroke: 1pt, extrude: (0,)) = {	
-	let path = path-from-obj(ctx, obj)
-	let obj-ctx = obj.first()(ctx)
-	let t = utils.get-thickness(stroke).to-absolute()
-
-	let (i-mark, o-mark) = (0, 1).map(pos => marks.find(mark => mark.pos == pos))
-	let (i-origin, i-shorten) = shrink-factor-from-mark(i-mark, extrude)
-	let (o-origin, o-shorten) = shrink-factor-from-mark(o-mark, extrude)
-
-	let shortened = paths.extrude-and-shorten(
-		obj,
-		extrude: extrude,
-		shorten-start: i-shorten,
-		shorten-end: o-shorten,
-		stroke: stroke,
-	)
-
-	shortened
-
-  let inv-transform = cetz.matrix.inverse(ctx.transform)
-	let inv-origin = cetz.util.apply-transform(inv-transform, (0,0))
-
-	let sample-pt(t, reverse) = {
-		let p = cetz.path-util.point-at(path, t, reverse: reverse, samples: 60)
-		cetz.util.apply-transform(inv-transform, p.point)
-	}
-
-	let draw-mark-on-path(mark, pos, reverse: false) = {
-    let point-info = cetz.path-util.point-at(path, pos, reverse: reverse)
-    let origin = cetz.util.apply-transform(inv-transform, point-info.point)
-
-		let m = tip-or-tail-properties(mark)
-
-		// assert(m.hang != 0)
-		let angle
-		if m.hang == none or m.hang == 0 {
-			angle = cetz.vector.angle2(inv-origin, cetz.util.apply-transform(inv-transform, point-info.direction))
-
-		} else {
-			let p2 = sample-pt((m.origin - m.hang)*t/ctx.length, reverse)
-			draw.mark(p2, (0,0), "x", stroke: 0.2pt + orange)
-			angle = cetz.vector.angle2(origin, p2)
-		}
-		draw.mark(origin, (0,0), "x", stroke: 0.2pt + blue)
-
-		if reverse { angle += 180deg }
-    draw-mark(mark, origin: origin, angle: angle, stroke: stroke)
-
-
-	}
-
-	if i-mark != none { draw-mark-on-path(i-mark, i-origin*t/ctx.length) }
-	if o-mark != none { draw-mark-on-path(o-mark, o-origin*t/ctx.length, reverse: true) }
-
-  for mark in marks {
-		if mark.pos in (0, 1) { continue }
-		draw-mark-on-path(mark, mark.pos*100%)
-  }
-}
-
-#let bip(pos, color) = cetz.draw.circle(pos, fill: color.transparentize(50%), radius: 1pt, stroke: none)
-
-
 #let draw-with-marks-and-extrusion(
 	ctx,
 	obj,
@@ -368,7 +242,6 @@
 	stroke: auto,
 	extrude: (0,),
 	/// Whether to enable mark angle correction on curved paths. -> bool
-	mark-swing: true,
 	debug: false,
 ) = {
 	
@@ -449,12 +322,23 @@
 		return (drawn, shorten-by)
 	}
 
-	let src-mark = marks.find(mark => mark.pos == 0)
-	let tgt-mark = marks.find(mark => mark.pos == 1)
+	let (shorten-start, shorten-end) = (0, 0)
 
-	let (src-mark-obj, shorten-start) = terminal-mark(src-mark, false)
-	let (tgt-mark-obj, shorten-end) = terminal-mark(tgt-mark, true)
-
+	let marks-drawn = for mark in marks {
+		if mark.pos == 0 {
+			let (drawn, shorten) = terminal-mark(mark, false)
+			shorten-start = shorten
+			drawn
+		} else if mark.pos == 1 {
+			let (drawn, shorten) = terminal-mark(mark, true)
+			shorten-end = shorten
+			drawn
+		} else {
+			let (pt, dir) = sample-pt(mark.pos*100%, false)
+			dir += 180deg // not sure why this is needed
+			draw-mark(mark, origin: pt, angle: dir, stroke: stroke, debug: debug)
+		}
+	}
 
 	paths.extrude-and-shorten(
 		obj,
@@ -464,8 +348,8 @@
 		extrude: extrude,
 	)
 
-	src-mark-obj
-	tgt-mark-obj
+	marks-drawn
+
 }
 
 

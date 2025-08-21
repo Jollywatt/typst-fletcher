@@ -288,6 +288,7 @@
     outset: outset,
     extrude: extrude,
     stroke: stroke,
+    draw: draw,
   )
   
   options += parsing.interpret-edge-args(args, options)
