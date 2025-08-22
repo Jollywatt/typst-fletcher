@@ -40,15 +40,16 @@
   
 }
 
-#let find-farthest-anchor(ctx, name, reference-point) = {
-
+#let find-anchor-by-distance(ctx, name, reference-point, near: true) = {
   let get-anchors = ctx.nodes.at(name).anchors
   let anchor-names = (get-anchors)(())
+
+  let s = if near { -1 } else { 1 } 
 
   let b = cetz.util.revert-transform(ctx.transform, reference-point)
   let all-anchors = anchor-names
     .map(get-anchors)
-    .sorted(key: a => cetz.vector.dist(a, b))
+    .sorted(key: a => s*cetz.vector.dist(a, b))
 
   let best = all-anchors.at(-1, default: b)
 
@@ -75,12 +76,16 @@
     if key.system == "uv" {
       // find node closest to given coordinate
       dist(node) = cetz.vector.sub(key.coord, node.pos).map(calc.abs).sum()
-      let node = nodes.sorted(key: dist).first()
+      nodes = nodes.sorted(key: dist)
+      if nodes.len() == 0 { return }
+      let node = nodes.first()
       if dist(node) > 1 { return }
       return node
     } else if key.system == "xy" {
       let dist(node) = cetz.vector.len(cetz.vector.sub(key.coord, node.origin))
-      let node = nodes.sorted(key: dist).first()
+      nodes = nodes.sorted(key: dist)
+      if nodes.len() == 0 { return }
+      let node = nodes.first()
       max-dist = cetz.vector.len(node.size)
       if dist(node) > max-dist { return }
       return node
@@ -112,9 +117,22 @@
   Nodes.draw-node-at(node, node.origin, debug: false)
 }
 
+#let path-end-segments(ctx, elements) = {
+  assert.eq(elements.len(), 1)
+  let (drawables,) = cetz.process.element(ctx, elements.first())
+  assert.eq(drawables.len(), 1)
+  let path = drawables.first()
+  assert.eq(path.type, "path")
+  let leading = path + (segments: path.segments.slice(0, 1))
+  return leading
+
+
+}
+
 
 /// Draw an edge, snapping each end to given CeTZ objects.
 #let draw-edge-with-intersection-snapping(
+  ctx,
   edge,
   /// Shapes to snap the start and end of the edge to, respectively. -> (cetz, cetz)
   snap-to: (none, none),
@@ -122,6 +140,7 @@
 ) = {
 
   let test-path = (edge.draw)(edge.vertices)
+  // let test-path = path-end-segments(ctx, test-path)
 
   cetz.draw.hide({
     cetz.draw.intersections("__src__", snap-to.at(0) + test-path)
@@ -129,8 +148,8 @@
   })
 
   cetz.draw.get-ctx(ctx => {
-    let src-snapped = find-farthest-anchor(ctx, "__src__", edge.vertices.first())
-    let tgt-snapped = find-farthest-anchor(ctx, "__tgt__", edge.vertices.last())
+    let src-snapped = find-anchor-by-distance(ctx, "__src__", edge.vertices.first(), near: true)
+    let tgt-snapped = find-anchor-by-distance(ctx, "__tgt__", edge.vertices.last(), near: true)
 
     if (src-snapped == tgt-snapped) {
       // edge snapping resulted in same start and end points
@@ -196,6 +215,7 @@
       })
 
     draw-edge-with-intersection-snapping(
+      ctx,
       edge,
       snap-to: snapping-outlines,
       debug: debug,
@@ -233,6 +253,11 @@
     // some edge vertices may be auto
     if edge.vertices.first() == auto { edge.vertices.first() = ctx.prev.pt }
     if edge.vertices.last() == auto { edge.vertices.last() = cetz.vector.add(ctx.prev.pt, (1, 0)) }
+
+    edge.vertices = edge.vertices.map(coord => {
+      if type(coord) == label { str(coord) }
+      else { coord }
+    })
 
     if debug == auto { edge.debug = get-debug(ctx, edge.debug) }
 

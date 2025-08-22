@@ -16,6 +16,10 @@
     if v < v-min { v-min = v }
     if v-max < v { v-max = v }
   }
+  if float.is-infinite(u-min) { u-min = 0}
+  if float.is-infinite(u-max) { u-max = 0}
+  if float.is-infinite(v-min) { v-min = 0}
+  if float.is-infinite(v-max) { v-max = 0}
 
   (u-min, u-max) = (calc.floor(u-min), calc.ceil(u-max))
   (v-min, v-max) = (calc.floor(v-min), calc.ceil(v-max))
@@ -80,11 +84,12 @@
 }
 
 
-#let interpolate-grid-point(grid, (u, v)) = {
+#let interpolate-grid-point(grid, coord) = {
+  let (u, v, ..) = coord
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   (
-    utils.interp(grid.col-centers, i),
-    utils.interp(grid.row-centers, j),
+    utils.interp(grid.col-centers, i, spacing: 1),
+    utils.interp(grid.row-centers, j, spacing: 1),
   )
 }
 
@@ -248,7 +253,7 @@
 
     // compute the cell sizes and positions in flexigrid
     let rects = nodes + edges.map(edge => {
-      edge.vertices.map(v => (pos: v, size: (0, 0), weight: 1))
+      // edge.vertices.map(v => (pos: v, size: (0, 0), weight: 1))
     }).join()
 
     let grid = cell-sizes-from-rects(rects)
@@ -283,7 +288,10 @@
 
       } else if class == "edge" {
         let edge = edges.at(element.index)
-        edge.vertices = edge.vertices.map(interpolate-grid-point.with(grid))
+
+        // resolve edge vertices (which may be cetz coords) in flexigrid system
+        let (new-ctx, ..vertex-coords) = cetz.coordinate.resolve(ctx, ..edge.vertices)
+        edge.vertices = vertex-coords.map(interpolate-grid-point.with(grid))
         let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
         Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
 
