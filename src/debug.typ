@@ -1,4 +1,5 @@
 #import "deps.typ": cetz
+#import "utils.typ"
 
 #let DEBUG_LEVELS = (
   "grid": 1,
@@ -24,11 +25,40 @@
   if d == auto { false } else { d }
 }
 
+#let suggest-option(debug) = {
+  let d = ""
+  let suggestions = DEBUG_LEVELS.keys().sorted(key: k => k.split(".").len())
+  for char in debug.clusters() {
+    let s = suggestions.filter(k => k.starts-with(d))
+    
+    if s.len() == 0 {
+      break
+    } else {
+      suggestions = s
+      d += char
+    }
+  }
+  utils.error("`debug: #debug`. Options: #..0", debug: repr(debug), suggestions)
+}
+
 #let debug-level(debug, option, levels: DEBUG_LEVELS) = {
-  if debug == none { return false }
+  assert(option in DEBUG_LEVELS)
+  if debug == none or debug == "" { return false }
   if type(debug) == bool { return debug }
   if type(debug) == int { return levels.at(option) <= debug }
-  if type(debug) == str { return option.starts-with(debug) or debug.contains(option) }
+  if type(debug) == str {
+    // return option.starts-with(debug) or debug.contains(option)
+    if " " in debug {
+      debug = debug.split(regex("\\s"))
+      return debug-level(debug, option)
+    }
+    if debug in DEBUG_LEVELS {
+      return debug.starts-with(option) or option.starts-with(debug)
+    } else {
+      suggest-option(debug)
+    }
+
+  }
   if type(debug) == array { return debug.any(d => debug-level(d, option)) }
   if type(debug) == dictionary {
     return debug.pairs().any(((scope, debug)) => {
