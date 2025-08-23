@@ -40,7 +40,7 @@
   
 }
 
-#let find-anchor-by-distance(ctx, name, reference-point, near: true) = {
+#let find-anchor-by-distance(ctx, name, reference-point, near: false) = {
   let get-anchors = ctx.nodes.at(name).anchors
   let anchor-names = (get-anchors)(())
 
@@ -117,18 +117,6 @@
   Nodes.draw-node-at(node, node.origin, debug: false)
 }
 
-#let path-end-segments(ctx, elements) = {
-  assert.eq(elements.len(), 1)
-  let (drawables,) = cetz.process.element(ctx, elements.first())
-  assert.eq(drawables.len(), 1)
-  let path = drawables.first()
-  assert.eq(path.type, "path")
-  let leading = path + (segments: path.segments.slice(0, 1))
-  return leading
-
-
-}
-
 
 /// Draw an edge, snapping each end to given CeTZ objects.
 #let draw-edge-with-intersection-snapping(
@@ -140,16 +128,17 @@
 ) = {
 
   let test-path = (edge.draw)(edge.vertices)
-  // let test-path = path-end-segments(ctx, test-path)
+  let src-test-path = paths.draw-only-first-path-segment(test-path)
+  let tgt-test-path = paths.draw-only-last-path-segment(test-path)
 
   cetz.draw.hide({
-    cetz.draw.intersections("__src__", snap-to.at(0) + test-path)
-    cetz.draw.intersections("__tgt__", snap-to.at(1) + test-path)
+    cetz.draw.intersections("__src__", snap-to.at(0) + src-test-path)
+    cetz.draw.intersections("__tgt__", snap-to.at(1) + tgt-test-path)
   })
 
   cetz.draw.get-ctx(ctx => {
-    let src-snapped = find-anchor-by-distance(ctx, "__src__", edge.vertices.first(), near: true)
-    let tgt-snapped = find-anchor-by-distance(ctx, "__tgt__", edge.vertices.last(), near: true)
+    let src-snapped = find-anchor-by-distance(ctx, "__src__", edge.vertices.first())
+    let tgt-snapped = find-anchor-by-distance(ctx, "__tgt__", edge.vertices.last())
 
     if (src-snapped == tgt-snapped) {
       // edge snapping resulted in same start and end points
@@ -173,7 +162,8 @@
       cetz.draw.circle(tgt-snapped, radius: 0.5pt, fill: red, stroke: none)
       cetz.draw.group({
         cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
-        test-path
+        src-test-path
+        tgt-test-path
       })
     })
   })

@@ -8,6 +8,61 @@
 // sub-path := (<origin>, <closed?>, (segment*,))
 // path := (sub-path*,)
 
+#let modify-single-subpath-element(ctx, element, callback) = {
+  assert.eq(element.len(), 1, message: "expected one cetz element")
+  let (ctx, drawables) = element.first()(ctx)
+  if type(drawables) == dictionary { drawables = (drawables,) }
+  assert.eq(drawables.len(), 1, message: "expected one drawable")
+  let drawable = drawables.first()
+  let path = drawable.segments // these "segments" are actually one *path*
+  assert.eq(path.len(), 1, message: "expected one subpath")
+  let subpath = path.first()
+
+  let new-subpath = callback(subpath)
+  let new-path = (new-subpath,)
+  let new-drawable = drawable + (segments: new-path)
+
+  return new-drawable
+}
+
+#let draw-only-first-path-segment(element, stroke: auto) = {
+  return cetz.draw.get-ctx(ctx => {
+    let new-drawable = modify-single-subpath-element(ctx, element, subpath => {
+      let (origin, closed, segments) = subpath
+      return (origin, false, segments.slice(0, 1))
+    })
+    if stroke != auto { new-drawable.stroke = stroke }
+    return (ctx => (
+      ctx: ctx,
+      drawables: (new-drawable,)
+    ),)
+  })
+}
+
+#let draw-only-last-path-segment(element, stroke: auto) = {
+  cetz.draw.get-ctx(ctx => {
+    let new-drawable = modify-single-subpath-element(ctx, element, subpath => {
+      let (origin, closed, segments) = subpath
+      if segments.len() <= 1 {
+        return (origin, false, segments.slice(0, 1))
+      } else {
+        let last = segments.last()
+        let second-last = segments.at(-2)
+        let (kind, ..coords) = second-last
+        return (coords.last(), false, (last,))
+      }
+    })
+
+    if stroke != auto { new-drawable.stroke = stroke }
+
+    (ctx => (
+      ctx: ctx,
+      drawables: (new-drawable,)
+    ),)
+  })
+}
+
+
 
 #let extrude-subpath(subpath, sep) = {
   let (start, close, segments) = subpath
