@@ -25,9 +25,9 @@
   if d == auto { false } else { d }
 }
 
-#let suggest-option(debug) = {
+#let suggest-option(debug, levels) = {
   let d = ""
-  let suggestions = DEBUG_LEVELS.keys().sorted(key: k => k.split(".").len())
+  let suggestions = levels.keys().sorted(key: k => k.split(".").len())
   for char in debug.clusters() {
     let s = suggestions.filter(k => k.starts-with(d))
     
@@ -42,38 +42,34 @@
 }
 
 #let debug-level(debug, option, levels: DEBUG_LEVELS) = {
-  assert(option in DEBUG_LEVELS)
+  assert(option in levels)
   if debug == none or debug == "" { return false }
+
   if type(debug) == bool { return debug }
+
   if type(debug) == int { return levels.at(option) <= debug }
+
   if type(debug) == str {
-    // return option.starts-with(debug) or debug.contains(option)
     if " " in debug {
       debug = debug.split(regex("\\s"))
-      return debug-level(debug, option)
+      return debug-level(debug, option, levels: levels)
     }
-    if debug in DEBUG_LEVELS {
+    if debug in levels {
       return debug.starts-with(option) or option.starts-with(debug)
     } else {
-      suggest-option(debug)
+      suggest-option(debug, levels)
     }
 
   }
-  if type(debug) == array { return debug.any(d => debug-level(d, option)) }
-  if type(debug) == dictionary {
-    return debug.pairs().any(((scope, debug)) => {
-      option.starts-with(scope) and debug-level(debug, option)
-    })
-  }
-  panic(debug)
-}
 
-#assert(debug-level("grid", "grid.coords"))
-#assert(debug-level("grid.coords", "grid"))
-#assert(debug-level((grid: 2, node: 100), "grid.lines"))
-#assert(not debug-level((grid: 1, node: 100), "grid.cells"))
+  if type(debug) == array { return debug.any(d => debug-level(d, option, levels: levels)) }
+
+
+  utils.error("invalid debug option: #0", repr(debug))
+}
 
 #let debug-draw(debug, level, body) = {
   if not debug-level(debug, level) { return }
   cetz.draw.floating(cetz.draw.group(cetz.draw.on-layer(100, body)))
 }
+
