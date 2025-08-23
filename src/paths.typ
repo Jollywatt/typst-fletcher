@@ -62,11 +62,19 @@
   })
 }
 
+#let wrap-angle-180(a) = {
+  let t = (a + 180deg)/360deg
+  t -= calc.floor(t)
+  return t*360deg - 180deg
+}
 
+#assert(range(-500, 500).all(a => {
+  let b = wrap-angle-180(a*1deg)
+  -180deg <= b and b < 180deg
+}))
 
 #let extrude-subpath(subpath, sep) = {
   let (start, close, segments) = subpath
-  segments = segments.dedup()
   let n = segments.len()
 
   // first, get the incoming and outgoing angles of each segment piece
@@ -94,11 +102,17 @@
   let last-segment-was-line = false
 
   for (i, segment) in segments.enumerate() {
+    let segment-kind = segment.first()
 
-    // ----[o-angle-prev]->@-[i-angle]----[o-angle]->@-[i-angle-next]---->
-    //                     ^ vertices.at(i)          ^ vertices.at(i + 1)
+    // get incoming and outgoing angles of the current and adjacent segments
+    // >---[o-angle-prev]-*-[i-angle]-----[o-angle]-*-[i-angle-next]--->
+    //                    ^ i-vertex                ^ o-vertex
 
+    let (i-vertex, o-vertex) = (vertices.at(i), vertices.at(i + 1))
     let (i-angle, o-angle) = io-angles.at(i)
+
+    assert(-180deg < i-angle and i-angle <= 180deg)
+    assert(-180deg < o-angle and o-angle <= 180deg)
 
     let o-angle-prev = {
       if i == 0 {
@@ -116,6 +130,46 @@
     }
     
 
+    // add points to form a bevel joint
+    // each bevel joint has two vertices, while elbows have one
+
+    let should-make-bevel(o-angle, i-angle) = {
+      // true if extrusion is toward the outside of a sharp bend
+      let is-sharp = calc.abs(o-angle - i-angle) > 120deg
+      if o-angle < i-angle { o-angle += 360deg }
+      let is-outer-corner = (o-angle - i-angle < 180deg) == (sep > 0)
+      return is-sharp and is-outer-corner
+    }
+
+    let i-is-bevel = should-make-bevel(o-angle-prev, i-angle) and (close or i > 0) 
+    let o-is-bevel = should-make-bevel(o-angle, i-angle-next) and (close or i < n - 1)
+
+
+    // bevel vertex at start of segment
+    if i-is-bevel {
+      let outward-mid-angle = wrap-angle-180(i-angle + 180deg - o-angle-prev)/2 + o-angle-prev
+      let normal = i-angle + sep.signum()*90deg
+
+      let h = wrap-angle-180(outward-mid-angle - normal)/2
+      let a = normal + h
+
+      if calc.abs(h) == 90deg {
+        // edge case that I don't understand
+      } else {
+        let bevel = calc.abs(sep/calc.cos(h))
+        bevel = calc.min(bevel, 5)
+        let delta = (bevel*calc.cos(a), bevel*calc.sin(a), 0.0)
+        new-segments.push(("l", vector.add(i-vertex, delta)))
+
+        if i == 0 { start = vector.add(i-vertex, delta) }
+      }
+    }
+
+
+
+
+    // add elbow point at end of segment
+
     let i-mid = (o-angle-prev + i-angle)/2 + 90deg
     let o-mid = (o-angle + i-angle-next)/2 + 90deg
 
@@ -127,22 +181,24 @@
     let o-hypot = sep/calc.sin(o-half-knee-angle)
     let o-pt = (o-hypot*calc.cos(o-mid), o-hypot*calc.sin(o-mid), 0.0)
 
-    if i == 0 {
-      start = vector.add(start, i-pt)
-    }
+    if i == 0 and not i-is-bevel { start = vector.add(i-vertex, i-pt) }
 
     let (kind, ..pts) = segment
     if kind == "l" {
-      if not last-segment-was-line and i > 0 {
-        new-segments.push(("l", vector.add(vertices.at(i), i-pt)))
+      if not last-segment-was-line and i > 0 and not i-is-bevel {
+        new-segments.push(("l", vector.add(i-vertex, i-pt)))
       }
-      new-segments.push(("l", vector.add(vertices.at(i + 1), o-pt)))
+      if not o-is-bevel {
+        new-segments.push(("l", vector.add(o-vertex, o-pt)))
+      }
       last-segment-was-line = true
 
     } else if kind == "c" {
+      // extrude a cubic bezier segment >.<
 
-      let s = vertices.at(i)
+      let s = i-vertex
       let (c1, c2, e) = pts
+      assert.eq(e, o-vertex)
       let ctrls = (s, e, c1, c2)
       let lead = sep/calc.tan(i-half-knee-angle)
       let lag = sep/calc.tan(o-half-knee-angle)
@@ -174,8 +230,24 @@
         }
       }
 
+
+
       last-segment-was-line = false
     }
+
+    // bevel vertex at end of segment
+    if o-is-bevel and segment-kind == "l" {
+      let outward-mid-angle = wrap-angle-180(i-angle-next + 180deg - o-angle)/2 + o-angle
+      let normal = o-angle + sep.signum()*90deg
+      let h = wrap-angle-180(outward-mid-angle - normal)/2
+      let a = normal + h
+
+      let bevel = calc.abs(sep/calc.cos(h))
+      bevel = calc.min(bevel, 5)
+      let delta = (bevel*calc.cos(a), bevel*calc.sin(a), 0.0)
+      new-segments.push(("l", vector.add(o-vertex, delta)))
+    }
+
   }
 
   return (start, close, new-segments)
@@ -221,6 +293,8 @@
     let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
 
     let (drawables, bounds, elements) = cetz.process.many(ctx, target)
+
+    assert.eq(drawables.len(), 1)
 
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")

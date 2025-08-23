@@ -34,7 +34,7 @@ Curved extrusion
 })
 
 #pagebreak()
-
+// #show: none
 
 #cetz.canvas({
   import cetz.draw
@@ -47,6 +47,36 @@ Curved extrusion
   l
   paths.extrude-and-shorten(l, extrude: range(-7, 8, step: 2), stroke: blue + 1pt)
 })
+
+
+#pagebreak()
+
+Bevel joins
+
+#cetz.canvas({
+  import cetz.draw
+
+  let l = draw.merge-path({
+    draw.line(
+      (-1,0),
+      (2,0.5),
+      (2,3),
+      (3,0),
+      (3,2),
+      (4,2),
+      // (3,-2),
+      // (2.5,0),
+
+      // (2,-2),
+      // (2,-0.5),
+    )
+    draw.bezier((4,-2), (2,-0.5), (3,0))
+    // draw.line(..((4,-2), (3,1), (2,-0.5)))
+  }, close: true)
+  l
+  paths.extrude-and-shorten(l, extrude: (-4, -2, 2, 4), stroke: green + 1pt)
+})
+
 
 
 #pagebreak()
