@@ -20,7 +20,7 @@ Edges as CeTZ wrappers
     "o..O",
   ) {
     translate(y: -.75)
-    edge(obj, m, stroke: 1pt, debug: "mark.dots")
+    edge(obj, m, stroke: 1pt)
   }
 
 })
