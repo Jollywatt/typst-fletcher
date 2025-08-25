@@ -5,6 +5,7 @@
 #import "paths.typ"
 #import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-draw, get-debug
+#import "flexigrid.typ"
 
 #let DEFAULT_EDGE_STYLE = (
   marks: (),
@@ -56,55 +57,26 @@
   return cetz.util.apply-transform(ctx.transform, best)
 }
 
-/// Find a node by its approximate position.
-/// Returns `none` if no nodes are nearby.
-/// 
-/// -> node | none
-#let find-closest-node(nodes, key) = {
-  if key == none { return none }
-
-  if type(key) == array {
-    key = (system: "uv", coord: key)
-  }
-
-  if type(key) == dictionary {
-    assert("system" in key and "coord" in key)
-
-    let dist
-    let max-dist
-
-    if key.system == "uv" {
-      // find node closest to given coordinate
-      dist(node) = cetz.vector.sub(key.coord, node.pos).map(calc.abs).sum()
-      nodes = nodes.sorted(key: dist)
-      if nodes.len() == 0 { return }
-      let node = nodes.first()
-      if dist(node) > 1 { return }
-      return node
-    } else if key.system == "xy" {
-      let dist(node) = cetz.vector.len(cetz.vector.sub(key.coord, node.origin))
-      nodes = nodes.sorted(key: dist)
-      if nodes.len() == 0 { return }
-      let node = nodes.first()
-      max-dist = cetz.vector.len(node.size)
-      if dist(node) > max-dist { return }
-      return node
-    }
-  }
-
-  utils.error("invalid `snap-to` key: #0", key)
-}
 
 /// -> (node, node)
 #let find-edge-snapping-nodes(edge, nodes) = {
-
-  edge.snap-to.zip((edge.vertices.first(), edge.vertices.last()))
+  let (src, .., tgt) = edge.vertices
+  edge.snap-to
+    .zip((src, tgt))
     .map(((snap-to, vertex)) => {
-      if type(snap-to) == str { return snap-to } // snap to by name
-      if snap-to == auto { snap-to = (system: "xy", coord: vertex) }
-      find-closest-node(nodes, snap-to)
+      if type(snap-to) == str { // snap to by name
+        let node = nodes.find(n => n.name == snap-to)
+        if node == none { utils.error("couldn't find name #0", snap-to) }
+        return node
+      }
+      if snap-to == auto { snap-to = vertex }
+      let dist(node) = cetz.vector.dist(node.pos, vertex)
+      
+      return nodes
+        .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
+        .sorted(key: dist)
+        .at(0, default: none)
     })
-
 }
 
 
@@ -114,7 +86,7 @@
   node.style.extrude = (outset,)
   node.name = none
   node.body = none
-  Nodes.draw-node-at(node, node.origin, debug: false)
+  Nodes.draw-node-at(node, node.pos, debug: false)
 }
 
 
@@ -227,40 +199,87 @@
     draw = vertices => cetz.draw.line(..vertices)
   }
 
-  let edge-data = (
-    class: "edge",
-    vertices: vertices,
-    style: style,
-    snap-to: snap-to,
-    name: name,
-    draw: draw,
-    debug: debug,
-  )
-  
   (ctx => {
+    
+    if "fletcher" not in ctx.shared-state {
+      ctx.shared-state.fletcher = (
+        pass: none,
+        nodes: (),
+        edges: (),
+      )
+    }
+    let fletcher-ctx = ctx.shared-state.fletcher
 
-    let edge = edge-data
-    // some edge vertices may be auto
-    if edge.vertices.first() == auto { edge.vertices.first() = ctx.prev.pt }
-    if edge.vertices.last() == auto { edge.vertices.last() = cetz.vector.add(ctx.prev.pt, (1, 0)) }
 
-    edge.vertices = edge.vertices.map(coord => {
+    let edge-data = (
+      class: "edge",
+      vertices: vertices,
+      style: style,
+      snap-to: snap-to,
+      name: name,
+      draw: draw,
+      debug: debug,
+    )
+
+    // resolve auto vertices to prev/next node
+
+    let (first, .., last) = edge-data.vertices
+
+    if fletcher-ctx.pass == "final" {
+      let i = fletcher-ctx.current.node
+      if first == auto and i > 0 {
+        first = fletcher-ctx.nodes.at(i - 1).pos
+      }
+      if last == auto and i < fletcher-ctx.nodes.len() {
+        last = fletcher-ctx.nodes.at(i).pos
+      }
+    }
+    
+    // give reasonable defaults rather than panic
+    if first == auto { first = () }
+    if last == auto { last = (rel: (1, 0)) }
+
+    edge-data.vertices.first() = first
+    edge-data.vertices.last() = last
+    
+    // normalize anchor labels to strings
+    edge-data.vertices = edge-data.vertices.map(coord => {
       if type(coord) == label { str(coord) }
       else { coord }
     })
 
-    if debug == auto { edge.debug = get-debug(ctx, edge.debug) }
+    let (ctx, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
+    edge-data.vertices = verts
 
-    let objs = draw-edge(ctx, edge)
+    let snapping-nodes = find-edge-snapping-nodes(edge-data, fletcher-ctx.nodes)
 
-    let (ctx, drawables) = cetz.process.many(ctx, objs)
+    // apply flexigrid coordinates
+    if fletcher-ctx.pass == "final" {
+      edge-data.vertices = edge-data.vertices.map(vertex => {
+        flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, vertex)
+      })
 
-    return (
-      ctx: ctx,
-      drawables: drawables,
-      fletcher: edge-data,
-    )
+      snapping-nodes = snapping-nodes.map(node => {
+        if node == none { return }
+        node.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node.pos)
+        node
+      }) 
+    }
 
+    if debug == auto {
+      edge-data.debug = get-debug(ctx, edge-data.debug)
+    }
+
+    if "current" in fletcher-ctx {
+      ctx.shared-state.fletcher.current.edge += 1
+    }
+    if fletcher-ctx.pass != "final" {
+      ctx.shared-state.fletcher.edges.push(edge-data)
+    }
+
+    cetz.process.many(ctx, {
+      draw-edge-with-snapping(edge-data, snapping-nodes)
+    })
   },)
 
 }

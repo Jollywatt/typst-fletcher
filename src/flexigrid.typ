@@ -1,16 +1,18 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "nodes.typ" as Nodes
-#import "edges.typ" as Edges
 #import "debug.typ": debug-level
 
-
-#let cell-sizes-from-rects(nodes) = {
+/// From an array of rectangles, each of the form
+/// `(pos: array, size: array, weight: number)`,
+/// calculate the sizes of flexigrid cells.
+/// 
+/// Rectangle positions can be fractional.
+#let cell-sizes-from-rects(rects) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
-  for node in nodes {
-    let (u, v) = node.pos
+  for rect in rects {
+    let (u, v) = rect.pos
     if u < u-min { u-min = u }
     if u-max < u { u-max = u }
     if v < v-min { v-min = v }
@@ -27,7 +29,7 @@
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
-  for node in nodes {
+  for node in rects {
     let (u, v) = node.pos
     let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
@@ -165,61 +167,6 @@
 
 
 
-
-#let resolve-auto-edge-vertices(nodes, edge) = {
-	// vertices: (auto, .., auto) -> (prev-node, .., next-node)
-  let prev = (0, 0) // fallback if no previous node
-	if edge.vertices.first() == auto {
-		for node in nodes.slice(0, edge.node-index).rev() {
-			if node.snap == false { continue }
-			prev = node.pos
-			break
-		}
-		// ctx += (prev: (pt: prev))
-		edge.vertices.first() = prev
-	}
-
-  let next = cetz.vector.add(prev, (1, 0)) // fallback if no following node
-	if edge.vertices.last() == auto {
-		for node in nodes.slice(edge.node-index) {
-			if node.snap == false { continue }
-			next = node.pos
-			break
-		}
-		edge.vertices.last() = next
-	}
-
-  return edge
-}
-
-#let extract-nodes-and-edges(elements) = {
-  let new-elements = ()
-  let nodes = ()
-  let edges = ()
-  for element in elements {
-    if "fletcher" in element {
-      if element.fletcher.class == "node" {
-        new-elements.push((
-          fletcher: "node",
-          index: nodes.len(),
-        ))
-        nodes.push(element.fletcher)
-      } else if element.fletcher.class == "edge" {
-        new-elements.push((
-          fletcher: "edge",
-          index: edges.len(),
-        ))
-        edges.push(element.fletcher + (
-          node-index: nodes.len(), // used to determine prev/next node
-        ))
-      }
-    } else {
-      new-elements.push(element)
-    }
-  }
-  return (new-elements, nodes, edges)
-}
-
 #let flexigrid(
   objects,
   gutter: 1,
@@ -235,82 +182,47 @@
   objects = utils.as-array(objects)
 
 
-  let scene = cetz.draw.get-ctx(ctx => {
+  cetz.draw.get-ctx(ctx => {
     let gutter = cetz.util.resolve-number(ctx, gutter)
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     cetz.draw.translate(origin)
 
+    ctx.shared-state.fletcher = (
+      pass: "layout",
+      nodes: (),
+      edges: (),
+      current: (node: 0, edge: 0),
+    )
 
-    let (elements,) = cetz.process.many(ctx + (
-      flexigrid: pos => (0., 0., 0.)
-    ), objects)
+    // run layout pass to retrieve fletcher objects
+    let layout-pass = cetz.process.many(ctx, objects)
+    let (nodes, edges) = layout-pass.ctx.shared-state.fletcher
 
-
-    // get elements that are fletcher objects
-    let (elements, nodes, edges) = extract-nodes-and-edges(elements)
-
-    edges = edges.map(resolve-auto-edge-vertices.with(nodes))
-
-    // compute the cell sizes and positions in flexigrid
-    let rects = nodes + edges.map(edge => {
-      // edge.vertices.map(v => (pos: v, size: (0, 0), weight: 1))
-    }).join()
-
-    let grid = cell-sizes-from-rects(rects)
+    // compute cell sizes and positions in flexigrid
+    let grid = cell-sizes-from-rects(nodes)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
-    nodes = nodes.map(node => {
-      node.origin = Nodes.get-node-origin(node, grid)
-      return node
-    })
+    // provide extra context used by objects
+    (ctx => {
+      ctx.shared-state.fletcher = (
+        pass: "final",
+        nodes: nodes,
+        edges: edges,
+        current: (node: 0, edge: 0), // index of current object
+        flexigrid: grid,
+      )
+      return (ctx: ctx)
+    },)
 
-
-    // provide extra context
-    (ctx => (ctx: ctx + (
-      flexigrid: interpolate-grid-point.with(grid)
-    )),)
+    objects
 
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
-    // draw nodes and cetz objects
-    for (object, element) in objects.zip(elements) {
-
-      let class = element.at("fletcher", default: none)
-
-      if class == "node" {
-        let node = nodes.at(element.index)
-        let origin = Nodes.get-node-origin(node, grid)
-        Nodes.draw-node-at(node, origin, debug: debug)
-
-      } else if class == "edge" {
-        let edge = edges.at(element.index)
-
-        // resolve edge vertices (which may be cetz coords) in flexigrid system
-        let (new-ctx, ..vertex-coords) = cetz.coordinate.resolve(ctx, ..edge.vertices)
-        edge.vertices = vertex-coords.map(interpolate-grid-point.with(grid))
-        let snapping-nodes = Edges.find-edge-snapping-nodes(edge, nodes)
-        Edges.draw-edge-with-snapping(edge, snapping-nodes, debug: utils.map-auto(edge.debug, debug))
-
-      } else {
-        (object,)
-      }
-    }
-
-
   })
-
-  let extra-ctx = (
-    fletcher-debug: debug,
-  )
-
-  cetz.draw.group({
-    (ctx => (ctx: ctx + extra-ctx),)
-    scene
-  }, name: name)
 }
 
 #let diagram(..args) = cetz.canvas(flexigrid(..args))

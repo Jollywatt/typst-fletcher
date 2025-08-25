@@ -1,7 +1,9 @@
 #import "shapes.typ"
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level, debug-draw
+#import "debug.typ": debug-level, debug-draw, get-debug
+
+#import "flexigrid.typ"
 
 #let DEFAULT_NODE_STYLE = (
   stroke: none,
@@ -40,6 +42,7 @@
 
   }, name: node.name)
 
+  // override anchor behaviour for nodes
   (ctx => {
     let group = group-callback(ctx)
 
@@ -51,7 +54,6 @@
     }
     return group + (anchors: calc-anchors)
   },)
-
 
   debug-draw(debug, "node", {
     cetz.draw.translate(origin)
@@ -73,9 +75,10 @@
 }
 
 
-#let node(
+#let _node(
   pos,
-  ..args,
+  body: none,
+  style: (:),
   shape: shapes.rect,
   name: none,
   align: center + horizon,
@@ -84,21 +87,17 @@
   debug: auto,
 ) = {
 
-  // // apply inset
-  // body = utils.switch-type(inset,
-  //   length: inset => pad(inset, body),
-  //   dictionary: args => pad(..args, body),
-  // )
-  // 
-  if args.pos().len() > 1 { utils.error("invalid positional argument in node: #0", args.pos().slice(1)) }
-  let body = args.pos().at(0, default: none)
-
-  let style = args.named()
-
-
   (ctx => {
 
-    let (body, shape) = (body, shape)
+    if "fletcher" not in ctx.shared-state {
+      ctx.shared-state.fletcher = (
+        pass: none,
+        nodes: (),
+        edges: (),
+      )
+    }
+    let fletcher-ctx = ctx.shared-state.fletcher
+
 
     let style = cetz.styles.resolve(
       ctx.style,
@@ -107,10 +106,11 @@
       root: "node",
     ).node
 
+    let (body, shape) = (body, shape)
     let (w, h) = (0, 0)
     if utils.is-cetz(body) {
       let (low, high) = cetz.process.many(ctx, body).bounds
-      (w, h) = cetz.vector.sub(high, low).slice(0, 2)
+      (w, h, ..) = cetz.vector.sub(high, low)
       shape = (node, extrude) => body
       body = none
     } else if body != none {
@@ -121,6 +121,7 @@
       h += 2*inset
     }
 
+    let debug = get-debug(ctx, debug)
 
     let node-data = (
       class: "node",
@@ -136,10 +137,53 @@
       debug: debug,
     )
 
-    let (obj,) = draw-node-at(node-data, pos)
+    if fletcher-ctx.pass == "final" {
+      node-data.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node-data.pos)
+    }
     
-    obj(ctx) + (fletcher: node-data)
+
+    if "current" in fletcher-ctx {
+      ctx.shared-state.fletcher.current.node += 1
+    }
+    if fletcher-ctx.pass != "final" {
+      ctx.shared-state.fletcher.nodes.push(node-data)
+    }
+
+    cetz.process.many(ctx, {
+      draw-node-at(node-data, node-data.pos, debug: debug)
+    })
   },)
+}
+
+#let node(
+  position,
+  ..args,
+  shape: shapes.rect,
+  name: none,
+  align: center + horizon,
+  weight: 1,
+  snap: true,
+  debug: auto,
+) = {
+  // validate arguments
+
+  if args.pos().len() > 1 { utils.error("invalid positional argument in node: #0", args.pos().slice(1)) }
+  let body = args.pos().at(0, default: none)
+
+  let style = args.named() // todo: validate
+
+  _node(
+    position,
+    body: body,
+    style: style,
+    shape: shape,
+    align: align,
+    weight: weight,
+    snap: snap,
+    name: name,
+    debug: debug,
+  )
+
 }
 
 
