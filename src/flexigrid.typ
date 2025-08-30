@@ -212,6 +212,12 @@
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
+    // destroy flexigrid context 
+    (ctx => {
+      ctx.shared-state.remove("fletcher")
+      return (ctx: ctx)
+    },)
+
   })
 }
 
