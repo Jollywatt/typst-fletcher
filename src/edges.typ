@@ -59,9 +59,8 @@
 
 
 /// -> (node, node)
-#let find-edge-snapping-nodes(edge, nodes) = {
-  let (src, .., tgt) = edge.vertices
-  edge.snap-to
+#let find-edge-snapping-nodes(snap-to, (src, tgt), nodes) = {
+  snap-to
     .zip((src, tgt))
     .map(((snap-to, vertex)) => {
       if type(snap-to) == str { // snap to by name
@@ -218,28 +217,29 @@
       snap-to: snap-to,
       name: name,
       draw: draw,
-      debug: debug,
+      debug: get-debug(ctx, debug),
     )
 
     // resolve auto vertices to prev/next node
+
+    if fletcher-ctx.pass == "final" {
+      edge-data.vertices = edge-data.vertices.map(vertex => {
+        if type(vertex) == array and vertex.len() == 2 {
+          utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
+        } else { vertex }
+      })
+    }
 
     let (first, .., last) = edge-data.vertices
 
     if fletcher-ctx.pass == "final" {
       let i = fletcher-ctx.current.node
 
-      // this is currently a bit inelegant:
-      // in the final pass, we convert all edge vertices from uv -> xy after resolving all coords
-      // this means we need node snapping coords to by in uv system
-      // but get-node-origin returns xy system, so we need to invert to get uv
-
       if first == auto and i > 0 {
         first = get-node-origin(fletcher-ctx.nodes.at(i - 1), fletcher-ctx.flexigrid)
-        first = utils.xy-to-uv(fletcher-ctx.flexigrid, first)
       }
       if last == auto and i < fletcher-ctx.nodes.len() {
         last = get-node-origin(fletcher-ctx.nodes.at(i), fletcher-ctx.flexigrid)
-        last = utils.xy-to-uv(fletcher-ctx.flexigrid, last)
       }
     }
     
@@ -256,16 +256,33 @@
       else { coord }
     })
 
-    let (ctx, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
+    // we discard ctx because we do not want to update ctx.prev.pt
+    // edge vertices should never affect nodes with relative positions
+    let (_, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
     edge-data.vertices = verts
 
-    let snapping-nodes = find-edge-snapping-nodes(edge-data, fletcher-ctx.nodes)
+    
+    let snap-vertices = (edge-data.vertices.first(), edge-data.vertices.last())
+    if fletcher-ctx.pass == "final" {
+      // in the final pass, edge vertices are resolved in the xy system
+      // however, nodes in fletcher-ctx are resolved in the uv system
+      // during the layout pass
+      // we should convert to the same system for finding snapping nodes
+      snap-vertices = snap-vertices.map(vertex => {
+        utils.xy-to-uv(fletcher-ctx.flexigrid, vertex)
+      })
+    }
+    let snapping-nodes = find-edge-snapping-nodes(
+      edge-data.snap-to,
+      snap-vertices,
+      fletcher-ctx.nodes,
+    )
 
     // apply flexigrid coordinates
     if fletcher-ctx.pass == "final" {
-      edge-data.vertices = edge-data.vertices.map(vertex => {
-        utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
-      })
+      // edge-data.vertices = edge-data.vertices.map(vertex => {
+      //   utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
+      // })
 
       snapping-nodes = snapping-nodes.map(node => {
         if node == none { return }
@@ -274,9 +291,7 @@
       }) 
     }
 
-    if debug == auto {
-      edge-data.debug = get-debug(ctx, edge-data.debug)
-    }
+    // edge-data.debug = get-debug(ctx, edge-data.debug)
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1
@@ -286,7 +301,7 @@
     }
 
     cetz.process.many(ctx, {
-      draw-edge-with-snapping(edge-data, snapping-nodes)
+      draw-edge-with-snapping(edge-data, snapping-nodes, debug: edge-data.debug)
     })
   },)
 
