@@ -106,16 +106,20 @@
   return (u, v)
 }
 
-
-
+#let interpret-as-uv(c) = {
+	if type(c) == array and c.all(x => type(x) in (int, float)) {
+		return (uv: c)
+	}
+	return c
+}
 
 
 
 #let interp-grid-cell(grid, (u, v)) = {
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   (
-    x: interp(grid.col-centers, i),
-    y: interp(grid.row-centers, j),
+    x: interp(grid.col-centers, i, spacing: 1),
+    y: interp(grid.row-centers, j, spacing: 1),
     w: interp(grid.col-sizes, i),
     h: interp(grid.row-sizes, j),
   )

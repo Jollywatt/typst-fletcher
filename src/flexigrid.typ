@@ -155,6 +155,15 @@
 }
 
 
+#let with-coordinate-resolver(ctx, resolver) = {
+  if type(ctx.resolve-coordinate) == array {
+    ctx.resolve-coordinate.push(resolver)
+  } else {
+    ctx.resolve-coordinate = (resolver,)
+  }
+  return ctx
+}
+
 
 #let flexigrid(
   objects,
@@ -170,8 +179,8 @@
 
   objects = utils.as-array(objects)
 
-
   cetz.draw.get-ctx(ctx => {
+
     let gutter = cetz.util.resolve-number(ctx, gutter)
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     cetz.draw.translate(origin)
@@ -183,18 +192,42 @@
       current: (node: 0, edge: 0),
     )
 
+    // for the layout pass, we resolve uv coords by treating them as xy
+    let layout-pass-ctx = with-coordinate-resolver(ctx, (ctx, c) => {
+      if type(c) == dictionary {
+        if "uv" in c { return c.uv }
+        if "xy" in c { return c.xy }
+      } 
+      return c
+    })
+
     // run layout pass to retrieve fletcher objects
-    let layout-pass = cetz.process.many(ctx, objects)
+    let layout-pass = cetz.process.many(layout-pass-ctx, objects)
     let (nodes, edges) = layout-pass.ctx.shared-state.fletcher
 
-    // compute cell sizes and positions in flexigrid
+    // compute grid cell sizes and positions
     let grid = cell-sizes-from-rects(nodes)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid, gutter: gutter)
 
+    let uv-resolver(ctx, c) = {
+      if type(c) == dictionary {
+        if "uv" in c { return utils.uv-to-xy(grid, c.uv) }
+        if "xy" in c { return c.xy }
+        if "rel" in c and type(c.rel) == array and c.rel.all(x => type(x) in (int, float)) {
+          let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
+          let prev-uv = utils.xy-to-uv(grid, prev-xy)
+          let new-uv = cetz.vector.add(prev-uv, c.rel)
+          return utils.uv-to-xy(grid, new-uv)
+        }
+      }
+      return c
+    }
+
     // provide extra context used by objects
     (ctx => {
+      ctx = with-coordinate-resolver(ctx, uv-resolver)
       ctx.shared-state.fletcher = (
         pass: "final",
         nodes: nodes,
@@ -212,7 +245,7 @@
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
 
-    // destroy flexigrid context 
+    // destroy flexigrid context (use group?)
     (ctx => {
       ctx.shared-state.remove("fletcher")
       return (ctx: ctx)
