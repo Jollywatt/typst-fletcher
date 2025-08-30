@@ -42,6 +42,8 @@
 
   }, name: node.name)
 
+  // return (group-callback,)
+
   // override anchor behaviour for nodes
   (ctx => {
     let group = group-callback(ctx)
@@ -149,13 +151,12 @@
       debug: get-debug(ctx, debug),
     )
 
+    if fletcher-ctx.pass == "final" {
+      node-data.pos = utils.interpret-as-uv(node-data.pos)
+    }
+
     let (ctx, origin) = cetz.coordinate.resolve(ctx, node-data.pos)
     node-data.pos = origin.slice(0, 2)
-
-    if fletcher-ctx.pass == "final" {
-      node-data.pos = get-node-origin(node-data, fletcher-ctx.flexigrid)
-    }
-    
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.node += 1
@@ -163,7 +164,6 @@
     if fletcher-ctx.pass != "final" {
       ctx.shared-state.fletcher.nodes.push(node-data)
     }
-
 
     cetz.process.many(ctx, {
       draw-node-at(node-data, node-data.pos, debug: node-data.debug)
