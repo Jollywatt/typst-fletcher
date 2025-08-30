@@ -21,8 +21,11 @@
 )
 
 #let get-debug(ctx, debug) = {
-  let d = ctx.at("fletcher-debug", default: debug)
-  if d == auto { false } else { d }
+  if "fletcher" in ctx.shared-state {
+    debug = ctx.shared-state.fletcher.at("debug", default: debug)
+  }
+  if debug == auto { return false }
+  return debug
 }
 
 #let suggest-option(debug, levels) = {

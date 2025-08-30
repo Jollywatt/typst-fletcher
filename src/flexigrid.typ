@@ -212,6 +212,7 @@
         edges: edges,
         current: (node: 0, edge: 0), // index of current object
         flexigrid: grid,
+        debug: debug,
       )
       return (ctx: ctx)
     },)
