@@ -75,6 +75,20 @@
 }
 
 
+#let get-node-origin(node, grid) = {
+  let cell = utils.interp-grid-cell(grid, node.pos)
+  let (w, h) = node.size
+  let (x-shift, y-shift) = (0, 0)
+
+  if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
+  if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
+  if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
+  if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
+
+  return (cell.x + x-shift, cell.y + y-shift)
+}
+
+
 #let _node(
   pos,
   body: none,
@@ -138,7 +152,8 @@
     )
 
     if fletcher-ctx.pass == "final" {
-      node-data.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node-data.pos)
+      // node-data.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node-data.pos)
+      node-data.pos = get-node-origin(node-data, fletcher-ctx.flexigrid)
     }
     
 
@@ -186,18 +201,3 @@
 
 }
 
-
-
-#let get-node-origin(node, grid) = {
-  let cell = utils.interp-grid-cell(grid, node.pos)
-  let (w, h) = node.size
-  let (x-shift, y-shift) = (0, 0)
-
-  if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
-  if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
-  if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
-  if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
-
-  return (cell.x + x-shift, cell.y + y-shift)
-
-}

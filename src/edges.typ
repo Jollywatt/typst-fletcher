@@ -3,7 +3,7 @@
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
-#import "nodes.typ" as Nodes
+#import "nodes.typ" as Nodes: get-node-origin
 #import "debug.typ": debug-level, debug-draw, get-debug
 #import "flexigrid.typ"
 
@@ -228,10 +228,10 @@
     if fletcher-ctx.pass == "final" {
       let i = fletcher-ctx.current.node
       if first == auto and i > 0 {
-        first = fletcher-ctx.nodes.at(i - 1).pos
+        first = get-node-origin(fletcher-ctx.nodes.at(i - 1), fletcher-ctx.flexigrid)
       }
       if last == auto and i < fletcher-ctx.nodes.len() {
-        last = fletcher-ctx.nodes.at(i).pos
+        last = get-node-origin(fletcher-ctx.nodes.at(i), fletcher-ctx.flexigrid)
       }
     }
     
@@ -261,7 +261,7 @@
 
       snapping-nodes = snapping-nodes.map(node => {
         if node == none { return }
-        node.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node.pos)
+        node.pos = get-node-origin(node, fletcher-ctx.flexigrid)
         node
       }) 
     }
