@@ -181,8 +181,26 @@
   debug: auto,
 ) = {
   // validate arguments
+  let pos = args.pos()
 
-  if args.pos().len() > 1 { utils.error("invalid positional argument in node: #0", args.pos().slice(1)) }
+  let body
+  let positional-name
+  if pos.len() > 2 {
+    utils.error("invalid positional arguments in node: #..0", args.pos().slice(2))
+  } else if pos.len() == 2 {
+    (body, positional-name) = pos 
+  } else if pos.len() == 1 {
+    if type(pos.first()) == label { positional-name = pos.first() }
+    else { body = pos.first() }
+  }
+
+  if positional-name != none {
+    if name != none {
+      utils.error("node name specified twice: #0 and `name: #1`", positional-name, repr(name))
+    }
+    name = positional-name
+  }
+
   let body = args.pos().at(0, default: none)
 
   let style = args.named() // todo: validate
@@ -195,7 +213,7 @@
     align: align,
     weight: weight,
     snap: snap,
-    name: name,
+    name: if name != none { str(name) },
     debug: debug,
   )
 
