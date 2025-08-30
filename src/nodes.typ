@@ -135,8 +135,6 @@
       h += 2*inset
     }
 
-    let debug = get-debug(ctx, debug)
-
     let node-data = (
       class: "node",
       pos: pos,
@@ -148,11 +146,13 @@
       align: align,
       weight: weight,
       snap: snap,
-      debug: debug,
+      debug: get-debug(ctx, debug),
     )
 
+    let (ctx, origin) = cetz.coordinate.resolve(ctx, node-data.pos)
+    node-data.pos = origin.slice(0, 2)
+
     if fletcher-ctx.pass == "final" {
-      // node-data.pos = flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, node-data.pos)
       node-data.pos = get-node-origin(node-data, fletcher-ctx.flexigrid)
     }
     
@@ -164,8 +164,9 @@
       ctx.shared-state.fletcher.nodes.push(node-data)
     }
 
+
     cetz.process.many(ctx, {
-      draw-node-at(node-data, node-data.pos, debug: debug)
+      draw-node-at(node-data, node-data.pos, debug: node-data.debug)
     })
   },)
 }
