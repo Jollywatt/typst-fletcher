@@ -32,25 +32,81 @@
 
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
-/// Linearly interpolate an array with linear behaviour outside bounds
+/// Linearly interpolate an array of values with linear behaviour outside bounds.
 ///
-/// - values (array): Array of lengths defining interpolation function.
-/// - index (int, float): Index-coordinate to sample.
+/// - ys (array): Array of function values to interpolate between.
+/// - t (int, float): Index-coordinate to sample.
 /// - spacing (length): Gradient for linear extrapolation beyond array bounds.
-#let interp(values, index, spacing: 0) = {
-	let max-index = values.len() - 1
-	if index < 0 {
-		values.at(0) + spacing*index
-	} else if index > max-index {
-		values.at(-1) + spacing*(index - max-index)
+#let interp(ys, t, spacing: 0) = {
+	let max-t = ys.len() - 1
+	if t < 0 {
+		ys.at(0) + spacing*t
+	} else if t > max-t {
+		ys.at(-1) + spacing*(t - max-t)
 	} else {
 		lerp(
-			values.at(calc.floor(index)),
-			values.at(calc.ceil(index)),
-			calc.fract(index),
+			ys.at(calc.floor(t)),
+			ys.at(calc.ceil(t)),
+			calc.fract(t),
 		)
 	}
 }
+
+
+/// Inverse of `interp()`.
+///
+/// - xs (array): Array of lengths defining interpolation function.
+/// - y: Value to find the interpolated index of.
+/// - spacing (length): Gradient for linear extrapolation beyond array bounds.
+#let interp-inv(xs, y, spacing: 0pt) = {
+	let i = 0
+	while i < xs.len() {
+		if xs.at(i) >= y { break }
+		i += 1
+	}
+	let (first, last) = (xs.at(0), xs.at(-1))
+
+	// avoids division by zero when numerator and denominator both vanish
+	let div(a, b) = if calc.abs(a) < 1e-3 { 0 } else { a/b }
+
+	if y < first {
+		div(y - first, spacing)
+	} else if y >= last {
+		xs.len() - 1 + div(y - last, spacing)
+	} else {
+		let (prev, nearest) = (xs.at(i - 1), xs.at(i))
+		i - 1 + div(y - prev, nearest - prev)
+	}
+}
+
+
+/// Convert coordinates in $u v$ system into $x y$ system.
+/// 
+/// The `grid` dictionary defines the coordinate mapping and must contain
+/// - `col-centers`, defining $x$ values for each $u$ value
+/// - `row-center`, defining $y$ values for each $v$ value
+/// - `u-min` and `v-min`, defining the coordinate origin
+#let uv-to-xy(grid, uv) = {
+  let (u, v, ..) = uv
+  let (i, j) = (u - grid.u-min, v - grid.v-min)
+  let (x, y) = (
+    interp(grid.col-centers, i, spacing: 1),
+    interp(grid.row-centers, j, spacing: 1),
+  )
+  return (x, y)
+}
+
+#let xy-to-uv(grid, xy) = {
+  let (x, y, ..) = xy
+  let (i, j) = (
+    interp-inv(grid.col-centers, x, spacing: 1),
+    interp-inv(grid.row-centers, y, spacing: 1),
+  )
+  let (u, v) = (grid.u-min + i, grid.v-min + j)
+  return (u, v)
+}
+
+
 
 
 

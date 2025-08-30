@@ -85,17 +85,6 @@
   )
 }
 
-
-#let interpolate-grid-point(grid, coord) = {
-  let (u, v, ..) = coord
-  let (i, j) = (u - grid.u-min, v - grid.v-min)
-  (
-    utils.interp(grid.col-centers, i, spacing: 1),
-    utils.interp(grid.row-centers, j, spacing: 1),
-  )
-}
-
-
 #let draw-flexigrid(grid, debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")

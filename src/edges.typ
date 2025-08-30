@@ -227,11 +227,19 @@
 
     if fletcher-ctx.pass == "final" {
       let i = fletcher-ctx.current.node
+
+      // this is currently a bit inelegant:
+      // in the final pass, we convert all edge vertices from uv -> xy after resolving all coords
+      // this means we need node snapping coords to by in uv system
+      // but get-node-origin returns xy system, so we need to invert to get uv
+
       if first == auto and i > 0 {
         first = get-node-origin(fletcher-ctx.nodes.at(i - 1), fletcher-ctx.flexigrid)
+        first = utils.xy-to-uv(fletcher-ctx.flexigrid, first)
       }
       if last == auto and i < fletcher-ctx.nodes.len() {
         last = get-node-origin(fletcher-ctx.nodes.at(i), fletcher-ctx.flexigrid)
+        last = utils.xy-to-uv(fletcher-ctx.flexigrid, last)
       }
     }
     
@@ -256,7 +264,7 @@
     // apply flexigrid coordinates
     if fletcher-ctx.pass == "final" {
       edge-data.vertices = edge-data.vertices.map(vertex => {
-        flexigrid.interpolate-grid-point(fletcher-ctx.flexigrid, vertex)
+        utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
       })
 
       snapping-nodes = snapping-nodes.map(node => {
