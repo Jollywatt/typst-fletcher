@@ -177,7 +177,7 @@
 /// <marklabel> = (marks, label) or (label, marks) or (marks) or (label) or ()
 /// <options> = any number of options specified as strings
 /// ```
-#let interpret-edge-args(args, options) = {
+#let interpret-edge-positional-args(args, options) = {
 	if args.named().len() > 0 {
 		utils.error("Unexpected named argument(s) #..0.", args.named().keys())
 	}
