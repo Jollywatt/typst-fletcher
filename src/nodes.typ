@@ -1,9 +1,7 @@
-#import "shapes.typ"
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-draw, get-debug
-
-// #import "flexigrid.typ"
+#import "shapes.typ"
 
 #let DEFAULT_NODE_STYLE = (
   stroke: none,
@@ -41,8 +39,6 @@
     })
 
   }, name: node.name)
-
-  // return (group-callback,)
 
   // override anchor behaviour for nodes
   (ctx => {

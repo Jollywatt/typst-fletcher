@@ -1,7 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "debug.typ": debug-level
-#import "nodes.typ" as Nodes
 
 /// From an array of rectangles, each of the form
 /// `(pos: array, size: array, weight: number)`,
@@ -200,7 +199,7 @@
 
     let gutter = cetz.util.resolve-number(ctx, gutter)
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
-    cetz.draw.translate(origin) // todo
+    // cetz.draw.translate(origin) // todo
 
     ctx.shared-state.fletcher = (
       pass: "layout",

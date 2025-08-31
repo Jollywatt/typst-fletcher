@@ -1,11 +1,10 @@
-2#import "deps.typ": cetz
+#import "deps.typ": cetz
 #import "utils.typ"
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
 #import "nodes.typ" as Nodes: get-node-origin
 #import "debug.typ": debug-level, debug-draw, get-debug
-#import "flexigrid.typ"
 
 #let DEFAULT_EDGE_STYLE = (
   marks: (),
