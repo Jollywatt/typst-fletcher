@@ -1,6 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "debug.typ": debug-level
+#import "nodes.typ" as Nodes
 
 /// From an array of rectangles, each of the form
 /// `(pos: array, size: array, weight: number)`,
@@ -104,6 +105,8 @@
   let draw-coords = debug-level(debug, "grid.coords")
   let draw-cells = debug-level(debug, "grid.cells")
 
+  if not (draw-lines or draw-coords or draw-cells) { return }
+
   cetz.draw.floating({
     cetz.draw.set-style(stroke: (paint: tint.transparentize(60%)))
 
@@ -197,7 +200,7 @@
 
     let gutter = cetz.util.resolve-number(ctx, gutter)
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
-    cetz.draw.translate(origin)
+    cetz.draw.translate(origin) // todo
 
     ctx.shared-state.fletcher = (
       pass: "layout",
@@ -239,6 +242,14 @@
       return c
     }
 
+    let (_, ..node-coords) = cetz.coordinate.resolve(with-coordinate-resolver(ctx, uv-resolver),
+      ..nodes.map(n => utils.interpret-as-uv(n.pos)))
+
+    nodes = nodes.zip(node-coords).map(((n, c)) => {
+      n.pos = c
+      n
+    })
+
     // provide extra context used by objects
     (ctx => {
       ctx = with-coordinate-resolver(ctx, uv-resolver)
@@ -253,10 +264,11 @@
       return (ctx: ctx)
     },)
 
+
     objects
 
     // if debug-level(debug, "grid") {
-      cetz.draw.group(draw-flexigrid(grid, debug: debug))
+    cetz.draw.group(draw-flexigrid(grid, debug: debug))
     // }
 
     if debug-level(debug, "grid.xy") {
