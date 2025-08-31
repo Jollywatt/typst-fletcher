@@ -4,7 +4,7 @@
 #let l = (
   a: 1,
   b: 2,
-  c: 1,
+  c: 2,
   "c.d": 1,
   "c.e": 3,
   "c.f": 2,
@@ -19,7 +19,7 @@
 #assert(debug-level(1, "c.d", levels: l))
 
 // str config
-#assert(debug-level("c", "c.f", levels: l))
+#assert(debug-level("c", "c.d", levels: l))
 #assert(debug-level("c.f", "c.f", levels: l))
 #assert(debug-level("c.f.g", "c.f", levels: l))
 
