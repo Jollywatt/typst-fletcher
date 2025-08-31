@@ -171,6 +171,20 @@
 }
 
 
+#let get-node-origin(node, grid) = {
+  let cell = utils.interp-grid-cell(grid, node.pos)
+  let (w, h) = node.size
+  let (x-shift, y-shift) = (0, 0)
+
+  if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
+  if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
+  if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
+  if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
+
+  return (cell.x + x-shift, cell.y + y-shift)
+}
+
+
 #let with-coordinate-resolver(ctx, resolver) = {
   if type(ctx.resolve-coordinate) == array {
     ctx.resolve-coordinate.push(resolver)
@@ -244,9 +258,10 @@
     let (_, ..node-coords) = cetz.coordinate.resolve(with-coordinate-resolver(ctx, uv-resolver),
       ..nodes.map(n => utils.interpret-as-uv(n.pos)))
 
-    nodes = nodes.zip(node-coords).map(((n, c)) => {
-      n.pos = c
-      n
+    nodes = nodes.zip(node-coords).map(((node, c)) => {
+      node.pos = utils.xy-to-uv(grid, c)
+      node.pos = get-node-origin(node, grid)
+      node
     })
 
     // provide extra context used by objects

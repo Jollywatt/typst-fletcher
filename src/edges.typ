@@ -3,7 +3,7 @@
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
-#import "nodes.typ" as Nodes: get-node-origin
+#import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-draw, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
@@ -333,7 +333,7 @@
       extrude: options.extrude,
     ),
     snap-to: options.snap-to,
-    name: name,
+    name: if name != none { str(name) },
     draw: options.draw,
     debug: debug,
   )
