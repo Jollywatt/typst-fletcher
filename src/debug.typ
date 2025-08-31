@@ -6,6 +6,7 @@
   "grid.coords": 1,
   "grid.lines": 2,
   "grid.cells": 2,
+  "grid.xy": 10,
 
   "node": 2,
   "node.stroke": 2,
