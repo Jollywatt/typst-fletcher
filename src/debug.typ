@@ -2,10 +2,10 @@
 #import "utils.typ"
 
 #let DEBUG_LEVELS = (
-  "grid": 1,
+  "grid": 2,
   "grid.coords": 1,
-  "grid.lines": 2,
-  "grid.cells": 2,
+  "grid.lines": 1,
+  "grid.cells": 3,
   "grid.xy": 10,
 
   "node": 2,
@@ -53,12 +53,13 @@
   if type(debug) == int { return levels.at(option) <= debug }
 
   if type(debug) == str {
-    if " " in debug {
-      debug = debug.split(regex("\\s"))
-      return debug-level(debug, option, levels: levels)
+    if debug.split().len() > 1 {
+      return debug-level(debug.split(), option, levels: levels)
     }
     if debug in levels {
-      return debug.starts-with(option) or option.starts-with(debug)
+      if debug.starts-with(option) { return true }
+      if option.starts-with(debug) { return levels.at(debug) >= levels.at(option) }
+      return false
     } else {
       suggest-option(debug, levels)
     }

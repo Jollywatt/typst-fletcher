@@ -255,9 +255,9 @@
 
     objects
 
-    if debug-level(debug, "grid") {
+    // if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
-    }
+    // }
 
     if debug-level(debug, "grid.xy") {
       draw-xy-grid(origin, grid)
