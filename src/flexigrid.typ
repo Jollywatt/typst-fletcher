@@ -85,13 +85,27 @@
   )
 }
 
-#let draw-flexigrid(grid, debug: true) = {
+#let draw-xy-grid(origin, flexigrid) = {
+  let (x-min, x-max, y-min, y-max) = flexigrid
+  let coord-label(x) = text(blue, 0.8em, raw(str(x)))
+  cetz.draw.group({
+    cetz.draw.grid((x-min, y-min), (x-max, y-max), stroke: blue.transparentize(50%) + 0.5pt)
+    for x in range(calc.floor(x-min), calc.floor(x-max) + 1) {
+      cetz.draw.content((x, y-min), coord-label(x), anchor: "north", padding: .5em)
+    }
+    for y in range(calc.floor(y-min), calc.floor(y-max) + 1) {
+      cetz.draw.content((x-min, y), coord-label(y), anchor: "east", padding: .5em)
+    }
+  })
+}
+
+#let draw-flexigrid(grid, debug: true, tint: red) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")
   let draw-cells = debug-level(debug, "grid.cells")
 
   cetz.draw.floating({
-    cetz.draw.set-style(stroke: (paint: red.transparentize(60%)))
+    cetz.draw.set-style(stroke: (paint: tint.transparentize(60%)))
 
     for (i, x) in grid.col-centers.enumerate() {
       if draw-lines {
@@ -99,7 +113,7 @@
       }
       if draw-coords {
         let coord = i + grid.u-min
-        cetz.draw.content((x, -4pt), text(10pt, red, raw(str(coord))), anchor: "north")
+        cetz.draw.content((x, -4pt), text(10pt, tint, raw(str(coord))), anchor: "north")
       }
       if draw-cells {
         let w = grid.col-sizes.at(i)
@@ -112,7 +126,7 @@
       }
       if draw-coords {
         let coord = j + grid.v-min
-        cetz.draw.content((-4pt, y), text(10pt, red, raw(str(coord))), anchor: "east")
+        cetz.draw.content((-4pt, y), text(10pt, tint, raw(str(coord))), anchor: "east")
       }
       if draw-cells {
         let h = grid.row-sizes.at(j)
@@ -124,7 +138,7 @@
       for (i, x) in grid.col-centers.enumerate() {
         for (j, y) in grid.row-centers.enumerate() {
           let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: red.transparentize(80%) + 0.5pt)
+          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: tint.transparentize(80%) + 0.5pt)
         }
       }
     }
@@ -244,6 +258,11 @@
     if debug-level(debug, "grid") {
       cetz.draw.group(draw-flexigrid(grid, debug: debug))
     }
+
+    if debug-level(debug, "grid.xy") {
+      draw-xy-grid(origin, grid)
+    }
+
 
     // destroy flexigrid context (use group?)
     (ctx => {
