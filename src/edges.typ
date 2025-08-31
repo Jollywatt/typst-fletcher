@@ -288,6 +288,91 @@
   }
 }
 
+#let EDGE_KINDS = (
+  arc: (
+    named-args: ("bend",),
+    draw: (bend, vertices) => {
+      if vertices.len() != 2 {
+        utils.error("edge with `bend` must have two vertices; got #0", vertices)
+      }
+      let (a, b) = vertices
+      let perp-dist = if type(bend) == angle {
+        let sin-bend = calc.sin(bend)
+        if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
+        let half-chord-len = cetz.vector.dist(a, b)/2
+        half-chord-len*(1 - calc.cos(bend))/sin-bend
+      } else {
+        bend
+      }
+      let midpoint = (a: (a, 50%, b), b: a, number: perp-dist, angle: -90deg)
+      cetz.draw.merge-path(cetz.draw.arc-through(a, midpoint, b))
+    }
+  ),
+  line: (
+    named-args: (),
+    draw: vertices => cetz.draw.line(..vertices)
+  )
+)
+
+
+#let determine-edge-kind(args, options) = {
+  let named = args.named()
+  let named-arg-suggestion = none
+
+  for (kind, spec) in EDGE_KINDS {
+    let (args, draw) = spec
+    if args.all(n => n in named) {
+      let draw-args = ()
+      for arg in args { draw-args.push(named.remove(arg)) }
+
+      if options.draw != auto {
+        utils.error({
+          "edge option `draw` must be `auto` when used with "
+          args.map(repr).join(", ")
+        })
+      }
+      
+      options.draw = draw.with(..draw-args)
+
+      if "n-vertices" in spec {
+        if options.vertices.len() != spec.n-vertices {
+          utils.error({
+            kind
+            " edges (with "
+            args.map(repr).join(", ")
+            " arguments) require exactly "
+            repr(spec.n-vertices)
+            " vertices; got "
+            repr(options.vertices)
+          })
+        }
+      }
+      
+      break
+
+    } else if args.any(n => n in named) {
+      named-arg-suggestion = (kind: kind, args: args)
+    }
+  }
+
+
+  // any left over named arguments are unrecognised
+  if named.len() > 0 {
+    let hint = if named-arg-suggestion != none {
+      " For "
+      named-arg-suggestion.kind
+      " edges, also specify "
+      named-arg-suggestion.args
+        .filter(n => n not in named)
+        .map(repr).join(", ", last: " and ")
+      "."
+    }
+		utils.error("Unknown edge arguments #..0." + hint, args.named().keys())
+	}
+
+  return (draw: options.draw)
+  
+}
 
 
 
@@ -300,7 +385,6 @@
   name: none,
   stroke: auto,
   extrude: auto,
-  bend: none,
   draw: auto,
   debug: auto,
 ) = {
@@ -311,47 +395,17 @@
     snap-to: snap-to,
     outset: outset,
     extrude: extrude,
-    bend: bend,
     stroke: stroke,
     draw: draw,
   )
   
-  options += parsing.interpret-edge-positional-args(args, options)
+  options += parsing.interpret-edge-positional-args(args.pos(), options)
   options += interpret-marks-arg(options.marks)
 
   let stroke = (dash: options.at("dash", default: auto)) + utils.stroke-to-dict(options.stroke)
 
-  // bent arc edges
-  if options.bend != none {
-    if options.draw != auto {
-      utils.error("cannot set edge options `bend` and `draw` simultaneously")
-    }
+  options += determine-edge-kind(args, options)
 
-    options.draw = vertices => {
-      if vertices.len() != 2 {
-        utils.error("edge with `bend` must have two vertices; got #0", vertices)
-      }
-      let (a, b) = vertices
-
-      let perp-dist = if type(bend) == angle {
-        let sin-bend = calc.sin(bend)
-        if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
-        let half-chord-len = cetz.vector.dist(a, b)/2
-        half-chord-len*(1 - calc.cos(bend))/sin-bend
-      } else {
-        bend
-      }
-
-      let midpoint = (a: (a, 50%, b), b: a, number: perp-dist, angle: -90deg)
-      cetz.draw.merge-path(cetz.draw.arc-through(a, midpoint, b))
-    }
-  }
-
-  if options.draw == auto {
-    options.draw = vertices => cetz.draw.line(..vertices)
-  }
-
-  
   _edge(
     options.vertices,
     style: (
