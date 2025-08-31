@@ -198,13 +198,9 @@
   style: (:),
   snap-to: (auto, auto),
   name: none,
-  draw: auto,
+  draw: vertices => none,
   debug: auto,
 ) = {
-
-  if draw == auto {
-    draw = vertices => cetz.draw.line(..vertices)
-  }
 
   (ctx => {
     
@@ -304,6 +300,7 @@
   name: none,
   stroke: auto,
   extrude: auto,
+  bend: none,
   draw: auto,
   debug: auto,
 ) = {
@@ -314,14 +311,45 @@
     snap-to: snap-to,
     outset: outset,
     extrude: extrude,
+    bend: bend,
     stroke: stroke,
     draw: draw,
   )
   
-  options += parsing.interpret-edge-args(args, options)
+  options += parsing.interpret-edge-positional-args(args, options)
   options += interpret-marks-arg(options.marks)
 
   let stroke = (dash: options.at("dash", default: auto)) + utils.stroke-to-dict(options.stroke)
+
+  // bent arc edges
+  if options.bend != none {
+    if options.draw != auto {
+      utils.error("cannot set edge options `bend` and `draw` simultaneously")
+    }
+
+    options.draw = vertices => {
+      if vertices.len() != 2 {
+        utils.error("edge with `bend` must have two vertices; got #0", vertices)
+      }
+      let (a, b) = vertices
+
+      let perp-dist = if type(bend) == angle {
+        let sin-bend = calc.sin(bend)
+        if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
+        let half-chord-len = cetz.vector.dist(a, b)/2
+        half-chord-len*(1 - calc.cos(bend))/sin-bend
+      } else {
+        bend
+      }
+
+      let midpoint = (a: (a, 50%, b), b: a, number: perp-dist, angle: -90deg)
+      cetz.draw.merge-path(cetz.draw.arc-through(a, midpoint, b))
+    }
+  }
+
+  if options.draw == auto {
+    options.draw = vertices => cetz.draw.line(..vertices)
+  }
 
   
   _edge(
