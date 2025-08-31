@@ -290,12 +290,9 @@
 
 #let EDGE_KINDS = (
   arc: (
-    named-args: ("bend",),
-    draw: (bend, vertices) => {
-      if vertices.len() != 2 {
-        utils.error("edge with `bend` must have two vertices; got #0", vertices)
-      }
-      let (a, b) = vertices
+    args: ("bend",),
+    n-vertices: 2,
+    draw: (bend, (a, b)) => {
       let perp-dist = if type(bend) == angle {
         let sin-bend = calc.sin(bend)
         if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
@@ -308,14 +305,45 @@
       cetz.draw.merge-path(cetz.draw.arc-through(a, midpoint, b))
     }
   ),
-  line: (
-    named-args: (),
-    draw: vertices => cetz.draw.line(..vertices)
-  )
+  bezier-cubic: (
+    args: ("from", "to"),
+    n-vertices: 2,
+    draw: (from, to, (a, b)) => {
+      let as-coord(x) = {
+        if type(x) == angle { (x, 1) }
+        else { x }
+      }
+      cetz.draw.bezier(a, b, (rel: as-coord(from), to: a), (rel: as-coord(to), to: b))
+    }
+  ),
+  bezier-from: (
+    args: ("from",),
+    n-vertices: 2,
+    draw: (from, (a, b)) => {
+      if type(from) == angle { from = (from, 1) }
+      cetz.draw.bezier(a, b, (rel: from, to: a))
+    }
+  ),
+  bezier-to: (
+    args: ("to",),
+    n-vertices: 2,
+    draw: (to, (a, b)) => {
+      if type(to) == angle { to = (to, 1) }
+      cetz.draw.bezier(a, b, (rel: to, to: b))
+    }
+  ),
+  beizer-through: (
+    args: ("through",),
+    n-vertices: 2,
+    draw: (through, (a, b)) => {
+      cetz.draw.bezier-through(a, through, b)
+    }
+  ),
 )
 
 
 #let determine-edge-kind(args, options) = {
+
   let named = args.named()
   let named-arg-suggestion = none
 
@@ -369,6 +397,10 @@
     }
 		utils.error("Unknown edge arguments #..0." + hint, args.named().keys())
 	}
+
+  if options.draw == auto {
+    options.draw = vertices => cetz.draw.line(..vertices)
+  }
 
   return (draw: options.draw)
   
