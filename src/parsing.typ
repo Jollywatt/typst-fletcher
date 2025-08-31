@@ -178,12 +178,8 @@
 /// <options> = any number of options specified as strings
 /// ```
 #let interpret-edge-positional-args(args, options) = {
-	if args.named().len() > 0 {
-		utils.error("Unexpected named argument(s) #..0.", args.named().keys())
-	}
 
 	let new-options = (:)
-	let pos = args.pos()
 
 	// predicates to detect the kind of a positional argument
 	let is-coord(arg) = type(arg) in (array, dictionary, label) and not utils.is-cetz(arg) or arg == auto
@@ -217,8 +213,8 @@
 	let has-cetz-obj = false
 
 	// First argument is a cetz object
-	if peek(pos, utils.is-cetz) {
-		let obj = pos.remove(0)
+	if peek(args, utils.is-cetz) {
+		let obj = args.remove(0)
 		new-options.draw = vertices => obj
 		has-cetz-obj = true
 	}
@@ -226,15 +222,15 @@
 	// First argument(s) are coordinates
 	// (<coord>, <rel-coord>*) => (<coord>, <rel-coord>*)
 	// (<rel-coord>*) => (auto, <rel-coord>*)
-	if peek(pos, is-coord) {
-		coords.push(pos.remove(0))
+	if peek(args, is-coord) {
+		coords.push(args.remove(0))
 		has-first-coord = true
 	}
-	while peek(pos, is-rel-coord) {
-		if type(pos.at(0)) == str {
-			coords += pos.remove(0).split(",")
+	while peek(args, is-rel-coord) {
+		if type(args.at(0)) == str {
+			coords += args.remove(0).split(",")
 		} else {
-			coords.push(pos.remove(0))
+			coords.push(args.remove(0))
 		}
 		has-tail-coords = true
 	}
@@ -242,14 +238,14 @@
 	// Allow marks argument to be in between two coordinates
 	// (<coord>, <marks>, <rel-coord>)
 	// (<marks>, <rel-coord>) => (auto, <marks>, <rel-coord>)
-	if not has-tail-coords and peek(pos, maybe-marks, is-rel-coord) {
-		new-options.marks = pos.remove(0)
+	if not has-tail-coords and peek(args, maybe-marks, is-rel-coord) {
+		new-options.marks = args.remove(0)
 		assert-not-set("marks", (), new-options.marks)
 
-		coords.push(pos.remove(0))
+		coords.push(args.remove(0))
 		has-tail-coords = true
 
-		if peek(pos, is-rel-coord) {
+		if peek(args, is-rel-coord) {
 			utils.error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
 		}
 	}
@@ -270,9 +266,9 @@
 
 
 	// Allow label side argument anywhere after coordinates
-	let i = pos.position(is-label-side)
+	let i = args.position(is-label-side)
 	if i != none {
-		new-options.label-side = pos.remove(i)
+		new-options.label-side = args.remove(i)
 		assert-not-set("label-side", auto, new-options.label-side)
 	}
 
@@ -282,16 +278,16 @@
 	// (.., <label>, <marks>)
 	let marks
 	let label
-	if peek(pos, maybe-marks, maybe-label) {
-		marks = pos.remove(0)
-		label = pos.remove(0)
-	} else if peek(pos, maybe-label, maybe-marks) {
-		label = pos.remove(0)
-		marks = pos.remove(0)
-	} else if peek(pos, maybe-label) {
-		label = pos.remove(0)
-	} else if peek(pos, maybe-marks) {
-		marks = pos.remove(0)
+	if peek(args, maybe-marks, maybe-label) {
+		marks = args.remove(0)
+		label = args.remove(0)
+	} else if peek(args, maybe-label, maybe-marks) {
+		label = args.remove(0)
+		marks = args.remove(0)
+	} else if peek(args, maybe-label) {
+		label = args.remove(0)
+	} else if peek(args, maybe-marks) {
+		marks = args.remove(0)
 	}
 
 	if marks != none {
@@ -307,12 +303,12 @@
 	}
 
 	// Accept any trailing positional strings as option shorthands
-	while peek(pos, is-edge-flag) {
-		new-options += EDGE_FLAGS.at(pos.remove(0))
+	while peek(args, is-edge-flag) {
+		new-options += EDGE_FLAGS.at(args.remove(0))
 	}
 
-	if pos.len() > 0 {
-		utils.error("Couldn't interpret `edge()` arguments #..0. Try using named arguments. Interpreted previous arguments as #1", pos, new-options)
+	if args.len() > 0 {
+		utils.error("Couldn't interpret `edge()` arguments #..0. Try using named arguments. Interpreted previous arguments as #1", args, new-options)
 	}
 
 	new-options
