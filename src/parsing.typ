@@ -257,6 +257,9 @@
 		assert-not-set("vertices", (), ..coords)
 		if not has-first-coord { coords = (auto, ..coords) }
 		if not has-tail-coords { coords = (..coords, auto) }
+
+		// fletcher allows names as labels for disambiguating positional arguments
+		// but cetz names must be strings
 		new-options.vertices = coords.map(coord => {
 			if type(coord) == label { str(coord) }
 			else { coord }

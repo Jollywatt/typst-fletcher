@@ -46,15 +46,14 @@
   let anchor-names = (get-anchors)(())
 
   let s = if near { -1 } else { 1 } 
+  let ref = cetz.util.apply-transform(ctx.transform, reference-point)
 
-  let b = cetz.util.revert-transform(ctx.transform, reference-point)
   let all-anchors = anchor-names
     .map(get-anchors)
-    .sorted(key: a => s*cetz.vector.dist(a, b))
+    .sorted(key: a => s*cetz.vector.dist(a, ref))
 
-  let best = all-anchors.at(-1, default: b)
-
-  return cetz.util.apply-transform(ctx.transform, best)
+  let best = all-anchors.at(-1, default: ref)
+  return cetz.util.revert-transform(ctx.transform, best)
 }
 
 
@@ -85,22 +84,27 @@
   node.style.extrude = (outset,)
   node.name = none
   node.body = none
+  node.style.stroke = purple.transparentize(50%) + 0.5pt
   Nodes.draw-node-at(node, node.pos, debug: false)
 }
 
 
 /// Draw an edge, snapping each end to given CeTZ objects.
+/// 
+/// The first and last segments of the edge are tested for intersection with the
+/// first and last elements of `snap-to`, respectively. If no intersections are found,
+/// the first/last vertices of the edge are left as is; otherwise, they are replaced
+/// with the farthest intersection from the original vertex.
 #let draw-edge-with-intersection-snapping(
   ctx,
   edge,
   /// Shapes to snap the start and end of the edge to, respectively. -> (cetz, cetz)
   snap-to: (none, none),
-  debug: false,
 ) = {
 
-  let test-path = (edge.draw)(edge.vertices)
-  let src-test-path = paths.draw-only-first-path-segment(test-path)
-  let tgt-test-path = paths.draw-only-last-path-segment(test-path)
+  let edge-test-path = (edge.draw)(edge.vertices)
+  let src-test-path = paths.draw-only-first-path-segment(edge-test-path)
+  let tgt-test-path = paths.draw-only-last-path-segment(edge-test-path)
 
   cetz.draw.hide({
     cetz.draw.intersections("__src__", snap-to.at(0) + src-test-path)
@@ -128,23 +132,27 @@
     edge.vertices.last() = tgt-snapped
     draw-edge(ctx, edge)
 
-    debug-draw(debug, "edge.snap", {
-      cetz.draw.circle(src-snapped, radius: 0.5pt, fill: green, stroke: none)
-      cetz.draw.circle(tgt-snapped, radius: 0.5pt, fill: red, stroke: none)
+    debug-draw(edge.debug, "edge.snap", {
       cetz.draw.group({
         cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
         src-test-path
         tgt-test-path
       })
+      cetz.draw.circle(src-snapped, radius: 1pt, fill: green, stroke: none)
+      cetz.draw.circle(tgt-snapped, radius: 1pt, fill: red, stroke: none)
     })
   })
 
+  (ctx => {
+    ctx.nodes.remove("__src__")
+    ctx.nodes.remove("__tgt__")
+    return (ctx: ctx)
+  },)
 
 }
 
 /// Draw an edge, snapping each end to given fletcher nodes.
-#let draw-edge-with-snapping(edge, snapping-nodes, debug: false) = {
-
+#let draw-edge-with-snapping(edge, snapping-nodes) = {
   cetz.draw.get-ctx(ctx => {
 
     let style = cetz.styles.resolve(
@@ -157,7 +165,6 @@
       .zip(edge.style.outset)
       .map(((key, outset)) => {
         if key == none { return }
-
         if type(key) == str {
           if key not in ctx.nodes { utils.error("couldn't find name #0", key) }
           let drawables = ctx.nodes.at(key).drawables
@@ -172,14 +179,16 @@
           ).node
           draw-node-snapping-outline(node, outset)
         }
-
       })
+
+    if debug-level(edge.debug, "edge.snap") {
+      snapping-outlines.join()
+    }
 
     draw-edge-with-intersection-snapping(
       ctx,
       edge,
       snap-to: snapping-outlines,
-      debug: debug,
     )
   })
 }
@@ -209,7 +218,6 @@
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 
-
     let edge-data = (
       class: "edge",
       vertices: vertices,
@@ -220,78 +228,41 @@
       debug: get-debug(ctx, debug),
     )
 
-    // resolve auto vertices to prev/next node
-
+    // if edge appears in a flexigrid, interpret coordinates in uv system by default
     if fletcher-ctx.pass == "final" {
-      edge-data.vertices = edge-data.vertices.map(vertex => {
-        if type(vertex) == array and vertex.len() == 2 {
-          utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
-        } else { vertex }
-      })
+      edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
     }
 
+    // resolve auto vertices to prev/next node
     let (first, .., last) = edge-data.vertices
-
     if fletcher-ctx.pass == "final" {
       let i = fletcher-ctx.current.node
-
       if first == auto and i > 0 {
-        first = get-node-origin(fletcher-ctx.nodes.at(i - 1), fletcher-ctx.flexigrid)
+        first = (fletcher-ctx.nodes.at(i - 1).pos)
       }
       if last == auto and i < fletcher-ctx.nodes.len() {
-        last = get-node-origin(fletcher-ctx.nodes.at(i), fletcher-ctx.flexigrid)
+        last = (fletcher-ctx.nodes.at(i).pos)
       }
     }
-    
     // give reasonable defaults rather than panic
     if first == auto { first = () }
     if last == auto { last = (rel: (1, 0)) }
-
     edge-data.vertices.first() = first
     edge-data.vertices.last() = last
-    
-    // normalize anchor labels to strings
-    edge-data.vertices = edge-data.vertices.map(coord => {
-      if type(coord) == label { str(coord) }
-      else { coord }
-    })
 
-    // we discard ctx because we do not want to update ctx.prev.pt
+    
+
+    // discard ctx because we do not want to update ctx.prev.pt
     // edge vertices should never affect nodes with relative positions
     let (_, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
     edge-data.vertices = verts
 
-    
-    let snap-vertices = (edge-data.vertices.first(), edge-data.vertices.last())
-    if fletcher-ctx.pass == "final" {
-      // in the final pass, edge vertices are resolved in the xy system
-      // however, nodes in fletcher-ctx are resolved in the uv system
-      // during the layout pass
-      // we should convert to the same system for finding snapping nodes
-      snap-vertices = snap-vertices.map(vertex => {
-        utils.xy-to-uv(fletcher-ctx.flexigrid, vertex)
-      })
-    }
+
     let snapping-nodes = find-edge-snapping-nodes(
       edge-data.snap-to,
-      snap-vertices,
+      (verts.first(), verts.last()),
       fletcher-ctx.nodes,
     )
-
-    // apply flexigrid coordinates
-    if fletcher-ctx.pass == "final" {
-      // edge-data.vertices = edge-data.vertices.map(vertex => {
-      //   utils.uv-to-xy(fletcher-ctx.flexigrid, vertex)
-      // })
-
-      snapping-nodes = snapping-nodes.map(node => {
-        if node == none { return }
-        node.pos = get-node-origin(node, fletcher-ctx.flexigrid)
-        node
-      }) 
-    }
-
-    // edge-data.debug = get-debug(ctx, edge-data.debug)
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1
@@ -301,7 +272,7 @@
     }
 
     cetz.process.many(ctx, {
-      draw-edge-with-snapping(edge-data, snapping-nodes, debug: edge-data.debug)
+      draw-edge-with-snapping(edge-data, snapping-nodes)
     })
   },)
 
