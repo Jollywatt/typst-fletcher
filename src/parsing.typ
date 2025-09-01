@@ -183,9 +183,10 @@
 
 	// predicates to detect the kind of a positional argument
 	let is-coord(arg) = type(arg) in (array, dictionary, label) and not utils.is-cetz(arg) or arg == auto
-	let is-rel-coord(arg) = is-coord(arg) or (
+	let is-rel-coord-shorthand(arg) = {
 		type(arg) == str and arg.match(regex("^[utdblrnsew,]+$")) != none
-	)
+	}
+	let is-any-coord(arg) = is-coord(arg) or is-rel-coord-shorthand(arg)
 	let is-arrow-symbol(arg) = type(arg) == symbol and str(arg) in MARK_SYMBOL_ALIASES
 	let is-edge-flag(arg) = type(arg) == str and arg in EDGE_FLAGS
 	let is-label-side(arg) = type(arg) == alignment
@@ -226,7 +227,7 @@
 		coords.push(args.remove(0))
 		has-first-coord = true
 	}
-	while peek(args, is-rel-coord) {
+	while peek(args, is-any-coord) {
 		if type(args.at(0)) == str {
 			coords += args.remove(0).split(",")
 		} else {
@@ -238,27 +239,46 @@
 	// Allow marks argument to be in between two coordinates
 	// (<coord>, <marks>, <rel-coord>)
 	// (<marks>, <rel-coord>) => (auto, <marks>, <rel-coord>)
-	if not has-tail-coords and peek(args, maybe-marks, is-rel-coord) {
+	if not has-tail-coords and peek(args, maybe-marks, is-any-coord) {
 		new-options.marks = args.remove(0)
 		assert-not-set("marks", (), new-options.marks)
 
 		coords.push(args.remove(0))
 		has-tail-coords = true
 
-		if peek(args, is-rel-coord) {
+		if peek(args, is-any-coord) {
 			utils.error("Marks argument #0 must appear after edge vertices (or between them if there are only two).", repr(new-options.marks))
 		}
 	}
+
+	let interpret-coord-str(coord) = {
+		let (u, v) = (0, 0)
+		let dirs = (
+			"t": ( 0,+1), "n": ( 0,+1), "u": ( 0,+1),
+			"b": ( 0,-1), "s": ( 0,-1), "d": ( 0,-1),
+			"l": (-1, 0), "w": (-1, 0),
+			"r": (+1, 0), "e": (+1, 0),
+		)
+		for char in coord.clusters() {
+			let (du, dv) = dirs.at(char)
+			u += du
+			v += dv
+		}
+		return (rel: (u, v))
+	}
+
 	if coords.len() > 0 {
 		assert-not-set("vertices", (), ..coords)
 		if not has-first-coord { coords = (auto, ..coords) }
 		if not has-tail-coords { coords = (..coords, auto) }
 
-		// fletcher allows names as labels for disambiguating positional arguments
-		// but cetz names must be strings
 		new-options.vertices = coords.map(coord => {
+			// fletcher allows names as labels for disambiguating positional arguments
+			// but cetz names must be strings
 			if type(coord) == label { str(coord) }
-			else { coord }
+			else if is-rel-coord-shorthand(coord) {
+				interpret-coord-str(coord)
+			} else { coord }
 		})
 	} else {
 		new-options.vertices = (auto, auto)
