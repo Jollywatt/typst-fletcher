@@ -229,7 +229,7 @@
 	}
 	while peek(args, is-any-coord) {
 		if type(args.at(0)) == str {
-			coords += args.remove(0).split(",")
+			coords += args.remove(0).split(",").filter(a => a != "")
 		} else {
 			coords.push(args.remove(0))
 		}

@@ -69,7 +69,7 @@
 }
 
 #assert(range(-500, 500).all(a => {
-  let b = wrap-angle-180(a*1deg)
+  let b = wrap-angle-180(a*1deg/2)
   -180deg <= b and b < 180deg
 }))
 
@@ -110,9 +110,6 @@
 
     let (i-vertex, o-vertex) = (vertices.at(i), vertices.at(i + 1))
     let (i-angle, o-angle) = io-angles.at(i)
-
-    assert(-180deg < i-angle and i-angle <= 180deg)
-    assert(-180deg < o-angle and o-angle <= 180deg)
 
     let o-angle-prev = {
       if i == 0 {

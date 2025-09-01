@@ -36,7 +36,9 @@
   v-min: -2,
   v-max: +2,
   col-centers: (0, 20, 50, 100, 120, 150),
-  row-centers: (-5, -4, 0, +4, +5)
+  row-centers: (-5, -4, 0, +4, +5),
+  col-gutter: 1,
+  row-gutter: 3,
 )
 
 #for u in (..range(20), 10.2, 14.8, 15.5) {
