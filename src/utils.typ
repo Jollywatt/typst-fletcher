@@ -90,8 +90,8 @@
   let (u, v, ..) = uv
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   let (x, y) = (
-    interp(grid.col-centers, i, spacing: 1),
-    interp(grid.row-centers, j, spacing: 1),
+    interp(grid.col-centers, i, spacing: grid.col-gutter),
+    interp(grid.row-centers, j, spacing: grid.row-gutter),
   )
   return (x, y)
 }
@@ -99,8 +99,8 @@
 #let xy-to-uv(grid, xy) = {
   let (x, y, ..) = xy
   let (i, j) = (
-    interp-inv(grid.col-centers, x, spacing: 1),
-    interp-inv(grid.row-centers, y, spacing: 1),
+    interp-inv(grid.col-centers, x, spacing: grid.col-gutter),
+    interp-inv(grid.row-centers, y, spacing: grid.row-gutter),
   )
   let (u, v) = (grid.u-min + i, grid.v-min + j)
   return (u, v)
@@ -118,8 +118,8 @@
 #let interp-grid-cell(grid, (u, v)) = {
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   (
-    x: interp(grid.col-centers, i, spacing: 1),
-    y: interp(grid.row-centers, j, spacing: 1),
+    x: interp(grid.col-centers, i, spacing: grid.col-gutter),
+    y: interp(grid.row-centers, j, spacing: grid.row-gutter),
     w: interp(grid.col-sizes, i),
     h: interp(grid.row-sizes, j),
   )

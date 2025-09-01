@@ -26,6 +26,13 @@
   (u-min, u-max) = (calc.floor(u-min), calc.ceil(u-max))
   (v-min, v-max) = (calc.floor(v-min), calc.ceil(v-max))
 
+  // add extra zero-size padding rows/cols around content
+  // to make coordinate extrapolation beyond bounds correct
+  u-min -= 1
+  v-min -= 1
+  u-max += 1
+  v-max += 1
+
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
@@ -78,25 +85,28 @@
   return (
     col-centers: col-centers,
     row-centers: row-centers,
-    x-min: 0,
-    y-min: 0,
-    x-max: col-centers.at(-1) + col-sizes.at(-1)/2,
-    y-max: row-centers.at(-1) + row-sizes.at(-1)/2,
+    col-gutter: gutter,
+    row-gutter: gutter,
+    x-min: col-centers.at(1) - col-sizes.at(1)/2,
+    y-min: row-centers.at(1) - row-sizes.at(1)/2,
+    x-max: col-centers.at(-2) + col-sizes.at(-2)/2,
+    y-max: row-centers.at(-2) + row-sizes.at(-2)/2,
   )
 }
 
 #let draw-xy-grid(origin, flexigrid) = {
   let (x-min, x-max, y-min, y-max) = flexigrid
+  let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
   let coord-label(x) = text(blue, 0.8em, raw(str(x)))
-  cetz.draw.group({
-    cetz.draw.grid((x-min, y-min), (x-max, y-max), stroke: blue.transparentize(50%) + 0.5pt)
-    for x in range(calc.floor(x-min), calc.floor(x-max) + 1) {
-      cetz.draw.content((x, y-min), coord-label(x), anchor: "north", padding: .5em)
+  cetz.draw.floating(cetz.draw.group({
+    cetz.draw.grid((x-floor, y-floor), (x-max, y-max), stroke: blue.transparentize(50%) + 0.5pt)
+    for x in range(x-floor, calc.floor(x-max) + 1) {
+      cetz.draw.content((x, y-floor), coord-label(x), anchor: "north", padding: .5em)
     }
-    for y in range(calc.floor(y-min), calc.floor(y-max) + 1) {
-      cetz.draw.content((x-min, y), coord-label(y), anchor: "east", padding: .5em)
+    for y in range(y-floor, calc.floor(y-max) + 1) {
+      cetz.draw.content((x-floor, y), coord-label(y), anchor: "east", padding: .5em)
     }
-  })
+  }))
 }
 
 #let draw-flexigrid(grid, debug: true, tint: red) = {
@@ -107,28 +117,33 @@
   if not (draw-lines or draw-coords or draw-cells) { return }
 
   cetz.draw.floating({
-    cetz.draw.set-style(stroke: (paint: tint.transparentize(60%)))
+    cetz.draw.set-style(
+      stroke: (paint: tint.transparentize(60%)),
+      content: (padding: 4pt),
+    )
 
-    for (i, x) in grid.col-centers.enumerate() {
+    // skip the first/last zero-size padding rows/cols
+
+    for (i, x) in grid.col-centers.enumerate().slice(1,-1) {
       if draw-lines {
         cetz.draw.line((x, grid.y-min), (x, grid.y-max), stroke: (thickness: 0.5pt))
       }
       if draw-coords {
         let coord = i + grid.u-min
-        cetz.draw.content((x, -4pt), text(10pt, tint, raw(str(coord))), anchor: "north")
+        cetz.draw.content((x, grid.y-min), text(10pt, tint, raw(str(coord))), anchor: "north")
       }
       if draw-cells {
         let w = grid.col-sizes.at(i)
         cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: (thickness: 1pt))
       }
     }
-    for (j, y) in grid.row-centers.enumerate() {
+    for (j, y) in grid.row-centers.enumerate().slice(1,-1) {
       if draw-lines {
         cetz.draw.line((grid.x-min, y), (grid.x-max, y), stroke: (thickness: 0.5pt))
       }
       if draw-coords {
         let coord = j + grid.v-min
-        cetz.draw.content((-4pt, y), text(10pt, tint, raw(str(coord))), anchor: "east")
+        cetz.draw.content((grid.x-min, y), text(10pt, tint, raw(str(coord))), anchor: "east")
       }
       if draw-cells {
         let h = grid.row-sizes.at(j)
