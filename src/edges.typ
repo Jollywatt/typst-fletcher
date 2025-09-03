@@ -426,15 +426,19 @@
     marks: marks,
     snap-to: snap-to,
     outset: outset,
-    extrude: extrude,
+    name: name,
     stroke: stroke,
+    extrude: extrude,
     draw: draw,
   )
   
   options += parsing.interpret-edge-positional-args(args.pos(), options)
   options += interpret-marks-arg(options.marks)
 
-  let stroke = (dash: options.at("dash", default: auto)) + utils.stroke-to-dict(options.stroke)
+  let stroke = { // fold strokes
+    (dash: options.at("dash", default: auto))
+    utils.stroke-to-dict(options.stroke)
+  }
 
   options += determine-edge-kind(args, options)
 
@@ -447,7 +451,7 @@
       extrude: options.extrude,
     ),
     snap-to: options.snap-to,
-    name: if name != none { str(name) },
+    name: if name != none { str(options.name) },
     draw: options.draw,
     debug: debug,
   )
