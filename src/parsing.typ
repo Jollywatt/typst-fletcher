@@ -163,6 +163,12 @@
 }
 
 
+#let peek(x, ..predicates, end: false) = {
+	let preds = predicates.pos()
+	if end and x.len() != predicates.len() { return false }
+	x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
+}
+
 
 /// Interpret the positional arguments given to an `edge()`
 ///
@@ -193,11 +199,6 @@
 
 	let maybe-marks(arg) = type(arg) == str and not is-edge-flag(arg) or is-arrow-symbol(arg)
 	let maybe-label(arg) = type(arg) != str and not is-arrow-symbol(arg) and not is-coord(arg)
-
-	let peek(x, ..predicates) = {
-		let preds = predicates.pos()
-		x.len() >= preds.len() and x.zip(preds).all(((arg, pred)) => pred(arg))
-	}
 
 	let assert-not-set(key, default, ..value) = {
 		if key not in options { return }
@@ -332,4 +333,37 @@
 	}
 
 	new-options
+}
+
+#let interpret-node-positional-args(args, options) = {
+
+	let is-any(x) = true
+	let is-label(x) = type(x) == label
+	let maybe-body(x) = type(x) == content
+	let maybe-position(x) = not is-label(x) and not maybe-body(x)
+
+	// node(<position>, ..) unless an enclose node
+	if options.enclose == none {
+		if peek(args, maybe-position) {
+			options.position = args.remove(0)
+		}
+	} else {
+		// enclose nodes may have no position
+		options.position = auto
+	}
+
+	if args.len() == 0 {
+		// no more positional arguments
+	} else if peek(args, is-label) {
+		options.name = args.remove(0)
+	} else if peek(args, is-any, is-label) {
+		options.body = args.remove(0)
+		options.name = args.remove(0)
+	} else if peek(args, is-any) {
+		options.body = args.remove(0)
+	} else {
+		utils.error("invalid positional arguments in node: #..0", args)
+	}
+
+	return options
 }
