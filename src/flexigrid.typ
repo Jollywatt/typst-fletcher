@@ -134,7 +134,7 @@
       }
       if draw-cells {
         let w = grid.col-sizes.at(i)
-        cetz.draw.line((x - w/2, 0), (x + w/2, 0), stroke: (thickness: 1pt))
+        cetz.draw.line((x - w/2, grid.y-min), (x + w/2, grid.y-min), stroke: (thickness: 1pt))
       }
     }
     for (j, y) in grid.row-centers.enumerate().slice(1,-1) {
@@ -147,13 +147,13 @@
       }
       if draw-cells {
         let h = grid.row-sizes.at(j)
-        cetz.draw.line((0, y - h/2), (0, y + h/2), stroke: (thickness: 1pt))
+        cetz.draw.line((grid.x-min, y - h/2), (grid.x-min, y + h/2), stroke: (thickness: 1pt))
       }
     }
 
     if draw-cells {
-      for (i, x) in grid.col-centers.enumerate() {
-        for (j, y) in grid.row-centers.enumerate() {
+      for (i, x) in grid.col-centers.enumerate().slice(1, -1) {
+        for (j, y) in grid.row-centers.enumerate().slice(1, -1) {
           let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
           cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: tint.transparentize(80%) + 0.5pt)
         }
