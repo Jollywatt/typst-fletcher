@@ -165,7 +165,7 @@
 
 /// A row/column specifier can be
 /// - `auto`, meaning all row/columns are automatically sized
-/// - a number of length, specifying the size
+/// - a number or length, specifying the size
 /// - an array of the above, specifying each row/column individually
 /// - a function taking the index and returning a size, `none` or `auto`
 #let interpret-rowcol-spec(input) = {

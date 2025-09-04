@@ -177,8 +177,13 @@
   },)
 }
 
+/// Place a _node_ in a diagram or CeTZ canvas.
+/// 
+/// Nodes are content which #link(<edges>)[edges] can snap to.
+/// Nodes can have various shapes (rect, circle), styles (fill, stroke).
 #let node(
   ..args,
+  /// Content to draw in the node. -> content
   body: none,
   shape: shapes.rect,
   name: none,

@@ -15,8 +15,19 @@
   )
 }
 
+#show link: it => {
+  set text(blue.darken(50%), font: "CMU Bright")
+  strong(it)
+}
+
 = Manual
+
+
+== Edges <edges>
+
+= Reference
 
 #module-docs("/src/nodes.typ")
 #module-docs("/src/edges.typ")
+#module-docs("/src/flexigrid.typ")
 #module-docs("/src/paths.typ")
