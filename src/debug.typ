@@ -68,12 +68,11 @@
 
   if type(debug) == array { return debug.any(d => debug-level(d, option, levels: levels)) }
 
-
   utils.error("invalid debug option: #0", repr(debug))
 }
 
-#let debug-draw(debug, level, body) = {
-  if not debug-level(debug, level) { return }
-  cetz.draw.floating(cetz.draw.group(cetz.draw.on-layer(100, body)))
+#let debug-group(body, layer: none) = {
+  if layer != none { body = cetz.draw.on-layer(layer, body) }
+  cetz.draw.floating(cetz.draw.group(body))
 }
 

@@ -1,6 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level
+#import "debug.typ": debug-level, debug-group
 
 /// From an array of rectangles, each of the form
 /// `(pos: array, size: array, weight: number)`,
@@ -98,7 +98,7 @@
   let (x-min, x-max, y-min, y-max) = flexigrid
   let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
   let coord-label(x) = text(blue, 0.8em, raw(str(x)))
-  cetz.draw.floating(cetz.draw.group({
+  debug-group({
     cetz.draw.grid((x-floor, y-floor), (x-max, y-max), stroke: blue.transparentize(50%) + 0.5pt)
     for x in range(x-floor, calc.floor(x-max) + 1) {
       cetz.draw.content((x, y-floor), coord-label(x), anchor: "north", padding: .5em)
@@ -106,7 +106,7 @@
     for y in range(y-floor, calc.floor(y-max) + 1) {
       cetz.draw.content((x-floor, y), coord-label(y), anchor: "east", padding: .5em)
     }
-  }))
+  })
 }
 
 #let draw-flexigrid(grid, debug: true, tint: red) = {
@@ -116,7 +116,7 @@
 
   if not (draw-lines or draw-coords or draw-cells) { return }
 
-  cetz.draw.floating({
+  debug-group({
     cetz.draw.set-style(
       stroke: (paint: tint.transparentize(60%)),
       content: (padding: 4pt),
@@ -316,17 +316,13 @@
       return (ctx: ctx)
     },)
 
-
     objects
 
-    // if debug-level(debug, "grid") {
-    cetz.draw.group(draw-flexigrid(grid, debug: debug))
-    // }
-
+    // draw help lines and flexigrid cells
+    draw-flexigrid(grid, debug: debug)
     if debug-level(debug, "grid.xy") {
       draw-xy-grid(origin, grid)
     }
-
 
     // destroy flexigrid context (use group?)
     (ctx => {

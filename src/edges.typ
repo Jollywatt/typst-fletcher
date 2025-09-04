@@ -4,7 +4,7 @@
 #import "parsing.typ"
 #import "paths.typ"
 #import "nodes.typ" as Nodes
-#import "debug.typ": debug-level, debug-draw, get-debug
+#import "debug.typ": debug-level, debug-group, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
   marks: (),
@@ -131,15 +131,17 @@
     edge.vertices.last() = tgt-snapped
     draw-edge(ctx, edge)
 
-    debug-draw(edge.debug, "edge.snap", {
-      cetz.draw.group({
-        cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
-        src-test-path
-        tgt-test-path
+    if debug-level(edge.debug, "edge.snap") {
+      debug-group({
+        cetz.draw.group({
+          cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
+          src-test-path
+          tgt-test-path
+        })
+        cetz.draw.circle(src-snapped, radius: 1pt, fill: green, stroke: none)
+        cetz.draw.circle(tgt-snapped, radius: 1pt, fill: red, stroke: none)
       })
-      cetz.draw.circle(src-snapped, radius: 1pt, fill: green, stroke: none)
-      cetz.draw.circle(tgt-snapped, radius: 1pt, fill: red, stroke: none)
-    })
+    }
   })
 
   (ctx => {
@@ -181,7 +183,7 @@
       })
 
     if debug-level(edge.debug, "edge.snap") {
-      snapping-outlines.join()
+      debug-group(snapping-outlines.join())
     }
 
     draw-edge-with-intersection-snapping(

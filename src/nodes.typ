@@ -1,6 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level, debug-draw, get-debug
+#import "debug.typ": debug-level, debug-group, get-debug
 #import "shapes.typ"
 #import "parsing.typ"
 
@@ -54,22 +54,24 @@
     return group + (anchors: calc-anchors)
   },)
 
-  debug-draw(debug, "node", {
-    cetz.draw.translate(origin)
-    cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
-    let (w, h) = node.size
-    if debug-level(debug, "node.stroke") {
-      cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
-    }
-    if debug-level(debug, "node.outset") {
-      let o = node.style.outset
-      cetz.draw.rect(
-        (rel: (-o, -o), to: (-w/2,-h/2)),
-        (rel: (+o, +o), to: (+w/2,+h/2)),
-        stroke: (paint: red, thickness: 0.25pt, dash: "densely-dotted"),
-      )
-    }
-  })
+  if debug-level(debug, "node") {
+    debug-group({
+      cetz.draw.translate(origin)
+      cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+      let (w, h) = node.size
+      if debug-level(debug, "node.stroke") {
+        cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
+      }
+      if debug-level(debug, "node.outset") {
+        let o = node.style.outset
+        cetz.draw.rect(
+          (rel: (-o, -o), to: (-w/2,-h/2)),
+          (rel: (+o, +o), to: (+w/2,+h/2)),
+          stroke: (paint: red, thickness: 0.25pt, dash: "densely-dotted"),
+        )
+      }
+    })
+  }
 
 }
 
