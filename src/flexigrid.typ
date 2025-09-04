@@ -186,6 +186,8 @@
 }
 
 
+// Place a node with a uv position in a flexigrid
+// taking into account node alignment within cells
 #let get-node-origin(node, grid) = {
   let cell = utils.interp-grid-cell(grid, node.pos)
   let (w, h) = node.size
@@ -199,6 +201,29 @@
   return (cell.x + x-shift, cell.y + y-shift)
 }
 
+#let place-node-in-grid(node, grid) = {
+  if node.enclose != none {
+    // enclose node
+    let points = node.enclose.map(uv => {
+     let (x, y, w, h) = utils.interp-grid-cell(grid, uv)
+     (
+      (x - w/2, y - h/2, 0.),
+      (x - w/2, y + h/2, 0.),
+      (x + w/2, y - h/2, 0.),
+      (x + w/2, y + h/2, 0.),
+     )
+    }).join()
+    
+    let (low, high) = cetz.process.aabb.aabb(points)
+
+    node.pos = cetz.vector.scale(cetz.vector.add(low, high), 0.5)
+    node.size = cetz.vector.sub(high, low).slice(0, 2)
+  } else {
+    assert.ne(node.pos, auto)
+    node.pos = get-node-origin(node, grid)
+  }
+  node
+}
 
 #let with-coordinate-resolver(ctx, resolver) = {
   if type(ctx.resolve-coordinate) == array {
@@ -270,14 +295,12 @@
       return c
     }
 
-    let (_, ..node-coords) = cetz.coordinate.resolve(with-coordinate-resolver(ctx, uv-resolver),
-      ..nodes.map(n => utils.interpret-as-uv(n.pos)))
+    // let (_, ..node-coords) = cetz.coordinate.resolve(
+    //   with-coordinate-resolver(ctx, uv-resolver),
+    //   ..nodes.map(n => utils.interpret-as-uv(n.pos)),
+    // )
 
-    nodes = nodes.zip(node-coords).map(((node, c)) => {
-      node.pos = utils.xy-to-uv(grid, c)
-      node.pos = get-node-origin(node, grid)
-      node
-    })
+    nodes = nodes.map(node => place-node-in-grid(node, grid))
 
     // provide extra context used by objects
     (ctx => {
