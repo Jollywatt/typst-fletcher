@@ -2,6 +2,7 @@
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-draw, get-debug
 #import "shapes.typ"
+#import "parsing.typ"
 
 #let DEFAULT_NODE_STYLE = (
   stroke: none,
@@ -75,16 +76,21 @@
 
 
 #let _node(
-  pos,
-  body: none,
-  style: (:),
-  shape: shapes.rect,
-  name: none,
-  align: center + horizon,
-  weight: 1,
-  snap: true,
+  ..options,
   debug: auto,
 ) = {
+
+  let (
+    position,
+    body,
+    shape,
+    style,
+    align,
+    name,
+    weight,
+    enclose,
+    snap,
+  ) = options.named()
 
   (ctx => {
 
@@ -122,7 +128,7 @@
 
     let node-data = (
       class: "node",
-      pos: pos,
+      pos: position,
       body: body,
       shape: shape,
       style: style,
@@ -130,16 +136,27 @@
       size: (w, h),
       align: align,
       weight: weight,
+      enclose: enclose,
       snap: snap,
       debug: get-debug(ctx, debug),
     )
 
+    if node-data.pos == auto and node-data.enclose != none {
+      // resolve enclose nodes without flexigrid
+      // should still support engulfing other nodes
+      // but not stuff requiring row/col knowledge
+      // let spanning-points = node-data.enclose.map(fle)
+      node-data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..node-data.enclose,)
+    }
+
     if fletcher-ctx.pass == "final" {
       // node position was calculated by flexigrid
       // copy that position to actual node
-      node-data.pos = fletcher-ctx.nodes.at(fletcher-ctx.current.node).pos
+      let self = fletcher-ctx.nodes.at(fletcher-ctx.current.node)
+      node-data.pos = self.pos
+      node-data.size = self.size
     } else {
-
+      // resolve position
       let (ctx, origin) = cetz.coordinate.resolve(ctx, node-data.pos)
       node-data.pos = origin.slice(0, 2)
     }
@@ -159,49 +176,37 @@
 }
 
 #let node(
-  position,
   ..args,
+  body: none,
   shape: shapes.rect,
   name: none,
   align: center + horizon,
   weight: 1,
+  enclose: none,
   snap: true,
   debug: auto,
 ) = {
   // validate arguments
   let pos = args.pos()
 
-  let body
-  let positional-name
-  if pos.len() > 2 {
-    utils.error("invalid positional arguments in node: #..0", args.pos().slice(2))
-  } else if pos.len() == 2 {
-    (body, positional-name) = pos 
-  } else if pos.len() == 1 {
-    if type(pos.first()) == label { positional-name = pos.first() }
-    else { body = pos.first() }
-  }
-
-  if positional-name != none {
-    if name != none {
-      utils.error("node name specified twice: #0 and `name: #1`", positional-name, repr(name))
-    }
-    name = positional-name
-  }
-
-  let body = args.pos().at(0, default: none)
-
-  let style = args.named() // todo: validate
-
-  _node(
-    position,
+  let options = (
     body: body,
-    style: style,
     shape: shape,
+    name: name,
     align: align,
     weight: weight,
+    enclose: enclose,
     snap: snap,
-    name: if name != none { str(name) },
+  )
+
+  options += parsing.interpret-node-positional-args(pos, options)
+
+  if options.name != none { options.name = str(options.name) }
+
+  options.style = args.named() // todo: validate
+
+  _node(
+    ..options,
     debug: debug,
   )
 
