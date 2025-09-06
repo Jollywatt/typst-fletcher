@@ -56,26 +56,38 @@
 }
 
 
-/// -> (node, node)
-#let find-edge-snapping-nodes(snap-to, (src, tgt), nodes) = {
-  snap-to
-    .zip((src, tgt))
-    .map(((snap-to, vertex)) => {
-      if type(snap-to) == str { // snap to by name
-        let node = nodes.find(n => n.name == snap-to)
-        if node == none { utils.error("couldn't find name #0", snap-to) }
-        return node
-      }
-      if snap-to == auto { snap-to = vertex }
-      let dist(node) = cetz.vector.dist(node.pos, vertex)
-      
-      return nodes
-        .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
-        .sorted(key: dist)
-        .at(0, default: none)
-    })
-}
+/// Find a node that the end of an edge should snap to.
+/// -> none | node
+#let find-snapping-node(
+  /// Array of nodes (dictionaries with `class: "node"`) -> array
+  nodes,
+  /// The snapping key. This can be `none` to disable snapping,
+  /// a node name (`str` or `label`), or a coordinate for finding
+  /// nearby nodes.
+  /// -> auto | none | coord | str | label
+  snap-to,
+  /// Nearby nodes are found by their proximity to this coordinate.
+  position,
+) = {
 
+  // snapping disabled
+  if snap-to == none { return }
+
+  // snap to node by name
+  if type(snap-to) == str {
+    let node = nodes.find(n => n.name == snap-to)
+    if node == none { utils.error("couldn't find name #0", snap-to) }
+    return node
+  }
+
+  // snap to node by proximity
+  if snap-to == auto { snap-to = position }
+  let dist(node) = cetz.vector.dist(node.pos, position)
+  return nodes
+    .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
+    .sorted(key: dist)
+    .at(0, default: none)
+}
 
 #let draw-node-snapping-outline(node, outset) = {
   let node = node
@@ -167,6 +179,7 @@
       .map(((key, outset)) => {
         if key == none { return }
         if type(key) == str {
+          panic(key)
           if key not in ctx.nodes { utils.error("couldn't find name #0", key) }
           let drawables = ctx.nodes.at(key).drawables
           return (ctx => (ctx: ctx, drawables: drawables),)
@@ -185,6 +198,10 @@
     if debug-level(edge.debug, "edge.snap") {
       debug-group(snapping-outlines.join())
     }
+
+    let edge = edge
+    let (src, .., tgt) = edge.vertices
+    // edge.vertices.first() = cetz.vector.add(src, (2,0))
 
     draw-edge-with-intersection-snapping(
       ctx,
@@ -219,7 +236,7 @@
       class: "edge",
       vertices: vertices,
       style: style,
-      snap-to: snap-to,
+      snap-to: utils.as-pair(snap-to),
       name: name,
       draw: draw,
       debug: get-debug(ctx, debug),
@@ -254,12 +271,11 @@
     let (_, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
     edge-data.vertices = verts
 
-
-    let snapping-nodes = find-edge-snapping-nodes(
-      edge-data.snap-to,
-      (verts.first(), verts.last()),
-      fletcher-ctx.nodes,
-    )
+    let snapping-nodes = edge-data.snap-to
+      .zip((verts.first(), verts.last()))
+      .map(((snap-to, position)) => {
+        find-snapping-node(fletcher-ctx.nodes, snap-to, position)
+      })
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1
