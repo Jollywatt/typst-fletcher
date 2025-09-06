@@ -148,7 +148,11 @@
       // should still support engulfing other nodes
       // but not stuff requiring row/col knowledge
       // let spanning-points = node-data.enclose.map(fle)
-      node-data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..node-data.enclose,)
+      if node-data.enclose.len() == 1 {
+        node-data.pos = node-data.enclose.first()
+      } else {
+        node-data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..node-data.enclose,)
+      }
     }
 
     if fletcher-ctx.pass == "final" {
