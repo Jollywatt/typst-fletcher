@@ -89,6 +89,14 @@
     .at(0, default: none)
 }
 
+
+#let get-snapping-node-anchor(node, vertex) = {
+  if node.enclose != none {
+    // panic(node, vertex)
+  }
+  vertex
+}
+
 #let draw-node-snapping-outline(node, outset) = {
   let node = node
   if outset == auto { outset = node.style.outset }
@@ -258,24 +266,34 @@
         last = (fletcher-ctx.nodes.at(i).pos)
       }
     }
+    
     // give reasonable defaults rather than panic
     if first == auto { first = () }
     if last == auto { last = (rel: (1, 0)) }
     edge-data.vertices.first() = first
     edge-data.vertices.last() = last
 
-    
-
     // discard ctx because we do not want to update ctx.prev.pt
     // edge vertices should never affect nodes with relative positions
-    let (_, ..verts) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
-    edge-data.vertices = verts
+    let (_, first, ..mid-vertices, last) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
+    edge-data.vertices = (first, ..mid-vertices, last)
 
-    let snapping-nodes = edge-data.snap-to
-      .zip((verts.first(), verts.last()))
+    // find nodes to snap to
+    let snapping-nodes = edge-data.snap-to.zip((first, last))
       .map(((snap-to, position)) => {
         find-snapping-node(fletcher-ctx.nodes, snap-to, position)
       })
+
+    // get anchors for edges snapping to node
+    // this is where we can apply "defocus" adjustments (TODO)
+    // and find the best part of an enclose node to snap to
+    (first, last) = snapping-nodes.zip((first, last))
+      .map(((node, vertex)) => {
+        if node == none { return vertex }
+        get-snapping-node-anchor(node, vertex)
+      })
+    edge-data.vertices = (first, ..mid-vertices, last)
+    
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1

@@ -7,7 +7,7 @@
 /// calculate the sizes of flexigrid cells.
 /// 
 /// Rectangle positions can be fractional.
-#let cell-sizes-from-rects(rects) = {
+#let cell-sizes-from-rects(rects, gutter) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
@@ -64,33 +64,33 @@
     v-max: v-max,
     col-sizes: col-sizes,
     row-sizes: row-sizes,
+    col-gutter: gutter,
+    row-gutter: gutter,
   )
 }
 
-#let cell-centers-from-sizes((col-sizes, row-sizes), gutter: 0) = {
+#let cell-centers-from-sizes(grid) = {
   let col-centers = ()
   let row-centers = ()
 
   let x = 0
-  for (i, col) in col-sizes.enumerate() {
+  for (i, col) in grid.col-sizes.enumerate() {
     x += col
-    col-centers.push(x - col/2 + i*gutter)
+    col-centers.push(x - col/2 + i*grid.col-gutter)
   }
   let y = 0
-  for (i, row) in row-sizes.enumerate() {
+  for (i, row) in grid.row-sizes.enumerate() {
     y += row
-    row-centers.push(y - row/2 + i*gutter)
+    row-centers.push(y - row/2 + i*grid.row-gutter)
   }
 
   return (
     col-centers: col-centers,
     row-centers: row-centers,
-    col-gutter: gutter,
-    row-gutter: gutter,
-    x-min: col-centers.at(1) - col-sizes.at(1)/2,
-    y-min: row-centers.at(1) - row-sizes.at(1)/2,
-    x-max: col-centers.at(-2) + col-sizes.at(-2)/2,
-    y-max: row-centers.at(-2) + row-sizes.at(-2)/2,
+    x-min: col-centers.at(1) - grid.col-sizes.at(1)/2,
+    y-min: row-centers.at(1) - grid.row-sizes.at(1)/2,
+    x-max: col-centers.at(-2) + grid.col-sizes.at(-2)/2,
+    y-max: row-centers.at(-2) + grid.row-sizes.at(-2)/2,
   )
 }
 
@@ -276,10 +276,10 @@
     let (nodes, edges) = layout-pass.ctx.shared-state.fletcher
 
     // compute grid cell sizes and positions
-    let grid = cell-sizes-from-rects(nodes)
+    let grid = cell-sizes-from-rects(nodes, gutter)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
-    grid += cell-centers-from-sizes(grid, gutter: gutter)
+    grid += cell-centers-from-sizes(grid)
 
     let uv-resolver(ctx, c) = {
       if type(c) == dictionary {
