@@ -7,7 +7,7 @@ platforms = ["osx-arm64", "linux-64"]
 [tasks]
 readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
-test = "tt run"
+test = "scripts/test-and-sign.nu"
 fix = "tt update"
 manual = "typst watch --root . docs/manual.typ"
 install = "scripts/install.nu"
