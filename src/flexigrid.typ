@@ -2,6 +2,21 @@
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-group
 
+/// Calculate the appropriate sizes `w0` and `w1` of adjacent cells
+/// when placing a node of width `W` at position `0 <= t <= 1 ` with
+/// cell gutter `g`.
+/// https://jollywatt.github.io/flexigrid
+#let cell-sizer(W, w0, w1, t, g) = {
+  if t == 0 { return (W, 0) }
+  let x0 = -t/2*calc.max(
+    (2*g + w1 + w0),
+    (2*g + w1 + W)/(1 + t),
+    (2*g + W + w0)/(2 - t),
+    (2*g + 2*W)/2,
+  )
+  return (2*x0 + W, W - 2*(t - 1)/t*x0)
+}
+
 /// From an array of rectangles, each of the form
 /// `(pos: array, size: array, weight: number)`,
 /// calculate the sizes of flexigrid cells.
@@ -46,15 +61,15 @@
     w *= node.weight
     h *= node.weight
 
-    col-sizes.at(i-floor) = calc.max(col-sizes.at(i-floor), w*(1 - i-fract))
-    if i-floor + 1 < n-cols {
-      col-sizes.at(i-floor + 1) = calc.max(col-sizes.at(i-floor + 1), w*i-fract)
-    }
+    let (w0, w1) = (col-sizes.at(i-floor), col-sizes.at(i-floor + 1))
+    let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, gutter)
+    col-sizes.at(i-floor) = calc.max(w0, w0new)
+    col-sizes.at(i-floor + 1) = calc.max(w1, w1new)
 
-    row-sizes.at(j-floor) = calc.max(row-sizes.at(j-floor), h*(1 - j-fract))
-    if j-floor + 1 < n-rows {
-      row-sizes.at(j-floor + 1) = calc.max(row-sizes.at(j-floor + 1), h*j-fract)
-    }
+    let (h0, h1) = (row-sizes.at(j-floor), row-sizes.at(j-floor + 1))
+    let (h0new, h1new) = cell-sizer(h, h0, h1, j-fract, gutter)
+    row-sizes.at(j-floor) = calc.max(h0, h0new)
+    row-sizes.at(j-floor + 1) = calc.max(h1, h1new)
   }
 
   return (
