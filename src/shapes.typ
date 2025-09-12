@@ -4,8 +4,10 @@
 
 
 
-#let rect(node, extrude) = {
+#let rect(node, extrude, width: auto, height: auto) = {
   let (w, h) = node.size
+  if width != auto { w = width }
+  if height != auto { h = height }
   let (x, y) = (w/2 + extrude, h/2 + extrude)
   draw.rect((-x, -y), (x, y))
   node.body

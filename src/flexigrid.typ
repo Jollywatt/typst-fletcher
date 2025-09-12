@@ -252,6 +252,7 @@
 
 #let flexigrid(
   objects,
+  ..args,
   gutter: 1,
   origin: (0,0),
   columns: auto,
@@ -262,7 +263,7 @@
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
 
-  objects = utils.as-array(objects)
+  objects = utils.as-array(objects) + args.pos().join()
   gutter = utils.as-pair(gutter)
 
   cetz.draw.get-ctx(ctx => {
