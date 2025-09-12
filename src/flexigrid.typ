@@ -8,13 +8,13 @@
 /// https://jollywatt.github.io/flexigrid
 #let cell-sizer(W, w0, w1, t, g) = {
   if t == 0 { return (W, 0) }
-  let x0 = -t/2*calc.max(
+  let x0 = -t*calc.max(
     (2*g + w1 + w0),
     (2*g + w1 + W)/(1 + t),
     (2*g + W + w0)/(2 - t),
     (2*g + 2*W)/2,
   )
-  return (2*x0 + W, W - 2*(t - 1)/t*x0)
+  return (x0 + W, W - (t - 1)/t*x0)
 }
 
 /// From an array of rectangles, each of the form
@@ -22,7 +22,7 @@
 /// calculate the sizes of flexigrid cells.
 /// 
 /// Rectangle positions can be fractional.
-#let cell-sizes-from-rects(rects, gutter) = {
+#let cell-sizes-from-rects(rects, (col-gutter, row-gutter)) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
@@ -62,12 +62,12 @@
     h *= node.weight
 
     let (w0, w1) = (col-sizes.at(i-floor), col-sizes.at(i-floor + 1))
-    let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, gutter)
+    let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, col-gutter)
     col-sizes.at(i-floor) = calc.max(w0, w0new)
     col-sizes.at(i-floor + 1) = calc.max(w1, w1new)
 
     let (h0, h1) = (row-sizes.at(j-floor), row-sizes.at(j-floor + 1))
-    let (h0new, h1new) = cell-sizer(h, h0, h1, j-fract, gutter)
+    let (h0new, h1new) = cell-sizer(h, h0, h1, j-fract, row-gutter)
     row-sizes.at(j-floor) = calc.max(h0, h0new)
     row-sizes.at(j-floor + 1) = calc.max(h1, h1new)
   }
@@ -79,8 +79,8 @@
     v-max: v-max,
     col-sizes: col-sizes,
     row-sizes: row-sizes,
-    col-gutter: gutter,
-    row-gutter: gutter,
+    col-gutter: col-gutter,
+    row-gutter: row-gutter,
   )
 }
 
@@ -263,10 +263,11 @@
   let row-spec = interpret-rowcol-spec(rows)
 
   objects = utils.as-array(objects)
+  gutter = utils.as-pair(gutter)
 
   cetz.draw.get-ctx(ctx => {
 
-    let gutter = cetz.util.resolve-number(ctx, gutter)
+    let gutter = gutter.map(g => cetz.util.resolve-number(ctx, g))
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     // cetz.draw.translate(origin) // todo
 
