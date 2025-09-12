@@ -82,19 +82,18 @@
   debug: auto,
 ) = {
 
-  let (
-    position,
-    body,
-    shape,
-    style,
-    align,
-    name,
-    weight,
-    enclose,
-    snap,
-  ) = options.named()
-
   (ctx => {
+    let (
+      position,
+      body,
+      shape,
+      style,
+      align,
+      name,
+      weight,
+      enclose,
+      snap,
+    ) = options.named()
 
     if "fletcher" not in ctx.shared-state {
       ctx.shared-state.fletcher = (
@@ -113,20 +112,37 @@
       root: "node",
     ).node
 
-    let (body, shape) = (body, shape)
-    let (w, h) = (0, 0)
-    if utils.is-cetz(body) {
-      let (low, high) = cetz.process.many(ctx, body).bounds
-      (w, h, ..) = cetz.vector.sub(high, low)
-      shape = (node, extrude) => body
-      body = none
-    } else if body != none {
+    // ensure body is a cetz drawable
+    if not utils.is-cetz(body) {
+      // let inset = cetz.util.resolve-number(ctx, style.inset)
       body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
-      (w, h) = cetz.util.measure(ctx, body)
-      let inset = cetz.util.resolve-number(ctx, style.inset)
-      w += 2*inset
-      h += 2*inset
+      body = box(inset: style.inset, body)
+      body = cetz.draw.content((0,0), body)
     }
+
+    // measure node label
+    let body-size = {
+      let (low, high) = cetz.process.many(ctx, body).bounds
+      let (w, h, ..) = cetz.vector.sub(high, low)
+      (w, h)
+    }
+
+    // measure node shape
+    let node-size = {
+      if shape == none {
+        shape = (node, extrude) => body
+        body-size
+      } else {
+        let drawn = shape((
+          size: body-size,
+          body: body
+        ), 0)
+        let (low, high) = cetz.process.many(ctx, drawn).bounds
+        let (w, h, ..) = cetz.vector.sub(high, low)
+        (w, h)
+      }
+    }
+  
 
     let node-data = (
       class: "node",
@@ -135,7 +151,7 @@
       shape: shape,
       style: style,
       name: name,
-      size: (w, h),
+      size: node-size,
       align: align,
       weight: weight,
       enclose: enclose,
@@ -181,6 +197,61 @@
   },)
 }
 
+#let determine-node-shape(args, options) = {
+
+  if utils.is-cetz(options.body) {
+    return (shape: none)
+  }
+
+  let named = args.named()
+  let named-arg-suggestion = none
+
+  for (kind, spec) in shapes.NODE_SHAPES {
+    let args = spec.named-args
+    if args.all(n => n in named) {
+      let shape-args = (:)
+      for arg in args { shape-args.insert(arg, named.remove(arg)) }
+
+      if options.shape != auto {
+        utils.error({
+          "node option `shape` must be `auto` when used with "
+          args.map(repr).join(", ")
+        })
+      }
+      
+      options.shape = dictionary(shapes).at(kind).with(..shape-args)
+      
+      break
+
+    } else if args.any(n => n in named) {
+      named-arg-suggestion = (kind: kind, args: args)
+    }
+  }
+
+
+  // any left over named arguments are unrecognised
+  if named.len() > 0 {
+    let hint = if named-arg-suggestion != none {
+      " For "
+      named-arg-suggestion.kind
+      " nodes, also specify "
+      named-arg-suggestion.args
+        .filter(n => n not in named)
+        .map(repr).join(", ", last: " and ")
+      "."
+    }
+		utils.error("Unknown node arguments #..0." + hint, args.named().keys())
+	}
+
+  if options.shape == auto {
+    options.shape = shapes.rect
+  }
+
+  return (shape: options.shape)
+  
+}
+
+
 /// Place a _node_ in a diagram or CeTZ canvas.
 /// 
 /// Nodes are content which #link(<edges>)[edges] can snap to.
@@ -189,7 +260,14 @@
   ..args,
   /// Content to draw in the node. -> content
   body: none,
-  shape: shapes.rect,
+  shape: auto,
+
+  // style arguments
+  fill: auto,
+  stroke: auto,
+  inset: auto,
+
+
   name: none,
   align: center + horizon,
   weight: 1,
@@ -208,13 +286,20 @@
     weight: weight,
     enclose: enclose,
     snap: snap,
+    style: {
+      (:)
+      if stroke != auto { (stroke: stroke) }
+      if fill != auto { (fill: fill) }
+      if inset != auto { (inset: inset) }
+    }
   )
 
   options += parsing.interpret-node-positional-args(pos, options)
+  options += determine-node-shape(args, options)
 
   if options.name != none { options.name = str(options.name) }
 
-  options.style = args.named() // todo: validate
+  // options.style = args.named() // todo: validate
 
   _node(
     ..options,
