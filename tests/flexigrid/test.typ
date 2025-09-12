@@ -27,3 +27,19 @@
 
   ...should fit between all cells above without touching.
 ]
+
+#page[
+  Cell size interpolation
+  #let N = 10
+  #let figs = range(N + 1).map(t => {
+    let u = t/N
+    diagram(debug: "grid.cells", {
+      import cetz.draw: *
+      set-style(node: (fill: yellow))
+      node((0,0), [Hello\ World])
+      node((1,0), [!])
+      node((u,0), stroke: 1pt, fill: white)[Flexigrids]
+    })
+  })
+  #stack(dir: ttb, spacing: 5mm, ..figs)
+]
