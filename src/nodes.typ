@@ -19,12 +19,13 @@
     cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
 
-      let style = cetz.styles.resolve(
-        ctx.style,
-        base: DEFAULT_NODE_STYLE,
-        merge: (node: node.style),
-        root: "node",
-      ).node
+      // let style = cetz.styles.resolve(
+      //   ctx.style,
+      //   base: DEFAULT_NODE_STYLE,
+      //   merge: (node: node.style),
+      //   root: "node",
+      // ).node
+      let style = node.style
 
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
       let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
@@ -104,13 +105,46 @@
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 
+    // resolve node shape and styles
+    if shape == auto { shape = "rect" } // TODO
 
     let style = cetz.styles.resolve(
-      ctx.style,
-      base: DEFAULT_NODE_STYLE,
-      merge: (node: style),
-      root: "node",
-    ).node
+      ctx.style.at("node", default: (:)),
+      base: (
+        ..DEFAULT_NODE_STYLE,
+        (shape): (      
+          fill: auto,
+          stroke: auto,
+          inset: auto,
+          extrude: auto,
+        ),
+      ),
+      // merge: style.pairs().filter(((k,v)) => v != auto).to-dict(),
+      merge: ((shape): style),
+      // root: "node",
+    ).at(shape)
+
+
+    // TODO: move NODE_SHAPES to ctx
+    if shape not in shapes.NODE_SHAPES {
+      utils.error(
+        "unknown node shape #0. Try: #..1", repr(shape), shapes.NODE_SHAPES.keys()
+      )
+    }
+
+    if shape in style {
+      // style += style.at(shape)
+    }
+
+    let shape-spec = shapes.NODE_SHAPES.at(shape)
+    let shape-args = (:)
+    for arg in shape-spec.args {
+      if arg in style {
+        shape-args.insert(arg, style.remove(arg))
+      }
+    }
+    shape = shape-spec.shape.with(..shape-args)
+
 
     // ensure body is a cetz drawable
     if not utils.is-cetz(body) {
@@ -283,19 +317,19 @@
     weight: weight,
     enclose: enclose,
     snap: snap,
-    style: {
-      (:)
-      if stroke != auto { (stroke: stroke) }
-      if fill != auto { (fill: fill) }
-      if inset != auto { (inset: inset) }
-      if extrude != auto { (extrude: extrude) }
-    }
+    style: (
+      fill: fill,
+      stroke: stroke,
+      inset: inset,
+      extrude: extrude,
+      ..args.named()
+    ).pairs().filter(((k,v)) => v != auto).to-dict()
   )
 
   options += parsing.interpret-node-positional-args(pos, options)
-  options += determine-node-shape(args, options)
+  // options += determine-node-shape(args, options)
 
-  assert.eq(type(options.shape), function)
+  // assert.eq(type(options.shape), function)
 
   if options.name != none { options.name = str(options.name) }
 
