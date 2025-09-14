@@ -249,7 +249,7 @@
   return ctx
 }
 
-
+/// placeholder docstring
 #let flexigrid(
   objects,
   gutter: 1,
@@ -349,4 +349,5 @@
   })
 }
 
+/// placeholder docstring
 #let diagram(..args) = cetz.canvas(flexigrid(..args))
