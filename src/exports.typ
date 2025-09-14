@@ -1,7 +1,8 @@
-#import "deps.typ": cetz
-#import "flexigrid.typ": flexigrid, diagram
-#import "nodes.typ": node
-#import "edges.typ": edge, draw-edge-with-intersection-snapping
+#import "flexigrid.typ" as flexigrids: diagram, flexigrid
+#import "nodes.typ" as nodes: node
+#import "edges.typ" as edges: edge
+#import "marks.typ"
 #import "shapes.typ"
-#import "utils.typ"
 #import "paths.typ"
+#import "utils.typ"
+#import "deps.typ": cetz
