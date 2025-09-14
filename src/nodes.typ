@@ -35,7 +35,7 @@
 
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.shape)(node, extrude)
+        (node.shape)(node + (unit-length: ctx.length, extrude: extrude))
       }
     })
 
@@ -120,7 +120,7 @@
       body = cetz.draw.content((0,0), body)
     }
 
-    // measure node label
+    // measure node label/body
     let body-size = {
       let (low, high) = cetz.process.many(ctx, body).bounds
       let (w, h, ..) = cetz.vector.sub(high, low)
@@ -135,8 +135,10 @@
       } else {
         let drawn = shape((
           size: body-size,
-          body: body
-        ), 0)
+          body: body,
+          extrude: 0,
+          unit-length: ctx.length,
+        ))
         let (low, high) = cetz.process.many(ctx, drawn).bounds
         let (w, h, ..) = cetz.vector.sub(high, low)
         (w, h)
@@ -199,55 +201,49 @@
 
 #let determine-node-shape(args, options) = {
 
-  if utils.is-cetz(options.body) {
-    return (shape: none)
-  }
-
   let named = args.named()
-  let named-arg-suggestion = none
-
-  for (kind, spec) in shapes.NODE_SHAPES {
-    let args = spec.named-args
-    if args.all(n => n in named) {
-      let shape-args = (:)
-      for arg in args { shape-args.insert(arg, named.remove(arg)) }
-
-      if options.shape != auto {
-        utils.error({
-          "node option `shape` must be `auto` when used with "
-          args.map(repr).join(", ")
-        })
-      }
-      
-      options.shape = dictionary(shapes).at(kind).with(..shape-args)
-      
-      break
-
-    } else if args.any(n => n in named) {
-      named-arg-suggestion = (kind: kind, args: args)
-    }
+  let shape-name = none
+  
+  // shape is explicitly specified by name
+  if type(options.shape) == str {
+    shape-name = options.shape
   }
 
-
-  // any left over named arguments are unrecognised
-  if named.len() > 0 {
-    let hint = if named-arg-suggestion != none {
-      " For "
-      named-arg-suggestion.kind
-      " nodes, also specify "
-      named-arg-suggestion.args
-        .filter(n => n not in named)
-        .map(repr).join(", ", last: " and ")
-      "."
-    }
-		utils.error("Unknown node arguments #..0." + hint, args.named().keys())
-	}
-
+  // deduce shape from named arguments
   if options.shape == auto {
-    options.shape = shapes.rect
+    for (name, spec) in shapes.NODE_SHAPES {
+      if spec.args.any(arg => arg in named) {
+        shape-name = name
+        break
+      }
+    } 
   }
 
-  return (shape: options.shape)
+  if shape-name == none { shape-name = "rect" }
+
+  // absorb shape arguments given to node
+  if shape-name not in shapes.NODE_SHAPES {
+    utils.error(
+      "unknown node shape #0. Try: #..1", repr(options.shape), shapes.NODE_SHAPES.keys()
+    )
+  }
+
+  let shape-spec = shapes.NODE_SHAPES.at(shape-name)
+  let shape-args = (:)
+  for arg in shape-spec.args {
+    if arg in named { shape-args.insert(arg, named.remove(arg)) }
+  }
+  let shape-fn = shape-spec.shape.with(..shape-args)
+
+  // check for leftover named arguments
+  // TODO: move this logic to main node function
+  if named.len() > 0 {
+    utils.error("unknown node options #..0. Options for #shape nodes: #..args", named.keys(), shape: shape-name, args: shape-spec.args)
+  }
+
+
+
+  return (shape: shape-fn)
   
 }
 
@@ -266,6 +262,7 @@
   fill: auto,
   stroke: auto,
   inset: auto,
+  extrude: auto,
 
 
   name: none,
@@ -291,11 +288,14 @@
       if stroke != auto { (stroke: stroke) }
       if fill != auto { (fill: fill) }
       if inset != auto { (inset: inset) }
+      if extrude != auto { (extrude: extrude) }
     }
   )
 
   options += parsing.interpret-node-positional-args(pos, options)
   options += determine-node-shape(args, options)
+
+  assert.eq(type(options.shape), function)
 
   if options.name != none { options.name = str(options.name) }
 
