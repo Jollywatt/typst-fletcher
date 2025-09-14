@@ -1,4 +1,4 @@
-#import "../../src/exports.typ" as fletcher: node, edge
+#import "../src/exports.typ" as fletcher: node, edge
 
 #let VERSION = toml("/typst.toml").package.version
 

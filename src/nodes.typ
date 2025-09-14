@@ -254,7 +254,7 @@
 
 /// Place a _node_ in a diagram or CeTZ canvas.
 /// 
-/// Nodes are content which #link(<edges>)[edges] can snap to.
+/// Nodes are content which #[@edge]s can snap to.
 /// Nodes can have various shapes (rect, circle), styles (fill, stroke).
 #let node(
   ..args,

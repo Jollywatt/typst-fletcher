@@ -1,4 +1,4 @@
-#import "../../src/exports.typ" as fletcher
+#import "../src/exports.typ" as fletcher
 #import "@preview/jumble:0.0.1"
 
 #let hash(it) = jumble.bytes-to-hex(jumble.md5(repr(it)))
@@ -7,10 +7,6 @@
 
 #let preview-mdx = false
 #let target-mdx = "export-mdx" in sys.inputs
-
-#let parse-ref(text) = {
-  text
-}
 
 #let to-md(it) = {
   if repr(it.func()) == "sequence" {
@@ -96,7 +92,7 @@
 
 }
 
-#let style(body) = {
+#let style(body, refs: false) = {
 
   if "export-svg-assets" in sys.inputs {
     return extract-svg-assets(body)
@@ -161,6 +157,6 @@
     
     link(label(label-prefix + target), symbol)
   }
-  body
 
+  if refs { body } else { mute-refs(body) }
 }
