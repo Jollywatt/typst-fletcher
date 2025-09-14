@@ -1,4 +1,4 @@
-#import "common.typ": *
+#import "../common.typ": *
 #show: style
 
 

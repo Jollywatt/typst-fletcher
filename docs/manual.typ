@@ -2,11 +2,12 @@
 #import "../src/deps.typ": cetz
 #import "../src/exports.typ" as fletcher
 
-#include "sections/cover.typ"
+#include "cover.typ"
 
-#let module-docs(path) = {
-  [== #raw(path)]
+#let module-docs(name) = {
+  [== #raw(name)]
   
+  let path = "/src/" + name + ".typ"
   let docs = tidy.parse-module(read(path),
     label-prefix: "fletcher.",
     scope: (
@@ -25,22 +26,26 @@
   strong(it)
 }
 
-#import "sections/common.typ": style
-#show: style
+#import "common.typ": style
+#show: style.with(refs: true)
+
 
 = Manual
 
 #{
   set heading(offset: 1)
-  include "sections/intro.typ"
+  include "sections/1-intro.typ"
+  include "sections/2-diagrams.typ"
+  include "sections/3-nodes.typ"
+  include "sections/4-edges.typ"
+  include "sections/5-marks.typ"
+  include "sections/6-cetz.typ"
 }
 
 
-== Edges <edges>
-
 = Reference <func-ref>
 
-#module-docs("/src/nodes.typ")
-#module-docs("/src/edges.typ")
-#module-docs("/src/flexigrid.typ")
-#module-docs("/src/paths.typ")
+#module-docs("nodes")
+#module-docs("edges")
+#module-docs("flexigrid")
+#module-docs("paths")
