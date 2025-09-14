@@ -141,7 +141,7 @@
 
     for (i, x) in grid.col-centers.enumerate().slice(1,-1) {
       if draw-lines {
-        cetz.draw.line((x, grid.y-min), (x, grid.y-max), stroke: (thickness: 0.5pt))
+        cetz.draw.on-layer(-1, cetz.draw.line((x, grid.y-min), (x, grid.y-max), stroke: (thickness: 0.5pt)))
       }
       if draw-coords {
         let coord = i + grid.u-min
@@ -154,7 +154,7 @@
     }
     for (j, y) in grid.row-centers.enumerate().slice(1,-1) {
       if draw-lines {
-        cetz.draw.line((grid.x-min, y), (grid.x-max, y), stroke: (thickness: 0.5pt))
+        cetz.draw.on-layer(-1, cetz.draw.line((grid.x-min, y), (grid.x-max, y), stroke: (thickness: 0.5pt)))
       }
       if draw-coords {
         let coord = j + grid.v-min
@@ -252,17 +252,19 @@
 /// placeholder docstring
 #let flexigrid(
   objects,
+  ..args,
   gutter: 1,
   origin: (0,0),
   columns: auto,
   rows: auto,
   name: none,
+  /// placeholder docstring
   debug: false,
 ) = {
   let col-spec = interpret-rowcol-spec(columns)
   let row-spec = interpret-rowcol-spec(rows)
 
-  objects = utils.as-array(objects)
+  objects = utils.as-array(objects) + args.pos().join()
   gutter = utils.as-pair(gutter)
 
   cetz.draw.get-ctx(ctx => {

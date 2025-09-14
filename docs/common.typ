@@ -92,7 +92,7 @@
 
 }
 
-#let style(body, refs: false) = {
+#let style(body, refs: true, preview-mdx: false) = {
 
   if "export-svg-assets" in sys.inputs {
     return extract-svg-assets(body)
@@ -109,30 +109,7 @@
     return raw(to-md(body), lang: "md")
   }
 
-  
 
-  // styles
-
-  show raw.where(lang: "typ"): it => block(
-    it,
-    stroke: (left: rgb("#4b6ac690")),
-    width: 100%,
-    outset: .8em,
-    radius: 1em,
-  )
-
-  // set heading(numbering: "1.")
-
-  show heading: it => {
-    let size = (30pt, 25pt, 20pt, 15pt).at(it.level, default: 10pt)
-    text(size, it)
-  }
-
-  show heading.where(level: 1): it => {
-    pagebreak(weak: true)
-    it
-    line(length: 100%)
-  }
 
   let label-prefix = "fletcher."
 
