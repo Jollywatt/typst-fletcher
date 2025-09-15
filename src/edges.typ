@@ -196,12 +196,7 @@
           return (ctx => (ctx: ctx, drawables: drawables),)
         } else if utils.is-node(key) {
           let node = key
-          node.style = cetz.styles.resolve(
-            ctx.style,
-            base: Nodes.DEFAULT_NODE_STYLE,
-            merge: (node: node.style),
-            root: "node",
-          ).node
+          node.style.fill = none
           draw-node-snapping-outline(node, outset)
         }
       })

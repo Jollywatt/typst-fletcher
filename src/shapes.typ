@@ -13,30 +13,30 @@
 }
 
 
-#let rect(node, width: auto, height: auto, corner-radius: none) = {
+#let rect(node) = {
   let (w, h) = node.size
-  if width != auto { w = width }
-  if height != auto { h = height }
+  if node.style.width != auto { w = node.style.width }
+  if node.style.height != auto { h = node.style.height }
   (w, h) = resolve-number(node.unit-length, (w, h))
   let x = w/2 + node.extrude
   let y = h/2 + node.extrude
-  draw.rect((-x,-y), (+x,+y), radius: corner-radius)
+  draw.rect((-x,-y), (+x,+y), radius: node.style.corner-radius)
   node.body
 }
 
-#let circle(node, radius: auto) = {
+#let circle(node) = {
   let (w, h) = node.size
   let r = calc.max(w/2, h/2)
-  if radius != auto { r = radius }
+  if node.style.radius != auto { r = node.style.radius }
   r = resolve-number(node.unit-length, r)
   draw.circle((0,0), radius: r + node.extrude, name: "node")
   node.body
 }
 
-#let ellipse(node, width: auto, height: auto) = {
+#let ellipse(node) = {
   let (w, h) = node.size
-  if width != auto { w = width }
-  if height != auto { h = height }
+  if node.style.width != auto { w = node.style.width }
+  if node.style.height != auto { h = node.style.height }
   (w, h) = resolve-number(node.unit-length, (w, h))
   let rx = w/2 + node.extrude
   let ry = h/2 + node.extrude
@@ -47,17 +47,20 @@
 
 #let NODE_SHAPES = (
   rect: (
-    args: ("width", "height", "corner-radius"),
+    width: auto,
+    height: auto,
+    corner-radius: none,
     shape: rect,
   ),
 
   circle: (
-    args: ("radius",),
+    radius: auto,
     shape: circle,
   ),
 
   ellipse: (
-    args: ("width", "height"),
+    width: auto,
+    height: auto,
     shape: ellipse,
   ),
 )

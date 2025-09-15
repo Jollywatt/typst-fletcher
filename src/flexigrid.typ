@@ -2,6 +2,8 @@
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-group
 
+#import "shapes.typ"
+
 /// Calculate the appropriate sizes `w0` and `w1` of adjacent cells
 /// when placing a node of width `W` at position `0 <= t <= 1 ` with
 /// cell gutter `g`.
@@ -280,6 +282,15 @@
       current: (node: 0, edge: 0),
     )
 
+    ctx.style.node = (
+      stroke: none,
+      fill: none,
+      inset: 5pt,
+      outset: 0pt,
+      extrude: (0,),
+      ..shapes.NODE_SHAPES,
+    )
+
     // for the layout pass, we resolve uv coords by treating them as xy
     let layout-pass-ctx = with-coordinate-resolver(ctx, (ctx, c) => {
       if type(c) == dictionary {
@@ -330,6 +341,14 @@
         current: (node: 0, edge: 0), // index of current object
         flexigrid: grid,
         debug: debug,
+      )
+      ctx.style.node = (
+        stroke: none,
+        fill: none,
+        inset: 5pt,
+        outset: 0pt,
+        extrude: (0,),
+        ..shapes.NODE_SHAPES,
       )
       return (ctx: ctx)
     },)

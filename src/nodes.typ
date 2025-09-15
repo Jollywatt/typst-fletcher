@@ -106,44 +106,35 @@
     let fletcher-ctx = ctx.shared-state.fletcher
 
     // resolve node shape and styles
-    if shape == auto { shape = "rect" } // TODO
+    if shape == auto {
+       // TODO
+      if "radius" in style { shape = "circle" }
+      else { shape = "rect" }
+    }
 
+    let node-styles = ctx.style.at("node", default: (:))
     let style = cetz.styles.resolve(
-      ctx.style.at("node", default: (:)),
+      node-styles,
       base: (
         ..DEFAULT_NODE_STYLE,
         (shape): (      
           fill: auto,
           stroke: auto,
           inset: auto,
+          outset: auto,
           extrude: auto,
         ),
       ),
-      // merge: style.pairs().filter(((k,v)) => v != auto).to-dict(),
       merge: ((shape): style),
-      // root: "node",
     ).at(shape)
 
 
-    // TODO: move NODE_SHAPES to ctx
-    if shape not in shapes.NODE_SHAPES {
-      utils.error(
-        "unknown node shape #0. Try: #..1", repr(shape), shapes.NODE_SHAPES.keys()
-      )
+    if "shape" not in style {
+      utils.error("unknown node shape #0.", repr(shape))
     }
 
-    if shape in style {
-      // style += style.at(shape)
-    }
-
-    let shape-spec = shapes.NODE_SHAPES.at(shape)
-    let shape-args = (:)
-    for arg in shape-spec.args {
-      if arg in style {
-        shape-args.insert(arg, style.remove(arg))
-      }
-    }
-    shape = shape-spec.shape.with(..shape-args)
+    
+    shape = style.shape
 
 
     // ensure body is a cetz drawable
@@ -172,6 +163,7 @@
           body: body,
           extrude: 0,
           unit-length: ctx.length,
+          style: style,
         ))
         let (low, high) = cetz.process.many(ctx, drawn).bounds
         let (w, h, ..) = cetz.vector.sub(high, low)
@@ -293,10 +285,10 @@
   shape: auto,
 
   // style arguments
-  fill: auto,
-  stroke: auto,
-  inset: auto,
-  extrude: auto,
+  // fill: auto,
+  // stroke: auto,
+  // inset: auto,
+  // extrude: auto,
 
 
   name: none,
@@ -317,13 +309,13 @@
     weight: weight,
     enclose: enclose,
     snap: snap,
-    style: (
-      fill: fill,
-      stroke: stroke,
-      inset: inset,
-      extrude: extrude,
-      ..args.named()
-    ).pairs().filter(((k,v)) => v != auto).to-dict()
+    style: (:
+      // fill: fill,
+      // stroke: stroke,
+      // inset: inset,
+      // extrude: extrude,
+      ..args.named(),
+    )
   )
 
   options += parsing.interpret-node-positional-args(pos, options)
