@@ -35,7 +35,7 @@
     let u = t/N
     diagram(debug: "grid.cells", {
       import cetz.draw: *
-      set-style(node: (fill: yellow))
+      set-style(node: (fill: yellow, shape: "rect"))
       node((0,0), [Hello\ World])
       node((1,0), [!])
       node((u,0), stroke: 1pt, fill: white)[Flexigrids]

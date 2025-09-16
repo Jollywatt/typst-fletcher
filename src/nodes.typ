@@ -97,36 +97,47 @@
   }
 
   if shape == auto {
-    // if no style is matched, guess from node body
+    // if no shape is matched to node arguments
+    // default shape can be given via set-style(node: (shape: ..))
+    if "shape" in ctx-style-node {
+      shape = ctx-style-node.shape
+    }
+  }
+
+  if shape == auto {
+    // just guess shape from node body
     if body == none { shape = "none"}
     else {
-      // choose based on body aspect ratio
+      // choose based on body size and aspect ratio
       // this works best when nodes have no stroke, like in
       // commutative diagrams: single letters become circles
       // making edges connect more evenly
       let (w, h) = cetz.util.measure(ctx, [#body])
-      // simulate some typical padding (and avoid div by zero)
-      let inset = 0.5em.to-absolute()/ctx.length
-      w += inset
-      h += inset
-      if calc.max(w/h, h/w) < 1.5 { shape = "circle" }
-      else { shape = "rect" }
+      if calc.max(w, h) > 2em.to-absolute()/ctx.length {
+        shape = "rect"
+      } else {
+        // guess typical padding
+        let inset = 0.5em.to-absolute()/ctx.length
+        w += inset
+        h += inset
+        if calc.max(w/h, h/w) < 1.5 { shape = "circle" }
+        else { shape = "rect" }
+      }
     }
   }
-
 
   // be forgiving
   if shape in (std.circle, cetz.draw.circle) { shape = "circle" }
   if shape in (std.rect, cetz.draw.rect) { shape = "rect" }
-  // special none shape only draws node label/body with no fill/stroke
   if shape == none { shape = "none" }
+
 
   if shape not in all-shapes {
     utils.error("Unknown node shape #0. Try: #..1",
       repr(shape), all-shapes.keys())
   }
 
-  // check there are no unknown style arguments for given shape
+  // check no unknown style arguments are given for shape
   // (this is especially important for discoverability)
   let valid-args = {
     all-shapes.at(shape).keys()
