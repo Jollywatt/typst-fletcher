@@ -94,13 +94,17 @@
         break
       }
     }
+  }
 
-    if shape == auto {
-      // if no shape is matched, choose based on aspect ratio
+  if shape == auto {
+    // if no style is matched, guess from node body
+    if body == none { shape = "none"}
+    else {
+      // choose based on body aspect ratio
       // this works best when nodes have no stroke, like in
       // commutative diagrams: single letters become circles
       // making edges connect more evenly
-      let (w, h) = cetz.util.measure(ctx, body)
+      let (w, h) = cetz.util.measure(ctx, [#body])
       // simulate some typical padding (and avoid div by zero)
       let inset = 0.5em.to-absolute()/ctx.length
       w += inset
@@ -166,6 +170,42 @@
 }
 
 
+#let measure-node(ctx, style, shape, body) = {
+
+  if body == none {
+    return (none, (0,0))
+  }
+
+
+  // measure node label/body
+  let body-size = {
+    let (low, high) = cetz.process.many(ctx, body).bounds
+    let (w, h, ..) = cetz.vector.sub(high, low)
+    (w, h)
+  }
+
+  // measure node shape
+  let node-size = {
+    if shape == none {
+      shape = (node, extrude) => body
+      body-size
+    } else {
+      let drawn = (style.draw)((
+        size: body-size,
+        body: body,
+        extrude: 0,
+        unit-length: ctx.length,
+        style: style,
+      ))
+      let (low, high) = cetz.process.many(ctx, drawn).bounds
+      let (w, h, ..) = cetz.vector.sub(high, low)
+      (w, h)
+    }
+  }
+
+  return (body, node-size)
+}
+
 
 #let _node(
   ..options,
@@ -195,50 +235,28 @@
     let fletcher-ctx = ctx.shared-state.fletcher
 
     let style = resolve-node-styles(ctx, style, shape, body)
-    let draw = style.draw
 
     // ensure body is a cetz drawable
     if not utils.is-cetz(body) {
-      // let inset = cetz.util.resolve-number(ctx, style.inset)
-      body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
-      body = box(inset: style.inset, body)
-      body = cetz.draw.content((0,0), body)
-    }
-
-    // measure node label/body
-    let body-size = {
-      let (low, high) = cetz.process.many(ctx, body).bounds
-      let (w, h, ..) = cetz.vector.sub(high, low)
-      (w, h)
-    }
-
-    // measure node shape
-    let node-size = {
-      if shape == none {
-        shape = (node, extrude) => body
-        body-size
+      if body == none {
+        // empty nodes should still affect canvas bounds
+        body = cetz.draw.content((0,0), none)
       } else {
-        let drawn = draw((
-          size: body-size,
-          body: body,
-          extrude: 0,
-          unit-length: ctx.length,
-          style: style,
-        ))
-        let (low, high) = cetz.process.many(ctx, drawn).bounds
-        let (w, h, ..) = cetz.vector.sub(high, low)
-        (w, h)
+        body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
+        body = cetz.draw.content((0,0), [#body], padding: style.inset)
       }
     }
-  
+
+    let (body, size) = measure-node(ctx, style, shape, body)
+
 
     let node-data = (
       class: "node",
       pos: position,
       body: body,
-      size: node-size,
+      size: size,
       shape: shape,
-      draw: draw,
+      draw: style.draw,
       style: style,
       name: name,
       align: align,
