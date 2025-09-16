@@ -20,7 +20,15 @@
   (w, h) = resolve-number(node.unit-length, (w, h))
   let x = w/2 + node.extrude
   let y = h/2 + node.extrude
-  draw.rect((-x,-y), (+x,+y), radius: node.style.corner-radius)
+
+  // remember, corner radius of cetz.draw.rect can be complex
+  let radii = cetz.util.as-corner-radius-dict(
+    (length: node.unit-length), node.style.corner-radius, node.size)
+    .pairs().map(((k, (x, y))) => {
+      (k, (x + node.extrude, y + node.extrude))
+    }).to-dict()
+    
+  draw.rect((-x,-y), (+x,+y), radius: radii)
   node.body
 }
 
@@ -44,23 +52,23 @@
   node.body
 }
 
-
-#let NODE_SHAPES = (
+// There is some repetition here, but it makes it possible to:
+// - automatically deduce node shape from given named arguments (e.g., radius implies circle)
+// - report helpful errors when an invalid named argument is given (instead of silently ignoring it!)
+#let NODE_SHAPES = (  
   rect: (
     width: auto,
     height: auto,
     corner-radius: none,
-    shape: rect,
+    draw: rect,
   ),
 
   circle: (
     radius: auto,
-    shape: circle,
+    draw: circle,
   ),
 
-  ellipse: (
-    width: auto,
-    height: auto,
-    shape: ellipse,
-  ),
+
+  "none": (draw: node => node.body),
+  
 )

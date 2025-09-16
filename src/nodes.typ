@@ -1,7 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-group, get-debug
-#import "shapes.typ"
+#import "shapes.typ": NODE_SHAPES
 #import "parsing.typ"
 
 #let DEFAULT_NODE_STYLE = (
@@ -19,12 +19,6 @@
     cetz.draw.translate(origin)
     cetz.draw.get-ctx(ctx => { 
 
-      // let style = cetz.styles.resolve(
-      //   ctx.style,
-      //   base: DEFAULT_NODE_STYLE,
-      //   merge: (node: node.style),
-      //   root: "node",
-      // ).node
       let style = node.style
 
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
@@ -36,7 +30,7 @@
 
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.shape)(node + (unit-length: ctx.length, extrude: extrude))
+        (node.draw)(node + (unit-length: ctx.length, extrude: extrude))
       }
     })
 
@@ -77,6 +71,101 @@
 }
 
 
+#let resolve-node-styles(ctx, style, shape, body) = {
+  let ctx-style-node = ctx.style.at("node", default: (:))
+
+  // a node shape is a dictionary with a `draw` entry
+  let all-shapes = NODE_SHAPES // default shapes
+  // other shapes can be specified via
+  // set-style(node: ((shape-name): (..)))
+  for (k, v) in ctx-style-node {
+    if type(v) == dictionary and "draw" in v {
+      all-shapes.insert(k, v)
+    }
+  }
+
+  if shape == auto {
+    // deduce node shape from style options
+    // given as named arguments to node(..)
+    // e.g., `radius` implies circle
+    for (name, (..options, draw)) in all-shapes {
+      if style.keys().any(o => o in options) {
+        shape = name
+        break
+      }
+    }
+
+    if shape == auto {
+      // if no shape is matched, choose based on aspect ratio
+      // this works best when nodes have no stroke, like in
+      // commutative diagrams: single letters become circles
+      // making edges connect more evenly
+      let (w, h) = cetz.util.measure(ctx, body)
+      // simulate some typical padding (and avoid div by zero)
+      let inset = 0.5em.to-absolute()/ctx.length
+      w += inset
+      h += inset
+      if calc.max(w/h, h/w) < 1.5 { shape = "circle" }
+      else { shape = "rect" }
+    }
+  }
+
+
+  // be forgiving
+  if shape in (std.circle, cetz.draw.circle) { shape = "circle" }
+  if shape in (std.rect, cetz.draw.rect) { shape = "rect" }
+  // special none shape only draws node label/body with no fill/stroke
+  if shape == none { shape = "none" }
+
+  if shape not in all-shapes {
+    utils.error("Unknown node shape #0. Try: #..1",
+      repr(shape), all-shapes.keys())
+  }
+
+  // check there are no unknown style arguments for given shape
+  // (this is especially important for discoverability)
+  let valid-args = {
+    all-shapes.at(shape).keys()
+    DEFAULT_NODE_STYLE.keys()
+  }
+  let invalid-args = style.keys().filter(arg => arg not in valid-args)
+  if invalid-args.len() > 0 {
+    utils.error(
+      "Unknown node option #..invalid. Options for #shape nodes: #..valid",
+      invalid: invalid-args,
+      shape: shape,
+      valid: valid-args,
+    )
+  }
+
+  // resolve styles so that:
+  // - node(prop: val) takes highest precedence
+  // - set-style(node: (shape: (prop: val))) affects nodes of a given shape
+  // - set-style(node: (prop: val)) affects all nodes not specified above
+  // - set-style(prop: val) doesn't affect nodes at all
+  let style = cetz.styles.resolve(
+    ctx-style-node,
+    base: (
+      (shape): (      
+        fill: auto,
+        stroke: auto,
+        inset: auto,
+        outset: auto,
+        extrude: auto,
+      ),
+    ),
+    merge: ((shape): style),
+  ).at(shape)
+
+  if "draw" not in style {
+    utils.error("node shape does not have a `draw` field; got `#0: #1`",
+      shape, repr(style))
+  }
+
+  return style
+}
+
+
 
 #let _node(
   ..options,
@@ -105,37 +194,8 @@
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 
-    // resolve node shape and styles
-    if shape == auto {
-       // TODO
-      if "radius" in style { shape = "circle" }
-      else { shape = "rect" }
-    }
-
-    let node-styles = ctx.style.at("node", default: (:))
-    let style = cetz.styles.resolve(
-      node-styles,
-      base: (
-        ..DEFAULT_NODE_STYLE,
-        (shape): (      
-          fill: auto,
-          stroke: auto,
-          inset: auto,
-          outset: auto,
-          extrude: auto,
-        ),
-      ),
-      merge: ((shape): style),
-    ).at(shape)
-
-
-    if "shape" not in style {
-      utils.error("unknown node shape #0.", repr(shape))
-    }
-
-    
-    shape = style.shape
-
+    let style = resolve-node-styles(ctx, style, shape, body)
+    let draw = style.draw
 
     // ensure body is a cetz drawable
     if not utils.is-cetz(body) {
@@ -158,7 +218,7 @@
         shape = (node, extrude) => body
         body-size
       } else {
-        let drawn = shape((
+        let drawn = draw((
           size: body-size,
           body: body,
           extrude: 0,
@@ -176,10 +236,11 @@
       class: "node",
       pos: position,
       body: body,
+      size: node-size,
       shape: shape,
+      draw: draw,
       style: style,
       name: name,
-      size: node-size,
       align: align,
       weight: weight,
       enclose: enclose,
@@ -223,54 +284,6 @@
       draw-node-at(node-data, node-data.pos, debug: node-data.debug)
     })
   },)
-}
-
-#let determine-node-shape(args, options) = {
-
-  let named = args.named()
-  let shape-name = none
-  
-  // shape is explicitly specified by name
-  if type(options.shape) == str {
-    shape-name = options.shape
-  }
-
-  // deduce shape from named arguments
-  if options.shape == auto {
-    for (name, spec) in shapes.NODE_SHAPES {
-      if spec.args.any(arg => arg in named) {
-        shape-name = name
-        break
-      }
-    } 
-  }
-
-  if shape-name == none { shape-name = "rect" }
-
-  // absorb shape arguments given to node
-  if shape-name not in shapes.NODE_SHAPES {
-    utils.error(
-      "unknown node shape #0. Try: #..1", repr(options.shape), shapes.NODE_SHAPES.keys()
-    )
-  }
-
-  let shape-spec = shapes.NODE_SHAPES.at(shape-name)
-  let shape-args = (:)
-  for arg in shape-spec.args {
-    if arg in named { shape-args.insert(arg, named.remove(arg)) }
-  }
-  let shape-fn = shape-spec.shape.with(..shape-args)
-
-  // check for leftover named arguments
-  // TODO: move this logic to main node function
-  if named.len() > 0 {
-    utils.error("unknown node options #..0. Options for #shape nodes: #..args", named.keys(), shape: shape-name, args: shape-spec.args)
-  }
-
-
-
-  return (shape: shape-fn)
-  
 }
 
 
@@ -319,13 +332,8 @@
   )
 
   options += parsing.interpret-node-positional-args(pos, options)
-  // options += determine-node-shape(args, options)
-
-  // assert.eq(type(options.shape), function)
 
   if options.name != none { options.name = str(options.name) }
-
-  // options.style = args.named() // todo: validate
 
   _node(
     ..options,
