@@ -38,12 +38,12 @@ Pull requests are most welcome!
 
 ### 0.6.0
 
-- Complete rewrite.
-
-### 0.5.9
-
-- Support named edges (#16, #96).
-- Minor improvements too mark scaling.
+- *Complete rewrite;* there are many breaking changes.
+- Nodes and edges can now appear directly in a CeTZ canvas and use the normal coordinate system. The elastic coordinate system used in `diagram()` can also be achieved by using `flexigrid()` inside a CeTZ canvas.
+- Nodes and edges can be styled with `cetz.draw.set-style()`, like other CeTZ elements.
+- Row and column sizes of flexigrids can be set with an interface similar to `std.grid()`.
+- Edges can be named and support path anchors.
+- The `debug` option of `diagram()` has been added to `node()` and `edge()`, and allows more granular control with string arguments (e.g., `debug: "grid.cells"` or `debug: "node edge.snap"`).
 
 ### 0.5.8
 
