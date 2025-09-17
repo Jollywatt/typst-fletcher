@@ -1,16 +1,9 @@
 #import "utils.typ"
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-group, get-debug
-#import "shapes.typ": NODE_SHAPES
+#import "shapes.typ": NODE_SHAPES, DEFAULT_NODE_STYLE
 #import "parsing.typ"
 
-#let DEFAULT_NODE_STYLE = (
-  stroke: none,
-  fill: none,
-  inset: 5pt,
-  outset: 0pt,
-  extrude: (0,),
-)
 
 
 #let draw-node-at(node, origin, debug: false) = {
@@ -161,13 +154,8 @@
   let style = cetz.styles.resolve(
     ctx-style-node,
     base: (
-      (shape): (      
-        fill: auto,
-        stroke: auto,
-        inset: auto,
-        outset: auto,
-        extrude: auto,
-      ),
+      (shape): DEFAULT_NODE_STYLE.keys()
+        .map(k => (k, auto)).to-dict(),
     ),
     merge: ((shape): style),
   ).at(shape)

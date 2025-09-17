@@ -21,7 +21,7 @@
 
     set-style(fill: red) // should not affect nodes
     set-style(node: (stroke: 1pt + blue))
-    set-style(node: (rect: (corner-radius: 2pt)))
+    set-style(node: (corner-radius: 2pt))
   
     node((0,0), [blue])
     node((1,0), [black], stroke: black)

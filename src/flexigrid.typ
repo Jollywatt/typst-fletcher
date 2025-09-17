@@ -281,15 +281,10 @@
       edges: (),
       current: (node: 0, edge: 0), // index of current object
     )
-
-    ctx.style.node = (
-      stroke: none,
-      fill: none,
-      inset: 5pt,
-      outset: 0pt,
-      extrude: (0,),
-      ..shapes.NODE_SHAPES,
-    )
+    ctx.style.node = {
+      shapes.DEFAULT_NODE_STYLE
+      shapes.NODE_SHAPES
+    }
 
     // for the layout pass, we resolve uv coords by treating them as xy
     let layout-pass-ctx = with-coordinate-resolver(ctx, (ctx, c) => {
@@ -342,14 +337,10 @@
         flexigrid: grid,
         debug: debug,
       )
-      ctx.style.node = (
-        stroke: none,
-        fill: none,
-        inset: 5pt,
-        outset: 0pt,
-        extrude: (0,),
-        ..shapes.NODE_SHAPES,
-      )
+      ctx.style.node = {
+        shapes.DEFAULT_NODE_STYLE
+        shapes.NODE_SHAPES
+      }
       return (ctx: ctx)
     },)
 
