@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-0.5.9-green)
+![Version](https://img.shields.io/badge/version-0.6.0-green)
 [![Typst Universe](https://img.shields.io/badge/Typst-Universe-239dad)](https://typst.app/universe/package/fletcher/)
 [![Repo](https://img.shields.io/badge/GitHub-repo-444)](https://github.com/Jollywatt/typst-fletcher)
 [![Development version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FJollywatt%2Ftypst-fletcher%2Fraw%2Fmain%2Ftypst.toml&query=package.version&label=main&color=444)](https://github.com/Jollywatt/typst-fletcher/tree/main)
@@ -20,7 +20,7 @@ See the [manual](docs/manual.pdf?raw=true) for documentation or ask the communit
 
 
 ```typ
-#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.6.0" as fletcher: diagram, node, edge
 ```
 
 
@@ -187,12 +187,12 @@ Pull requests are most welcome!
 
 ### 0.6.0
 
-- Complete rewrite.
-
-### 0.5.9
-
-- Support named edges (#16, #96).
-- Minor improvements too mark scaling.
+- *Complete rewrite;* there are many breaking changes.
+- Nodes and edges can now appear directly in a CeTZ canvas and use the normal coordinate system. The elastic coordinate system used in `diagram()` can also be achieved by using `flexigrid()` inside a CeTZ canvas.
+- Nodes and edges can be styled with `cetz.draw.set-style()`, like other CeTZ elements.
+- Row and column sizes of flexigrids can be set with an interface similar to `std.grid()`.
+- Edges can be named and support path anchors.
+- The `debug` option of `diagram()` has been added to `node()` and `edge()`, and allows more granular control with string arguments (e.g., `debug: "grid.cells"` or `debug: "node edge.snap"`).
 
 ### 0.5.8
 
