@@ -279,7 +279,7 @@
       pass: "layout",
       nodes: (),
       edges: (),
-      current: (node: 0, edge: 0),
+      current: (node: 0, edge: 0), // index of current object
     )
 
     ctx.style.node = (
@@ -338,7 +338,7 @@
         pass: "final",
         nodes: nodes,
         edges: edges,
-        current: (node: 0, edge: 0), // index of current object
+        current: (node: 0, edge: 0),
         flexigrid: grid,
         debug: debug,
       )
@@ -370,5 +370,45 @@
   })
 }
 
+#let split-style-argument(arg) = {
+  let compounds = (
+    "corner-radius",
+  )
+
+  let path = ()
+  while arg.len() > 0 {
+    let c = compounds.find(c => arg.starts-with(c))
+    if c != none {
+      path.push(c)
+      arg = arg.slice(c.len())
+      continue
+    }
+    let i = arg.position("-")
+    if i == none { 
+      path.push(arg)
+      break
+    }
+    path.push(arg.slice(0, i))
+    arg = arg.slice(i + 1)
+  }
+  return path
+}
+
+#let interpret-style-arguments(args) = {
+  let styles = ()
+  for (arg, value) in args {
+    let path = split-style-argument(arg)
+    if path.first() in ("node", "edge") {
+      let tree = value
+      for p in path.rev() { tree = ((p): tree) }
+      styles += cetz.draw.set-style(..tree)
+    }
+  }
+  return styles
+}
+
 /// placeholder docstring
-#let diagram(..args) = cetz.canvas(flexigrid(..args))
+#let diagram(..args) = {
+  let styles = interpret-style-arguments(args.named())
+  cetz.canvas(flexigrid(styles, ..args))
+}
