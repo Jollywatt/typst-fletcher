@@ -16,17 +16,15 @@
 )
 
 #let draw-edge(ctx, edge) = {
-  let style = cetz.styles.resolve(
-    ctx.style,
-    base: DEFAULT_EDGE_STYLE,
-    merge: (edge: edge.style),
-    root: "edge",
-  ).edge
-
   let path = (edge.draw)(edge.vertices)
   assert(path.len() == 1, message: "edge.draw should return single cetz element")
 
-  Marks.draw-with-marks-and-extrusion(ctx, path, style.marks, stroke: style.stroke, extrude: style.extrude, debug: edge.debug)
+  Marks.draw-with-marks-and-extrusion(ctx, path,
+    edge.style.marks,
+    stroke: edge.style.stroke,
+    extrude: edge.style.extrude,
+    debug: edge.debug,
+  )
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -179,11 +177,16 @@
 #let draw-edge-with-snapping(edge, snapping-nodes) = {
   cetz.draw.get-ctx(ctx => {
 
-    let style = cetz.styles.resolve(
-      ctx.style,
+    let ctx-edge = ctx.style.at("edge", default: (:))
+    ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
+
+    let edge = edge
+    edge.style = cetz.styles.resolve(
+      ctx-edge,
       base: DEFAULT_EDGE_STYLE,
-      merge: (edge: edge.style),
-    ).edge
+      merge: edge.style,
+      // root: "edge",
+    )
 
     let snapping-outlines = snapping-nodes
       .zip(edge.style.outset)
@@ -205,9 +208,7 @@
       debug-group(snapping-outlines.join())
     }
 
-    let edge = edge
     let (src, .., tgt) = edge.vertices
-    // edge.vertices.first() = cetz.vector.add(src, (2,0))
 
     draw-edge-with-intersection-snapping(
       ctx,
@@ -241,7 +242,12 @@
     let edge-data = (
       class: "edge",
       vertices: vertices,
-      style: style,
+      style: {
+        if style.extrude != auto { (extrude: style.extrude) }
+        if style.stroke != auto { (stroke: utils.stroke-to-dict(style.stroke)) }
+        if style.outset != auto { (outset: style.outset) }
+        if style.marks != auto { (marks: style.marks) }
+      },
       snap-to: utils.as-pair(snap-to),
       name: name,
       draw: draw,
@@ -451,6 +457,7 @@
   outset: auto,
   name: none,
   stroke: auto,
+  dash: auto,
   extrude: auto,
   draw: auto,
   debug: auto,
@@ -463,6 +470,7 @@
     outset: outset,
     name: name,
     stroke: stroke,
+    dash: dash,
     extrude: extrude,
     draw: draw,
   )
@@ -470,10 +478,12 @@
   options += parsing.interpret-edge-positional-args(args.pos(), options)
   options += interpret-marks-arg(options.marks)
 
-  let stroke = { // fold strokes
-    (dash: options.at("dash", default: auto))
-    utils.stroke-to-dict(options.stroke)
+  let stroke = utils.stroke-to-dict(options.stroke)
+
+  if options.at("dash", default: auto) != auto {
+    stroke.dash = options.dash
   }
+
 
   options += determine-edge-kind(args, options)
 
