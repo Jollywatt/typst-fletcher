@@ -326,7 +326,7 @@
   shape: auto,
 
   /// Fill style of the node.
-  /// 
+  ///  
   /// The fill is drawn within the outline defined by the first @node.extrude value.
   fill: auto,
   /// Stroke style for the node outline.
