@@ -73,28 +73,36 @@
   let docs = tidy.parse-module(read(path),
     label-prefix: "fletcher.",
     scope: (
+      fletcher: fletcher,
+      diagram: fletcher.diagram,
+      node: fletcher.node,
+      edge: fletcher.edge,
       cetz: fletcher.cetz,
-      fletcher: fletcher
     ),
   )
   tidy.show-module(
     docs,
-    style: tidy.styles.default
+    style: dictionary(tidy.styles.default) + (
+      show-reference: (label, name, style-args: none) => {
+        name = name.split(".").last()
+        link(label, raw(name, lang: none))
+      }
+    )
   )
 }
 
 #show link: it => {
-  set text(blue.darken(50%), font: "CMU Bright")
+  set text(blue.darken(50%))//, font: "CMU Bright")
   strong(it)
 }
 
-#show raw.where(lang: "typ"): it => block(
-  it,
-  stroke: (left: rgb("#4b6ac690")),
-  width: 100%,
-  outset: .8em,
-  radius: 1em,
-)
+// #show raw.where(lang: "typ"): it => block(
+//   it,
+//   stroke: (left: rgb("#4b6ac690")),
+//   width: 100%,
+//   outset: .8em,
+//   radius: 1em,
+// )
 
 
 #show heading: it => {

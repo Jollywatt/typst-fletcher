@@ -187,7 +187,6 @@
     return (none, (0,0))
   }
 
-
   // measure node label/body
   let body-size = {
     let (low, high) = cetz.process.many(ctx, body).bounds
@@ -326,12 +325,22 @@
   body: none,
   shape: auto,
 
-  // style arguments
-  // fill: auto,
-  // stroke: auto,
-  // inset: auto,
-  // extrude: auto,
-
+  /// Fill style of the node.
+  /// 
+  /// The fill is drawn within the outline defined by the first @node.extrude value.
+  fill: auto,
+  /// Stroke style for the node outline.
+  stroke: auto,
+  /// Padding between the node's content and its outline.
+  inset: auto,
+  /// Draw strokes around the node at the given offsets to
+  /// obtain a multi-stroke effect.
+  /// Offsets can be numbers specifying multiples of the @node.stroke's thickness or lengths.
+  /// 
+  /// The node's fill is drawn within the boundary defined by the first offset in
+  /// the array.
+  /// -> array
+  extrude: auto,
 
   name: none,
   align: center + horizon,
@@ -340,8 +349,14 @@
   snap: true,
   debug: auto,
 ) = {
-  // validate arguments
-  let pos = args.pos()
+
+  let style = (
+    fill: fill,
+    stroke: stroke,
+    inset: inset,
+    extrude: extrude,
+  ).pairs().filter(((k, v)) => v != auto).to-dict() 
+  style += args.named()
 
   let options = (
     body: body,
@@ -351,15 +366,10 @@
     weight: weight,
     enclose: enclose,
     snap: snap,
-    style: (:
-      // fill: fill,
-      // stroke: stroke,
-      // inset: inset,
-      // extrude: extrude,
-      ..args.named(),
-    )
+    style: style,
   )
 
+  let pos = args.pos()
   options += parsing.interpret-node-positional-args(pos, options)
 
   if options.name != none { options.name = str(options.name) }
