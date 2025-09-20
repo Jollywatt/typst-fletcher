@@ -346,23 +346,58 @@
 
 /// Given the coordinate of a vertex and the angles of its
 /// incoming and outgoing legs (`i-angle` and `o-angle`),
+/// return the incoming leg extruded by an offset.
+/// 
+/// ```
+///       ┌ █████████████ 
+/// offset│            /   
+///       └ ────-@ - -/---[i-angle]
+///             /    /       
+///            /    /      
+///           /         
+///      [o-angle]
+/// 
+/// @ = vertex
+/// █ = segments returned by this function
+/// ```
+#let offset-vertex(
+  vertex,
+  i-angle,
+  o-angle,
+  offset,
+) = {
+
+  let mid = (i-angle + o-angle)/2 + 90deg
+  let interior-angle = 180deg + o-angle - i-angle
+  let sin = calc.sin(interior-angle/2)
+  let hypot = (
+    if calc.abs(sin) < 0.01 { 0 }
+    else { -offset/sin }
+  )
+  let knee-offset = (hypot*calc.cos(mid), hypot*calc.sin(mid), 0.0)
+
+  vertex = cetz.vector.add(vertex, knee-offset)
+}
+
+/// Given the coordinate of a vertex and the angles of its
+/// incoming and outgoing legs (`i-angle` and `o-angle`),
 /// return the incoming leg and arc of a rounded vertex.
 /// 
 /// ```
-///             |--- d ---|          
-/// ****************──────@-> i-angle
-///        ..   │   **   /           
-///       .     r     * /            
-///       .     |     */             
-///       .           *              
+///             ┌─── d ───┐          
+/// ████████████████──────@--[i-angle]
+///        ..   │   ██   /           
+///       .     r     █ /            
+///       .     |     █/             
+///       .           █              
 ///        ..      ../               
 ///          ...... /                
 ///                /                 
-///               v  o-angle         
+///           [o-angle]
 /// 
+/// @ = vertex
+/// █ = segments returned by this function
 /// ```
-/// 
-/// Segments returned by this function drawn `***`.
 #let rounded-vertex(
   vertex,
   i-angle,
@@ -373,7 +408,7 @@
 
   let new-segments = ()
 
-  let interior-angle = (i-angle + 180deg - o-angle)
+  let interior-angle = i-angle + 180deg - o-angle
 
   if calc.abs(calc.sin(interior-angle)) < 0.05 {
     return (("l", vertex),)
@@ -407,8 +442,10 @@
 
 #let subpath-effect(
   subpath,
-  extrude: 0,
-  corner-radius: 0,
+  offset: 0,
+  min-offset: 0,
+  max-offset: 0,
+  corner-radius: none,
 ) = {
   let (start, close, segments) = subpath
   let n = segments.len()
@@ -441,31 +478,67 @@
   for i in range(n) {
 
     let this-segment = segments.at(i)
+    let i-angle = io-angles.at(i).last() // end angle of this segment
     if i == n - 1 {
-      new-segments.push(this-segment)
+      // last segment
+      // new-segments.push(this-segment)
+      let vertex = this-segment.last()
+      let this-normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
+
+      vertex = cetz.vector.add(vertex, this-normal)
+      new-segments.push(("l", vertex))
+
       continue
     }
-    let next-segment = segments.at(i + 1)
 
-    let (i-angle, o-angle) = (    // directions of the legs of this vertex
-      io-angles.at(i).last(),     // end angle of this segment
-      io-angles.at(i + 1).first() // start angle of next segment
-    )
+    let next-segment = segments.at(i + 1)
+    let o-angle = io-angles.at(i + 1).first() // start angle of next segment
 
     // this segment and the next are straight lines
     // here we can apply vertex rounding
     if this-segment.first() == "l" and next-segment.first() == "l" {
+      let vertex = this-segment.last()
 
+      if offset != 0 {
+        let this-normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
+
+        if i == 0 {
+          // update start
+          start = cetz.vector.add(start, this-normal)
+        }
+
+        let mid = (i-angle + o-angle)/2 + 90deg
+        let half-knee-angle = (180deg + o-angle - i-angle)/2
+        let sin = calc.sin(half-knee-angle)
+        let hypot = (
+          if calc.abs(sin) < 0.01 { 0 }
+          else { -offset/sin }
+        )
+        let knee-offset = (hypot*calc.cos(mid), hypot*calc.sin(mid), 0.0)
+
+        vertex = cetz.vector.add(vertex, knee-offset)
+
+      }
 
       let radius = (
         if type(corner-radius) == array { corner-radius.at(i, default: 0) }
         else if type(corner-radius) in (int, float) { corner-radius }
       )
 
-      if radius == 0 {
-        new-segments.push(this-segment)
+      if radius == none {
+        new-segments.push(("l", vertex))
       } else {
-        new-segments += rounded-vertex(this-segment.last(), i-angle, o-angle, radius)
+
+        let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
+
+        let r = if is-right-turn {
+          radius - min-offset + offset
+        } else {
+          // offset - radius
+          radius + max-offset -  offset
+        }
+
+        new-segments += rounded-vertex(vertex, i-angle, o-angle, r)
       }
 
     } else {
@@ -487,19 +560,21 @@
   shorten-start: 0,
   shorten-end: 0,
   extrude: 0,
-  corner-radius: 0,
+  corner-radius: none,
   stroke: auto,
 ) = {
-  let offsets = utils.one-or-array(extrude, types: (int, float, length))
+  let extrude = utils.one-or-array(extrude, types: (int, float, length))
 
   if type(shorten-start) != array {
-    shorten-start = (shorten-start,)*offsets.len()
+    shorten-start = (shorten-start,)*extrude.len()
   }
   if type(shorten-end) != array { 
-    shorten-end = (shorten-end,)*offsets.len()
+    shorten-end = (shorten-end,)*extrude.len()
   }
 
   cetz.draw.get-ctx(ctx => {
+
+
     let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
 
     let (drawables, bounds, elements) = cetz.process.many(ctx, path)
@@ -515,9 +590,13 @@
       }
       let thickness = utils.get-thickness(stroke).to-absolute()
 
+      let offsets = extrude.map(offset => {
+        if type(offset) in (int, float) { offset*thickness/ctx.length }
+        else if type(offset) == length { offset/ctx.length }
+        else {panic()}
+      })
+
       for (i, offset) in offsets.enumerate() {
-        if type(offset) in (int, float) { offset *= thickness/ctx.length }
-        else if type(offset) == length { offset /= ctx.length }
 
         let start = shorten-start.at(i)*thickness/ctx.length
         let end = shorten-end.at(i)*thickness/ctx.length
@@ -534,9 +613,13 @@
         
         new-path = new-path.map(subpath => subpath-effect(
           subpath,
-          extrude: offset,
+          offset: offset,
+          min-offset: calc.min(..offsets),
+          max-offset: calc.max(..offsets),
           corner-radius: corner-radius,
         ))
+
+        if corner-radius != none { stroke.join = "round" }
 
         (drawable + (segments: new-path, stroke: stroke),)
       }
