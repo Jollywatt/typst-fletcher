@@ -344,21 +344,17 @@
 }
 
 
-/// Given the coordinate of a vertex and the angles of its
-/// incoming and outgoing legs (`i-angle` and `o-angle`),
-/// return the incoming leg extruded by an offset.
+/// The offset knee point for a vertex, given the
+/// angles of its incoming and outgoing legs.
 /// 
 /// ```
-///       ┌ █████████████ 
-/// offset│            /   
-///       └ ────-@ - -/---[i-angle]
-///             /    /       
-///            /    /      
-///           /         
-///      [o-angle]
-/// 
-/// @ = vertex
-/// █ = segments returned by this function
+/// returns knee point ↓
+/// ───────────────────* ┐
+///      vertex ↓     /  │ offset 
+/// ─[i-angle]──@    /   ┘
+///            /    /       
+///     [o-angle]  /      
+///          /    /     
 /// ```
 #let offset-vertex(
   vertex,
@@ -367,16 +363,17 @@
   offset,
 ) = {
 
-  let mid = (i-angle + o-angle)/2 + 90deg
   let interior-angle = 180deg + o-angle - i-angle
   let sin = calc.sin(interior-angle/2)
-  let hypot = (
-    if calc.abs(sin) < 0.01 { 0 }
-    else { -offset/sin }
-  )
-  let knee-offset = (hypot*calc.cos(mid), hypot*calc.sin(mid), 0.0)
 
-  vertex = cetz.vector.add(vertex, knee-offset)
+  // give up if knee is too pointy
+  if calc.abs(sin) < 0.01 { return vertex }
+  
+  let hypot = -offset/sin // distance from vertex to knee
+  let angle-to-knee = (i-angle + o-angle)/2 + 90deg
+  let knee-offset = (hypot*calc.cos(angle-to-knee), hypot*calc.sin(angle-to-knee), 0.0)
+
+  return cetz.vector.add(vertex, knee-offset)
 }
 
 /// Given the coordinate of a vertex and the angles of its
@@ -385,18 +382,18 @@
 /// 
 /// ```
 ///             ┌─── d ───┐          
-/// ████████████████──────@--[i-angle]
-///        ..   │   ██   /           
-///       .     r     █ /            
-///       .     |     █/             
-///       .           █              
+/// ****************──────@-[i-angle]
+///        ..   │   **   /           
+///       .     r     * /            
+///       .     ╵     */             
+///       .           /              
 ///        ..      ../               
 ///          ...... /                
 ///                /                 
 ///           [o-angle]
 /// 
 /// @ = vertex
-/// █ = segments returned by this function
+/// * = segments returned by this function
 /// ```
 #let rounded-vertex(
   vertex,
@@ -404,10 +401,6 @@
   o-angle,
   radius,
 ) = {
-      
-
-  let new-segments = ()
-
   let interior-angle = i-angle + 180deg - o-angle
 
   if calc.abs(calc.sin(interior-angle)) < 0.05 {
@@ -416,28 +409,40 @@
 
   let d = radius/calc.tan(interior-angle/2)
 
-
   let (start, stop) = (i-angle + 90deg, o-angle + 90deg)
   if stop > start { start += 360deg }
-
   if start - stop > 180deg {
     d *= -1
     start -= 180deg
     stop += 180deg
   }
 
-  let arc-start-pt = cetz.vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
+  let arc-start-pt = vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
   let arc = cetz.drawable.arc(..arc-start-pt, start, stop, radius, radius)
   let (arc-start, _, arc-segments) = arc.segments.first()
 
-  new-segments.push(("l", arc-start))
-  new-segments += arc-segments
-  new-segments.push((
-    "l",
-    cetz.vector.sub(vertex, (d*calc.cos(o-angle), d*calc.sin(o-angle)))
-  ))
+  return (
+    ("l", arc-start),
+    ..arc-segments,
+  )
+}
 
-  return new-segments
+/// Simplify a subpath `(start, close, segments)` by deleting trivial
+/// line segments (which end where they begin).
+#let simplify-subpath(subpath) = {
+  let (start, close, segments) = subpath
+  let pt = start
+  let i = 0
+  while i < segments.len() {
+    let (kind, ..pts) = segments.at(i)
+    if kind == "l" and pts.first() == pt {
+      segments.remove(i)
+      continue
+    }
+    pt = pts.last()
+    i += 1
+  }
+  return (start, close, segments)
 }
 
 #let subpath-effect(
@@ -447,12 +452,11 @@
   max-offset: 0,
   corner-radius: none,
 ) = {
-  let (start, close, segments) = subpath
+  let (start, close, segments) = simplify-subpath(subpath)
   let n = segments.len()
 
-  // first, get the incoming and outgoing angles of each segment piece
-  let io-angles = () // array of (in, out) angle pairs, one of each segment
-  let vertices = ()
+  // get the incoming and outgoing angles of each segment
+  let io-angles = () // array of (in, out) angle pairs
   let prev-pt = start
   for segment in segments {
     let (kind, ..pts) = segment
@@ -466,83 +470,127 @@
         vector.angle2(b, c),
       ))
     }
-    vertices.push(prev-pt)
     prev-pt = pts.last()
   }
-  vertices.push(prev-pt)
 
 
   let new-segments = ()
-
   let prev-pt = start
   for i in range(n) {
 
+    //   ┌──────── this-segment ────────┐
+    // ━━@━[prev-o-angle]━━━━━[i-angle]━@━[o-angle]━━━▶︎
+    //                                  ^ vertex
+
     let this-segment = segments.at(i)
-    let i-angle = io-angles.at(i).last() // end angle of this segment
-    if i == n - 1 {
-      // last segment
-      // new-segments.push(this-segment)
-      let vertex = this-segment.last()
-      let this-normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
+    let vertex = this-segment.last()
 
-      vertex = cetz.vector.add(vertex, this-normal)
-      new-segments.push(("l", vertex))
-
-      continue
+    let (prev-o-angle, i-angle) = io-angles.at(i)
+    let o-angle = if i + 1 < n {
+      io-angles.at(i + 1).first() 
+    } else {
+      io-angles.at(i).last()
     }
 
-    let next-segment = segments.at(i + 1)
-    let o-angle = io-angles.at(i + 1).first() // start angle of next segment
+    let radius = (
+      if type(corner-radius) == array { corner-radius.at(i, default: 0) }
+      else if type(corner-radius) in (int, float) { corner-radius }
+    )
 
-    // this segment and the next are straight lines
-    // here we can apply vertex rounding
-    if this-segment.first() == "l" and next-segment.first() == "l" {
-      let vertex = this-segment.last()
+    // when a multi-stroke extruded path bends around a corner,
+    // we want the innermost path to have the specified radius
+    // while outer paths have larger radii such that all paths'
+    // centers of curvature are concentric
+    let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
+    let r = if radius != none {
+      if is-right-turn {
+        radius - min-offset + offset
+      } else {
+        radius + max-offset - offset
+      }
+    }
 
+
+
+    if this-segment.first() == "l" {
+
+      // apply extrusion effect by offsetting line in normal direction
       if offset != 0 {
-        let this-normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
+        let normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
 
         if i == 0 {
-          // update start
-          start = cetz.vector.add(start, this-normal)
+          // update start point
+          start = vector.add(start, normal)
         }
 
-        let mid = (i-angle + o-angle)/2 + 90deg
-        let half-knee-angle = (180deg + o-angle - i-angle)/2
-        let sin = calc.sin(half-knee-angle)
-        let hypot = (
-          if calc.abs(sin) < 0.01 { 0 }
-          else { -offset/sin }
-        )
-        let knee-offset = (hypot*calc.cos(mid), hypot*calc.sin(mid), 0.0)
-
-        vertex = cetz.vector.add(vertex, knee-offset)
-
+        vertex = offset-vertex(vertex, o-angle, i-angle, offset)
       }
-
-      let radius = (
-        if type(corner-radius) == array { corner-radius.at(i, default: 0) }
-        else if type(corner-radius) in (int, float) { corner-radius }
-      )
-
+      
       if radius == none {
         new-segments.push(("l", vertex))
       } else {
-
-        let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
-
-        let r = if is-right-turn {
-          radius - min-offset + offset
-        } else {
-          // offset - radius
-          radius + max-offset -  offset
-        }
-
         new-segments += rounded-vertex(vertex, i-angle, o-angle, r)
       }
 
-    } else {
-      new-segments.push(this-segment)
+    } else if this-segment.first() == "c" {
+
+      let (_, c1, c2, end-pt) = this-segment
+      let s = prev-pt
+
+      assert.eq(end-pt, vertex)
+
+      // shorten curve start curve so it is as near as possible
+      // to the previous point, which might have changed from a corner effect
+      let new-prev-pt = new-segments.last().last()
+      let shift = vector.sub(new-prev-pt, prev-pt)
+      let tangent = (calc.cos(prev-o-angle), calc.sin(prev-o-angle), 0)
+      let shorten-start = calc.max(0, vector.dot(shift, tangent))
+      let (s, end-pt, c1, c2) = bezier.cubic-shorten(prev-pt, end-pt, c1, c2, shorten-start)
+
+      if offset != 0 {
+        vertex = offset-vertex(vertex, o-angle, i-angle, offset)
+      }
+
+      // shorten curve end to make way for a corner effect
+      let new-end-pt = if r != none {
+        rounded-vertex(vertex, i-angle, o-angle, r).first().last()
+      } else { vertex }
+      let shift = vector.sub(new-end-pt, end-pt)
+      let tangent = (calc.cos(i-angle), calc.sin(i-angle), 0)
+      let shift-end = vector.dot(shift, tangent) // -ve is shorten, +ve is lengthen
+      if shift-end < 0 {
+        (s, end-pt, c1, c2) = bezier.cubic-shorten(s, end-pt, c1, c2, shift-end)
+      }
+
+      // offset bezier curve by sampling
+      let N = 20
+      let curve-points = range(N + 1).map(n => {
+        let t = n/N
+        let pt = bezier.cubic-point(s, end-pt, c1, c2, t)
+        let (dx, dy, ..) = bezier.cubic-derivative(s, end-pt, c1, c2, t)
+        let unit-normal = vector.norm((dy, -dx))
+        vector.add(pt, vector.scale(unit-normal, offset))
+      })
+
+      if false {
+        // approximate curves with a Catmull-Rom curve through samples points
+        for (s, e, c1, c2) in bezier.catmull-to-cubic(curve-points, .5) {
+          new-segments.push(("c", c1, c2, e))
+        }
+      } else {
+        // approximate curves with line segments
+        for pt in curve-points {
+          new-segments.push(("l", pt))
+        }
+      }
+
+      if r != none {
+        // add corner effect at end of bezier segment
+        new-segments += rounded-vertex(vertex, i-angle, o-angle, r).slice(1)
+      } else if shift-end > 0 {
+        // add overhang line segment if necessary
+        new-segments.push(("l", new-end-pt))
+      }
     }
 
     prev-pt = this-segment.last()
@@ -574,12 +622,9 @@
 
   cetz.draw.get-ctx(ctx => {
 
-
-    let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
-
     let (drawables, bounds, elements) = cetz.process.many(ctx, path)
 
-    assert.eq(drawables.len(), 1)
+    // assert.eq(drawables.len(), 1)
 
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")
@@ -588,12 +633,15 @@
         utils.stroke-to-dict(drawable.stroke)
         utils.stroke-to-dict(stroke)
       }
+
+      // force round stroke join style for rounded corners
+      if corner-radius != none { stroke.join = "round" }
+
       let thickness = utils.get-thickness(stroke).to-absolute()
 
       let offsets = extrude.map(offset => {
         if type(offset) in (int, float) { offset*thickness/ctx.length }
         else if type(offset) == length { offset/ctx.length }
-        else {panic()}
       })
 
       for (i, offset) in offsets.enumerate() {
@@ -619,7 +667,6 @@
           corner-radius: corner-radius,
         ))
 
-        if corner-radius != none { stroke.join = "round" }
 
         (drawable + (segments: new-path, stroke: stroke),)
       }
