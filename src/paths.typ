@@ -3,6 +3,8 @@
 #import cetz.util: bezier
 #import "utils.typ"
 
+#let polar(dist, angle) = (dist*calc.cos(angle), dist*calc.sin(angle), 0.)
+
 /* TERMINOLOGY */
 // segment := ("l" | "c", vector*)
 // sub-path := (<origin>, <closed?>, (segment*,))
@@ -147,18 +149,19 @@
   return (c1, c2, e)
 }
 
-
-/// Given the coordinate of a vertex and the angles of its
-/// incoming and outgoing legs (`i-angle` and `o-angle`),
-/// return the incoming leg and arc of a rounded vertex.
+  
+/// Incoming leg and circular segments of a rounded corner.
+/// 
+/// Returns the line segment to point `P` and a single cubic
+/// Bézier segment to `Q`.
 /// 
 /// ```
 ///             ┌─── d ───┐          
-/// ****************──────@-[i-angle]
+/// ************P***──────@-[i-angle]
 ///        ..   │   **   /           
 ///       .     r     * /            
 ///       .     ╵     */             
-///       .           /              
+///       .           Q              
 ///        ..      ../               
 ///          ...... /                
 ///                /                 
@@ -189,10 +192,61 @@
     stop += 180deg
   }
 
-  let arc-start-pt = vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
-  let (c1, c2, e) = cubic-arc(..arc-start-pt, start, stop, radius, radius)
+  let P = vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
+  let (c1, c2, Q) = cubic-arc(..P, start, stop, radius, radius)
+  return (("l", P), ("c", c1, c2, Q))
+}
 
-  return (("l", arc-start-pt), ("c", c1, c2, e))
+/// Incoming and face segments of a bevelled corner.
+/// 
+/// The bevel is specified by a radius, which defines
+/// the circle that is tangent to the bevelled face at
+/// the face's midpoint.
+/// 
+/// Returns two line segments, one to point `P` and the other to `Q`.
+/// 
+/// ```
+///                 ┌─ s ─┐
+///             ┌ d ┼─────┤          
+/// ****************P─────@-[i-angle]
+///        ..   │   .**  /           
+///       .     r     .*Q            
+///       .     ╵     ./             
+///       .           /              
+///        ..      ../               
+///          ...... /                            
+///                /                 
+///           [o-angle]
+/// 
+/// @ = vertex
+/// * = segments returned by this function
+/// ```
+#let bevelled-vertex(
+  vertex,
+  i-angle,
+  o-angle,
+  radius,
+) = {
+  let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
+
+  if calc.abs(calc.sin(interior-angle)) < 0.05 {
+    return (("l", vertex),)
+  }
+
+  let d = radius/calc.tan(interior-angle/2)
+  let beta = 90deg - interior-angle/2
+
+  let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
+  let s = if is-right-turn {
+    +d - radius*calc.tan(beta/2)
+  } else {
+    -d - radius/calc.tan(beta/2)
+  }
+
+  let P = vector.sub(vertex, polar(s, i-angle))
+  let Q = vector.add(vertex, polar(s, o-angle))
+
+  return (("l", P), ("l", Q))
 }
 
 /// Simplify a subpath `(start, close, segments)` by deleting trivial
@@ -218,7 +272,8 @@
   offset: 0,
   min-offset: 0,
   max-offset: 0,
-  corner-radius: none,
+  corner: "milter",
+  corner-radius: 0,
 ) = {
   let (start, close, segments) = simplify-subpath(subpath)
   let n = segments.len()
@@ -246,12 +301,12 @@
   let prev-pt = start
   for i in range(n) {
 
-    //   ┌──────── this-segment ────────┐
-    // ━━@━[prev-o-angle]━━━━━[i-angle]━@━[o-angle]━━━▶︎
-    //                                  ^ vertex
+    //   ┌────────── segment ──────────┐
+    // ━━@━[prev-o-angle]━━━━[i-angle]━@━[o-angle]━━━▶︎
+    //                                 ^ vertex
 
-    let this-segment = segments.at(i)
-    let vertex = this-segment.last()
+    let segment = segments.at(i)
+    let vertex = segment.last()
 
     let (prev-o-angle, i-angle) = io-angles.at(i)
     let o-angle = if i + 1 < n {
@@ -264,6 +319,18 @@
       if type(corner-radius) == array { corner-radius.at(i, default: 0) }
       else if type(corner-radius) in (int, float) { corner-radius }
     )
+
+    let corner-type = (
+      if type(corner) == array { corner.at(i, default: "mitler") }
+      else { corner }
+    )
+
+    let corner-segments(vertex, ..args) = {
+      if corner-type == "milter" { return (("l", vertex),) }
+      if corner-type == "round" { return rounded-vertex(vertex, ..args) }
+      if corner-type == "bevel" { return bevelled-vertex(vertex, ..args) }
+      panic(corner-type)
+    }
 
     // when a multi-stroke extruded path bends around a corner,
     // we want the innermost path to have the specified radius
@@ -280,7 +347,7 @@
 
 
 
-    if this-segment.first() == "l" {
+    if segment.first() == "l" {
 
       // apply extrusion effect by offsetting line in normal direction
       if offset != 0 {
@@ -297,12 +364,12 @@
       if radius == none {
         new-segments.push(("l", vertex))
       } else {
-        new-segments += rounded-vertex(vertex, i-angle, o-angle, r)
+        new-segments += corner-segments(vertex, i-angle, o-angle, r)
       }
 
-    } else if this-segment.first() == "c" {
+    } else if segment.first() == "c" {
 
-      let (_, c1, c2, end-pt) = this-segment
+      let (_, c1, c2, end-pt) = segment
       let s = prev-pt
 
       assert.eq(end-pt, vertex)
@@ -329,7 +396,7 @@
 
       // shorten curve end to make way for a corner effect
       let new-end-pt = if r != none {
-        rounded-vertex(vertex, i-angle, o-angle, r).first().last()
+        corner-segments(vertex, i-angle, o-angle, r).first().last()
       } else { vertex }
       let shift = vector.sub(new-end-pt, end-pt)
       let tangent = (calc.cos(i-angle), calc.sin(i-angle), 0)
@@ -349,6 +416,7 @@
       })
 
       if new-segments.len() > 0 and new-segments.last().first() == "c" {
+        // make any previous bezier segment joint continuously to this segment
         new-segments.last().last() = curve-points.first()
       }
 
@@ -364,10 +432,10 @@
         }
       }
 
-      if r != none {
-        // add corner effect at end of bezier segment
-        new-segments += rounded-vertex(vertex, i-angle, o-angle, r).slice(1)
-      } else if shift-end > 0 {
+      // add corner effect at end of bezier segment
+      new-segments += corner-segments(vertex, i-angle, o-angle, r).slice(1)
+      
+      if shift-end > 0 {
         // add overhang line segment if necessary
         new-segments.push(("l", new-end-pt))
       }
@@ -375,7 +443,7 @@
 
     }
 
-    prev-pt = this-segment.last()
+    prev-pt = segment.last()
   }
 
   return (start, close, new-segments)
@@ -389,7 +457,8 @@
   shorten-start: 0,
   shorten-end: 0,
   extrude: 0,
-  corner-radius: none,
+  corner: "milter",
+  corner-radius: 0,
   stroke: auto,
 ) = {
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
@@ -402,9 +471,7 @@
   }
 
   cetz.draw.get-ctx(ctx => {
-
     let (drawables, bounds, elements) = cetz.process.many(ctx, path)
-
     // assert.eq(drawables.len(), 1)
 
     let new-drawables = drawables.map(drawable => {
@@ -414,10 +481,8 @@
         utils.stroke-to-dict(drawable.stroke)
         utils.stroke-to-dict(stroke)
       }
-
       // force round stroke join style for rounded corners
-      if corner-radius != none { stroke.join = "round" }
-
+      // if corner-radius != none { stroke.join = "round" }
       let thickness = utils.get-thickness(stroke).to-absolute()
 
       let offsets = extrude.map(offset => {
@@ -426,18 +491,16 @@
       })
 
       for (i, offset) in offsets.enumerate() {
-
-        let start = shorten-start.at(i)*thickness/ctx.length
-        let end = shorten-end.at(i)*thickness/ctx.length
-
         let new-path = drawable.segments
 
         // path shortening
-        if start != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, start)
+        let l = shorten-start.at(i)*thickness/ctx.length
+        if l != 0 { 
+          new-path = cetz.path-util.shorten-to(new-path, l)
         }
-        if end != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, end, reverse: true)
+        let l = shorten-end.at(i)*thickness/ctx.length
+        if l != 0 { 
+          new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
         }
         
         new-path = new-path.map(subpath => subpath-effect(
@@ -445,9 +508,9 @@
           offset: offset,
           min-offset: calc.min(..offsets),
           max-offset: calc.max(..offsets),
+          corner: corner,
           corner-radius: corner-radius,
         ))
-
 
         (drawable + (segments: new-path, stroke: stroke),)
       }
