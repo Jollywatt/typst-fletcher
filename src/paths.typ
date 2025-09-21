@@ -73,275 +73,6 @@
   -180deg <= b and b < 180deg
 }))
 
-#let extrude-subpath(subpath, sep, corner-radius) = {
-  let (start, close, segments) = subpath
-  let n = segments.len()
-
-  // first, get the incoming and outgoing angles of each segment piece
-  let io-angles = ()
-  let vertices = ()
-  let prev-pt = start
-  for segment in segments {
-    let (kind, ..pts) = segment
-    if kind == "l" {
-      let angle = vector.angle2(prev-pt, pts.first())
-      io-angles.push((angle, angle))
-    } else if kind == "c" {
-      let (a, b, c) = pts
-      io-angles.push((
-        vector.angle2(prev-pt, a),
-        vector.angle2(b, c),
-      ))
-    }
-    vertices.push(prev-pt)
-    prev-pt = pts.last()
-  }
-  vertices.push(prev-pt)
-
-  let new-segments = ()
-  let last-segment-was-line = false
-
-  for (i, segment) in segments.enumerate() {
-    let segment-kind = segment.first()
-
-    // get incoming and outgoing angles of the current and adjacent segments
-    // >---[o-angle-prev]-*-[i-angle]-----[o-angle]-*-[i-angle-next]--->
-    //                    ^ i-vertex                ^ o-vertex
-
-    let (i-vertex, o-vertex) = (vertices.at(i), vertices.at(i + 1))
-    let (i-angle, o-angle) = io-angles.at(i)
-
-    let o-angle-prev = {
-      if i == 0 {
-        if close { io-angles.last().last() }
-        else { io-angles.first().first() }
-      } else { io-angles.at(i - 1).last() }
-    }
-
-    let i-angle-next = {
-      if i == n - 1 {
-        if close { io-angles.first().first() }
-        else { io-angles.last().last() }
-      } else { io-angles.at(i + 1).first() }
-    }
-    
-
-    // add points to form a bevel joint
-    // each bevel joint has two vertices, while elbows have one
-
-    let should-make-bevel(o-angle, i-angle) = {
-      // true if extrusion is toward the outside of a sharp bend
-      let is-sharp = calc.abs(o-angle - i-angle) > 120deg
-      if o-angle < i-angle { o-angle += 360deg }
-      let is-outer-corner = (o-angle - i-angle < 180deg) == (sep > 0)
-      return is-sharp and is-outer-corner
-    }
-
-    let i-is-bevel = should-make-bevel(o-angle-prev, i-angle) and (close or i > 0) 
-    let o-is-bevel = should-make-bevel(o-angle, i-angle-next) and (close or i < n - 1)
-
-
-    // bevel vertex at start of segment
-    if i-is-bevel {
-      let outward-mid-angle = wrap-angle-180(i-angle + 180deg - o-angle-prev)/2 + o-angle-prev
-      let normal = i-angle + sep.signum()*90deg
-
-      let h = wrap-angle-180(outward-mid-angle - normal)/2
-      let a = normal + h
-
-      if calc.abs(h) == 90deg {
-        // edge case that I don't understand
-      } else {
-        let bevel = calc.abs(sep/calc.cos(h))
-        bevel = calc.min(bevel, 5)
-        let delta = (bevel*calc.cos(a), bevel*calc.sin(a), 0.0)
-        new-segments.push(("l", vector.add(i-vertex, delta)))
-
-        if i == 0 { start = vector.add(i-vertex, delta) }
-      }
-    }
-
-
-
-
-    // add elbow point at end of segment
-
-    let i-mid = (o-angle-prev + i-angle)/2 + 90deg
-    let o-mid = (o-angle + i-angle-next)/2 + 90deg
-
-    let i-half-knee-angle = (180deg + i-angle - o-angle-prev)/2
-    let i-hypot = sep/calc.sin(i-half-knee-angle)
-    let i-pt = (i-hypot*calc.cos(i-mid), i-hypot*calc.sin(i-mid), 0.0)
-
-    let o-half-knee-angle = (180deg + i-angle-next - o-angle)/2
-    let o-hypot = sep/calc.sin(o-half-knee-angle)
-    let o-pt = (o-hypot*calc.cos(o-mid), o-hypot*calc.sin(o-mid), 0.0)
-
-    if i == 0 and not i-is-bevel { start = vector.add(i-vertex, i-pt) }
-
-    let (kind, ..pts) = segment
-    if kind == "l" {
-      if not last-segment-was-line and i > 0 and not i-is-bevel {
-        new-segments.push(("l", vector.add(i-vertex, i-pt)))
-        // new-segments.push(("l", i-vertex))
-      }
-      if not o-is-bevel {
-        new-segments.push(("l", vector.add(o-vertex, o-pt)))
-        // new-segments.push(("l", o-vertex))
-      }
-      last-segment-was-line = true
-
-    } else if kind == "c" {
-      // extrude a cubic bezier segment >.<
-
-      let s = i-vertex
-      let (c1, c2, e) = pts
-      assert.eq(e, o-vertex)
-      let ctrls = (s, e, c1, c2)
-      let lead = sep/calc.tan(i-half-knee-angle)
-      let lag = sep/calc.tan(o-half-knee-angle)
-
-      let t0 = -lead.signum()*bezier.cubic-t-for-distance(..ctrls, calc.abs(lead))
-      let t1 = 1 + lag.signum()*(1 - bezier.cubic-t-for-distance(..ctrls, -calc.abs(lag)))
-      let N = 20
-      let lo = if i == 0 { 0 } else { int(last-segment-was-line) }
-      let hi = if i == n - 1 { N + 1 } else { N }
-
-      let curve-points = range(lo, hi).map(n => {
-        let t = utils.lerp(t0, t1, n/N)
-        let pt = bezier.cubic-point(..ctrls, t)
-        
-        let (dx, dy, ..) = bezier.cubic-derivative(..ctrls, t)
-        let unit-normal = vector.norm((-dy, dx))
-        vector.add(pt, vector.scale(unit-normal, sep))
-      })
-
-      if true {
-        // approximate curves with a Catmull-Rom curve through samples points
-        for (s, e, c1, c2) in bezier.catmull-to-cubic(curve-points, .5) {
-          new-segments.push(("c", c1, c2, e))
-        }
-      } else {
-        // approximate curves with line segments
-        for pt in curve-points {
-          new-segments.push(("l", pt))
-        }
-      }
-
-
-
-      last-segment-was-line = false
-    }
-
-    // bevel vertex at end of segment
-    if o-is-bevel and segment-kind == "l" {
-      let outward-mid-angle = wrap-angle-180(i-angle-next + 180deg - o-angle)/2 + o-angle
-      let normal = o-angle + sep.signum()*90deg
-      let h = wrap-angle-180(outward-mid-angle - normal)/2
-      let a = normal + h
-
-      let bevel = calc.abs(sep/calc.cos(h))
-      bevel = calc.min(bevel, 5)
-      let delta = (bevel*calc.cos(a), bevel*calc.sin(a), 0.0)
-      new-segments.push(("l", vector.add(o-vertex, delta)))
-    }
-
-  }
-
-  return (start, close, new-segments)
-}
-
-/// Apply extrusions to a path and truncate the extrusions from the start and/or end.
-/// 
-/// ```example
-/// #cetz.canvas({
-///   import cetz.draw: *
-///   let obj = line(stroke: 3pt,
-///     (0,0), (1,1), (2,0), (4,0))
-///   obj
-///   fletcher.paths.extrude-and-shorten(
-///     obj,
-///     extrude: (-4, -2, 2, 4),
-///     shorten-start: (0, 0, 2, 4),
-///     shorten-end: (4, 4, 0, 0),
-///     stroke: red,
-///   )
-/// })
-/// ```
-#let extrude-and-shorten(
-  /// -> cetz objects
-  target,
-  /// -> number | length | array
-  extrude: 0,
-  shorten-start: 0,
-  shorten-end: 0,
-  corner-radius: 0,
-  stroke: auto,
-) = {
-  let offsets = utils.one-or-array(extrude, types: (int, float, length))
-
-  if type(shorten-start) != array {
-    shorten-start = (shorten-start,)*offsets.len()
-  }
-  if type(shorten-end) != array { 
-    shorten-end = (shorten-end,)*offsets.len()
-  }
-
-
-  cetz.draw.get-ctx(ctx => {
-    let style = cetz.styles.resolve(ctx, base: (stroke: stroke), root: "line")
-
-    let (drawables, bounds, elements) = cetz.process.many(ctx, target)
-
-    assert.eq(drawables.len(), 1)
-
-    let new-drawables = drawables.map(drawable => {
-      assert.eq(drawable.type, "path")
-
-      let stroke = {
-        utils.stroke-to-dict(drawable.stroke)
-        utils.stroke-to-dict(stroke)
-      }
-      let thickness = utils.get-thickness(stroke).to-absolute()
-
-      for (i, offset) in offsets.enumerate() {
-        if type(offset) in (int, float) { offset *= thickness/ctx.length }
-        else if type(offset) == length { offset /= ctx.length }
-
-        let start = shorten-start.at(i)*thickness/ctx.length
-        let end = shorten-end.at(i)*thickness/ctx.length
-
-        let new-path = drawable.segments
-
-        // path shortening
-        if start != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, start)
-        }
-        if end != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, end, reverse: true)
-        }
-        
-        // path extrusion
-        if offset != 0 {
-          new-path = new-path.map(subpath => {
-            extrude-subpath(subpath, offset, corner-radius)
-          })
-        }
-
-
-        (drawable + (segments: new-path, stroke: stroke),)
-      }
-    }).join()
-
-  
-    (ctx => {
-      return (
-        ctx: ctx,
-        drawables: new-drawables,
-      )
-    },)
-  })
-}
 
 
 /// Offset a vertex to make a milter joint, given the
@@ -553,10 +284,10 @@
 
       // apply extrusion effect by offsetting line in normal direction
       if offset != 0 {
-        let normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
 
         if i == 0 {
           // update start point
+          let normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
           start = vector.add(start, normal)
         }
 
@@ -576,15 +307,23 @@
 
       assert.eq(end-pt, vertex)
 
-      // shorten curve start curve so it is as near as possible
-      // to the previous point, which might have changed from a corner effect
-      let new-prev-pt = new-segments.last().last()
-      let shift = vector.sub(new-prev-pt, prev-pt)
-      let tangent = (calc.cos(prev-o-angle), calc.sin(prev-o-angle), 0)
-      let shorten-start = calc.max(0, vector.dot(shift, tangent))
-      let (s, end-pt, c1, c2) = bezier.cubic-shorten(prev-pt, end-pt, c1, c2, shorten-start)
+      if new-segments.len() > 0 {
+        // shorten curve start curve so it is as near as possible
+        // to the previous point, which might have changed from a corner effect
+        let new-prev-pt = new-segments.last().last()
+        let shift = vector.sub(new-prev-pt, prev-pt)
+        let tangent = (calc.cos(prev-o-angle), calc.sin(prev-o-angle), 0)
+        let shorten-start = calc.max(0, vector.dot(shift, tangent))
+        (s, end-pt, c1, c2) = bezier.cubic-shorten(prev-pt, end-pt, c1, c2, shorten-start)
+      }
 
       if offset != 0 {
+        if i == 0 {
+          // update start point
+          let normal = (offset*calc.sin(prev-o-angle), -offset*calc.cos(prev-o-angle))
+          start = vector.add(start, normal)
+        }
+        
         vertex = offset-vertex(vertex, o-angle, i-angle, offset)
       }
 
@@ -609,8 +348,8 @@
         vector.add(pt, vector.scale(unit-normal, offset))
       })
 
-      if  new-segments.at(-1).first() == "c" {
-        new-segments.at(-1).last() = curve-points.first()
+      if new-segments.len() > 0 and new-segments.last().first() == "c" {
+        new-segments.last().last() = curve-points.first()
       }
 
       if true {
@@ -632,6 +371,8 @@
         // add overhang line segment if necessary
         new-segments.push(("l", new-end-pt))
       }
+
+
     }
 
     prev-pt = this-segment.last()
