@@ -16,7 +16,7 @@
   (
     paths.path-effect(obj, stroke: blue, corner-radius: 0.2),
     paths.path-effect(obj, stroke: blue, extrude: (+4, +2, 0, -2, -4)),
-    paths.path-effect(obj, stroke: blue, corner-radius: 0., extrude: (+2, 0, -2)),
+    paths.path-effect(obj, stroke: blue, corner-radius: 0.1, extrude: (+4, +2, 0, -2, -4)),
   ).map(transformed => {
     obj
     transformed
