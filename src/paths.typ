@@ -6,12 +6,12 @@
 #let polar(dist, angle) = (dist*calc.cos(angle), dist*calc.sin(angle), 0.)
 
 /* TERMINOLOGY */
-// segment := ("l" | "c", vector*)
-// sub-path := (<origin>, <closed?>, (segment*,))
-// path := (sub-path*,)
+// <path> := (<sub-path>*,)
+// <sub-path> := (<origin>, <closed>, (<segment>*,))
+// <segment> := ("l" | "c", <vector>*)
 
 
-/// Simplify a subpath `(start, close, segments)` by deleting trivial
+/// Simplify a subpath by deleting trivial/zero-length
 /// line segments (which end where they begin).
 #let simplify-subpath(subpath) = {
   let (start, close, segments) = subpath
@@ -28,6 +28,53 @@
   }
   return (start, close, segments)
 }
+
+
+
+/// Approximate a circular arc with a cubic Bézier segment.
+/// 
+/// This similar to `cetz.drawable.arc()` except that it never
+/// uses more than one cubic Bézier segment, and it returns just
+/// the control and end points `(c1, c2, e)`, not a path.
+/// 
+/// Single segment approximations are useful because they are more
+/// visually robust to nudging endpoints, which is sometimes necessary
+/// when creating a rounded corner where two curves meet.
+#let cubic-arc(x, y, z, start, stop, rx, ry, fill: none, stroke: none) = {
+  let delta = calc.max(-360deg, calc.min(stop - start, 360deg))
+
+  // Move x/y to the center
+  x -= rx * calc.cos(start)
+  y -= ry * calc.sin(start)
+
+  // Calculation of control points is based on the method described here:
+  // https://pomax.github.io/bezierinfo/#circles_cubic
+  let segments = ()
+  let origin = (x, y, z)
+
+  let k = 4 / 3 * calc.tan(delta / 4)
+
+  let sx = x + rx * calc.cos(start)
+  let sy = y + ry * calc.sin(start)
+  let ex = x + rx * calc.cos(stop)
+  let ey = y + ry * calc.sin(stop)
+
+  let s = (sx, sy, z)
+  let c1 = (
+    x + rx * (calc.cos(start) - k * calc.sin(start)),
+    y + ry * (calc.sin(start) + k * calc.cos(start)),
+    z,
+  )
+  let c2 = (
+    x + rx * (calc.cos(stop) + k * calc.sin(stop)),
+    y + ry * (calc.sin(stop) - k * calc.cos(stop)),
+    z,
+  )
+  let e = (ex, ey, z)
+  return (c1, c2, e)
+}
+
+
 
 #let modify-single-subpath-element(ctx, element, callback) = {
   assert.eq(element.len(), 1, message: "expected one cetz element")
@@ -47,7 +94,7 @@
 }
 
 #let draw-only-first-path-segment(element, stroke: auto) = {
-  return cetz.draw.get-ctx(ctx => {
+  cetz.draw.get-ctx(ctx => {
     let new-drawable = modify-single-subpath-element(ctx, element, subpath => {
       let (origin, closed, segments) = subpath
       return (origin, false, segments.slice(0, 1))
@@ -73,9 +120,7 @@
         return (coords.last(), false, (last,))
       }
     })
-
     if stroke != auto { new-drawable.stroke = stroke }
-
     (ctx => (
       ctx: ctx,
       drawables: (new-drawable,)
@@ -129,45 +174,6 @@
   return cetz.vector.add(vertex, offset)
 }
 
-/// This similar to `cetz.drawable.arc()` except that it always
-/// approximates the circular arc with a single cubic Bézier segment.
-/// 
-/// This is useful because single segments are more robust to nudging endpoints,
-/// which we sometimes must do when creating a rounded corner where two curves meet.
-#let cubic-arc(x, y, z, start, stop, rx, ry, fill: none, stroke: none) = {
-  let delta = calc.max(-360deg, calc.min(stop - start, 360deg))
-
-  // Move x/y to the center
-  x -= rx * calc.cos(start)
-  y -= ry * calc.sin(start)
-
-  // Calculation of control points is based on the method described here:
-  // https://pomax.github.io/bezierinfo/#circles_cubic
-  let segments = ()
-  let origin = (x, y, z)
-
-  let k = 4 / 3 * calc.tan(delta / 4)
-
-  let sx = x + rx * calc.cos(start)
-  let sy = y + ry * calc.sin(start)
-  let ex = x + rx * calc.cos(stop)
-  let ey = y + ry * calc.sin(stop)
-
-  let s = (sx, sy, z)
-  let c1 = (
-    x + rx * (calc.cos(start) - k * calc.sin(start)),
-    y + ry * (calc.sin(start) + k * calc.cos(start)),
-    z,
-  )
-  let c2 = (
-    x + rx * (calc.cos(stop) + k * calc.sin(stop)),
-    y + ry * (calc.sin(stop) - k * calc.cos(stop)),
-    z,
-  )
-  let e = (ex, ey, z)
-  return (c1, c2, e)
-}
-
   
 /// Incoming leg and circular segments of a rounded corner.
 /// 
@@ -216,13 +222,15 @@
   return (("l", P), ("c", c1, c2, Q))
 }
 
-/// Incoming and face segments of a bevelled corner.
+/// Segments of a miter or bevelled corner.
 /// 
 /// The bevel is specified by a radius, which defines
 /// the circle that is tangent to the bevelled face at
 /// the face's midpoint.
 /// 
-/// Returns two line segments, one to point `P` and the other to `Q`.
+/// Depending on the miter limit, this returns a single segment
+/// for a miter join and two line segments for a bevel join,
+/// one to point `P` and the other to `Q`.
 /// 
 /// ```
 ///                 ┌─ s ─┐
@@ -240,52 +248,35 @@
 /// @ = vertex
 /// * = segments returned by this function
 /// ```
-#let bevelled-vertex(
+#let miter-bevel-vertex(
   vertex,
   i-angle,
   o-angle,
   radius,
+  miter-limit: 4.0
 ) = {
   let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
 
-  let inv-miter-ratio = calc.sin(interior-angle/2)
-  if calc.abs(calc.sin(interior-angle)) < 0.05 {
+  let inv-miter-ratio = calc.abs(calc.sin(interior-angle/2))
+  if inv-miter-ratio > 1/miter-limit or inv-miter-ratio < 1e-5 {
+    // not too sharp
     return (("l", vertex),)
   }
+  // too sharp; apply bevel
 
-  let d = radius/calc.tan(interior-angle/2)
   let beta = 90deg - interior-angle/2
 
   let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
   let s = if is-right-turn {
-    +d - radius*calc.tan(beta/2)
+    radius*(calc.tan(beta) - calc.tan(beta/2))
   } else {
-    -d - radius/calc.tan(beta/2)
+    radius*(-calc.tan(beta) - 1/calc.tan(beta/2))
   }
 
   let P = vector.sub(vertex, polar(s, i-angle))
   let Q = vector.add(vertex, polar(s, o-angle))
 
   return (("l", P), ("l", Q))
-}
-
-#let miter-vertex(
-  vertex,
-  i-angle,
-  o-angle,
-  radius,
-  miter-limit: 4.0,
-) = {
-  let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
-  let inv-miter-ratio = calc.abs(calc.sin(interior-angle/2))
-  if inv-miter-ratio < 1/miter-limit {
-    // too sharp
-    // return (("l", vertex),)
-    return bevelled-vertex(vertex, i-angle, o-angle, radius)
-  } else {
-    // not too sharp
-    return (("l", vertex),)
-  }
 }
 
 
@@ -319,8 +310,10 @@
     prev-pt = pts.last()
   }
 
-
   let new-segments = ()
+
+
+
   let prev-pt = start
   for i in range(n) {
 
@@ -345,16 +338,15 @@
 
 
     let corner-type = (
-      if type(corner) == array { corner.at(i, default: "mitler"); panic() }
+      if type(corner) == array { corner.at(i, default: "miter"); panic() }
       else { corner }
     )
 
-    assert(corner in ("miter", "round", "bevel"))
+    assert(corner in ("miter", "round"))
 
     let corner-segments(vertex, ..args) = {
-      if corner-type == "miter" { return miter-vertex(vertex, ..args, miter-limit: miter-limit) }
+      if corner-type == "miter" { return miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
       if corner-type == "round" { return rounded-vertex(vertex, ..args) }
-      if corner-type == "bevel" { return bevelled-vertex(vertex, ..args) }
       panic(corner-type)
     }
 
@@ -386,7 +378,7 @@
           start = vector.add(start, normal)
         }
 
-        vertex = offset-vertex(vertex, o-angle, i-angle, offset)
+        vertex = offset-vertex(vertex, i-angle, o-angle, offset)
       }
       
       if radius == none {
