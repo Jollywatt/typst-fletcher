@@ -10,6 +10,25 @@
 // sub-path := (<origin>, <closed?>, (segment*,))
 // path := (sub-path*,)
 
+
+/// Simplify a subpath `(start, close, segments)` by deleting trivial
+/// line segments (which end where they begin).
+#let simplify-subpath(subpath) = {
+  let (start, close, segments) = subpath
+  let pt = start
+  let i = 0
+  while i < segments.len() {
+    let (kind, ..pts) = segments.at(i)
+    if kind == "l" and pts.first() == pt {
+      segments.remove(i)
+      continue
+    }
+    pt = pts.last()
+    i += 1
+  }
+  return (start, close, segments)
+}
+
 #let modify-single-subpath-element(ctx, element, callback) = {
   assert.eq(element.len(), 1, message: "expected one cetz element")
   let (ctx, drawables) = element.first()(ctx)
@@ -77,7 +96,7 @@
 
 
 
-/// Offset a vertex to make a milter joint, given the
+/// Offset a vertex to make a miter joint, given the
 /// angles of the incoming and outgoing legs.
 /// 
 /// ```
@@ -229,6 +248,7 @@
 ) = {
   let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
 
+  let inv-miter-ratio = calc.sin(interior-angle/2)
   if calc.abs(calc.sin(interior-angle)) < 0.05 {
     return (("l", vertex),)
   }
@@ -249,31 +269,34 @@
   return (("l", P), ("l", Q))
 }
 
-/// Simplify a subpath `(start, close, segments)` by deleting trivial
-/// line segments (which end where they begin).
-#let simplify-subpath(subpath) = {
-  let (start, close, segments) = subpath
-  let pt = start
-  let i = 0
-  while i < segments.len() {
-    let (kind, ..pts) = segments.at(i)
-    if kind == "l" and pts.first() == pt {
-      segments.remove(i)
-      continue
-    }
-    pt = pts.last()
-    i += 1
+#let miter-vertex(
+  vertex,
+  i-angle,
+  o-angle,
+  radius,
+  miter-limit: 4.0,
+) = {
+  let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
+  let inv-miter-ratio = calc.abs(calc.sin(interior-angle/2))
+  if inv-miter-ratio < 1/miter-limit {
+    // too sharp
+    // return (("l", vertex),)
+    return bevelled-vertex(vertex, i-angle, o-angle, radius)
+  } else {
+    // not too sharp
+    return (("l", vertex),)
   }
-  return (start, close, segments)
 }
+
 
 #let subpath-effect(
   subpath,
   offset: 0,
   min-offset: 0,
   max-offset: 0,
-  corner: "milter",
+  corner: "miter",
   corner-radius: 0,
+  miter-limit: 4.0,
 ) = {
   let (start, close, segments) = simplify-subpath(subpath)
   let n = segments.len()
@@ -320,13 +343,16 @@
       else if type(corner-radius) in (int, float) { corner-radius }
     )
 
+
     let corner-type = (
-      if type(corner) == array { corner.at(i, default: "mitler") }
+      if type(corner) == array { corner.at(i, default: "mitler"); panic() }
       else { corner }
     )
 
+    assert(corner in ("miter", "round", "bevel"))
+
     let corner-segments(vertex, ..args) = {
-      if corner-type == "milter" { return (("l", vertex),) }
+      if corner-type == "miter" { return miter-vertex(vertex, ..args, miter-limit: miter-limit) }
       if corner-type == "round" { return rounded-vertex(vertex, ..args) }
       if corner-type == "bevel" { return bevelled-vertex(vertex, ..args) }
       panic(corner-type)
@@ -344,6 +370,8 @@
         radius + max-offset - offset
       }
     }
+    r = calc.max(0, r)
+
 
 
 
@@ -457,9 +485,10 @@
   shorten-start: 0,
   shorten-end: 0,
   extrude: 0,
-  corner: "milter",
+  corner: "miter",
   corner-radius: 0,
   stroke: auto,
+  miter-limit: 4.0,
 ) = {
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
 
@@ -481,8 +510,9 @@
         utils.stroke-to-dict(drawable.stroke)
         utils.stroke-to-dict(stroke)
       }
+      stroke.miter-limit = miter-limit
       // force round stroke join style for rounded corners
-      // if corner-radius != none { stroke.join = "round" }
+      if corner == "round" { stroke.join = "round" }
       let thickness = utils.get-thickness(stroke).to-absolute()
 
       let offsets = extrude.map(offset => {
@@ -510,6 +540,7 @@
           max-offset: calc.max(..offsets),
           corner: corner,
           corner-radius: corner-radius,
+          miter-limit: miter-limit,
         ))
 
         (drawable + (segments: new-path, stroke: stroke),)
