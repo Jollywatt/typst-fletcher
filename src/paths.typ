@@ -344,11 +344,11 @@
 }
 
 
-/// The offset knee point for a vertex, given the
-/// angles of its incoming and outgoing legs.
+/// Offset a vertex to make a milter joint, given the
+/// angles of the incoming and outgoing legs.
 /// 
 /// ```
-/// returns knee point ↓
+///      offset vertex ↓
 /// ───────────────────* ┐
 ///      vertex ↓     /  │ offset 
 /// ─[i-angle]──@    /   ┘
@@ -366,15 +366,56 @@
   let interior-angle = 180deg + o-angle - i-angle
   let sin = calc.sin(interior-angle/2)
 
-  // give up if knee is too pointy
+  // give up if corner is too pointy
   if calc.abs(sin) < 0.01 { return vertex }
   
-  let hypot = -offset/sin // distance from vertex to knee
-  let angle-to-knee = (i-angle + o-angle)/2 + 90deg
-  let knee-offset = (hypot*calc.cos(angle-to-knee), hypot*calc.sin(angle-to-knee), 0.0)
+  // distance and angle between vertex and offset vertex
+  let hypot = -offset/sin
+  let angle = (i-angle + o-angle)/2 + 90deg 
 
-  return cetz.vector.add(vertex, knee-offset)
+  let offset = (hypot*calc.cos(angle), hypot*calc.sin(angle), 0.0)
+  return cetz.vector.add(vertex, offset)
 }
+
+/// This similar to `cetz.drawable.arc()` except that it always
+/// approximates the circular arc with a single cubic Bézier segment.
+/// 
+/// This is useful because single segments are more robust to nudging endpoints,
+/// which we sometimes must do when creating a rounded corner where two curves meet.
+#let cubic-arc(x, y, z, start, stop, rx, ry, fill: none, stroke: none) = {
+  let delta = calc.max(-360deg, calc.min(stop - start, 360deg))
+
+  // Move x/y to the center
+  x -= rx * calc.cos(start)
+  y -= ry * calc.sin(start)
+
+  // Calculation of control points is based on the method described here:
+  // https://pomax.github.io/bezierinfo/#circles_cubic
+  let segments = ()
+  let origin = (x, y, z)
+
+  let k = 4 / 3 * calc.tan(delta / 4)
+
+  let sx = x + rx * calc.cos(start)
+  let sy = y + ry * calc.sin(start)
+  let ex = x + rx * calc.cos(stop)
+  let ey = y + ry * calc.sin(stop)
+
+  let s = (sx, sy, z)
+  let c1 = (
+    x + rx * (calc.cos(start) - k * calc.sin(start)),
+    y + ry * (calc.sin(start) + k * calc.cos(start)),
+    z,
+  )
+  let c2 = (
+    x + rx * (calc.cos(stop) + k * calc.sin(stop)),
+    y + ry * (calc.sin(stop) - k * calc.cos(stop)),
+    z,
+  )
+  let e = (ex, ey, z)
+  return (c1, c2, e)
+}
+
 
 /// Given the coordinate of a vertex and the angles of its
 /// incoming and outgoing legs (`i-angle` and `o-angle`),
@@ -418,13 +459,9 @@
   }
 
   let arc-start-pt = vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
-  let arc = cetz.drawable.arc(..arc-start-pt, start, stop, radius, radius)
-  let (arc-start, _, arc-segments) = arc.segments.first()
+  let (c1, c2, e) = cubic-arc(..arc-start-pt, start, stop, radius, radius)
 
-  return (
-    ("l", arc-start),
-    ..arc-segments,
-  )
+  return (("l", arc-start-pt), ("c", c1, c2, e))
 }
 
 /// Simplify a subpath `(start, close, segments)` by deleting trivial
@@ -572,7 +609,11 @@
         vector.add(pt, vector.scale(unit-normal, offset))
       })
 
-      if false {
+      if  new-segments.at(-1).first() == "c" {
+        new-segments.at(-1).last() = curve-points.first()
+      }
+
+      if true {
         // approximate curves with a Catmull-Rom curve through samples points
         for (s, e, c1, c2) in bezier.catmull-to-cubic(curve-points, .5) {
           new-segments.push(("c", c1, c2, e))
@@ -597,7 +638,6 @@
   }
 
   return (start, close, new-segments)
-
 }
 
 
