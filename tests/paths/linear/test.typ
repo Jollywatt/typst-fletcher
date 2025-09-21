@@ -25,21 +25,18 @@
   )
 }
 
-#test-all-angles(obj => paths.path-effect(obj, corner: "round", corner-radius: 0.1))
+#page(test-all-angles(obj =>
+  paths.path-effect(obj, corner: "round", corner-radius: 0.1)))
 
-#pagebreak()
+#page(test-all-angles(obj =>
+  paths.path-effect(obj, extrude: (+2, 0, -2))))
 
-#test-all-angles(obj => paths.path-effect(obj, corner: "miter", extrude: (+2, 0, -2)))
+#page(test-all-angles(obj =>
+  paths.path-effect(obj, corner: "round", extrude: (+2, 0, -2))))
 
-#pagebreak()
+#page(test-all-angles(obj =>
+  paths.path-effect(obj, miter-limit: 1.4, extrude: (+2, 0, -2))))
 
-#test-all-angles(obj => paths.path-effect(obj, corner: "round", corner-radius: 0.1, extrude: (+2, 0, -2)))
-
-#pagebreak()
-
-#test-all-angles(obj => paths.path-effect(obj, miter-limit: 1.4, extrude: (+2, 0, -2)))
-
-#pagebreak()
 
 #cetz.canvas({
   import cetz.draw: *
@@ -52,7 +49,7 @@
     (3,0),
     (3,1),
     (2.5,0.5),
-    stroke: 0.5pt + black.transparentize(50%),
+    stroke: 0.5pt + black,
   )
 
   (
@@ -62,11 +59,11 @@
     arguments(corner: "round", corner-radius: 0.0, extrude: (-2, 0)),
     arguments(corner: "round", corner-radius: .1, extrude: (2, 0, -2)),
     arguments(corner: "round", corner-radius: -.15, extrude: (2, 0, -2)),
-    arguments(corner: "miter", extrude: (2, 0)),
+    arguments(corner: "miter", extrude: (2, 0), miter-limit: 2),
     arguments(corner: "miter", extrude: (0, -2), miter-limit: 2),
   ).map(args => {
     paths.path-effect(obj, stroke: teal + 2pt, ..args)
-    // obj
+    obj
     translate(y: -2)
   }).join()  
 })
