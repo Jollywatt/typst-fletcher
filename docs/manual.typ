@@ -86,6 +86,9 @@
       show-reference: (label, name, style-args: none) => {
         name = name.split(".").last()
         link(label, raw(name, lang: none))
+      },
+      show-example: (..args) => {
+        tidy.styles.default.show-example(..args, ratio: 1.5)
       }
     )
   )

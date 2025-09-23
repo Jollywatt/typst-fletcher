@@ -14,8 +14,8 @@
   obj
 
   (
-    paths.path-effect(obj, stroke: blue, corner: "round", corner-radius: 0.2),
-    paths.path-effect(obj, stroke: blue, corner: "round", corner-radius: 0.1, extrude: (+4, +2, 0, -2, -4)),
+    paths.path-effect(obj, stroke: blue, join: "round", corner-radius: 0.2),
+    paths.path-effect(obj, stroke: blue, join: "round", corner-radius: 0.1, extrude: (+4, +2, 0, -2, -4)),
     paths.path-effect(obj, stroke: blue, extrude: (+4, +2, 0, -2, -4)),
     paths.path-effect(obj, stroke: blue, extrude: (+4, +2, 0, -2, -4), miter-limit: 1.5),
   ).map(transformed => {
@@ -37,8 +37,8 @@
   }, close: true, stroke: luma(80%))
 
   (
-    arguments(corner: "round", corner-radius: 0.2),
-    arguments(corner: "round", corner-radius: 0.1, extrude: (+4pt, +2pt, 0, -2pt, -4pt)),
+    arguments(join: "round", corner-radius: 0.2),
+    arguments(join: "round", corner-radius: 0.1, extrude: (+4pt, +2pt, 0, -2pt, -4pt)),
     arguments(extrude: (+4pt, +2pt, 0, -2pt, -4pt)),
     arguments(extrude: (+4pt, +2pt, 0, -2pt, -4pt), miter-limit: 0),
   ).map(args => {

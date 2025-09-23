@@ -26,13 +26,13 @@
 }
 
 #page(test-all-angles(obj =>
-  paths.path-effect(obj, corner: "round", corner-radius: 0.1)))
+  paths.path-effect(obj, join: "round", corner-radius: 0.1)))
 
 #page(test-all-angles(obj =>
   paths.path-effect(obj, extrude: (+2, 0, -2))))
 
 #page(test-all-angles(obj =>
-  paths.path-effect(obj, corner: "round", extrude: (+2, 0, -2))))
+  paths.path-effect(obj, join: "round", extrude: (+2, 0, -2))))
 
 #page(test-all-angles(obj =>
   paths.path-effect(obj, miter-limit: 1.4, extrude: (+2, 0, -2))))
@@ -53,14 +53,14 @@
   )
 
   (
-    arguments(corner: "round", corner-radius: 0.1),
+    arguments(join: "round", corner-radius: 0.1),
     arguments(extrude: (+2, 0, -2)),
-    arguments(corner: "round", corner-radius: 0.0, extrude: (+2, 0)),
-    arguments(corner: "round", corner-radius: 0.0, extrude: (-2, 0)),
-    arguments(corner: "round", corner-radius: .1, extrude: (2, 0, -2)),
-    arguments(corner: "round", corner-radius: -.15, extrude: (2, 0, -2)),
-    arguments(corner: "miter", extrude: (2, 0), miter-limit: 2),
-    arguments(corner: "miter", extrude: (0, -2), miter-limit: 2),
+    arguments(join: "round", corner-radius: 0.0, extrude: (+2, 0)),
+    arguments(join: "round", corner-radius: 0.0, extrude: (-2, 0)),
+    arguments(join: "round", corner-radius: .1, extrude: (2, 0, -2)),
+    arguments(join: "round", corner-radius: -.15, extrude: (2, 0, -2)),
+    arguments(join: "miter", extrude: (2, 0), miter-limit: 2),
+    arguments(join: "miter", extrude: (0, -2), miter-limit: 2),
   ).map(args => {
     paths.path-effect(obj, stroke: teal + 2pt, ..args)
     obj
