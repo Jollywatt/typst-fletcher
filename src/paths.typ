@@ -286,10 +286,12 @@
   offset: 0,
   min-offset: 0,
   max-offset: 0,
-  corner: "miter",
+  join: "miter",
   corner-radius: 0,
   miter-limit: 4.0,
 ) = {
+  assert(join in ("miter", "round"))
+  
   let (start, close, segments) = simplify-subpath(subpath)
 
   if close {
@@ -317,11 +319,8 @@
   }
 
   let new-segments = ()
-
-  let first-segment-length = 0
-
-
   let prev-pt = start
+  let first-segment-length = 0
   for i in range(n) {
 
     //   ┌────────── segment ──────────┐
@@ -343,18 +342,10 @@
       else if type(corner-radius) in (int, float) { corner-radius }
     )
 
-
-    let corner-type = (
-      if type(corner) == array { corner.at(i, default: "miter"); panic() }
-      else { corner }
-    )
-
-    assert(corner in ("miter", "round"))
-
     let corner-segments(vertex, ..args) = {
-      if corner-type == "miter" { return miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
-      if corner-type == "round" { return rounded-vertex(vertex, ..args) }
-      panic(corner-type)
+      if join == "miter" { return miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
+      if join == "round" { return rounded-vertex(vertex, ..args) }
+      panic(join)
     }
 
     // when a multi-stroke extruded path bends around a corner,
@@ -362,13 +353,13 @@
     // while outer paths have larger radii such that all paths'
     // centers of curvature are concentric
     let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
-    let r = if radius != none {
+    let r = (
       if is-right-turn {
         radius - min-offset + offset
       } else {
         radius + max-offset - offset
       }
-    }
+    )
     r = calc.max(0, r)
 
 
@@ -484,16 +475,94 @@
   return (start, close, new-segments)
 }
 
+/// Apply path effects (extrusion and shortening) to a CeTZ object, returning
+/// a CeTZ object.
 #let path-effect(
+  /// CeTZ object to apply the path effect to.
+  /// 
+  /// A CeTZ object is the result of `cetz.draw.line(..)` or
+  /// `cetz.draw.merge-path(..)`, for example.
   /// -> cetz objects
   path,
+  /// Stroke style for the object, overriding the object's intrinsic stroke style.
+  stroke: auto,
+  /// Trim the beginning of the path by a given length.
+  /// 
+  /// For multi-stroke effect when @path-effect.extrude is an array,
+  /// this may also be an array of the same length, specifying the length
+  /// to shorten each offset path individually.
+  /// This is useful for placing marks on multi-stroke lines correctly.
+  /// 
+  /// Numbers are interpreted as multiples of the stroke's thickness.
   /// -> number | length | array
   shorten-start: 0,
+  /// Trim the end of the path by a specific length.
+  /// 
+  /// Works just like @path-effect.shorten-start.
+  /// -> number | length | array
   shorten-end: 0,
+  /// Lengths to offset path by. An array of different offsets results in
+  /// multiple parallel strokes.
+  /// 
+  /// Numbers are interpreted as multiples of the stroke's thickness.
+  /// 
+  /// ```example
+  /// #import fletcher.paths: path-effect
+  /// #cetz.canvas({
+  ///   import cetz.draw: *
+  ///   set-style(stroke: 5pt)
+  ///   let obj = line((0,0), (1,1), (2,0))
+  ///   obj
+  ///   path-effect(obj, extrude: (+2, -2),
+  ///                    stroke: blue)
+  /// })
+  /// ```
+  /// 
+  /// -> number | length | array
   extrude: 0,
-  corner: "miter",
+  /// How to form corners of an offset path.
+  /// 
+  /// If `"round"`, corners become rounded joints with a (minimum) corner radius
+  /// specified by @path-effect.corner-radius.
+  /// If `"miter"`, corners become miter joints or, if they are sharp enough, bevelled
+  /// joints, as controlled by @path-effect.miter-limit.
+  /// 
+  /// ```example
+  /// #import fletcher.paths: path-effect
+  /// #cetz.canvas({
+  ///   import cetz.draw: *
+  ///   set-style(stroke: 2pt)
+  ///   let obj = line((0,0), (1,1),
+  ///                  (1,0), (2,0))
+  ///   path-effect(obj, extrude: (-1, +1),
+  ///     join: "round", corner-radius: .2)
+  ///   translate(y: -1.5)
+  ///   path-effect(obj, extrude: (-1, +1))
+  ///   translate(y: -1.5)
+  ///   path-effect(obj, extrude: (-1, +1),
+  ///     miter-limit: 2)
+  /// })
+  /// ```
+  /// 
+  /// -> "miter" | "round"
+  join: "miter",
+  /// The radius of round of bevelled corners.
+  /// 
+  /// For round corners, this is the radius of curvature. For bevelled corners, this is the
+  /// radius of the tangent circle between the bevel face and the sides of the corner.
+  /// 
+  /// For extruded paths, the radii at each offset is adjusted so that the circles of curvature
+  /// are concentric. At a corner, the inner paths have the specified radius of curvature,
+  /// while outer paths have larger radii.
+  /// The radius can be negative.
+  /// 
+  /// Numbers are interpreted in CeTZ canvas units.
+  /// -> number | length
   corner-radius: 0,
-  stroke: auto,
+  /// Miter limit, beyond which miter joints become bevelled.
+  /// 
+  /// The higher the limit, the pointier corners can be before being bevelled.
+  /// -> number
   miter-limit: 4.0,
 ) = {
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
@@ -507,7 +576,14 @@
 
   cetz.draw.get-ctx(ctx => {
     let (drawables, bounds, elements) = cetz.process.many(ctx, path)
-    // assert.eq(drawables.len(), 1)
+    
+    let corner-radius = (
+      if type(corner-radius) == array {
+        corner-radius.map(r => cetz.util.resolve-number(ctx, r))
+      } else {
+        cetz.util.resolve-number(ctx, corner-radius)
+      }
+    )
 
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")
@@ -518,23 +594,25 @@
       }
       stroke.miter-limit = miter-limit
       // force round stroke join style for rounded corners
-      if corner == "round" { stroke.join = "round" }
+      if join == "round" { stroke.join = "round" }
       let thickness = utils.get-thickness(stroke).to-absolute()
 
-      let offsets = extrude.map(offset => {
-        if type(offset) in (int, float) { offset*thickness/ctx.length }
-        else if type(offset) == length { offset/ctx.length }
-      })
+      let resolve-thickness-multiples(x) = {
+        if type(x) in (int, float) { x*thickness/ctx.length }
+        else if type(x) == length { x/ctx.length }
+      }
+
+      let offsets = extrude.map(resolve-thickness-multiples)
 
       for (i, offset) in offsets.enumerate() {
         let new-path = drawable.segments
 
         // path shortening
-        let l = shorten-start.at(i)*thickness/ctx.length
+        let l = resolve-thickness-multiples(shorten-start.at(i))
         if l != 0 { 
           new-path = cetz.path-util.shorten-to(new-path, l)
         }
-        let l = shorten-end.at(i)*thickness/ctx.length
+        let l = resolve-thickness-multiples(shorten-end.at(i))
         if l != 0 { 
           new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
         }
@@ -544,7 +622,7 @@
           offset: offset,
           min-offset: calc.min(..offsets),
           max-offset: calc.max(..offsets),
-          corner: corner,
+          join: join,
           corner-radius: corner-radius,
           miter-limit: miter-limit,
         ))
