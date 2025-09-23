@@ -340,7 +340,7 @@
 		}
 	}
 
-	paths.extrude-and-shorten(
+	paths.path-effect(
 		obj,
 		shorten-start: shorten-start,
 		shorten-end: shorten-end,
