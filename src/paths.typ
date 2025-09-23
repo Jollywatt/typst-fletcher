@@ -19,7 +19,7 @@
   let i = 0
   while i < segments.len() {
     let (kind, ..pts) = segments.at(i)
-    if kind == "l" and pts.first() == pt {
+    if kind == "l" and vector.dist(pts.first(), pt) <= 1e-8 {
       segments.remove(i)
       continue
     }
@@ -258,8 +258,9 @@
   let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
 
   let inv-miter-ratio = calc.abs(calc.sin(interior-angle/2))
-  if inv-miter-ratio > 1/miter-limit or inv-miter-ratio < 1e-5 {
-    // not too sharp
+  let is-too-sharp = miter-limit == 0 or inv-miter-ratio < 1/miter-limit
+  if not is-too-sharp or inv-miter-ratio < 1e-5 {
+    // miter joint
     return (("l", vertex),)
   }
   // too sharp; apply bevel
@@ -290,6 +291,11 @@
   miter-limit: 4.0,
 ) = {
   let (start, close, segments) = simplify-subpath(subpath)
+
+  if close {
+    segments.push(segments.first())
+  }
+  
   let n = segments.len()
 
   // get the incoming and outgoing angles of each segment
@@ -312,6 +318,7 @@
 
   let new-segments = ()
 
+  let first-segment-length = 0
 
 
   let prev-pt = start
@@ -368,6 +375,7 @@
 
 
     if segment.first() == "l" {
+      if i == 0 { first-segment-length = 1 }
 
       // apply extrusion effect by offsetting line in normal direction
       if offset != 0 {
@@ -452,6 +460,8 @@
         }
       }
 
+      if i == 0 { first-segment-length = new-segments.len() }
+
       // add corner effect at end of bezier segment
       new-segments += corner-segments(vertex, i-angle, o-angle, r).slice(1)
       
@@ -466,9 +476,13 @@
     prev-pt = segment.last()
   }
 
+  if close {
+    start = new-segments.at(first-segment-length - 1).last()
+    new-segments = new-segments.slice(first-segment-length, -1)
+  }
+
   return (start, close, new-segments)
 }
-
 
 #let path-effect(
   /// -> cetz objects
