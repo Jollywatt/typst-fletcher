@@ -13,22 +13,53 @@
 	assert(false, message: message)
 }
 
+// type checking and coercion
+
 #let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
 #let is-edge(o) = type(o) == dictionary and "class" in o and o.class == "edge"
 #let is-cetz(o) = type(o) == array and o.all(el => type(el) == function)
 
-#let switch-type(input, ..args) = {
-	let types = args.named().keys()
-	let t = str(type(input))
-	if is-node(input) { t = "node" }
-	if is-edge(input) { t = "edge" }
-	if t not in types {
-		if "any" in types { t = "any" }
-		else { error("expected #0; got #1", types.join(", ", last: " or "), t) }
-	}
-	let fn = args.named().at(t)
-	fn(input)
+
+#let as-array(o) = {
+	if type(o) == array { return o }
+	if o == none { return () }
+	panic("expected array", o)
 }
+
+#let one-or-array(o, types: none) = {
+	if type(o) != array { o = (o,) }
+	if types != none and not o.all(i => type(i) in types) {
+		error("Expected #..0 or an array of those; got #1.", types, o)
+	}
+	return o
+}
+
+#let as-pair(o) = {
+	if type(o) == array {
+		if o.len() != 2 { error("expected one or a pair of values; got #0.", o) }
+		return o
+	} else { return (o, o) }
+}
+
+// math
+
+#let cumsum(array) = {
+	let sum = array.at(0)
+	for i in range(1, array.len()) {
+		sum += array.at(i)
+		array.at(i) = sum
+	}
+	array
+}
+
+#let wrap-angle-180(a) = {
+  let t = (a + 180deg)/360deg
+  t -= calc.floor(t)
+  return t*360deg - 180deg
+}
+
+
+// coordinate math
 
 #let polar(dist, angle) = (dist*calc.cos(angle), dist*calc.sin(angle), 0.)
 
@@ -128,40 +159,7 @@
 }
 
 
-#let cumsum(array) = {
-	let sum = array.at(0)
-	for i in range(1, array.len()) {
-		sum += array.at(i)
-		array.at(i) = sum
-	}
-	array
-}
-
-#let map-auto(value, fallback) = if value == auto { fallback } else { value }
-#let map-none(value, fallback) = if value == none { fallback } else { value }
-
-
-
-#let as-array(o) = {
-	if type(o) == array { return o }
-	if o == none { return () }
-	panic("expected array", o)
-}
-
-#let one-or-array(o, types: none) = {
-	if type(o) != array { o = (o,) }
-	if types != none and not o.all(i => type(i) in types) {
-		error("Expected #..0 or an array of those; got #1.", types, o)
-	}
-	return o
-}
-
-#let as-pair(o) = {
-	if type(o) == array {
-		if o.len() != 2 { error("expected one or a pair of values; got #0.", o) }
-		return o
-	} else { return (o, o) }
-}
+// stroke utils
 
 #let get-thickness(s) = {
 	if s in (none, auto) { return 1pt }
@@ -196,25 +194,4 @@
 	for stroke in strokes.pos() {
 		stroke-to-dict(stroke)
 	}
-}
-
-#import "deps.typ": cetz
-
-
-// inaccessible cetz utilities
-#let get-segments(ctx, target) = {
-  if type(target) == array {
-    assert.eq(target.len(), 1,
-      message: "Expected a single element, got " + str(target.len()))
-    target = target.first()
-  }
-
-  let (ctx, drawables, ..) = cetz.process.element(ctx, target)
-  if drawables == none or drawables == () {
-    return ()
-  }
-
-  let first = drawables.first()
-  let closed = cetz.path-util.first-subpath-closed(first.segments)
-  return (segments: first.segments, close: closed)
 }

@@ -3,7 +3,6 @@
 #import cetz.util: bezier
 #import "utils.typ"
 
-#let polar(dist, angle) = (dist*calc.cos(angle), dist*calc.sin(angle), 0.)
 
 /* TERMINOLOGY */
 // <path> := (<sub-path>*,)
@@ -128,17 +127,6 @@
   })
 }
 
-#let wrap-angle-180(a) = {
-  let t = (a + 180deg)/360deg
-  t -= calc.floor(t)
-  return t*360deg - 180deg
-}
-
-#assert(range(-500, 500).all(a => {
-  let b = wrap-angle-180(a*1deg/2)
-  -180deg <= b and b < 180deg
-}))
-
 
 
 /// Offset a vertex to make a miter joint, given the
@@ -171,7 +159,7 @@
   let angle = (i-angle + o-angle)/2 + 90deg 
 
 
-  let offset = polar(hypot, angle)
+  let offset = utils.polar(hypot, angle)
   return cetz.vector.add(vertex, offset)
 }
 
@@ -218,7 +206,7 @@
     stop += 180deg
   }
 
-  let P = vector.add(vertex, polar(d, i-angle))
+  let P = vector.add(vertex, utils.polar(d, i-angle))
   let (c1, c2, Q) = cubic-arc(..P, start, stop, radius, radius)
   return (("l", P), ("c", c1, c2, Q))
 }
@@ -256,7 +244,7 @@
   radius,
   miter-limit: 4.0
 ) = {
-  let interior-angle = wrap-angle-180(i-angle + 180deg - o-angle)
+  let interior-angle = utils.wrap-angle-180(i-angle + 180deg - o-angle)
 
   let inv-miter-ratio = calc.abs(calc.sin(interior-angle/2))
   let is-too-sharp = miter-limit == 0 or inv-miter-ratio < 1/miter-limit
@@ -268,15 +256,15 @@
 
   let beta = 90deg - interior-angle/2
 
-  let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
+  let is-right-turn = utils.wrap-angle-180(o-angle - i-angle) > 0deg
   let s = if is-right-turn {
     radius*(calc.tan(beta) - calc.tan(beta/2))
   } else {
     radius*(-calc.tan(beta) - 1/calc.tan(beta/2))
   }
 
-  let P = vector.sub(vertex, polar(s, i-angle))
-  let Q = vector.add(vertex, polar(s, o-angle))
+  let P = vector.sub(vertex, utils.polar(s, i-angle))
+  let Q = vector.add(vertex, utils.polar(s, o-angle))
 
   return (("l", P), ("l", Q))
 }
@@ -353,7 +341,7 @@
     // we want the innermost path to have the specified radius
     // while outer paths have larger radii such that all paths'
     // centers of curvature are concentric
-    let is-right-turn = wrap-angle-180(o-angle - i-angle) > 0deg
+    let is-right-turn = utils.wrap-angle-180(o-angle - i-angle) > 0deg
     let r = (
       if is-right-turn {
         radius - min-offset + offset
@@ -374,7 +362,7 @@
 
         if i == 0 {
           // update start point
-          let normal = polar(offset, i-angle - 90deg)
+          let normal = utils.polar(offset, i-angle - 90deg)
           start = vector.add(start, normal)
         }
 
@@ -399,7 +387,7 @@
         // to the previous point, which might have changed from a corner effect
         let new-prev-pt = new-segments.last().last()
         let shift = vector.sub(new-prev-pt, prev-pt)
-        let tangent = polar(1, prev-o-angle)
+        let tangent = utils.polar(1, prev-o-angle)
         let shorten-start = calc.max(0, vector.dot(shift, tangent))
         (s, end-pt, c1, c2) = bezier.cubic-shorten(prev-pt, end-pt, c1, c2, shorten-start)
       }
@@ -407,7 +395,7 @@
       if offset != 0 {
         if i == 0 {
           // update start point
-          let normal = polar(offset, prev-o-angle - 90deg)
+          let normal = utils.polar(offset, prev-o-angle - 90deg)
           start = vector.add(start, normal)
         }
         
@@ -419,7 +407,7 @@
         corner-segments(vertex, i-angle, o-angle, r).first().last()
       } else { vertex }
       let shift = vector.sub(new-end-pt, end-pt)
-      let tangent = polar(1, i-angle)
+      let tangent = utils.polar(1, i-angle)
       let shift-end = vector.dot(shift, tangent) // -ve is shorten, +ve is lengthen
       if shift-end < 0 {
         (s, end-pt, c1, c2) = bezier.cubic-shorten(s, end-pt, c1, c2, shift-end)

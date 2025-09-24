@@ -146,11 +146,11 @@
 		anchor = if as-tip { "origin" } else { "end" }
 	}
 
-	let t = utils.map-auto(stroke.thickness, 1pt)
+	let t = utils.get-thickness(stroke)
 
 	let fill = mark.at("fill", default: auto)
-	fill = utils.map-auto(fill, stroke.paint)
-	fill = utils.map-auto(fill, black)
+	if fill == auto { fill = stroke.paint }
+	if fill == auto { fill = black }
 
 	let stroke = utils.stroke-to-dict(stroke)
 	stroke.dash = none
