@@ -13,6 +13,70 @@
 )
 
 
+#let draw-labels-on-path(
+  ctx,
+  path,
+  labels,
+  debug: false,
+) = {
+
+	let sample-pt(t, reverse) = {
+		let (x, x-vel, x-accel) = {
+      if type(t) in (int, float) {
+        paths.point-on-path(path, segment: t)
+      } else {
+        if type(t) == length { t = t/ctx.length }
+        paths.point-on-path(path, length: t)
+      }
+    }
+		let x = cetz.util.revert-transform(ctx.transform, x)
+		let x-vel = cetz.util.revert-transform(ctx.transform, x-vel)
+		let x-accel = cetz.util.revert-transform(ctx.transform, x-accel)
+		(x, x-vel, x-accel)
+	}
+
+  for label in labels {
+    let (point, vel, accel) = sample-pt(label.pos, false)
+    let tangent-angle = calc.atan2(vel.at(0), vel.at(1))
+
+    let angle
+
+    if label.side == auto {
+      // automatically choose label side so that...
+      let is-curving = cetz.vector.len(accel) > 1e-5
+      if is-curving {
+        // ...if the edge is curved, label is on the outer side
+        angle = calc.atan2(accel.at(0), accel.at(1))
+      } else {
+        // ...if edge is straight, label is generally north of it
+        label.side = top
+      }
+    }
+
+    if type(label.side) == alignment {
+      let v = (0,0)
+      if label.side.x != none {
+        v.first() = if label.side.x == right { +1 } else { -1 }
+      }
+      if label.side.y != none {
+        v.last() = if label.side.y == top { +1 } else { -1 }
+      }
+      let a = calc.atan2(..v)
+      let side = utils.wrap-angle-180(a - tangent-angle) > -1deg
+      if side {
+        angle = tangent-angle - 90deg
+      } else {
+        angle = tangent-angle + 90deg
+      }
+    }
+
+    let anchor = utils.angle-to-anchor(angle)
+    cetz.draw.content(point, label.body, anchor: anchor, padding: label.sep)
+
+  }
+
+}
+
 #let draw-edge(ctx, edge) = {
   let objs = (edge.draw)(edge.vertices)
 
@@ -39,6 +103,8 @@
   )
 
   marks
+
+  draw-labels-on-path(ctx, path, edge.labels)
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -166,6 +232,7 @@
     let edge = edge
     edge.vertices.first() = src-snapped
     edge.vertices.last() = tgt-snapped
+    
     draw-edge(ctx, edge)
 
     if debug-level(edge.debug, "edge.snap") {
@@ -238,6 +305,7 @@
 #let _edge(
   vertices,
   style: (:),
+  labels: (),
   snap-to: (auto, auto),
   name: none,
   draw: vertices => none,
@@ -264,6 +332,7 @@
         if style.outset != auto { (outset: style.outset) }
         if style.marks != auto { (marks: style.marks) }
       },
+      labels: labels,
       snap-to: utils.as-pair(snap-to),
       name: name,
       draw: draw,
@@ -398,9 +467,7 @@
 )
 
 
-#let determine-edge-kind(args, options) = {
-
-  let named = args.named()
+#let determine-edge-kind(named, options) = {
   let named-arg-suggestion = none
 
   for (kind, spec) in EDGE_KINDS {
@@ -451,7 +518,7 @@
         .map(repr).join(", ", last: " and ")
       "."
     }
-		utils.error("Unknown edge arguments #..0." + hint, args.named().keys())
+		utils.error("Unknown edge arguments #..0." + hint, named.keys())
 	}
 
   if options.draw == auto {
@@ -462,13 +529,55 @@
   
 }
 
+// consumes `label-*` named arguments and validates 
+#let interpret-label-args(named, options) = {
+  let default-spec = (body: none, pos: 50%, side: auto, sep: 3pt)
+
+  let label-args = named.keys().filter(arg => arg.starts-with("label-"))
+  for arg in label-args {
+    let suffix = arg.trim("label-", at: start)
+    if suffix in default-spec {
+      default-spec.at(suffix) = named.remove(arg)
+    } else {
+      let possible-options = default-spec.keys()
+        .map(o => "label-" + o)
+      utils.error("invalid option #0. Try #..1", repr(arg), possible-options)
+    }
+  }
+
+  
+  let as-label-spec(x) = {
+    if x == none {
+      return none
+    } else if type(x) == dictionary {
+      let spec = default-spec
+      for (k, v) in x {
+        if k in spec { spec.at(k) = v }
+        else {
+          utils.error("invalid label property #0. Try: #..1", repr(k), spec.keys())
+        }
+      }
+      return spec
+    } else if type(x) == content {
+      return as-label-spec((body: x))
+    } else {
+      utils.error("invalid label #0.", repr(x))
+    }
+  }
 
 
-/// Placeholder
+  let spec = utils.one-or-array(options.label).map(as-label-spec).filter(l => l != none)
+  
+
+  return (named, spec)
+
+}
+
 #let edge(
   ..args,
   vertices: (),
   marks: (),
+  label: none,
   snap-to: (auto, auto),
   outset: auto,
   name: none,
@@ -482,6 +591,7 @@
   let options = (
     vertices: vertices,
     marks: marks,
+    label: label,
     snap-to: snap-to,
     outset: outset,
     name: name,
@@ -490,18 +600,18 @@
     extrude: extrude,
     draw: draw,
   )
-  
+
   options += parsing.interpret-edge-positional-args(args.pos(), options)
   options += interpret-marks-arg(options.marks)
 
   let stroke = utils.stroke-to-dict(options.stroke)
-
   if options.at("dash", default: auto) != auto {
     stroke.dash = options.dash
   }
 
-
-  options += determine-edge-kind(args, options)
+  let named = args.named()
+  let (named, labels) = interpret-label-args(named, options)
+  options += determine-edge-kind(named, options)
 
   _edge(
     options.vertices,
@@ -511,6 +621,7 @@
       marks: options.marks,
       extrude: options.extrude,
     ),
+    labels: labels,
     snap-to: options.snap-to,
     name: if name != none { str(options.name) },
     draw: options.draw,

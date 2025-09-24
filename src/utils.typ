@@ -209,6 +209,6 @@
 		"south-west",
 		"south",
 		"south-east",
-	).at(int(calc.round(i)))
+	).at(calc.rem(int(calc.round(i)), 8))
 }
 
