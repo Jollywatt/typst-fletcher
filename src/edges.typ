@@ -1,6 +1,3 @@
-/// Module docs
-
-
 #import "deps.typ": cetz
 #import "utils.typ"
 #import "marks.typ" as Marks
@@ -15,26 +12,45 @@
   extrude: (0,),
 )
 
-#let draw-edge(ctx, edge) = {
-  let path = (edge.draw)(edge.vertices)
-  assert(path.len() == 1, message: "edge.draw should return single cetz element")
 
-  Marks.draw-with-marks-and-extrusion(ctx, path,
-    edge.style.marks,
+#let draw-edge(ctx, edge) = {
+  let objs = (edge.draw)(edge.vertices)
+
+  assert(objs.len() == 1, message: "edge.draw should return single cetz element")
+  let (ctx, drawables,) = cetz.process.element(ctx, objs.first())
+	assert.eq(drawables.len(), 1)
+	let path = drawables.first().segments
+
+  let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
+		ctx,
+		path,
+		edge.style.marks,
+		stroke: edge.style.stroke,
+		extrude: edge.style.extrude,
+		debug: edge.debug,
+	)
+
+  paths.path-effect(
+    objs,
+    shorten-start: shorten-start,
+    shorten-end: shorten-end,
     stroke: edge.style.stroke,
     extrude: edge.style.extrude,
-    debug: edge.debug,
   )
+
+  marks
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
-    let a =  path.first()(ctx)
-    if "anchors" not in a {panic(a.keys())}
-    let (anchors, drawables) = path.first()(ctx)
+    let (anchors, drawables) = objs.first()(ctx)
+    let get-anchors(k) = {
+      if k == "default" { k = "mid" }
+      anchors(k)
+    }
     return (
       ctx: ctx,
       name: edge.name,
-      anchors: anchors,
+      anchors: get-anchors,
       drawables: (),
     )
   },)
@@ -502,3 +518,4 @@
   )
 
 }
+

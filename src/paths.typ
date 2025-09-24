@@ -613,12 +613,12 @@
 /// Apply path effects (extrusion and shortening) to a CeTZ object, returning
 /// a CeTZ object.
 #let path-effect(
-  /// CeTZ object to apply the path effect to.
+  /// CeTZ objects to apply the path effect to.
   /// 
-  /// A CeTZ object is the result of `cetz.draw.line(..)` or
-  /// `cetz.draw.merge-path(..)`, for example.
+  /// A CeTZ object is an array of functions; the result of `cetz.draw.line(..)`
+  /// or `cetz.draw.merge-path(..)`, for example.
   /// -> cetz objects
-  path,
+  objs,
   /// Stroke style for the object, overriding the object's intrinsic stroke style.
   stroke: auto,
   /// Trim the beginning of the path by a given length.
@@ -710,8 +710,6 @@
   }
 
   cetz.draw.get-ctx(ctx => {
-    let (drawables, bounds, elements) = cetz.process.many(ctx, path)
-    
     let corner-radius = (
       if type(corner-radius) == array {
         corner-radius.map(r => cetz.util.resolve-number(ctx, r))
@@ -720,6 +718,7 @@
       }
     )
 
+    let (drawables, bounds, elements) = cetz.process.many(ctx, objs)
     let new-drawables = drawables.map(drawable => {
       assert.eq(drawable.type, "path")
 
