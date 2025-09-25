@@ -4,7 +4,11 @@
 #import "utils.typ"
 
 
-/* TERMINOLOGY */
+// TERMINOLOGY
+//
+// CeTZ paths are arrays of subpaths, which are structures consisting of
+// an array of segments.
+// 
 // <path> := (<sub-path>*,)
 // <sub-path> := (<origin>, <closed>, (<segment>*,))
 // <segment> := ("l" | "c", <vector>*)
@@ -27,6 +31,148 @@
   }
   return (start, close, segments)
 }
+
+
+
+
+/// Get the second derivative (d²x/dt²) of a cubic bezier at position `t`.
+///
+/// - a (vector): Start point
+/// - b (vector): End point
+/// - c1 (vector): Control point 1
+/// - c2 (vector): Control point 2
+/// - t (float): Position on curve [0, 1]
+/// -> vector
+#let cubic-second-derivative(a, b, c1, c2, t) = {
+  // 6(1-t)(c2 - 2c1 + a) + 6t(b - 2c2 + c1)
+  vector.add(
+    vector.scale(
+      vector.add(c2, vector.add(vector.scale(c1, -2), a)),
+      6*(1 - t)
+    ),
+    vector.scale(
+      vector.add(b, vector.add(vector.scale(c2, -2), c1)),
+      6 * t
+    ),
+  )
+}
+
+
+/// Sample a specific segment of a subpath and return the position, velocity,
+/// and acceleration vectors.
+/// -> (coord, coord, coord)
+#let point-on-subpath-segment(
+  /// A subpath of the form `(start: coord, close: bool, segments: array)`.
+  /// -> array
+  subpath,
+  /// The index of the subpath's segment.
+  /// -> int
+  segment-index,
+  /// The time parameter of the specified segment, in the interval $[0, 1]$.
+  /// -> float
+  segment-t,
+) = {
+  let (start, close, segments) = subpath
+
+  let last-point = (
+    if segment-index > 0 { segments.at(segment-index - 1).last() }
+    else { start }
+  )
+  let segment = segments.at(segment-index)
+
+  if segment.first() == "l" {
+    let x = cetz.vector.lerp(last-point, segment.last(), segment-t)
+    let x-vel = vector.sub(segment.last(), last-point)
+    let x-accel = (0.0, 0.0, 0.0)
+    return (x, x-vel, x-accel)
+  } else if segment.first() == "c" {
+    let (_, c1, c2, end-pt) = segment
+    let x = bezier.cubic-point(last-point, end-pt, c1, c2, segment-t)
+    let x-vel = bezier.cubic-derivative(last-point, end-pt, c1, c2, segment-t)
+    let x-accel = cubic-second-derivative(last-point, end-pt, c1, c2, segment-t)
+    return (x, x-vel, x-accel)
+  }
+}
+
+
+#let point-on-path-by-segment(path, index) = {
+  let index = calc.max(0, index)
+  let subpath-index = 0
+  let segment-index = 0
+  let i = 0
+  while i < calc.floor(index) {
+    if segment-index > path.at(subpath-index).len() {
+      subpath-index += 1
+      if subpath-index >= path.len() {
+        segment-index = path.last().last().len() - 1
+        return point-on-subpath-segment(path.last(), segment-index, 1) 
+      }
+      segment-index = 0
+      continue
+    }
+    segment-index += 1
+    i += 1
+  }
+  return point-on-subpath-segment(path.at(subpath-index), segment-index, calc.fract(index))
+}
+
+#let point-on-path-by-length(path, l) = {
+  let origin = (0., 0., 0.)
+
+  let lengths = cetz.path-util.segment-lengths(path)
+  let total-length = lengths.sum().sum()
+
+  let target-length = (
+    if type(l) in (int, float) { l }
+    else if type(l) == ratio { total-length*float(l) }
+  )
+  target-length = calc.clamp(target-length, 0, total-length - 1e-15)
+
+  let acc-length = 0.
+  for (subpath-index, subpath) in path.enumerate() {
+    for (segment-index, length) in lengths.at(subpath-index).enumerate() {
+      if acc-length + length >= target-length {
+        let segment-t = (target-length - acc-length)/length
+        return point-on-subpath-segment(subpath, segment-index, segment-t)
+      }
+      acc-length += length
+    }
+  }
+
+  utils.error("point on path is out of range")
+}
+
+/// Get the position, velocity, and acceleration of a point on a path,
+/// parametrised either by length or segment number.
+#let point-on-path(
+  path,
+  /// Specify the point by its length along the path (in CeTZ units),
+  /// or by its position along the path as a ratio of its total length.
+  /// 
+  /// For example, `50%` is the midpoint of the path's total length.
+  /// 
+  /// -> number | ratio
+  length: none,
+  /// Specify the point by "segment coordinate".
+  /// 
+  /// The integer part specifies the segment index, and the fractional part
+  /// specifies the position along that segment (for Bezier curves, this is the
+  /// time parameter, not the arc length).
+  /// 
+  /// For example, `2.5` is the midpoint of the third segment.
+  /// 
+  /// -> number
+  segment: none,
+) = {
+  if length != none and segment == none {
+    point-on-path-by-length(path, length)
+  } else if length == none and segment != none {
+    point-on-path-by-segment(path, segment)
+  } else {
+    utils.error("only one of `length` or `segment` may be specified")
+  }
+}
+
 
 
 
