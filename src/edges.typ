@@ -71,8 +71,14 @@
     }
 
     let anchor = utils.angle-to-anchor(angle)
-    cetz.draw.content(point, label.body, anchor: anchor, padding: label.sep)
+    cetz.draw.content(point, label.body, anchor: anchor, padding: label.sep, name: "label")
 
+    if debug-level(debug, "edge.label") {
+      debug-group({
+        cetz.draw.circle(point, radius: 1pt, fill: purple.transparentize(50%), stroke: none)
+        cetz.draw.rect("label.north-east", "label.south-west", stroke: purple.transparentize(50%) + 0.25pt)
+      })
+    }
   }
 
 }
@@ -81,7 +87,7 @@
   let objs = (edge.draw)(edge.vertices)
 
   assert(objs.len() == 1, message: "edge.draw should return single cetz element")
-  let (ctx, drawables,) = cetz.process.element(ctx, objs.first())
+  let (ctx, drawables) = cetz.process.element(ctx, objs.first())
 	assert.eq(drawables.len(), 1)
 	let path = drawables.first().segments
 
@@ -104,7 +110,7 @@
 
   marks
 
-  draw-labels-on-path(ctx, path, edge.labels)
+  draw-labels-on-path(ctx, path, edge.labels, debug: edge.debug)
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -242,8 +248,9 @@
           src-test-path
           tgt-test-path
         })
-        cetz.draw.circle(src-snapped, radius: 1pt, fill: green, stroke: none)
-        cetz.draw.circle(tgt-snapped, radius: 1pt, fill: red, stroke: none)
+        let t = utils.get-thickness(edge.style.stroke)
+        cetz.draw.circle(src-snapped, radius: t, fill: green.transparentize(50%), stroke: none)
+        cetz.draw.circle(tgt-snapped, radius: t, fill: red.transparentize(50%), stroke: none)
       })
     }
   })
