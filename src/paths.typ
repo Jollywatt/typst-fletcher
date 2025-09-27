@@ -170,7 +170,8 @@
   let hypot = -offset/sin
   let angle = (i-angle + o-angle)/2 + 90deg 
 
-  let offset = (hypot*calc.cos(angle), hypot*calc.sin(angle), 0.0)
+
+  let offset = polar(hypot, angle)
   return cetz.vector.add(vertex, offset)
 }
 
@@ -217,7 +218,7 @@
     stop += 180deg
   }
 
-  let P = vector.add(vertex, (d*calc.cos(i-angle), d*calc.sin(i-angle)))
+  let P = vector.add(vertex, polar(d, i-angle))
   let (c1, c2, Q) = cubic-arc(..P, start, stop, radius, radius)
   return (("l", P), ("c", c1, c2, Q))
 }
@@ -373,7 +374,7 @@
 
         if i == 0 {
           // update start point
-          let normal = (offset*calc.sin(i-angle), -offset*calc.cos(i-angle))
+          let normal = polar(offset, i-angle - 90deg)
           start = vector.add(start, normal)
         }
 
@@ -398,7 +399,7 @@
         // to the previous point, which might have changed from a corner effect
         let new-prev-pt = new-segments.last().last()
         let shift = vector.sub(new-prev-pt, prev-pt)
-        let tangent = (calc.cos(prev-o-angle), calc.sin(prev-o-angle), 0)
+        let tangent = polar(1, prev-o-angle)
         let shorten-start = calc.max(0, vector.dot(shift, tangent))
         (s, end-pt, c1, c2) = bezier.cubic-shorten(prev-pt, end-pt, c1, c2, shorten-start)
       }
@@ -406,7 +407,7 @@
       if offset != 0 {
         if i == 0 {
           // update start point
-          let normal = (offset*calc.sin(prev-o-angle), -offset*calc.cos(prev-o-angle))
+          let normal = polar(offset, prev-o-angle - 90deg)
           start = vector.add(start, normal)
         }
         
@@ -418,7 +419,7 @@
         corner-segments(vertex, i-angle, o-angle, r).first().last()
       } else { vertex }
       let shift = vector.sub(new-end-pt, end-pt)
-      let tangent = (calc.cos(i-angle), calc.sin(i-angle), 0)
+      let tangent = polar(1, i-angle)
       let shift-end = vector.dot(shift, tangent) // -ve is shorten, +ve is lengthen
       if shift-end < 0 {
         (s, end-pt, c1, c2) = bezier.cubic-shorten(s, end-pt, c1, c2, shift-end)

@@ -30,6 +30,8 @@
 	fn(input)
 }
 
+#let polar(dist, angle) = (dist*calc.cos(angle), dist*calc.sin(angle), 0.)
+
 #let lerp(a, b, t) = a*(1 - t) + b*t
 
 /// Linearly interpolate an array of values with linear behaviour outside bounds.
