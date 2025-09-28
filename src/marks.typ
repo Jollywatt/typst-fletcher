@@ -233,30 +233,20 @@
 
 }
 
-
-
-#let draw-with-marks-and-extrusion(
+/// Place marks along a path (array of subpaths), returning a dictionary containing
+/// - `marks`: the marks to be drawn as CeTZ objects;
+/// - `shorten-start` and `shorten-end`: the amounts that the path should be shortened
+/// 	from either end to accommodate terminal marks.
+/// -> dictionary
+#let draw-marks-on-path(
 	ctx,
-	obj,
+	path,
 	marks,
 	stroke: auto,
 	extrude: (0,),
-	/// Whether to enable mark angle correction on curved paths. -> bool
 	debug: false,
 ) = {
-	
-	assert(marks.all(m => "pos" in m))
-
-	assert.eq(obj.len(), 1)
-	let (ctx, drawables,) = cetz.process.element(ctx, obj.first())
-	assert.eq(drawables.len(), 1)
-	let path = drawables.first().segments
-
-	if stroke == auto { stroke = drawables.first().stroke }
-	else { 
-		stroke = utils.fold-strokes(drawables.first().stroke, stroke)
-	}
-	let t = utils.get-thickness(stroke).to-absolute()/ctx.length
+	let thickness = utils.get-thickness(stroke).to-absolute()/ctx.length
 
 	let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0.,0.,0.))
@@ -285,8 +275,8 @@
 
 		swing *= if m.is-tip { -1 } else { +1 }
 
-		let swing-pt = sample-pt(swing*t, at-end).first()
-		let (pivot-pt, dir) = sample-pt(pivot*t, at-end)
+		let swing-pt = sample-pt(swing*thickness, at-end).first()
+		let (pivot-pt, dir) = sample-pt(pivot*thickness, at-end)
 
 		let angle = (
 			if pivot == swing { dir }
@@ -340,19 +330,14 @@
 		}
 	}
 
-	paths.path-effect(
-		obj,
+	return (
+		marks: marks-drawn,
 		shorten-start: shorten-start,
 		shorten-end: shorten-end,
-		stroke: stroke,
-		extrude: extrude,
 	)
 
-	marks-drawn
 
 }
-
-
 
 #let with-marks(obj, marks, shrink: true) = {
   let (marks, options) = parsing.parse-mark-shorthand(marks)

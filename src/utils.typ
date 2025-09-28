@@ -195,3 +195,20 @@
 		stroke-to-dict(stroke)
 	}
 }
+
+
+
+#let angle-to-anchor(θ) = {
+	let i = calc.rem(8*θ/1rad/calc.tau, 8)
+	(
+		"east",
+		"north-east",
+		"north",
+		"north-west",
+		"west",
+		"south-west",
+		"south",
+		"south-east",
+	).at(calc.rem(int(calc.round(i)), 8))
+}
+
