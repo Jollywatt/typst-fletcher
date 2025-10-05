@@ -1,11 +1,12 @@
 #import "@preview/tidy:0.4.3"
 #import "../src/exports.typ" as fletcher
 
+#import "common.typ"
+
 #let VERSION = toml("/typst.toml").package.version
 
 
 // cover page
-
 #v(10%)
 
 #align(center)[
@@ -72,13 +73,7 @@
   let path = "/src/" + name + ".typ"
   let docs = tidy.parse-module(read(path),
     label-prefix: "fletcher.",
-    scope: (
-      fletcher: fletcher,
-      diagram: fletcher.diagram,
-      node: fletcher.node,
-      edge: fletcher.edge,
-      cetz: fletcher.cetz,
-    ),
+    scope: common.scope,
   )
   set raw(lang: "typc")
   tidy.show-module(

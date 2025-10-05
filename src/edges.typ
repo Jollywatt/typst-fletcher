@@ -626,7 +626,7 @@
   /// obtain a multi-stroke effect. Offsets may be numbers
   /// (specifying multiples of the stroke's thickness) or lengths.
   ///
-  /// #diagram({
+  /// #frame(diagram({
   ///   (
   ///     (0,),
   ///     (-1.5,+1.5),
@@ -638,7 +638,7 @@
   ///       (2*i, 0), (2*i + 1, 0), [#e], "|->",
   ///       extrude: e, stroke: 1pt, label-sep: 1em)
   ///   }).join()
-  /// })
+  /// }))
   ///
   /// Notice how the strokes terminate on the marks properly.
   /// This is defined by the `cap-offset` option of the marks.

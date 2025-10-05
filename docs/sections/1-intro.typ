@@ -1,5 +1,5 @@
 #import "../common.typ": *
-#show: style.with(preview-mdx: false)
+#show: style
 
 = Tutorial
 
