@@ -114,26 +114,24 @@
 }
 
 /// Draw a mark at a given position and angle
-///
-/// - mark (dictionary): Mark object to draw. Must contain a `draw` entry.
-/// - stroke (stroke): Default stroke style for the mark. The stroke's paint
-///   is used as the default fill style. If the mark itself has `stroke`
-///   entry, this takes precedence.
-/// - origin (point): Coordinate of the origin in the mark's frame, `(0,0)`.
-/// - anchor ("zero" | "origin" | "end" | "hang"): Which mark center to use as the origin.
-///   The coordinate frame origin is `zero`, and the others correspond to the mark's
-///   `tip-` and `tail-` properties, e.g., `tip-origin`, depending on whether the mark
-///   is acting as a tip (`pos: 1` and `rev: false` or `pos: 0` and `rev: true`) or a
-///   tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
-/// - angle (angle): Angle of the mark, `0deg` being $->$, counterclockwise.
 #let draw-mark(
-	mark,
-	stroke: 1pt,
-	origin: (0,0),
-	angle: 0deg,
-	anchor: auto,
-	as-tip: auto,
-	debug: false,
+    /// Mark object to draw. Must contain a `draw` entry.
+    /// -> dictionary
+    mark,
+    /// Default stroke style for the mark. The stroke's paint is used as the default fill style. If the mark itself has `stroke` entry, this takes precedence.
+    /// -> stroke
+    stroke: 1pt,
+    /// Coordinate of the origin in the mark's frame, `(0,0)`.
+    /// -> point
+    origin: (0,0),
+    /// Angle of the mark, `0deg` being $->$, counterclockwise.
+    /// -> angle
+    angle: 0deg,
+    /// Which mark center to use as the origin. The coordinate frame origin is `zero`, and the others correspond to the mark's `tip-` and `tail-` properties, e.g., `tip-origin`, depending on whether the mark is acting as a tip (`pos: 1` and `rev: false` or `pos: 0` and `rev: true`) or a tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
+    /// -> "zero" | "origin" | "end" | "hang"
+    anchor: auto,
+    as-tip: auto,
+    debug: false,
 ) = {
 	// mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
