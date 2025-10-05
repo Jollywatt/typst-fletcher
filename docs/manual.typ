@@ -80,6 +80,7 @@
       cetz: fletcher.cetz,
     ),
   )
+  set raw(lang: "typc")
   tidy.show-module(
     docs,
     style: dictionary(tidy.styles.default) + (

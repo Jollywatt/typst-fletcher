@@ -580,16 +580,70 @@
 
 }
 
+/// Draw a path with arrow marks, labels, and automatic snapping to nodes.
 #let edge(
+  /// An edge's positional arguments may specify:
+  /// - the edge's @edge.vertices;
+  /// - the content of an edge @edge.label;
   ..args,
+  /// Array of coordinates for the edge.
+  /// 
+  /// Vertices can also be specified as leading positional arguments
+  /// (so `edge((0,1), (1,1), $f$, ..)` is the same as `edge($f$, vertices: ((0,1), (1,1)), ..)`).
+  /// -> array
   vertices: (),
+  /// Marks or arrows to draw along the edge.
+  /// 
+  /// TODO
   marks: (),
+  /// Labels to draw along the edge.
+  /// 
+  /// ```typc
+  /// edge(.., [Hello], label-pos: 50%) // label as positional argument
+  /// edge(.., label: [Hello], label-pos: 50%) // label options
+  /// edge(.., label: (body: [hello], pos: 50%, ..)) // label dictionary
+  /// edge(.., label: ([First label], // array of labels
+  ///                  (body: [Second label], pos: 25%)))
+  /// ```
+  /// 
+  /// The label option may be:
+  /// - `content` for the label's body
+  /// - a `dictionary` of label options:
+  ///   - `body`: content to draw
+  ///   - `pos`: the label's position along the edge path
+  ///   - `sep`: padding between the label's body and the path
+  ///   - `side`: which side of the edge to place the body
+  /// - an `array` of the above, for multiple labels.
+  /// 
+  /// Each label option (e.g., `pos`) also exists as an option to @edge (e.g., `edge(label-pos: ..)`).
   label: none,
   snap-to: (auto, auto),
   outset: auto,
   name: none,
   stroke: auto,
   dash: auto,
+  /// Draw a separate stroke for each extrusion offset to
+  /// obtain a multi-stroke effect. Offsets may be numbers
+  /// (specifying multiples of the stroke's thickness) or lengths.
+  ///
+  /// #diagram({
+  ///   (
+  ///     (0,),
+  ///     (-1.5,+1.5),
+  ///     (-2,0,+2),
+  ///     (-.5em,),
+  ///     (0, 5pt,),
+  ///   ).enumerate().map(((i, e)) => {
+  ///     edge(
+  ///       (2*i, 0), (2*i + 1, 0), [#e], "|->",
+  ///       extrude: e, stroke: 1pt, label-sep: 1em)
+  ///   }).join()
+  /// })
+  ///
+  /// Notice how the strokes terminate on the marks properly.
+  /// This is defined by the `cap-offset` option of the marks.
+  /// TODO
+  /// -> number | length | array
   extrude: auto,
   draw: auto,
   debug: auto,
