@@ -733,7 +733,7 @@
 
       let resolve-thickness-multiples(x) = {
         if type(x) in (int, float) { x*thickness/ctx.length }
-        else if type(x) == length { x/ctx.length }
+        else if type(x) == length { x.to-absolute()/ctx.length }
       }
 
       let offsets = extrude.map(resolve-thickness-multiples)

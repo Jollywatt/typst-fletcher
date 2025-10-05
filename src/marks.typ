@@ -248,6 +248,11 @@
 ) = {
 	let thickness = utils.get-thickness(stroke).to-absolute()/ctx.length
 
+	let extrude = extrude.map(e => {
+		if type(e) == length { e.to-absolute()/ctx.length/thickness }
+		else { e }
+	})
+
 	let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0.,0.,0.))
 	let sample-pt(t, reverse) = {
