@@ -1,6 +1,6 @@
 #import "@preview/tidy:0.4.3"
 #import "../src/exports.typ" as fletcher
-#import "common.typ": scope
+#import "common.typ": scope, example, frame
 
 #let x-target = sys.inputs.at("x-target", default: "pdf")
 #let is-md-target = x-target == "md"
@@ -15,8 +15,12 @@
 
   eval(fn-info.description, mode: "markup", scope: scope)
 
+  set raw(lang: "typc")
+
   for (name, arg) in fn-info.args {
     [== #raw(name)]
+    show raw.where(lang: "svg"): it => frame(eval(it.text, scope: scope))
+    show raw.where(lang: "example"): it => example(raw(it.text, lang: "typ"))
     eval(arg.description, mode: "markup", scope: scope)
   }
 

@@ -1,5 +1,14 @@
 #import "../src/exports.typ" as fletcher
 
+#let scope = (
+  fletcher: fletcher,
+  diagram: fletcher.diagram,
+  edge: fletcher.edge,
+  node: fletcher.node,
+  cetz: fletcher.cetz,
+)
+
+
 #let x-target = sys.inputs.at("x-target", default: "pdf")
 #let is-md-target = x-target == "md"
 
@@ -20,12 +29,7 @@
 
 
 #let example(code) = {
-  let preview = eval(code.text, mode: "markup", scope: (
-    fletcher: fletcher,
-    diagram: fletcher.diagram,
-    node: fletcher.node,
-    edge: fletcher.edge,
-  ))
+  let preview = eval(code.text, mode: "markup", scope: scope)
 
   if is-md-target {
     frame(preview)
@@ -42,14 +46,6 @@
 }
 
 
-#let scope = (
-  fletcher: fletcher,
-  diagram: fletcher.diagram,
-  edge: fletcher.edge,
-  node: fletcher.node,
-  cetz: fletcher.cetz,
-  frame: frame,
-)
 
 #let style(body, refs: true) = {
 
