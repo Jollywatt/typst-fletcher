@@ -583,8 +583,35 @@
 /// Draw a path with arrow marks, labels, and automatic snapping to nodes.
 #let edge(
   /// An edge's positional arguments may specify:
-  /// - the edge's @edge.vertices;
-  /// - the content of an edge @edge.label;
+  /// - the edge's @edge.vertices, each given as a CeTZ coordinate;
+  /// - the edge's @edge.marks, e.g., `"=>"` or `"solid=/=solid"`.
+  /// - the body content of an edge @edge.label, e.g., `$f$`;
+  /// - some other style flags (#fletcher.edges.parsing.EDGE_FLAGS.keys().map(raw).join[, ]).
+  /// 
+  /// Vertex coordinates must come first, and are optional:
+  ///
+  /// ```typc
+  /// edge(from, to, ..) // explicit start and end
+  /// edge(to, ..) == edge(auto, to, ..) // start from previous node
+  /// edge(..) == edge(auto, auto, ..) // between previous and next nodes
+  /// edge(from, v1, v2, ..vs, to, ..) // multiple vertices
+  /// edge(from, "=>", to) // for two vertices, marks can go in the middle
+  /// ```
+  /// 
+  /// Vertices after the first one can be relative coordinate shorthand
+  /// strings containing the characters
+  /// ${#"lrudtbnesw".clusters().map(raw).join($, $)}$ or commas, e.g., `edge((0,0), "u,rr,d")`.
+  /// 
+  /// If given as positional arguments, an edge's @edge.marks and @edge.label
+  /// are disambiguated based on their types.
+  /// For example, the following are equivalent:
+  /// ```typc
+  /// edge((0,0), (1,0), $f$, "-|>")
+  /// edge((0,0), (1,0), "-|>", $f$)
+  /// edge((0,0), (1,0), $f$, marks: "-|>")
+  /// edge((0,0), (1,0), "-|>", label: $f$)
+  /// edge((0,0), (1,0), label: $f$, marks: "-|>")
+  /// ```
   ..args,
   /// Array of coordinates for the edge.
   /// 
@@ -596,26 +623,38 @@
   /// 
   /// TODO
   marks: (),
-  /// Labels to draw along the edge.
+  /// Content to place along the edge.
   /// 
-  /// ```typc
-  /// edge(.., [Hello], label-pos: 50%) // label as positional argument
-  /// edge(.., label: [Hello], label-pos: 50%) // label options
-  /// edge(.., label: (body: [hello], pos: 50%, ..)) // label dictionary
-  /// edge(.., label: ([First label], // array of labels
-  ///                  (body: [Second label], pos: 25%)))
+  /// ```example
+  /// #diagram(edge("->", $f$))
   /// ```
   /// 
-  /// The label option may be:
-  /// - `content` for the label's body
-  /// - a `dictionary` of label options:
-  ///   - `body`: content to draw
-  ///   - `pos`: the label's position along the edge path
-  ///   - `sep`: padding between the label's body and the path
-  ///   - `side`: which side of the edge to place the body
-  /// - an `array` of the above, for multiple labels.
+  /// The label body may also be given as a positional argument.
+  /// ```typc
+  /// edge(.., [Label])
+  /// edge(.., label: [Label])
+  /// ```
+  /// Label options can be specified with a dictionary,
+  /// or as named arguments by adding `label-` as a prefix .
+  /// For example, the following are the same:
+  /// ```typc
+  /// edge(.., label: (body: [Label], pos: 25%))
+  /// edge(.., [Label], label-pos: 25%)
+  /// ```
+  /// Possible label option are:
+  /// - `body`: content to draw
+  /// - `pos`: the label's position along the edge path
+  /// - `sep`: padding between the label's body and the path
+  /// - `side`: which side of the edge to place the body
   /// 
-  /// Each label option (e.g., `pos`) also exists as an option to @edge (e.g., `edge(label-pos: ..)`).
+  /// Each option has a corresponding edge argument (e.g., `edge(label-pos: ..)`).
+  /// 
+  /// Multiple labels can be specified with an array:
+  /// ```typc
+  /// edge(.., label: ([First label], (body: [Second label], pos: 25%)))
+  /// ```
+  /// 
+  /// -> content | dictionary | array
   label: none,
   snap-to: (auto, auto),
   outset: auto,
