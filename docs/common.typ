@@ -33,7 +33,7 @@
 
   if is-md-target {
     frame(preview)
-    html.elem("pre", code.text)
+    code
   } else {
     grid(
       columns: (1fr, auto),
@@ -70,6 +70,16 @@
 
     
     link(label(label-prefix + target), symbol)
+  }
+
+  show heading.where(level: 1): it => {
+    if is-md-target {
+      html.elem("m1verbatum", "# ")
+      it.body
+      parbreak()
+    } else {
+      it
+    }
   }
 
   if refs { body } else { mute-refs(body) }
