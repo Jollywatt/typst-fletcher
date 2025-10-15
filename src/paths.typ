@@ -125,6 +125,7 @@
   let target-length = (
     if type(l) in (int, float) { l }
     else if type(l) == ratio { total-length*float(l) }
+    else { utils.error("invalid path position: #0", l) }
   )
   target-length = calc.clamp(target-length, 0, total-length - 1e-15)
 

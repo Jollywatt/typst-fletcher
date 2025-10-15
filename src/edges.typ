@@ -656,6 +656,50 @@
   /// 
   /// -> content | dictionary | array
   label: none,
+  /// Position along the edge path to place labels.
+  /// 
+  /// ```svg
+  /// stack(
+  ///   dir: ltr,
+  ///   spacing: 1cm,
+  ///   ..(0%, 25%, 50%, 75%, 100%).map(p => fletcher.diagram(
+  ///   gutter: 2cm,
+  ///   	edge((0,0), (1,0), [#p], "->", label-pos: p))
+  ///   ),
+  /// )
+  /// ```
+  /// 
+  /// This can be a `ratio`, relative to the total path length,
+  /// or a `float` whose integer part refers to the segment number and
+  /// whose fractional part interpolates along the segment (see @point-on-path).
+  /// 
+  /// ```example
+  /// #diagram({
+  ///   edge((0,0), (1,1), (2,1), (2,0), "->", label: (
+  ///     (body: [1st], pos: 0.5),
+  ///     (body: [2nd], pos: 1.5),
+  ///     (body: [3rd], pos: 2.5, side: right),
+  ///   ))
+  /// })
+  /// ```
+  /// 
+  /// This can be given as an _edge argument_ like `edge(.., $f$, label-pos: 50%)` or as a @edge.label option like `edge(.., label: (body: $f$, pos: 50%))`.
+  /// 
+  /// -> ratio | number | length
+  label-pos: 50%,
+  /// Which side of the edge to place the label.
+  /// 
+  /// If `auto`, the label is placed roughly above straight edges, or on the outside of curved edges.
+  /// 
+  /// This can be given as an _edge argument_ like `edge(.., $f$, label-side: top)` or as a @edge.label option like `edge(.., label: (body: $f$, side: top))`.
+  /// 
+  /// -> alignment
+  label-side: auto,
+  /// Separation between label body and the edge.
+  /// 
+  /// This can be given as an _edge argument_ like `edge(.., $f$, label-sep: 3pt)` or as a @edge.label option like `edge(.., label: (body: $f$, sep: 3pt))`.
+  /// -> length
+  label-sep: 3pt,
   snap-to: (auto, auto),
   outset: auto,
   name: none,
@@ -712,7 +756,11 @@
   }
 
   let named = args.named()
-  let (named, labels) = interpret-label-args(named, options)
+  let (named, labels) = interpret-label-args(named + (
+    label-pos: label-pos,
+    label-side: label-side,
+    label-sep: label-sep,
+  ), options)
   options += determine-edge-kind(named, options)
 
   _edge(
