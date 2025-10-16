@@ -763,6 +763,11 @@
   ), options)
   options += determine-edge-kind(named, options)
 
+  if options.stroke == none {
+    options.stroke = 1pt
+    options.extrude = ()
+  }
+
   _edge(
     options.vertices,
     style: (

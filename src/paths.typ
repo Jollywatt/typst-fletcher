@@ -764,7 +764,7 @@
 
         (drawable + (segments: new-path, stroke: stroke),)
       }
-    }).join()
+    }).join() + () // coerce none to array
 
   
     (ctx => {
