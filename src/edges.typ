@@ -39,44 +39,84 @@
     let (point, vel, accel) = sample-pt(label.pos, false)
     let tangent-angle = calc.atan2(vel.at(0), vel.at(1))
 
-    let angle
+    // 1. resolve label.angle to angle
+    if type(label.angle) == alignment {
+      label.angle = tangent-angle - (
+        right: 0deg,
+        top: 90deg,
+        left: 180deg,
+        bottom: 270deg,
+      ).at(repr(label.angle))
+    } else if label.angle == auto {
+      if calc.abs(tangent-angle) > 90deg {
+        label.angle = tangent-angle + 180deg
+      } else {
+        label.angle = tangent-angle
+      }
+      label.anchor = utils.angle-to-anchor(label.angle)
+    }
+    assert(type(label.angle) == angle)
 
+    // 2. resolve label.side to boolean or none/center
     if label.side == auto {
       // automatically choose label side so that...
       let is-curving = cetz.vector.len(accel) > 1e-5
       if is-curving {
         // ...if the edge is curved, label is on the outer side
-        angle = calc.atan2(accel.at(0), accel.at(1))
+        label.side = accel.at(0)*vel.at(1) - accel.at(1)*vel.at(0) > 0
+        // formula comes from sign of z-coord of cross product
       } else {
         // ...if edge is straight, label is generally north of it
         label.side = top
       }
     }
-
+    
     if type(label.side) == alignment {
       let v = (0,0)
-      if label.side.x != none {
-        v.first() = if label.side.x == right { +1 } else { -1 }
-      }
-      if label.side.y != none {
-        v.last() = if label.side.y == top { +1 } else { -1 }
-      }
-      let a = calc.atan2(..v)
-      let side = utils.wrap-angle-180(a - tangent-angle) > -1deg
-      if side {
-        angle = tangent-angle - 90deg
+      if label.side.x == right  { v.first() = +1 }
+      if label.side.x == left   { v.first() = -1 }
+      if label.side.y == top    { v.last()  = +1 }
+      if label.side.y == bottom { v.last()  = -1 }
+      if v == (0,0) {
+        label.side = none
       } else {
-        angle = tangent-angle + 90deg
+        label.side = utils.wrap-angle-180(calc.atan2(..v) - tangent-angle) > -1deg
       }
     }
 
-    let anchor = utils.angle-to-anchor(angle)
-    cetz.draw.content(point, label.body, anchor: anchor, padding: label.sep, name: "label")
+    if type(label.side) == bool {
+      let delta = if label.side { -90deg } else { +90deg }
+      label.anchor = utils.angle-to-anchor(tangent-angle + delta - label.angle)
+    } else if label.side == none {
+      label.anchor = "center"
+    } else {
+      utils.error("invalid label side: #0", label.side)
+    }
+
+   
+    if label.fill == auto {
+      label.fill = if label.anchor == "center" { white }
+    }
+
+    cetz.draw.content(
+      point,
+      box(
+        label.body,
+        outset: 2pt,
+        inset: 0pt,
+        fill: label.fill,
+        stroke: if debug-level(debug, "edge.label") { purple.transparentize(50%) + 0.25pt },
+      ),
+      anchor: label.anchor,
+      angle: label.angle,
+      padding: label.sep,
+      name: "label",
+    )
 
     if debug-level(debug, "edge.label") {
       debug-group({
         cetz.draw.circle(point, radius: 1pt, fill: purple.transparentize(50%), stroke: none)
-        cetz.draw.rect("label.north-east", "label.south-west", stroke: purple.transparentize(50%) + 0.25pt)
+        // cetz.draw.rect("label.north-east", "label.south-west", stroke: purple.transparentize(50%) + 0.25pt)
       })
     }
   }
@@ -538,7 +578,15 @@
 
 // consumes `label-*` named arguments and validates 
 #let interpret-label-args(named, options) = {
-  let default-spec = (body: none, pos: 50%, side: auto, sep: 3pt)
+  let default-spec = (
+    body: none,
+    pos: 50%,
+    anchor: "default",
+    side: auto,
+    sep: 3pt,
+    angle: 0deg,
+    fill: auto
+  )
 
   let label-args = named.keys().filter(arg => arg.starts-with("label-"))
   for arg in label-args {
@@ -565,10 +613,8 @@
         }
       }
       return spec
-    } else if type(x) == content {
-      return as-label-spec((body: x))
     } else {
-      utils.error("invalid label #0.", repr(x))
+      return as-label-spec((body: x))
     }
   }
 
@@ -584,7 +630,7 @@
 #let edge(
   /// An edge's positional arguments may specify:
   /// - the edge's @edge.vertices, each given as a CeTZ coordinate;
-  /// - the edge's @edge.marks, e.g., `"=>"` or `"solid=/=solid"`.
+  /// - the edge's @edge.marks, e.g., `"->"` or `"solid=/=solid"`.
   /// - the body content of an edge @edge.label, e.g., `$f$`;
   /// - some other style flags (#fletcher.edges.parsing.EDGE_FLAGS.keys().map(raw).join[, ]).
   /// 
@@ -595,7 +641,7 @@
   /// edge(to, ..) == edge(auto, to, ..) // start from previous node
   /// edge(..) == edge(auto, auto, ..) // between previous and next nodes
   /// edge(from, v1, v2, ..vs, to, ..) // multiple vertices
-  /// edge(from, "=>", to) // for two vertices, marks can go in the middle
+  /// edge(from, "->", to) // for two vertices, marks can go in the middle
   /// ```
   /// 
   /// Vertices after the first one can be relative coordinate shorthand
@@ -606,12 +652,13 @@
   /// are disambiguated based on their types.
   /// For example, the following are equivalent:
   /// ```typc
-  /// edge((0,0), (1,0), $f$, "-|>")
-  /// edge((0,0), (1,0), "-|>", $f$)
-  /// edge((0,0), (1,0), $f$, marks: "-|>")
-  /// edge((0,0), (1,0), "-|>", label: $f$)
-  /// edge((0,0), (1,0), label: $f$, marks: "-|>")
+  /// edge((0,0), (1,0), $f$, "->")
+  /// edge((0,0), (1,0), "->", $f$)
+  /// edge((0,0), (1,0), $f$, marks: "->")
+  /// edge((0,0), (1,0), "->", label: $f$)
+  /// edge((0,0), (1,0), label: $f$, marks: "->")
   /// ```
+  /// ->
   ..args,
   /// Array of coordinates for the edge.
   /// 
@@ -700,6 +747,8 @@
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-sep: 3pt)` or as a @edge.label option like `edge(.., label: (body: $f$, sep: 3pt))`.
   /// -> length
   label-sep: 3pt,
+  label-fill: auto,
+  label-angle: 0deg,
   snap-to: (auto, auto),
   outset: auto,
   name: none,
@@ -750,6 +799,11 @@
   options += parsing.interpret-edge-positional-args(args.pos(), options)
   options += interpret-marks-arg(options.marks)
 
+  if options.stroke == none {
+    options.stroke = 1pt
+    options.extrude = ()
+  }
+
   let stroke = utils.stroke-to-dict(options.stroke)
   if options.at("dash", default: auto) != auto {
     stroke.dash = options.dash
@@ -760,13 +814,11 @@
     label-pos: label-pos,
     label-side: label-side,
     label-sep: label-sep,
+    label-fill: label-fill,
+    label-angle: label-angle,
   ), options)
   options += determine-edge-kind(named, options)
 
-  if options.stroke == none {
-    options.stroke = 1pt
-    options.extrude = ()
-  }
 
   _edge(
     options.vertices,
