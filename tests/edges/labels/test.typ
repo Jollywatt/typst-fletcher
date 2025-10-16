@@ -34,7 +34,7 @@ Default to north of line
 #pagebreak()
 
 Default to outer side of curve
-#diagram(gutter: 4, {
+#diagram(spacing: 4, {
   edge((0,0), (1,0), bend: +40deg, `above`)
   edge((0,0), (1,0), bend: -40deg, `below`)
 })

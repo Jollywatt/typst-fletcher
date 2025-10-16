@@ -255,7 +255,7 @@
 #let flexigrid(
   objects,
   ..args,
-  gutter: 1,
+  spacing: 1,
   origin: (0,0),
   columns: auto,
   rows: auto,
@@ -267,11 +267,11 @@
   let row-spec = interpret-rowcol-spec(rows)
 
   objects = utils.as-array(objects) + args.pos().join()
-  gutter = utils.as-pair(gutter)
+  spacing = utils.as-pair(spacing)
 
   cetz.draw.get-ctx(ctx => {
 
-    let gutter = gutter.map(g => cetz.util.resolve-number(ctx, g))
+    let gutter = spacing.map(g => cetz.util.resolve-number(ctx, g))
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     // cetz.draw.translate(origin) // todo
 

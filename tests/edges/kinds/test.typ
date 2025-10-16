@@ -18,7 +18,7 @@
 
 #pagebreak()
 
-#figure(diagram(debug: "", gutter: 1, {
+#figure(diagram(debug: "", spacing: 1, {
   import cetz.draw: *
 
   node((-1,-1), $ bullet $)

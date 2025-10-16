@@ -5,10 +5,10 @@
 #page[
   Gutter defines minimum distance between cells.
 
-  #let gutter = 1cm
+  #let spacing = 1cm
 
   #set box(fill: yellow)
-  #diagram(debug: "grid.cells", gutter: gutter, {
+  #diagram(debug: "grid.cells", spacing: spacing, {
     import cetz.draw: *
     node((0,0), box(width: 1cm, height: 1cm), inset: 0)
     node((1,0), box(width: 2cm, height: 1cm), inset: 0)
@@ -23,7 +23,7 @@
 
   This block...
   
-  #box(width: gutter, height: gutter)
+  #box(width: spacing, height: spacing)
 
   ...should fit between all cells above without touching.
 ]

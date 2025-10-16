@@ -16,8 +16,7 @@
       import fletcher: diagram, node, edge 
 			set text(1.3em)
 			diagram(
-				gutter: 27mm,
-				// label-sep: 6pt,
+				spacing: 27mm,
 				node((0,1), $A$),
 				node((1,1), $B$),
 				edge((0,1), (1,1), $f$, ">>->", stroke: 1pt),
