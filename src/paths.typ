@@ -74,22 +74,29 @@
 ) = {
   let (start, close, segments) = subpath
 
-  let last-point = (
+  // if beyond end, snap to end
+  if segment-index >= segments.len() {
+    segment-index = segments.len() - 1
+    segment-t = 1
+  }
+
+  let prev-point = (
     if segment-index > 0 { segments.at(segment-index - 1).last() }
     else { start }
   )
+
   let segment = segments.at(segment-index)
 
   if segment.first() == "l" {
-    let x = cetz.vector.lerp(last-point, segment.last(), segment-t)
-    let x-vel = vector.sub(segment.last(), last-point)
+    let x = cetz.vector.lerp(prev-point, segment.last(), segment-t)
+    let x-vel = vector.sub(segment.last(), prev-point)
     let x-accel = (0.0, 0.0, 0.0)
     return (x, x-vel, x-accel)
   } else if segment.first() == "c" {
     let (_, c1, c2, end-pt) = segment
-    let x = bezier.cubic-point(last-point, end-pt, c1, c2, segment-t)
-    let x-vel = bezier.cubic-derivative(last-point, end-pt, c1, c2, segment-t)
-    let x-accel = cubic-second-derivative(last-point, end-pt, c1, c2, segment-t)
+    let x = bezier.cubic-point(prev-point, end-pt, c1, c2, segment-t)
+    let x-vel = bezier.cubic-derivative(prev-point, end-pt, c1, c2, segment-t)
+    let x-accel = cubic-second-derivative(prev-point, end-pt, c1, c2, segment-t)
     return (x, x-vel, x-accel)
   }
 }
