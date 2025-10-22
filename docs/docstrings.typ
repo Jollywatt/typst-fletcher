@@ -32,6 +32,5 @@
 #if is-md-target {
   show-fn-docs(sys.inputs.path, sys.inputs.fn-name)
 } else {
-  // panic()
-  show-fn-docs("../src/paths.typ", "path-effect")
+  show-fn-docs("../src/edges.typ", "edge")
 }

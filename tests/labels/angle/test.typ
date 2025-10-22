@@ -21,30 +21,12 @@
 	})
 }
 
-`label-side`
 
-#star-fig-4(label: (
-	(body: `true`, side: true),
-	(body: `false`, side: false),
-), label-pos: 80%)
+```
+label-angle: auto
+```
 
-#star-fig-4(label: (
-	(body: `top`, side: top),
-	(body: `bottom`, side: bottom),
-), label-pos: 80%)
-
-#star-fig-4(label: (
-	(body: `left`, side: left),
-	(body: `right`, side: right),
-), label-pos: 80%)
-
-#star-fig-4(label: (
-	(body: `center`, side: center),
-))
-
-#pagebreak()
-
-`label-angle: auto`
+Label body shows the value of `label-side`.
 
 #star-fig-4(label-angle: auto, label: (
 	(body: `true`, angle: auto, side: true),

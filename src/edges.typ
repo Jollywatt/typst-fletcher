@@ -78,6 +78,13 @@
       if label.side.y == top    { v.last()  = +1 }
       if label.side.y == bottom { v.last()  = -1 }
       if v == (0,0) {
+        if label.side == alignment.start {
+          label.anchor = utils.angle-to-anchor(tangent-angle)
+        } else if label.side == alignment.end {
+          label.anchor = utils.angle-to-anchor(tangent-angle + 180deg)
+        } else {
+          label.anchor = "center"
+        }
         label.side = none
       } else {
         label.side = utils.wrap-angle-180(calc.atan2(..v) - tangent-angle) > -1deg
@@ -87,12 +94,7 @@
     if type(label.side) == bool {
       let delta = if label.side { -90deg } else { +90deg }
       label.anchor = utils.angle-to-anchor(tangent-angle + delta - label.angle)
-    } else if label.side == none {
-      label.anchor = "center"
-    } else {
-      utils.error("invalid label side: #0", label.side)
     }
-
    
     if label.fill == auto {
       label.fill = if label.anchor == "center" { white }
@@ -734,13 +736,35 @@
   /// 
   /// -> ratio | number | length
   label-pos: 50%,
-  /// Which side of the edge to place the label.
+  /// Which side of the edge to place the label on.
   /// 
   /// If `auto`, the label is placed roughly above straight edges, or on the outside of curved edges.
   /// 
+  /// If `center` or `none`, the label is placed directly over the edge, and the label fill defaults to white.
+  /// 
+  /// An alignment (e.g., `top`, `left`, `top + left`) means place the label beside the edge to whichever side is nearer that direction.
+  /// If given as an alignment, the side may flip depending on the edge's angle.
+  /// 
+  /// If `true`, the label is placed above the edge assuming it goes left to right;
+  /// `false` is the opposite side.
+  /// If given as a boolean, the side does not flip depending on the edge's angle.
+  /// 
+  /// The special alignment values `start` and `end` place the label before or after a point, travelling along the edge. This works best when used like `(pos: 0%, side: start)` or `(pos: 100%, side: end)`.
+  /// ```example
+  /// #diagram(edge((0,0), "->", (1,1), label: (
+  ///   (body: `start`,  side: start,  pos: 0%),
+  ///   (body: `left`,   side: left,   pos: 0%),
+  ///   (body: `right`,  side: right,  pos: 0%),
+  ///   (body: `center`, side: center, pos: 50%),
+  ///   (body: `end`,    side: end,    pos: 100%),
+  ///   (body: `top`,    side: top,    pos: 100%),
+  ///   (body: `bottom`, side: bottom, pos: 100%),
+  /// )))
+  /// ```
+  /// 
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-side: top)` or as a @edge.label option like `edge(.., label: (body: $f$, side: top))`.
   /// 
-  /// -> alignment
+  /// -> auto | none | center | top | bottom | left | right | start | end
   label-side: auto,
   /// Separation between label body and the edge.
   /// 
@@ -748,6 +772,30 @@
   /// -> length
   label-sep: 3pt,
   label-fill: auto,
+  /// Angle of the label's body.
+  /// 
+  /// A positive angle goes anticlockwise, with `0deg` being upright.
+  /// 
+  /// An alignment (e.g., `top`, `right`) means to rotate the label with the
+  /// edge's direction, such that the label is upright along edges going in
+  /// that direction.
+  /// 
+  /// If `auto`, the best of `left` or `right` is chosen; that is,
+  /// the label is rotated to be tangent to the edge and roughly the right way up.
+  /// 
+  /// ```svg
+  /// stack(
+  ///   dir: ltr,
+  ///   spacing: 5mm,
+  ///   ..(0deg, 90deg, auto, right, top, bottom).map(angle => {
+  ///     diagram(edge((0,1), (2,0), "->", [#angle], label-angle: angle))
+  ///   }).map(align.with(bottom)),
+  /// )
+  /// ```
+  /// 
+  /// This can be given as an _edge argument_ like `edge(.., $f$, label-angle: auto)` or as a @edge.label option like `edge(.., label: (body: $f$, angle: auto))`.
+  /// 
+  /// -> angle | auto | top | bottom | left | right
   label-angle: 0deg,
   snap-to: (auto, auto),
   outset: auto,
