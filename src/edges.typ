@@ -35,9 +35,18 @@
 		(x, x-vel, x-accel)
 	}
 
+
   for label in labels {
     let (point, vel, accel) = sample-pt(label.pos, false)
     let tangent-angle = calc.atan2(vel.at(0), vel.at(1))
+
+    if label.anchor != auto {
+      if label.side != auto {
+        utils.error("label options `anchor: #0` and `side: #1` cannot be used together; one must be `auto`", repr(label.anchor), repr(label.side))
+      }
+      // anchor is set explicitly; don't deduce anchor from side
+      label.side = none
+    }
 
     // 1. resolve label.angle to angle
     if type(label.angle) == alignment {
@@ -53,11 +62,13 @@
       } else {
         label.angle = tangent-angle
       }
-      label.anchor = utils.angle-to-anchor(label.angle)
+      if label.anchor == auto {
+        label.anchor = utils.angle-to-anchor(label.angle)
+      }
     }
     assert(type(label.angle) == angle)
 
-    // 2. resolve label.side to boolean or none/center
+    // 2. resolve label.side to boolean or none/center and resolve anchor
     if label.side == auto {
       // automatically choose label side so that...
       let is-curving = cetz.vector.len(accel) > 1e-5
@@ -583,11 +594,11 @@
   let default-spec = (
     body: none,
     pos: 50%,
-    anchor: "default",
     side: auto,
     sep: 3pt,
     angle: 0deg,
-    fill: auto
+    fill: auto,
+    anchor: auto,
   )
 
   let label-args = named.keys().filter(arg => arg.starts-with("label-"))
@@ -797,6 +808,13 @@
   /// 
   /// -> angle | auto | top | bottom | left | right
   label-angle: 0deg,
+  /// The CeTZ anchor to use for the label content.
+  /// 
+  /// If `auto`, the anchor is automatically chosen depending on @edge.label-side and the edge's angle.
+  /// This must be `auto` if the `side` option is set.
+  /// 
+  /// -> anchor
+  label-anchor: auto,
   snap-to: (auto, auto),
   outset: auto,
   name: none,
@@ -864,6 +882,7 @@
     label-sep: label-sep,
     label-fill: label-fill,
     label-angle: label-angle,
+    label-anchor: label-anchor,
   ), options)
   options += determine-edge-kind(named, options)
 
