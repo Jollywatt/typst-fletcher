@@ -172,7 +172,7 @@
 #let measure-node(ctx, style, shape, body) = {
 
   if body == none {
-    return (none, (0,0))
+    return (0,0)
   }
 
   // measure node label/body
@@ -201,7 +201,7 @@
     }
   }
 
-  return (body, node-size)
+  return node-size
 }
 
 
@@ -249,7 +249,7 @@
       }
     }
 
-    let (body, size) = measure-node(ctx, style, shape, body)
+    let size = measure-node(ctx, style, shape, body)
 
 
     let node-data = (
