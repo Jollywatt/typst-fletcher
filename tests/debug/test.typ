@@ -20,6 +20,7 @@
 
 // str config
 #assert(debug-level("c", "c.d", levels: l))
+#assert(not debug-level("c", "c.e", levels: l))
 #assert(debug-level("c.f", "c.f", levels: l))
 #assert(debug-level("c.f.g", "c.f", levels: l))
 

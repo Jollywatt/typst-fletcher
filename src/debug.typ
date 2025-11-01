@@ -46,6 +46,20 @@
   utils.error("`debug: #debug`. Options: #..0", debug: repr(debug), suggestions)
 }
 
+/// Test whether the debug option is set high enough
+/// to include a given debug option.
+/// 
+/// For example, if `option` is `"foo.bar"` and the
+/// `levels` dictionary includes `("foo.bar": 10)`,
+/// then this returns `true` if the `debug` option is:
+/// - the constant `true`
+/// - an integer at least `10`
+/// - the specific string `"foo.bar"`
+/// - a parent string like `"foo"`, if the corresponding
+///   parent level `levels.foo` is at least `10`
+/// - an array options, combined with logical or.
+/// 
+/// -> bool
 #let debug-level(debug, option, levels: DEBUG_LEVELS) = {
   assert(option in levels)
   if debug == none or debug == "" { return false }
