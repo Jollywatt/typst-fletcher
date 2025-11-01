@@ -229,6 +229,10 @@
         nodes: (),
         edges: (),
       )
+      ctx.style.node = {
+        DEFAULT_NODE_STYLE
+        NODE_SHAPES
+      }
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 
