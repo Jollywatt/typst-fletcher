@@ -53,15 +53,15 @@
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
-  for node in rects {
-    let (u, v) = node.pos
+  for rect in rects {
+    let (u, v) = rect.pos
     let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
     let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
 
-    let (w, h) = node.size
-    w *= node.weight
-    h *= node.weight
+    let (w, h) = rect.size
+    w *= rect.weight
+    h *= rect.weight
 
     let (w0, w1) = (col-sizes.at(i-floor), col-sizes.at(i-floor + 1))
     let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, col-gutter)
@@ -198,21 +198,36 @@
   return defaults
 }
 
+// Get cell details `(x, y, w, h)` from a flexigrid,
+// respecting fractional coordinates and colspan/rowspan.
+// Nodes in flexigrids are placed within these cells.
+// Nodes can be aligned within their cell, can grow to the cell's
+// size or shrink to the size of their label content / body.
+#let get-flexigrid-cell(node, grid) = {
+  if node.cellspan == (none,none) {
+    return utils.interp-grid-cell(grid, node.pos)
+  }
 
-// Place a node with a uv position in a flexigrid
-// taking into account node alignment within cells
-#let get-node-origin(node, grid) = {
-  let cell = utils.interp-grid-cell(grid, node.pos)
-  let (w, h) = node.size
-  let (x-shift, y-shift) = (0, 0)
+  let (x, y) = node.pos
+  let (x1, y1) = (x, y)
+  let (colspan, rowspan) = node.cellspan
+  if colspan != none { x1 += colspan - 1 }
+  if rowspan != none { y1 += rowspan - 1 }
 
-  if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
-  if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
-  if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
-  if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
+  let lo = utils.interp-grid-cell(grid, (x, y))
+  let hi = utils.interp-grid-cell(grid, (x1, y1))
 
-  return (cell.x + x-shift, cell.y + y-shift)
+  let (lox, hix) = (lo.x - lo.w/2, hi.x + hi.w/2)
+  let (loy, hiy) = (lo.y - lo.h/2, hi.y + hi.h/2)
+
+  return (
+    x: (lox + hix)/2,
+    y: (loy + hiy)/2,
+    w: (hix - lox),
+    h: (hiy - loy),
+  )
 }
+
 
 #let place-node-in-grid(node, grid) = {
   if node.enclose != none {
@@ -233,7 +248,24 @@
     node.size = cetz.vector.sub(high, low).slice(0, 2)
   } else {
     assert.ne(node.pos, auto)
-    node.pos = get-node-origin(node, grid)
+
+    let cell = get-flexigrid-cell(node, grid)
+
+    // a cellspan implies the node's width should fill the spanned columns
+    // same for rowspan
+    let (colspan, rowspan) = node.cellspan
+    if colspan != none { node.size.at(0) = cell.w }
+    if rowspan != none { node.size.at(1) = cell.h }
+    
+    let (w, h) = node.size
+    let (x-shift, y-shift) = (0, 0)
+
+    if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
+    if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
+    if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
+    if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
+
+    node.pos = (cell.x + x-shift, cell.y + y-shift)
   }
   node
 }

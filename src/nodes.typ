@@ -220,6 +220,7 @@
       enclose,
       snap,
       layer,
+      cellspan,
     ) = options.named()
 
     if "fletcher" not in ctx.shared-state {
@@ -268,6 +269,7 @@
       enclose: enclose,
       snap: snap,
       layer: layer,
+      cellspan: cellspan,
       debug: get-debug(ctx, debug),
     )
 
@@ -348,6 +350,9 @@
   enclose: none,
   snap: true,
   debug: auto,
+
+  colspan: none,
+  rowspan: none,
 ) = {
 
   let style = (
@@ -368,6 +373,7 @@
     snap: snap,
     style: style,
     layer: layer,
+    cellspan: (colspan, rowspan),
   )
 
   let pos = args.pos()
