@@ -25,6 +25,7 @@
 #let get-debug(ctx, debug) = {
   if debug != auto { return debug } // level is explicitly given
   if "fletcher" in ctx.shared-state {
+    if ctx.shared-state.fletcher.pass == "layout" { return false }
     return ctx.shared-state.fletcher.at("debug", default: false)
   }
 }

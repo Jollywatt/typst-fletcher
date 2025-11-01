@@ -160,6 +160,7 @@
     stroke: edge.style.stroke,
     extrude: edge.style.extrude,
   )
+  // objs
 
   marks
 
@@ -452,12 +453,17 @@
     }
 
     cetz.process.many(ctx, {
-      draw-edge-with-snapping(edge-data, snapping-nodes)
+      if fletcher-ctx.pass == "layout" {
+        // for the layout pass, we only need to identify nodes/edges, anchors, etc
+        (edge-data.draw)(edge-data.vertices)
+        // we skip path effects, marks, etc for performance
+      } else {
+        draw-edge-with-snapping(edge-data, snapping-nodes)
+      }
     })
   },)
 
 }
-
 
 
 

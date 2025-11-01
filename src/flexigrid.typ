@@ -251,6 +251,17 @@
   return ctx
 }
 
+// mirrors cetz.process.many except discards
+// everything but ctx, used for layout pass
+#let process-only-ctx(ctx, objs) = {
+  for obj in objs {
+    let r = cetz.process.element(ctx, obj)
+    if r != none { ctx = r.ctx }
+  }
+  return ctx
+}
+
+
 /// placeholder docstring
 #let flexigrid(
   objects,
@@ -296,8 +307,8 @@
     })
 
     // run layout pass to retrieve fletcher objects
-    let layout-pass = cetz.process.many(layout-pass-ctx, objects)
-    let (nodes, edges) = layout-pass.ctx.shared-state.fletcher
+    let layout-pass = process-only-ctx(layout-pass-ctx, objects)
+    let (nodes, edges) = layout-pass.shared-state.fletcher
 
     // compute grid cell sizes and positions
     let grid = cell-sizes-from-rects(nodes, gutter)
