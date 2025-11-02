@@ -45,7 +45,9 @@
   if debug-level(debug, "node") {
     debug-group({
       cetz.draw.translate(origin)
-      cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+      if debug-level(debug, "node.origin") {
+        cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+      }
       let (w, h) = node.size
       if debug-level(debug, "node.stroke") {
         cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
@@ -55,7 +57,7 @@
         cetz.draw.rect(
           (rel: (-o, -o), to: (-w/2,-h/2)),
           (rel: (+o, +o), to: (+w/2,+h/2)),
-          stroke: (paint: red, thickness: 0.25pt, dash: "densely-dotted"),
+          stroke: (paint: red, thickness: 0.25pt, dash: (.75pt,.25pt)),
         )
       }
     })
@@ -245,7 +247,10 @@
         body = cetz.draw.content((0,0), none)
       } else {
         body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
-        body = cetz.draw.content((0,0), [#body], padding: style.inset)
+        if debug-level(get-debug(ctx, debug), "node.inset") {
+          body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+        }
+        body = cetz.draw.content((0,0), [#body], padding: style.inset, name: "body")
       }
     }
 

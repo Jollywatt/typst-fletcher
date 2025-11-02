@@ -9,6 +9,7 @@
   "grid.xy": 10,
 
   "node": 4,
+  "node.origin": 4,
   "node.stroke": 3,
   "node.inset": 4,
   "node.outset": 4,
@@ -43,7 +44,7 @@
       d += char
     }
   }
-  utils.error("`debug: #debug`. Options: #..0", debug: repr(debug), suggestions)
+  utils.error("`debug: #debug`. Try: #..0", debug: repr(debug), suggestions)
 }
 
 /// Test whether the debug option is set high enough
@@ -72,6 +73,7 @@
     if debug.split().len() > 1 {
       return debug-level(debug.split(), option, levels: levels)
     }
+    debug = debug.trim()
     if debug in levels {
       if debug.starts-with(option) { return true }
       if option.starts-with(debug) { return levels.at(debug) >= levels.at(option) }

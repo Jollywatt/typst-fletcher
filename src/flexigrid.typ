@@ -148,8 +148,6 @@
       if draw-coords {
         let coord = i + grid.u-min
         cetz.draw.content((x, grid.y-min), text(10pt, tint, raw(str(coord))), anchor: "north")
-      }
-      if draw-cells {
         let w = grid.col-sizes.at(i)
         cetz.draw.line((x - w/2, grid.y-min), (x + w/2, grid.y-min), stroke: (thickness: 1pt))
       }
@@ -161,8 +159,6 @@
       if draw-coords {
         let coord = j + grid.v-min
         cetz.draw.content((grid.x-min, y), text(10pt, tint, raw(str(coord))), anchor: "east")
-      }
-      if draw-cells {
         let h = grid.row-sizes.at(j)
         cetz.draw.line((grid.x-min, y - h/2), (grid.x-min, y + h/2), stroke: (thickness: 1pt))
       }
