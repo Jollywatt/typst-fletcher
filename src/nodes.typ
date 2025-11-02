@@ -7,13 +7,10 @@
 
 
 #let draw-node-at(node, origin, debug: false) = {
-  
-  let (group-callback,) = cetz.draw.group({
-    cetz.draw.translate(origin)
-    cetz.draw.get-ctx(ctx => { 
-
+  (ctx => {
+    let objs = {
+      cetz.draw.translate(origin)
       let style = node.style
-
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
       let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
       let extrude = style.extrude.map(e => {
@@ -25,14 +22,13 @@
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
         (node.draw)(node + (unit-length: ctx.length, extrude: extrude))
       }
-    })
+    }
 
-  }, name: node.name)
+    if node.layer != 0 { objs = cetz.draw.on-layer(node.layer, objs) }
+    let group = cetz.draw.group(objs, name: node.name)
+    group = group.first()(ctx)
 
-  // override anchor behaviour for nodes
-  (ctx => {
-    let group = group-callback(ctx)
-
+    // override anchor behaviour for nodes
     let calc-anchors = if "node" in (group.anchors)(()) {
       // defer all anchors to the node named "node" within the group
       k => (group.anchors)(("node", k).flatten())
@@ -223,6 +219,7 @@
       weight,
       enclose,
       snap,
+      layer,
     ) = options.named()
 
     if "fletcher" not in ctx.shared-state {
@@ -270,6 +267,7 @@
       weight: weight,
       enclose: enclose,
       snap: snap,
+      layer: layer,
       debug: get-debug(ctx, debug),
     )
 
@@ -338,6 +336,11 @@
   /// the array.
   /// -> array
   extrude: auto,
+  /// Canvas layer to draw node on.
+  /// 
+  /// Nodes with equal layer are drawn in the order they are inserted.
+  /// -> number
+  layer: 0,
 
   name: none,
   align: center + horizon,
@@ -364,6 +367,7 @@
     enclose: enclose,
     snap: snap,
     style: style,
+    layer: layer,
   )
 
   let pos = args.pos()

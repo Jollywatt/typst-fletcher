@@ -153,18 +153,20 @@
 		debug: edge.debug,
 	)
 
-  paths.path-effect(
-    objs,
-    shorten-start: shorten-start,
-    shorten-end: shorten-end,
-    stroke: edge.style.stroke,
-    extrude: edge.style.extrude,
-  )
-  // objs
+  let group = {
+    paths.path-effect(
+      objs,
+      shorten-start: shorten-start,
+      shorten-end: shorten-end,
+      stroke: edge.style.stroke,
+      extrude: edge.style.extrude,
+    )
+    marks
+    draw-labels-on-path(ctx, path, edge.labels, debug: edge.debug)
+  }
+  if edge.layer != 0 { group = cetz.draw.on-layer(edge.layer, group) }
+  group
 
-  marks
-
-  draw-labels-on-path(ctx, path, edge.labels, debug: edge.debug)
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -370,6 +372,7 @@
   snap-to: (auto, auto),
   name: none,
   draw: vertices => none,
+  layer: 0,
   debug: auto,
 ) = {
 
@@ -397,6 +400,7 @@
       snap-to: utils.as-pair(snap-to),
       name: name,
       draw: draw,
+      layer: layer,
       debug: get-debug(ctx, debug),
     )
 
@@ -851,6 +855,12 @@
   /// TODO
   /// -> number | length | array
   extrude: auto,
+  /// Canvas layer to draw edge on.
+  /// 
+  /// Edges with equal layer are drawn in the order they are inserted.
+  /// -> number
+  layer: 0,
+
   draw: auto,
   debug: auto,
 ) = {
@@ -865,6 +875,7 @@
     stroke: stroke,
     dash: dash,
     extrude: extrude,
+    layer: layer,
     draw: draw,
   )
 
@@ -905,6 +916,7 @@
     snap-to: options.snap-to,
     name: if name != none { str(options.name) },
     draw: options.draw,
+    layer: layer,
     debug: debug,
   )
 
