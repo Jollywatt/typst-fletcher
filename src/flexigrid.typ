@@ -53,6 +53,30 @@
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
+  // interpret rects with colspan/rowspan as multiple rects
+  // whose total sizes (plus gutter) is the original size
+  // this is the oly step that is sensitive to the order of rects
+  rects = rects.map(rect => {
+    let (colspan, rowspan) = rect.cellspan
+    if colspan == none and rowspan == none { return rect }
+    let (u, v) = rect.pos
+    let (w, h) = rect.size
+    if colspan != none {
+      range(colspan).map(i => (
+        ..rect,
+        pos: (u + i, v),
+        size: ((w - col-gutter*(colspan - 1))/colspan, 0)
+      ))
+    }
+    if rowspan != none {
+      range(rowspan).map(j => (
+        ..rect,
+        pos: (u, v + j),
+        size: (0, (h - row-gutter*(rowspan - 1))/rowspan)
+      ))
+    }
+  }).flatten()
+
   for rect in rects {
     let (u, v) = rect.pos
     let (i, j) = (u - u-min, v - v-min)
