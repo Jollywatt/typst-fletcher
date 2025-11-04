@@ -77,25 +77,24 @@
     }
   }).flatten()
 
+  // enlarge cells to fit rects
+  // handling fractional rect positions nicely
   for rect in rects {
+    let (w, h) = rect.size
     let (u, v) = rect.pos
     let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
     let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
 
-    let (w, h) = rect.size
-    w *= rect.weight
-    h *= rect.weight
-
     let (w0, w1) = (col-sizes.at(i-floor), col-sizes.at(i-floor + 1))
     let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, col-gutter)
-    col-sizes.at(i-floor) = calc.max(w0, w0new)
-    col-sizes.at(i-floor + 1) = calc.max(w1, w1new)
+    col-sizes.at(i-floor) =  utils.lerp(w0, calc.max(w0, w0new), rect.weight)
+    col-sizes.at(i-floor + 1) = utils.lerp(w1, calc.max(w1, w1new), rect.weight)
 
     let (h0, h1) = (row-sizes.at(j-floor), row-sizes.at(j-floor + 1))
     let (h0new, h1new) = cell-sizer(h, h0, h1, j-fract, row-gutter)
-    row-sizes.at(j-floor) = calc.max(h0, h0new)
-    row-sizes.at(j-floor + 1) = calc.max(h1, h1new)
+    row-sizes.at(j-floor) = utils.lerp(h0, calc.max(h0, h0new), rect.weight)
+    row-sizes.at(j-floor + 1) = utils.lerp(h1, calc.max(h1, h1new), rect.weight)
   }
 
   return (

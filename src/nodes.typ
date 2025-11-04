@@ -346,6 +346,11 @@
 
   name: none,
   align: center + horizon,
+  /// How much the node influences the size of flexigrid rows/columns.
+  /// 
+  /// If `0`, the node does not affect the flexigrid or other node positions.
+  /// If `1`, rows and columns grow to fully accommodate the node.
+  /// -> number
   weight: 1,
   enclose: none,
   snap: true,
