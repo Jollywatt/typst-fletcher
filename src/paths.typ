@@ -123,7 +123,7 @@
   return point-on-subpath-segment(path.at(subpath-index), segment-index, calc.fract(index))
 }
 
-#let point-on-path-by-length(path, l) = {
+#let point-on-path-by-length(ctx, path, l) = {
   let origin = (0., 0., 0.)
 
   let lengths = cetz.path-util.segment-lengths(path)
@@ -132,7 +132,10 @@
   let target-length = (
     if type(l) in (int, float) { l }
     else if type(l) == ratio { total-length*float(l) }
-    else { utils.error("invalid path position: #0", l) }
+    else if type(l) == length { l.to-absolute()/ctx.length }
+    else if type(l) == relative {
+      total-length*float(l.ratio) + l.length.to-absolute()/ctx.length
+    } else { utils.error("invalid path position: #0", l) }
   )
   target-length = calc.clamp(target-length, 0, total-length - 1e-15)
 
@@ -153,6 +156,9 @@
 /// Get the position, velocity, and acceleration of a point on a path,
 /// parametrised either by length or segment number.
 #let point-on-path(
+  /// Dictionary including the unit length `ctx.length`
+  /// for converting lengths into CeTZ units.
+  ctx,
   path,
   /// Specify the point by its length along the path (in CeTZ units),
   /// or by its position along the path as a ratio of its total length.
@@ -173,7 +179,7 @@
   segment: none,
 ) = {
   if length != none and segment == none {
-    point-on-path-by-length(path, length)
+    point-on-path-by-length(ctx, path, length)
   } else if length == none and segment != none {
     point-on-path-by-segment(path, segment)
   } else {

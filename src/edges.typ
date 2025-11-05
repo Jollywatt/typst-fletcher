@@ -23,10 +23,9 @@
 	let sample-pt(t, reverse) = {
 		let (x, x-vel, x-accel) = {
       if type(t) in (int, float) {
-        paths.point-on-path(path, segment: t)
+        paths.point-on-path(ctx, path, segment: t)
       } else {
-        if type(t) == length { t = t/ctx.length }
-        paths.point-on-path(path, length: t)
+        paths.point-on-path(ctx, path, length: t)
       }
     }
 		let x = cetz.util.revert-transform(ctx.transform, x)
