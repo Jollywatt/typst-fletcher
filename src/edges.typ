@@ -166,6 +166,18 @@
   if edge.layer != 0 { group = cetz.draw.on-layer(edge.layer, group) }
   group
 
+  if debug-level(edge.debug, "edge.snap") {
+    debug-group({
+      cetz.draw.group({
+        cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
+        (edge.draw)(edge.pre-snapping-vertices)
+      })
+      let t = utils.get-thickness(edge.style.stroke)
+      // cetz.draw.circle(src-snapped, radius: t, fill: green.transparentize(50%), stroke: none)
+      // cetz.draw.circle(tgt-snapped, radius: t, fill: red.transparentize(50%), stroke: none)
+    })
+  }
+
 
   // create proxy named cetz object which draws nothing but handles anchors
   (ctx => {
@@ -182,21 +194,6 @@
     )
   },)
   
-}
-
-#let find-anchor-by-distance(ctx, name, reference-point, near: false) = {
-  let get-anchors = ctx.nodes.at(name).anchors
-  let anchor-names = (get-anchors)(())
-
-  let s = if near { -1 } else { 1 } 
-  let ref = cetz.util.apply-transform(ctx.transform, reference-point)
-
-  let all-anchors = anchor-names
-    .map(get-anchors)
-    .sorted(key: a => s*cetz.vector.dist(a, ref))
-
-  let best = all-anchors.at(-1, default: ref)
-  return cetz.util.revert-transform(ctx.transform, best)
 }
 
 
@@ -220,7 +217,7 @@
   // snap to node by name
   if type(snap-to) == str {
     let node = nodes.find(n => n.name == snap-to)
-    if node == none { utils.error("couldn't find name #0", snap-to) }
+    // if node == none { utils.error("couldn't find name #0", snap-to) }
     return node
   }
 
@@ -252,115 +249,60 @@
 }
 
 
-/// Draw an edge, snapping each end to given CeTZ objects.
-/// 
-/// The first and last segments of the edge are tested for intersection with the
-/// first and last elements of `snap-to`, respectively. If no intersections are found,
-/// the first/last vertices of the edge are left as is; otherwise, they are replaced
-/// with the farthest intersection from the original vertex.
-#let draw-edge-with-intersection-snapping(
-  ctx,
-  edge,
-  /// Shapes to snap the start and end of the edge to, respectively. -> (cetz, cetz)
-  snap-to: (none, none),
-) = {
+#let apply-edge-snapping(ctx, nodes, edge) = {
+  let node-drawables(node, outset) = {
+    let objs = draw-node-snapping-outline(node, outset)
+    return cetz.process.many(ctx, objs).drawables
+  }
 
-  let edge-test-path = (edge.draw)(edge.vertices)
-  let src-test-path = paths.draw-only-first-path-segment(edge-test-path)
-  let tgt-test-path = paths.draw-only-last-path-segment(edge-test-path)
-
-  cetz.draw.hide({
-    cetz.draw.intersections("__src__", snap-to.at(0) + src-test-path)
-    cetz.draw.intersections("__tgt__", snap-to.at(1) + tgt-test-path)
-  })
-
-  cetz.draw.get-ctx(ctx => {
-    let src-snapped = find-anchor-by-distance(ctx, "__src__", edge.vertices.first())
-    let tgt-snapped = find-anchor-by-distance(ctx, "__tgt__", edge.vertices.last())
-
-    if (src-snapped == tgt-snapped) {
-      // edge snapping resulted in same start and end points
-      // make it so that only one end snaps, whichever one is closer
-      let src-dist = cetz.vector.dist(src-snapped, edge.vertices.first())
-      let tgt-dist = cetz.vector.dist(tgt-snapped, edge.vertices.last())
-      if src-dist < tgt-dist {
-        tgt-snapped = edge.vertices.last()
+  for i in (0, -1) { // first and last index
+    let snap-to = edge.snap-to.at(i)
+    let pos = edge.vertices.at(i)
+    let outset = edge.style.outset.at(i)
+    
+    let target-drawables
+    if type(snap-to) == str {
+      // look up fletcher or cetz node by name
+      let node = nodes.find(n => n.name == snap-to)
+      if node != none {
+        target-drawables = node-drawables(node, outset)
+      } else if snap-to in ctx.nodes {
+        target-drawables = ctx.nodes.at(snap-to).drawables
       } else {
-        src-snapped = edge.vertices.first()
+        utils.error("in edge `snap-to`, node #0 not found", repr(snap-to))
+      }
+    } else if snap-to == auto {
+      // find fletcher nodes nearby
+      let dist(node) = cetz.vector.dist(node.pos, pos)
+      let node = nodes
+        .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
+        .sorted(key: dist)
+        .at(0, default: none)
+      if node != none {
+        target-drawables = node-drawables(node, outset)
       }
     }
 
-    let edge = edge
-    edge.vertices.first() = src-snapped
-    edge.vertices.last() = tgt-snapped
-    
-    draw-edge(ctx, edge)
-
-    if debug-level(edge.debug, "edge.snap") {
-      debug-group({
-        cetz.draw.group({
-          cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
-          src-test-path
-          tgt-test-path
-        })
-        let t = utils.get-thickness(edge.style.stroke)
-        cetz.draw.circle(src-snapped, radius: t, fill: green.transparentize(50%), stroke: none)
-        cetz.draw.circle(tgt-snapped, radius: t, fill: red.transparentize(50%), stroke: none)
-      })
+    // find snapping points by intersecting edge path with target
+    if target-drawables != none {
+      let edge-element = (edge.draw)(edge.vertices)
+      let edge-drawable = if i == 0 {
+        paths.drawable-with-only-first-segment(ctx, edge-element)
+      } else {
+        paths.drawable-with-only-last-segment(ctx, edge-element)
+      }
+      let pos-inv = cetz.util.apply-transform(ctx.transform, pos)
+      let pts = target-drawables.map(path => {
+        cetz.intersection.path-path(edge-drawable, path)
+      }).join() + () // coerce none to array
+      pts = pts.sorted(key: pt => cetz.vector.dist(pt, pos-inv))
+      if pts.len() == 0 { continue }
+      let farthest-point = pts.first()
+      edge.vertices.at(i) = cetz.util.revert-transform(ctx.transform, farthest-point)
     }
-  })
+  }
 
-  (ctx => {
-    ctx.nodes.remove("__src__")
-    ctx.nodes.remove("__tgt__")
-    return (ctx: ctx)
-  },)
-
-}
-
-/// Draw an edge, snapping each end to given fletcher nodes.
-#let draw-edge-with-snapping(edge, snapping-nodes) = {
-  cetz.draw.get-ctx(ctx => {
-
-    let ctx-edge = ctx.style.at("edge", default: (:))
-    ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
-
-    let edge = edge
-    edge.style = cetz.styles.resolve(
-      ctx-edge,
-      base: DEFAULT_EDGE_STYLE,
-      merge: edge.style,
-      // root: "edge",
-    )
-
-    let snapping-outlines = snapping-nodes
-      .zip(edge.style.outset)
-      .map(((key, outset)) => {
-        if key == none { return }
-        if type(key) == str {
-          panic(key)
-          if key not in ctx.nodes { utils.error("couldn't find name #0", key) }
-          let drawables = ctx.nodes.at(key).drawables
-          return (ctx => (ctx: ctx, drawables: drawables),)
-        } else if utils.is-node(key) {
-          let node = key
-          node.style.fill = none
-          draw-node-snapping-outline(node, outset)
-        }
-      })
-
-    if debug-level(edge.debug, "edge.snap") {
-      debug-group(snapping-outlines.join())
-    }
-
-    let (src, .., tgt) = edge.vertices
-
-    draw-edge-with-intersection-snapping(
-      ctx,
-      edge,
-      snap-to: snapping-outlines,
-    )
-  })
+  return edge.vertices
 }
 
 
@@ -375,7 +317,7 @@
   debug: auto,
 ) = {
 
-  (ctx => {
+  cetz.draw.get-ctx(ctx => {
     
     if "fletcher" not in ctx.shared-state {
       ctx.shared-state.fletcher = (
@@ -426,27 +368,16 @@
     edge-data.vertices.first() = first
     edge-data.vertices.last() = last
 
+    // resolve vertex coordinate expressions
     // discard ctx because we do not want to update ctx.prev.pt
     // edge vertices should never affect nodes with relative positions
     let (_, first, ..mid-vertices, last) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
     edge-data.vertices = (first, ..mid-vertices, last)
 
-    // find nodes to snap to
-    let snapping-nodes = edge-data.snap-to.zip((first, last))
-      .map(((snap-to, position)) => {
-        find-snapping-node(fletcher-ctx.nodes, snap-to, position)
-      })
 
-    // get anchors for edges snapping to node
-    // this is where we can apply "defocus" adjustments (TODO)
-    // and find the best part of an enclose node to snap to
-    (first, last) = snapping-nodes.zip((first, last))
-      .map(((node, vertex)) => {
-        if node == none { return vertex }
-        get-snapping-node-anchor(node, vertex)
-      })
-    edge-data.vertices = (first, ..mid-vertices, last)
-    
+    edge-data.pre-snapping-vertices = edge-data.vertices
+    edge-data.vertices = apply-edge-snapping(ctx, fletcher-ctx.nodes, edge-data)
+
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1
@@ -455,17 +386,26 @@
       ctx.shared-state.fletcher.edges.push(edge-data)
     }
 
-    cetz.process.many(ctx, {
-      if fletcher-ctx.pass == "layout" {
-        // for the layout pass, we only need to identify nodes/edges, anchors, etc
-        (edge-data.draw)(edge-data.vertices)
-        // we skip path effects, marks, etc for performance
-      } else {
-        draw-edge-with-snapping(edge-data, snapping-nodes)
-      }
-    })
-  },)
+    if fletcher-ctx.pass == "layout" {
+      // for the layout pass, we only need to identify nodes/edges/anchors
+      // so we skip path effects, marks, etc for performance
+      (edge-data.draw)(edge-data.vertices)
 
+    } else {
+
+      let ctx-edge = ctx.style.at("edge", default: (:))
+      ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
+
+      let edge = edge-data
+      edge.style = cetz.styles.resolve(
+        ctx-edge,
+        base: DEFAULT_EDGE_STYLE,
+        merge: edge.style,
+      )
+
+      draw-edge(ctx, edge)
+    }
+  },)
 }
 
 

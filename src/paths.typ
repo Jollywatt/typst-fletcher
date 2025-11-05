@@ -33,7 +33,7 @@
 }
 
 
-#let intersect-path-with-drawables(path, drawables) = {
+#let intersect-drawables-one-to-many(path, drawables) = {
   let pts = ()
   for other-path in drawables {
     for pt in cetz.intersection.path-path(path, other-path) {
@@ -258,6 +258,26 @@
   let new-drawable = drawable + (segments: new-path)
 
   return new-drawable
+}
+
+#let drawable-with-only-first-segment(ctx, element) = {
+  modify-single-subpath-element(ctx, element, subpath => {
+    let (origin, closed, segments) = subpath
+    return (origin, false, segments.slice(0, 1))
+  })
+}
+#let drawable-with-only-last-segment(ctx, element) = {
+  modify-single-subpath-element(ctx, element, subpath => {
+    let (origin, closed, segments) = subpath
+    if segments.len() <= 1 {
+      return (origin, false, segments.slice(0, 1))
+    } else {
+      let last = segments.last()
+      let second-last = segments.at(-2)
+      let (kind, ..coords) = second-last
+      return (coords.last(), false, (last,))
+    }
+  })
 }
 
 #let draw-only-first-path-segment(element, stroke: auto) = {
