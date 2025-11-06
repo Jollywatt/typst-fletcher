@@ -33,7 +33,15 @@
 }
 
 
-
+#let intersect-path-with-drawables(path, drawables) = {
+  let pts = ()
+  for other-path in drawables {
+    for pt in cetz.intersection.path-path(path, other-path) {
+      if pt not in pts { pts.push(pt) }
+    }
+  }
+  return pts
+}
 
 /// Get the second derivative (d²x/dt²) of a cubic bezier at position `t`.
 ///
