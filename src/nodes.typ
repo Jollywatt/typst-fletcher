@@ -62,7 +62,8 @@
 }
 
 
-#let resolve-node-styles(ctx, style, shape, body) = {
+#let resolve-node-styles(ctx, data) = {
+  let (style, shape, body) = data
   let ctx-style-node = ctx.style.at("node", default: (:))
 
   // a node shape is a dictionary with a `draw` entry
@@ -98,6 +99,8 @@
   if shape == auto {
     // just guess shape from node body
     if body == none { shape = "none"}
+    else if data.enclose != none { shape = "rect" }
+    else if data.cellspan != (none, none) { shape = "rect" }
     else {
       // choose based on body size and aspect ratio
       // this works best when nodes have no stroke, like in
@@ -236,32 +239,11 @@
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 
-    let style = resolve-node-styles(ctx, style, shape, body)
-
-    // ensure body is a cetz drawable
-    if not utils.is-cetz(body) {
-      if body == none {
-        // empty nodes should still affect canvas bounds
-        body = cetz.draw.content((0,0), none)
-      } else {
-        body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
-        if debug-level(get-debug(ctx, debug), "node.inset") {
-          body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
-        }
-        body = cetz.draw.content((0,0), [#body], padding: style.inset, name: "body")
-      }
-    }
-
-    let size = measure-node(ctx, style, shape, body)
-
-
-    let node-data = (
+    let data = (
       class: "node",
       pos: position,
       body: body,
-      size: size,
       shape: shape,
-      draw: style.draw,
       style: style,
       name: name,
       align: align,
@@ -273,15 +255,38 @@
       debug: get-debug(ctx, debug),
     )
 
-    if node-data.pos == auto and node-data.enclose != none {
+    let style = resolve-node-styles(ctx, data)
+    data.style = style
+    data.draw = style.draw
+
+    // ensure body is a cetz drawable
+    if not utils.is-cetz(data.body) {
+      if data.body == none {
+        // empty nodes should still affect canvas bounds
+        data.body = cetz.draw.content((0,0), none)
+      } else {
+        data.body = text([#data.body], top-edge: "cap-height", bottom-edge: "baseline")
+        if debug-level(get-debug(ctx, debug), "node.inset") {
+          data.body = rect(data.body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+        }
+        data.body = cetz.draw.content((0,0), [#data.body], padding: data.style.inset, name: "body")
+      }
+    }
+
+    data.size = measure-node(ctx, style, shape, data.body)
+
+
+
+
+    if data.pos == auto and data.enclose != none {
       // resolve enclose nodes without flexigrid
       // should still support engulfing other nodes
       // but not stuff requiring row/col knowledge
       // let spanning-points = node-data.enclose.map(fle)
-      if node-data.enclose.len() == 1 {
-        node-data.pos = node-data.enclose.first()
+      if data.enclose.len() == 1 {
+        data.pos = data.enclose.first()
       } else {
-        node-data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..node-data.enclose,)
+        data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..data.enclose,)
       }
     }
 
@@ -289,12 +294,12 @@
       // node position was calculated by flexigrid
       // copy that position to actual node
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current.node)
-      node-data.pos = self.pos
-      node-data.size = self.size
+      data.pos = self.pos
+      data.size = self.size
     } else {
       // resolve position
-      let (ctx, origin) = cetz.coordinate.resolve(ctx, node-data.pos)
-      node-data.pos = origin.slice(0, 2)
+      let (ctx, origin) = cetz.coordinate.resolve(ctx, data.pos)
+      data.pos = origin.slice(0, 2)
     }
 
 
@@ -302,11 +307,11 @@
       ctx.shared-state.fletcher.current.node += 1
     }
     if fletcher-ctx.pass != "final" {
-      ctx.shared-state.fletcher.nodes.push(node-data)
+      ctx.shared-state.fletcher.nodes.push(data)
     }
 
     cetz.process.many(ctx, {
-      draw-node-at(node-data, node-data.pos, debug: node-data.debug)
+      draw-node-at(data, data.pos, debug: data.debug)
     })
   },)
 }
