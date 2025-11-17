@@ -53,9 +53,29 @@
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
 
+
+  // interpret enclose nodes as multiple rects
+  rects = rects.map(rect => {
+    if rect.enclose == none { return rect }
+
+    let (u-min, u-max) = (float.inf, -float.inf)
+    let (v-min, v-max) = (float.inf, -float.inf)
+    for (u, v) in rect.enclose {
+      if u < u-min { u-min = u }
+      if u-max < u { u-max = u }
+      if v < v-min { v-min = v }
+      if v-max < v { v-max = v }
+    }
+
+    rect.pos = (u-min, v-min)
+    rect.cellspan = (u-max - u-min + 1, v-max - v-min + 1)
+    // panic(rect)
+    return rect
+  })
+
   // interpret rects with colspan/rowspan as multiple rects
   // whose total sizes (plus gutter) is the original size
-  // this is the oly step that is sensitive to the order of rects
+  // this is the only step that is sensitive to the order of rects
   rects = rects.map(rect => {
     let (colspan, rowspan) = rect.cellspan
     if colspan == none and rowspan == none { return rect }
@@ -76,6 +96,8 @@
       ))
     }
   }).flatten()
+
+
 
   // enlarge cells to fit rects
   // handling fractional rect positions nicely
@@ -227,7 +249,7 @@
 // Nodes can be aligned within their cell, can grow to the cell's
 // size or shrink to the size of their label content / body.
 #let get-flexigrid-cell(node, grid) = {
-  if node.cellspan == (none,none) {
+  if node.cellspan == (none, none) {
     return utils.interp-grid-cell(grid, node.pos)
   }
 
