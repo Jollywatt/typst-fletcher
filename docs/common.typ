@@ -1,4 +1,5 @@
 #import "../src/exports.typ" as fletcher
+#import fletcher: diagram, node, edge
 
 #let scope = (
   fletcher: fletcher,
