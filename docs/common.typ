@@ -7,6 +7,25 @@
   edge: fletcher.edge,
   node: fletcher.node,
   cetz: fletcher.cetz,
+  shape-demo: (shape, tint) => [
+    #diagram(
+    	node((0,0), raw(shape), shape: shape),
+    	node-stroke: tint,
+    	node-fill: tint.lighten(90%),
+    )
+    #let code = {
+      "node(.., shape: "
+      repr(shape)
+      ", "
+      fletcher.shapes.NODE_SHAPES.at(shape).pairs()
+        .filter(((k, v)) => k != "draw")
+        .map(((k, v)) => k + ": " + repr(v))
+        .join(", ")
+      ")"
+    }
+    
+    #raw(code, lang: "typc")
+  ]
 )
 
 
@@ -50,7 +69,6 @@
 
 #let style(body, refs: true) = {
 
-
   let label-prefix = "fletcher."
 
   show ref: it => {
@@ -68,8 +86,6 @@
       symbol += "()"
     }
 
-
-    
     link(label(label-prefix + target), symbol)
   }
 
@@ -82,6 +98,8 @@
       it
     }
   }
+
+  set raw(lang: "typc")
 
   if refs { body } else { mute-refs(body) }
 }

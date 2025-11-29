@@ -137,3 +137,4 @@
 #module-docs("edges")
 #module-docs("flexigrid")
 #module-docs("paths")
+#module-docs("shapes")

@@ -20,7 +20,7 @@
 
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.draw)(node + (unit-length: ctx.length, extrude: extrude))
+        (node.draw)(node + (size: node.body-size, unit-length: ctx.length, extrude: extrude))
       }
     }
 
@@ -122,6 +122,7 @@
 
   // be forgiving
   if shape in (std.circle, cetz.draw.circle) { shape = "circle" }
+  if shape == std.ellipse { shape = "ellipse" }
   if shape in (std.rect, cetz.draw.rect) { shape = "rect" }
   if shape == none { shape = "none" }
 
@@ -202,7 +203,7 @@
     }
   }
 
-  return node-size
+  return (body: body-size, bounds: node-size)
 }
 
 
@@ -273,7 +274,9 @@
       }
     }
 
-    data.size = measure-node(ctx, style, shape, data.body)
+    let sizes = measure-node(ctx, style, shape, data.body)
+    data.size = sizes.bounds
+    data.body-size = sizes.body
 
 
 
@@ -325,6 +328,7 @@
   ..args,
   /// Content to draw in the node. -> content
   body: none,
+  /// Shape
   shape: auto,
 
   /// Fill style of the node.
