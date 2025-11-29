@@ -12,6 +12,18 @@
   }
 }
 
+
+#let DEFAULT_NODE_STYLE = (
+  stroke: none,
+  fill: none,
+  inset: 5pt,
+  outset: 0pt,
+  extrude: (0,),
+  corner-radius: none,
+)
+
+
+
 // There is some repetition here, but it makes it possible to:
 // - automatically deduce node shape from given named arguments (e.g., radius implies circle)
 // - report helpful errors when an invalid named argument is given (instead of silently ignoring it!)
@@ -258,6 +270,102 @@
 ))
 
 
+
+/// An isosceles trapezoid node shape.
+///
+/// #shape-demo("keystone", green)
+///
+/// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
+///   `90deg` unless you want your document to be larger than the solar system.
+/// 
+///   #diagram(for (i, angle) in (-20deg, 0deg, 45deg).enumerate() {
+///     let l = box(
+///       inset: 10pt,
+///       raw("angle: " + repr(angle)),
+///     )
+///     node((i, 0), l,
+///       inset: 0pt,
+///       shape: "keystone",
+///       angle: angle,
+///       stroke: green,
+///       fill: green.lighten(90%),
+///     )
+///   })
+///
+/// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
+/// 
+///   #diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
+///     let l = box(
+///       inset: 10pt,
+///       raw("dir: " + repr(dir)),
+///     )
+///     node((i, 0), l,
+///       inset: 0pt,
+///       shape: "keystone",
+///       dir: dir,
+///       angle: if dir in (top, bottom) { 20deg } else { 10deg },
+///       stroke: green,
+///       fill: green.lighten(90%),
+///     )
+///   })
+///
+/// - `fit` (number): Adjusts how comfortably the trapezium fits the label's bounding box.
+///
+///   #for (i, fit) in (0, 0.5, 1).enumerate() {
+///     let l = box(
+///       stroke: (dash: "dashed", thickness: 0.5pt),
+///       inset: 10pt,
+///       raw("fit: " + repr(fit)),
+///     )
+///     diagram(node((i, 0), l,
+///       inset: 0pt,
+///       shape: "keystone",
+///       fit: fit,
+///       stroke: green,
+///       fill: green.lighten(90%),
+///     ))
+///     h(5mm)
+///   }
+#let keystone(node) = {
+  let (dir, angle, fit) = node.style
+  assert(dir in (top, bottom, left, right))
+
+  let flip = dir in (right, left) // flip along diagonal line x = y
+  let rotate = dir in (bottom, left) // rotate 180deg
+
+  let (w, h) = node.size
+  if flip { (w, h) = (h, w) }
+
+  let s = if angle > 0deg { 1 } else { -1 }
+  angle = calc.abs(angle)
+  
+  let (x, y) = (w/2, h/2 + node.extrude)
+  let μ = h*calc.tan(angle) + node.extrude/calc.tan(45deg - angle/2)
+  let δ = node.extrude/calc.tan(45deg + angle/2)
+
+  let verts = (
+    (-x - μ, -s*y),
+    (+x + μ, -s*y),
+    (+x + δ, +s*y),
+    (-x - δ, +s*y),
+  )
+
+  if flip { verts = verts.map(((i, j)) => (j, i)) }
+  if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+  draw.line(..verts, close: true)
+  node.body
+}
+#NODE_SHAPES.insert("keystone", (
+  width: auto,
+  height: auto,
+  angle: 20deg,
+  dir: top,
+  fit: 0.75,
+  draw: keystone,
+))
+
+
 /// A rhombus node shape.
 ///
 /// #shape-demo("diamond", purple)
@@ -378,106 +486,134 @@
 ))
 
 
-/// An isosceles trapezoid node shape.
+
+
+/// A pentagonal house-like node shape.
 ///
-/// #shape-demo("keystone", green)
+/// #shape-demo("house", eastern)
 ///
-/// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
-///   `90deg` unless you want your document to be larger than the solar system.
-/// 
-///   #diagram(for (i, angle) in (-20deg, 0deg, 45deg).enumerate() {
-///     let l = box(
-///       inset: 10pt,
-///       raw("angle: " + repr(angle)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "keystone",
-///       angle: angle,
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     )
-///   })
-///
-/// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
+/// - `dir`: Direction of the roof of the house.
 /// 
 ///   #diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
-///     let l = box(
-///       inset: 10pt,
-///       raw("dir: " + repr(dir)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "keystone",
+///     node((i, 0), raw("dir: " + repr(dir)),
+///       inset: 5pt,
+///       shape: "house",
 ///       dir: dir,
-///       angle: if dir in (top, bottom) { 20deg } else { 10deg },
-///       stroke: green,
-///       fill: green.lighten(90%),
+///       stroke: eastern,
+///       fill: eastern.lighten(90%),
 ///     )
 ///   })
+/// 
+/// - `angle`: The slant of the roof. A plain rectangle is `0deg`, and 
+///   `90deg` is a point stretching past Pluto.
+#let house(node) = {
+  let (dir, angle) = node.style
+	let flip = dir in (right, left) // flip along diagonal line x = y
+	let rotate = dir in (bottom, left) // rotate 180deg
+
+	let (w, h) = node.size
+	if flip { (w, h) = (h, w) }
+
+	let (x, y) = (w/2 + node.extrude, h/2 + node.extrude)
+	let a = h/2 + node.extrude*calc.tan(45deg - angle/2)
+	let b = h/2 + w/2*calc.tan(angle) + node.extrude/calc.cos(angle)
+
+ 	let verts = (
+		(-x, -y),
+		(-x,  a),
+		(0pt, b),
+		(+x,  a),
+		(+x, -y),
+	)
+
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+  draw.line(..verts, close: true)
+	node.body
+}
+#NODE_SHAPES.insert("house", (
+  width: auto,
+  height: auto,
+  dir: top,
+  angle: 10deg,
+  draw: house,
+))
+
+
+
+/// A chevron node shape.
 ///
-/// - `fit` (number): Adjusts how comfortably the trapezium fits the label's bounding box.
+/// #shape-demo("chevron", yellow)
 ///
-///   #for (i, fit) in (0, 0.5, 1).enumerate() {
+/// - `dir`: Direction the chevron points.
+/// 
+///   #diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
+///     node((i, 0), raw("dir: " + repr(dir)),
+///       inset: 5pt,
+///       shape: "chevron",
+///       dir: dir,
+///       stroke: yellow,
+///       fill: yellow.lighten(90%),
+///     )
+///   })
+/// - `angle`: The slant of the arrow. A plain rectangle is `0deg`.
+/// - `fit`: Adjusts how comfortably the chevron fits the label's bounding box.
+///
+///   #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
 ///     let l = box(
 ///       stroke: (dash: "dashed", thickness: 0.5pt),
 ///       inset: 10pt,
 ///       raw("fit: " + repr(fit)),
 ///     )
-///     diagram(node((i, 0), l,
+///     node((i, 0), l,
 ///       inset: 0pt,
-///       shape: "keystone",
+///       shape: "chevron",
 ///       fit: fit,
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     ))
-///     h(5mm)
-///   }
-#let keystone(node) = {
+///       stroke: yellow,
+///       fill: yellow.lighten(90%),
+///     )
+///   })
+#let chevron(node) = {
   let (dir, angle, fit) = node.style
-  assert(dir in (top, bottom, left, right))
+	let flip = dir in (right, left) // flip along diagonal line x = y
+	let rotate = dir in (bottom, left) // rotate 180deg
 
-  let flip = dir in (right, left) // flip along diagonal line x = y
-  let rotate = dir in (bottom, left) // rotate 180deg
+	let (w, h) = node.size
+	if flip { (w, h) = (h, w) }
 
-  let (w, h) = node.size
-  if flip { (w, h) = (h, w) }
 
-  let s = if angle > 0deg { 1 } else { -1 }
-  angle = calc.abs(angle)
-  
-  let (x, y) = (w/2, h/2 + node.extrude)
-  let μ = h*calc.tan(angle) + node.extrude/calc.tan(45deg - angle/2)
-  let δ = node.extrude/calc.tan(45deg + angle/2)
+  let e = node.extrude
+	let (x, y) = (w/2 + e, h/2 + e)
+	let c = w/2*calc.tan(angle)
+	let α = e*calc.tan(45deg - angle/2)
+	let β = e*calc.tan(45deg + angle/2)
+	let ɣ = e/calc.cos(angle) - c
+	let δ = c*fit
+	let y = h/2 + c*fit
 
-  let verts = (
-    (-x - μ, -s*y),
-    (+x + μ, -s*y),
-    (+x + δ, +s*y),
-    (-x - δ, +s*y),
-  )
+ 	let verts = (
+		(-x,  +y + α - c),
+		(0pt, +y + ɣ + c),
+		(+x,  +y + α - c),
 
-  if flip { verts = verts.map(((i, j)) => (j, i)) }
-  if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+		(+x,  -y - β),
+		(0pt, -y - ɣ),
+		(-x,  -y - β),
+	)
 
-  draw.line(..verts, close: true)
-  node.body
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+
+	draw.line(..verts, close: true)
+	node.body
 }
-#NODE_SHAPES.insert("keystone", (
+#NODE_SHAPES.insert("chevron", (
   width: auto,
   height: auto,
-  angle: 20deg,
   dir: top,
-  fit: 0.75,
-  draw: keystone,
+  angle: 10deg,
+  fit: 0.8,
+  draw: chevron,
 ))
-
-#let DEFAULT_NODE_STYLE = (
-  stroke: none,
-  fill: none,
-  inset: 5pt,
-  outset: 0pt,
-  extrude: (0,),
-  corner-radius: none,
-)
-
