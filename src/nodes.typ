@@ -20,7 +20,12 @@
 
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.draw)(node + (size: node.body-size, unit-length: ctx.length, extrude: extrude))
+        (node.draw)(node + (
+          body: if i == 0 { node.body },
+          size: node.body-size,
+          unit-length: ctx.length,
+          extrude: extrude,
+        ))
       }
     }
 
