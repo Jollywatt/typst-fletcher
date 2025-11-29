@@ -10,6 +10,7 @@
 #pagebreak()
 
 Segment placement
+
 #diagram({
   edge((0,0), (1,0), (1,2), (2,1), (2,0), (3,0), "->", label: (
     (body: `1`, pos: 0.5),

@@ -3,6 +3,7 @@
 
 #page[
   Node shape inference
+
   #diagram(
     cetz.draw.set-style(node: (stroke: 1pt)),
     cetz.draw.scale(y: -1),
@@ -15,6 +16,7 @@
 
 #page[
   Node styles
+
   #diagram({
     import cetz.draw: *
     scale(y: -1)
@@ -42,6 +44,7 @@
 #page[
   Empty nodes are point-like \
   unless a size is given
+  
   #diagram(
     debug: "grid node",
     node((0,0)),

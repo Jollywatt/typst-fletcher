@@ -485,5 +485,6 @@
 /// placeholder docstring
 #let diagram(..args) = {
   let styles = interpret-style-arguments(args.named())
-  cetz.canvas(flexigrid(styles, ..args))
+  let canvas = cetz.canvas(flexigrid(styles, ..args))
+  box(canvas, fill: none, stroke: none)
 }
