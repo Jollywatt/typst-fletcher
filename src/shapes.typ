@@ -186,13 +186,7 @@
 /// - `flip` (boolean): Whether to slant the horizontal or vertical edges.
 /// 
 ///   #diagram(for (i, flip) in (false, true).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("flip: " + repr(flip)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
+///     node((i, 0), raw("flip: " + repr(flip)),
 ///       shape: "parallelogram",
 ///       flip: flip,
 ///       angle: if flip { 10deg } else { 20deg },
@@ -616,4 +610,120 @@
   angle: 10deg,
   fit: 0.8,
   draw: chevron,
+))
+
+
+/// An (irregular) hexagon node shape.
+///
+/// #shape-demo("hexagon", aqua)
+///
+/// - `angle`: Half the exterior angle, `0deg` being a rectangle.
+/// - `flip` (boolean): Whether to put the points on the sides or top and bottom.
+/// 
+///   #diagram(for (i, flip) in (false, true).enumerate() {
+///     node((i, 0), raw("flip: " + repr(flip)),
+///       shape: "hexagon",
+///       flip: flip,
+///       angle: if flip { 10deg } else { 20deg },
+///       stroke: aqua,
+///       fill: aqua.lighten(90%),
+///     )
+///   })
+/// - `fit`: Adjusts how comfortably the hexagon fits the label's bounding box.
+///
+///   #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
+///     let l = box(
+///       stroke: (dash: "dashed", thickness: 0.5pt),
+///       inset: 10pt,
+///       raw("fit: " + repr(fit)),
+///     )
+///     node((i, 0), l,
+///       inset: 0pt,
+///       shape: "hexagon",
+///       fit: fit,
+///       stroke: aqua,
+///       fill: aqua.lighten(90%),
+///     )
+///   })
+#let hexagon(node) = {
+  let (angle, flip, fit) = node.style
+	let (w, h) = node.size
+
+  if flip { (w, h) = (h, w) }
+
+	let f = h/2*calc.tan(angle)*(1 - fit)
+	let x = w/2 + node.extrude*calc.tan(45deg - angle/2) - f
+	let y = h/2 + node.extrude
+	let z = y*calc.tan(angle)
+	
+  let verts = (
+		(+x, -y),
+		(+x + z, 0pt),
+		(+x, +y),
+
+		(-x, +y),
+		(-x - z, 0pt),
+		(-x, -y),
+  )
+
+  if flip { verts = verts.map(((x, y)) => (y, x)) }
+
+	draw.line(..verts, close: true)
+	node.body
+}
+#NODE_SHAPES.insert("hexagon", (
+  width: auto,
+  height: auto,
+  angle: 30deg,
+  flip: false,
+  fit: 0.8,
+  draw: hexagon,
+))
+
+
+
+/// A truncated rectangle node shape.
+///
+/// #shape-demo("octagon", maroon)
+///
+/// - `truncate` (number, length): Size of the truncated corners. A number is
+///   interpreted as a multiple of the smaller of the node's width or height.
+/// 
+///   #diagram(for (i, t) in (0, 0.5, 1).enumerate() {
+///     node((i, 0), raw("truncate: " + repr(t)),
+///       inset: 5pt,
+///       shape: "octagon",
+///       truncate: t,
+///       stroke: maroon,
+///       fill: maroon.lighten(90%),
+///     )
+///   })
+#let octagon(node) = {
+	let (w, h) = node.size
+	let (x, y) = (w/2 + node.extrude, h/2 + node.extrude)
+
+  let truncate = node.style.truncate
+	let d
+	if type(truncate) == length { d = truncate }
+	else { d = truncate*calc.min(w/2, h/2)}
+	d += node.extrude*0.5857864376 // (1 - calc.tan(calc.pi/8))
+
+	draw.line(
+		(-x + d, -y    ),
+		(-x    , -y + d),
+		(-x    , +y - d),
+		(-x + d, +y    ),
+		(+x - d, +y    ),
+		(+x    , +y - d),
+		(+x    , -y + d),
+		(+x - d, -y    ),
+		close: true,
+	)
+	node.body
+}
+#NODE_SHAPES.insert("octagon", (
+  width: auto,
+  height: auto,
+  truncate: 0.5,
+  draw: octagon,
 ))
