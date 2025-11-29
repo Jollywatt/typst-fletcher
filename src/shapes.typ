@@ -299,12 +299,90 @@
   draw: diamond,
 ))
 
+/// An isosceles triangle node shape.
+/// 
+/// #shape-demo("triangle", fuchsia)
+/// 
+/// Either the `angle` or `aspect` style parameter may be given, but
+/// not both. The triangle's base coincides with the label's base and widens to
+/// enclose the label; see https://www.desmos.com/calculator/i4i9svunj4.
+/// 
+/// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
+/// 
+///   #diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
+///     node((i, 0), raw(repr(dir)),
+///       inset: 5pt,
+///       shape: "triangle",
+///       dir: dir,
+///       stroke: fuchsia,
+///       fill: fuchsia.lighten(90%),
+///     )
+///   })
+///
+/// - `fit`: Adjusts how comfortably the triangle fits the label's bounding box.
+/// 
+///   #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
+///     let l = box(
+///       stroke: (dash: "dashed", thickness: 0.5pt),
+///       inset: 10pt,
+///       raw("fit: " + repr(fit)),
+///     )
+///     node((i, 0), l,
+///       inset: 0pt,
+///       shape: "triangle",
+///       fit: fit,
+///       stroke: fuchsia,
+///       fill: fuchsia.lighten(90%),
+///     )
+///   })
+#let triangle(node) = {
+  let (dir, angle, aspect, fit) = node.style
+	assert(dir in (top, bottom, left, right))
+
+	let flip = dir in (right, left) // flip along diagonal line x = y
+	let rotate = dir in (bottom, left) // rotate 180deg
+
+	let (w, h) = node.size
+	if flip { (w, h) = (h, w) }
+
+	if angle == auto and aspect == auto { aspect = w/h }
+	if angle == auto { angle = 2*calc.atan(aspect/2) }
+	if aspect == auto { aspect = 2*calc.tan(angle/2) }
+
+	let a = aspect*h/2 + fit*w/2
+	let b = (a + fit*w/2)/aspect
+
+	a += node.extrude*calc.tan(45deg + angle/4)
+	b += node.extrude/calc.cos(90deg - angle/2)
+
+	let verts = (
+		(-a, -h/2 - node.extrude),
+		(+a, -h/2 - node.extrude),
+		(0, +b),
+	)
+
+	if flip { verts = verts.map(((i, j)) => (j, i)) }
+	if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
+
+	draw.line(..verts, close: true)
+	node.body
+}
+#NODE_SHAPES.insert("triangle", (
+  width: auto,
+  height: auto,
+  dir: top,
+  angle: auto,
+  aspect: auto,
+  fit: 0.6,
+  draw: triangle,
+))
+
 
 /// An isosceles trapezoid node shape.
 ///
 /// #shape-demo("keystone", green)
 ///
-/// - angle (angle): Angle of the slant, `0deg` is a rectangle. Don't set to
+/// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg` unless you want your document to be larger than the solar system.
 /// 
 ///   #diagram(for (i, angle) in (-20deg, 0deg, 45deg).enumerate() {
@@ -321,7 +399,7 @@
 ///     )
 ///   })
 ///
-/// - dir (top, bottom, left, right): The side the shorter parallel edge is on.
+/// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
 /// 
 ///   #diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
 ///     let l = box(
@@ -338,7 +416,7 @@
 ///     )
 ///   })
 ///
-/// - fit (number): Adjusts how comfortably the trapezium fits the label's bounding box.
+/// - `fit` (number): Adjusts how comfortably the trapezium fits the label's bounding box.
 ///
 ///   #for (i, fit) in (0, 0.5, 1).enumerate() {
 ///     let l = box(
