@@ -291,6 +291,7 @@
 
     node.pos = cetz.vector.scale(cetz.vector.add(low, high), 0.5)
     node.size = cetz.vector.sub(high, low).slice(0, 2)
+    node.body-size = node.size
   } else {
     assert.ne(node.pos, auto)
 
@@ -299,8 +300,14 @@
     // a cellspan implies the node's width should fill the spanned columns
     // same for rowspan
     let (colspan, rowspan) = node.cellspan
-    if colspan != none { node.size.at(0) = cell.w }
-    if rowspan != none { node.size.at(1) = cell.h }
+    if colspan != none {
+      node.body-size.at(0) = cell.w
+      node.size.at(0) = cell.w
+    }
+    if rowspan != none {
+      node.body-size.at(1) = cell.h
+      node.size.at(1) = cell.h
+    }
     
     let (w, h) = node.size
     let (x-shift, y-shift) = (0, 0)

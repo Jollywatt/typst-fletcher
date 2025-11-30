@@ -299,6 +299,7 @@
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current.node)
       data.pos = self.pos
       data.size = self.size
+      data.body-size = self.body-size
     } else {
       // resolve position
       let (ctx, origin) = cetz.coordinate.resolve(ctx, data.pos)
