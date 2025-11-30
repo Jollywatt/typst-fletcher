@@ -89,9 +89,27 @@
 /// A circular node shape.
 /// 
 /// #shape-demo("circle", red)
+/// 
+/// - `fit`: Adjusts how comfortably the circle fits the label's bounding box.
+/// 
+///   #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
+///     let l = box(
+///       stroke: (dash: "dashed", thickness: 0.5pt),
+///       inset: 10pt,
+///       raw("fit: " + repr(fit)),
+///     )
+///     node((i, 0), l,
+///       inset: 0pt,
+///       shape: "circle",
+///       fit: fit,
+///       stroke: red,
+///       fill: red.lighten(90%),
+///     )
+///   })
 #let circle(node) = {
   let (w, h) = node.size
-  let r = calc.max(w/2, h/2)
+  let fit = node.style.fit
+  let r = (1 - fit)*calc.max(w/2, h/2) + calc.sqrt(w*w + h*h)/2*fit
   if node.style.radius != auto { r = node.style.radius }
   r = resolve-number(node.unit-length, r)
   draw.circle((0,0), radius: r + node.extrude, name: "node")
@@ -99,6 +117,7 @@
 }
 #NODE_SHAPES.insert("circle", (
   radius: auto,
+  fit: 0,
   draw: circle,
 ))
 
