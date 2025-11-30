@@ -769,7 +769,7 @@
 /// 
 /// - `tilt` (angle): Controls the perspective tilt: `0deg` is side on.
 ///
-///   #diagram(for (i, tilt) in (10deg, 5deg, 0deg, -9deg).enumerate() {
+///   #diagram(for (i, tilt) in (10deg, 5deg, 0deg, -5deg).enumerate() {
 ///     node((i, 0), raw("tilt: " + repr(tilt)),
 ///       shape: "cylinder",
 ///       tilt: tilt,
@@ -800,10 +800,7 @@
     else { r }
   })
 
-  let sign = if tilt >= 0deg { +1 } else {
-    rings = rings.map(ring => 100% - ring)
-    -1
-  }
+  let sign = if tilt >= 0deg { +1 } else { -1 }
 
   let (w, h) = resolve-size(node)
   let (x, y) = (w/2, sign*h/2)

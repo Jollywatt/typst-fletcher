@@ -66,7 +66,7 @@
 #v(1fr)
 
 
-#let module-docs(name) = {
+#let module-docs(name, ..args) = {
   [== #raw(name)]
   
   let path = "/src/" + name + ".typ"
@@ -85,7 +85,8 @@
       show-example: (..args) => {
         tidy.styles.default.show-example(..args, ratio: 1.5)
       }
-    )
+    ),
+    ..args,
   )
 }
 
@@ -137,4 +138,6 @@
 #module-docs("edges")
 #module-docs("flexigrid")
 #module-docs("paths")
-#module-docs("shapes")
+#module-docs("shapes", sort-functions: info => {
+  fletcher.shapes.NODE_SHAPES.keys().position(name => name == info.name)
+})
