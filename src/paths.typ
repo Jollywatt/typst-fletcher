@@ -663,6 +663,9 @@
   objs,
   /// Stroke style for the object, overriding the object's intrinsic stroke style.
   stroke: auto,
+  /// Fill style for the object, overriding the object's intrinsic
+  /// fill style. If `auto`, the fill is unchanged.
+  fill: auto,
   /// Trim the beginning of the path by a given length.
   /// 
   /// For multi-stroke effect when @path-effect.extrude is an array,
@@ -802,8 +805,12 @@
           corner-radius: corner-radius,
           miter-limit: miter-limit,
         ))
-
-        (drawable + (segments: new-path, stroke: stroke),)
+        
+        ({
+          drawable
+          (segments: new-path, stroke: stroke)
+          if fill != auto { (fill: fill) }
+        },)
       }
     }).join() + () // coerce none to array
 

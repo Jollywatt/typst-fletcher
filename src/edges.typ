@@ -158,6 +158,7 @@
       shorten-start: shorten-start,
       shorten-end: shorten-end,
       stroke: edge.style.stroke,
+      fill: none,
       extrude: edge.style.extrude,
     )
     marks
