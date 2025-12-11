@@ -369,6 +369,14 @@
     edge-data.vertices.first() = first
     edge-data.vertices.last() = last
 
+    // snap to cetz nodes if first/last vertex is a node name
+    if type(first) == str and edge-data.snap-to.first() == auto {
+      if first in ctx.nodes { edge-data.snap-to.first() = first }
+    }
+    if type(last) == str and edge-data.snap-to.last() == auto {
+      if last in ctx.nodes { edge-data.snap-to.last() = last }
+    }
+
     // resolve vertex coordinate expressions
     // discard ctx because we do not want to update ctx.prev.pt
     // edge vertices should never affect nodes with relative positions
