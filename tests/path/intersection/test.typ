@@ -10,7 +10,7 @@
   get-ctx(ctx => {
     let path = cetz.process.element(ctx, test-obj.first()).drawables.first()
     let drawables = cetz.process.many(ctx, objs).drawables
-    let pts = paths.intersect-path-with-drawables(path, drawables)
+    let pts = drawables.map(d => cetz.intersection.path-path(path, d)).join()
     for pt in pts {
       pt = cetz.util.revert-transform(ctx.transform, pt)
       circle(pt, radius: 1pt, stroke: none, fill: red)
