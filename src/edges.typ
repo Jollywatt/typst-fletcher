@@ -169,10 +169,8 @@
 
   if debug-level(edge.debug, "edge.snap") {
     debug-group({
-      cetz.draw.group({
-        cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)))
-        (edge.draw)(edge.pre-snapping-vertices)
-      })
+      cetz.draw.set-style(stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)), fill: none)
+      (edge.draw)(edge.pre-snapping-vertices)
       let t = utils.get-thickness(edge.style.stroke)
       // cetz.draw.circle(src-snapped, radius: t, fill: green.transparentize(50%), stroke: none)
       // cetz.draw.circle(tgt-snapped, radius: t, fill: red.transparentize(50%), stroke: none)
