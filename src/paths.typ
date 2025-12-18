@@ -652,6 +652,98 @@
   return (start, close, new-segments)
 }
 
+
+
+/// Apply path effects to a CeTZ drawable.
+#let _path-effect(
+  ctx,
+  drawables,
+  stroke: auto,
+  fill: auto,
+  shorten-start: 0,
+  shorten-end: 0,
+  extrude: 0,
+  join: "miter",
+  corner-radius: 0,
+  miter-limit: 4.0,
+) = {
+  let extrude = utils.one-or-array(extrude, types: (int, float, length))
+
+  if type(shorten-start) != array {
+    shorten-start = (shorten-start,)*extrude.len()
+  }
+  if type(shorten-end) != array { 
+    shorten-end = (shorten-end,)*extrude.len()
+  }
+
+  let corner-radius = (
+    if type(corner-radius) == array {
+      corner-radius.map(r => cetz.util.resolve-number(ctx, r))
+    } else {
+      cetz.util.resolve-number(ctx, corner-radius)
+    }
+  )
+
+  let new-drawables = for drawable in drawables {
+    assert.eq(drawable.type, "path")
+
+    let stroke = {
+      utils.stroke-to-dict(drawable.stroke)
+      utils.stroke-to-dict(stroke)
+    }
+    stroke.miter-limit = miter-limit
+    // force round stroke join style for rounded corners
+    if join == "round" { stroke.join = "round" }
+    let thickness = utils.get-thickness(stroke).to-absolute()
+
+    let resolve-thickness-multiples(x) = {
+      if type(x) in (int, float) { x*thickness/ctx.length }
+      else if type(x) == length { x.to-absolute()/ctx.length }
+    }
+
+    let offsets = extrude.map(resolve-thickness-multiples)
+
+    for (i, offset) in offsets.enumerate() {
+      let new-path = drawable.segments
+
+      // path shortening
+      let l = resolve-thickness-multiples(shorten-start.at(i))
+      if l != 0 { 
+        new-path = cetz.path-util.shorten-to(new-path, l)
+      }
+      let l = resolve-thickness-multiples(shorten-end.at(i))
+      if l != 0 { 
+        new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
+      }
+      
+      new-path = new-path.map(subpath => subpath-effect(
+        subpath,
+        offset: offset,
+        min-offset: calc.min(..offsets),
+        max-offset: calc.max(..offsets),
+        join: join,
+        corner-radius: corner-radius,
+        miter-limit: miter-limit,
+      ))
+      
+      ({
+        drawable
+        (segments: new-path, stroke: stroke)
+        if fill != auto { (fill: fill) }
+      },)
+    }
+  } + () // coerce none to array
+
+  (ctx => {
+    return (
+      ctx: ctx,
+      drawables: new-drawables,
+    )
+  },)
+}
+
+
+
 /// Apply path effects (extrusion and shortening) to a CeTZ object, returning
 /// a CeTZ object.
 #let path-effect(
@@ -764,63 +856,21 @@
     )
 
     let (drawables, bounds, elements) = cetz.process.many(ctx, objs)
-    let new-drawables = drawables.map(drawable => {
-      assert.eq(drawable.type, "path")
-
-      let stroke = {
-        utils.stroke-to-dict(drawable.stroke)
-        utils.stroke-to-dict(stroke)
-      }
-      stroke.miter-limit = miter-limit
-      // force round stroke join style for rounded corners
-      if join == "round" { stroke.join = "round" }
-      let thickness = utils.get-thickness(stroke).to-absolute()
-
-      let resolve-thickness-multiples(x) = {
-        if type(x) in (int, float) { x*thickness/ctx.length }
-        else if type(x) == length { x.to-absolute()/ctx.length }
-      }
-
-      let offsets = extrude.map(resolve-thickness-multiples)
-
-      for (i, offset) in offsets.enumerate() {
-        let new-path = drawable.segments
-
-        // path shortening
-        let l = resolve-thickness-multiples(shorten-start.at(i))
-        if l != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, l)
-        }
-        let l = resolve-thickness-multiples(shorten-end.at(i))
-        if l != 0 { 
-          new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
-        }
-        
-        new-path = new-path.map(subpath => subpath-effect(
-          subpath,
-          offset: offset,
-          min-offset: calc.min(..offsets),
-          max-offset: calc.max(..offsets),
-          join: join,
-          corner-radius: corner-radius,
-          miter-limit: miter-limit,
-        ))
-        
-        ({
-          drawable
-          (segments: new-path, stroke: stroke)
-          if fill != auto { (fill: fill) }
-        },)
-      }
-    }).join() + () // coerce none to array
-
-  
-    (ctx => {
-      return (
-        ctx: ctx,
-        drawables: new-drawables,
-      )
-    },)
+    _path-effect(
+      ctx, drawables,
+      stroke: stroke,
+      fill: fill,
+      shorten-start: shorten-start,
+      shorten-end: shorten-end,
+      extrude: extrude,
+      join: join,
+      corner-radius: corner-radius,
+      miter-limit: miter-limit,
+    )
   })
 }
+
+
+
+
 
