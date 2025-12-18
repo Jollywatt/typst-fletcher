@@ -4,5 +4,6 @@
 #import "marks.typ"
 #import "shapes.typ"
 #import "paths.typ"
+#import "parsing.typ": parse-mark-shorthand
 #import "utils.typ"
 #import "deps.typ": cetz
