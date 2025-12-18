@@ -3,6 +3,7 @@
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
+#import "intersection.typ": truncate-path-at-intersection
 #import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-group, get-debug
 
@@ -283,21 +284,29 @@
     }
 
     // find snapping points by intersecting edge path with target
+    // if target-drawables != none {
+    //   let edge-element = (edge.draw)(edge.vertices)
+    //   let edge-drawable = if i == 0 {
+    //     paths.drawable-with-only-first-segment(ctx, edge-element)
+    //   } else {
+    //     paths.drawable-with-only-last-segment(ctx, edge-element)
+    //   }
+    //   let pos-inv = cetz.util.apply-transform(ctx.transform, pos)
+    //   let pts = target-drawables.map(path => {
+    //     cetz.intersection.path-path(edge-drawable, path)
+    //   }).join() + () // coerce none to array
+    //   pts = pts.sorted(key: pt => cetz.vector.dist(pt, pos-inv))
+    //   if pts.len() == 0 { continue }
+    //   let farthest-point = pts.first()
+    //   edge.vertices.at(i) = cetz.util.revert-transform(ctx.transform, farthest-point)
+    // }
+
     if target-drawables != none {
       let edge-element = (edge.draw)(edge.vertices)
-      let edge-drawable = if i == 0 {
-        paths.drawable-with-only-first-segment(ctx, edge-element)
-      } else {
-        paths.drawable-with-only-last-segment(ctx, edge-element)
-      }
-      let pos-inv = cetz.util.apply-transform(ctx.transform, pos)
-      let pts = target-drawables.map(path => {
-        cetz.intersection.path-path(edge-drawable, path)
-      }).join() + () // coerce none to array
-      pts = pts.sorted(key: pt => cetz.vector.dist(pt, pos-inv))
-      if pts.len() == 0 { continue }
-      let farthest-point = pts.first()
-      edge.vertices.at(i) = cetz.util.revert-transform(ctx.transform, farthest-point)
+
+      let o = truncate-path-at-intersection(edge-element.first(), target-drawables)
+      panic(o)
+
     }
   }
 
@@ -344,6 +353,15 @@
       debug: get-debug(ctx, debug),
     )
 
+    // resolve styles
+    let ctx-edge = ctx.style.at("edge", default: (:))
+    ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
+    edge-data.style = cetz.styles.resolve(
+      ctx-edge,
+      base: DEFAULT_EDGE_STYLE,
+      merge: edge-data.style,
+    )
+
     // if edge appears in a flexigrid, interpret coordinates in uv system by default
     if fletcher-ctx.pass == "final" {
       edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
@@ -383,7 +401,7 @@
 
 
     edge-data.pre-snapping-vertices = edge-data.vertices
-    edge-data.vertices = apply-edge-snapping(ctx, fletcher-ctx.nodes, edge-data)
+    // edge-data.vertices = apply-edge-snapping(ctx, fletcher-ctx.nodes, edge-data)
 
 
     if "current" in fletcher-ctx {
@@ -397,20 +415,8 @@
       // for the layout pass, we only need to identify nodes/edges/anchors
       // so we skip path effects, marks, etc for performance
       (edge-data.draw)(edge-data.vertices)
-
     } else {
-
-      let ctx-edge = ctx.style.at("edge", default: (:))
-      ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
-
-      let edge = edge-data
-      edge.style = cetz.styles.resolve(
-        ctx-edge,
-        base: DEFAULT_EDGE_STYLE,
-        merge: edge.style,
-      )
-
-      draw-edge(ctx, edge)
+      draw-edge(ctx, edge-data)
     }
   },)
 }
