@@ -134,6 +134,7 @@
 #let point-on-path-by-length(ctx, path, l) = {
   let origin = (0., 0., 0.)
 
+  assert(type(path) == array)
   let lengths = cetz.path-util.segment-lengths(path)
   let total-length = lengths.sum().sum()
 

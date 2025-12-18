@@ -3,7 +3,7 @@
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
-#import "intersection.typ": truncate-path-at-intersection
+#import "intersection.typ": trim-drawable
 #import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-group, get-debug
 
@@ -136,6 +136,55 @@
 
 }
 
+#let edge-effects(
+  ctx,
+  obj,
+  stroke: 1pt,
+  labels: (),
+  marks: (),
+  snap-to: (none, none),
+  extrude: (0,),
+  debug: false,
+) = {
+
+  let (ctx, drawables, bounds) = cetz.process.many(ctx, obj)
+  let drawable = drawables.first()
+  
+  if snap-to.first() != none {
+    drawable = trim-drawable(drawable, snap-to.first(), from-end: true)
+  }
+  if snap-to.last() != none {
+    drawable = trim-drawable(drawable, snap-to.last(), from-end: false)
+  }
+
+  let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
+		ctx,
+		drawable.segments,
+		marks,
+		stroke: stroke,
+		extrude: extrude,
+		debug: debug,
+	)
+
+  let path = drawable.segments
+
+  paths._path-effect(
+    ctx,
+    (drawable,),
+    shorten-start: shorten-start,
+    shorten-end: shorten-end,
+    stroke: stroke,
+    fill: none,
+    extrude: extrude,
+  )
+
+  marks
+
+  draw-labels-on-path(ctx, path, labels, debug: debug)
+}
+
+/// todo: replace this with `draw-edge(ctx, path)`
+/// should be usable by itself to apply effects to cetz
 #let draw-edge(ctx, edge) = {
   let objs = (edge.draw)(edge.vertices)
 
@@ -196,6 +245,19 @@
   
 }
 
+#let draw-edge(ctx, edge) = {
+
+  edge-effects(
+    ctx,
+    (edge.draw)(edge.vertices),
+    stroke: edge.style.stroke,
+    extrude: edge.style.extrude,
+    marks: edge.style.marks,
+    labels: edge.labels,
+    snap-to: edge.snap-to,
+    debug: edge.debug,
+  )
+}
 
 /// Find a node that the end of an edge should snap to.
 /// -> none | node
@@ -246,6 +308,46 @@
   node.body = none
   node.style.stroke = purple.transparentize(50%) + 0.5pt
   Nodes.draw-node-at(node, node.pos, debug: false)
+}
+
+
+#let find-snapping-drawables(ctx, nodes, edge) = {
+  let node-drawables(node, outset) = {
+    let objs = draw-node-snapping-outline(node, outset)
+    return cetz.process.many(ctx, objs).drawables
+  }
+
+  return (0, -1).map(i => { // first and last index
+    let snap-to = edge.snap-to.at(i)
+    let pos = edge.vertices.at(i)
+    let outset = edge.style.outset.at(i)
+    
+    let target-drawables
+    if type(snap-to) == str {
+      // look up fletcher or cetz node by name
+      let node = nodes.find(n => n.name == snap-to)
+      if node != none {
+        target-drawables = node-drawables(node, outset)
+      } else if snap-to in ctx.nodes {
+        target-drawables = ctx.nodes.at(snap-to).drawables
+      } else {
+        utils.error("in edge `snap-to`, node #0 not found", repr(snap-to))
+      }
+    } else if snap-to == auto {
+      // find fletcher nodes nearby
+      let dist(node) = cetz.vector.dist(node.pos, pos)
+      let node = nodes
+        .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
+        .sorted(key: dist)
+        .at(0, default: none)
+      if node != none {
+        target-drawables = node-drawables(node, outset)
+      }
+    }
+
+    return target-drawables
+  })
+
 }
 
 
@@ -304,7 +406,7 @@
     if target-drawables != none {
       let edge-element = (edge.draw)(edge.vertices)
 
-      let o = truncate-path-at-intersection(edge-element.first(), target-drawables)
+      let o = trim-drawable(edge-element.first(), target-drawables)
       panic(o)
 
     }
@@ -416,6 +518,8 @@
       // so we skip path effects, marks, etc for performance
       (edge-data.draw)(edge-data.vertices)
     } else {
+      let snap-to = find-snapping-drawables(ctx, fletcher-ctx.nodes, edge-data)
+      edge-data.snap-to = snap-to
       draw-edge(ctx, edge-data)
     }
   },)

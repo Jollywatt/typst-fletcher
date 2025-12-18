@@ -2,6 +2,10 @@
 #import cetz.util
 #import cetz.util.bezier: _cubic-roots, cubic-point
 
+#let is-drawable(obj) = type(obj) == dictionary and obj.at("type", default: none) == "path"
+#let is-path(obj) = type(obj) == array and obj.all(is-subpath)
+#let is-subpath(obj) = type(obj) == array and obj.len() == 3
+
 // much of this code is copied from cetz's path-util and bezier source files
 // intersection functions by the same name are augmented here
 // to return the location of the intersection points along with
@@ -134,6 +138,7 @@
 /// an array of pairs `(pt, (subpath-i, segment-i, t))` of each
 /// intersection point and its index/location along the path/subpath/segment.
 #let path-path(a, b, samples: 8) = {
+  assert(is-drawable(a))
   let pt_loc_pairs = ()
 
   for ((start, closed, segments)) in a.at("segments", default: ()) {
@@ -170,19 +175,19 @@
 /// If `from-end` is `true`, then returns the portion of the path between
 /// the last intersection and the end point, otherwise between the start
 /// and the first intersection.
-#let truncate-path-at-intersection(
-  /// Path to truncate, of the form `(type: "path", segments: ..)`.
-  /// -> path
+#let trim-drawable(
+  /// Drawable to truncate, of the form `(type: "path", segments: ..)`.
   path,
-  /// Cutting path which may intersect the path to truncate.
+  /// Cutting drawables which may intersect the drawable to truncate.
   /// -> path
-  target,
+  targets,
   /// If `true`, return the portion of the path after all intersections
   /// instead of before.
   from-end: false,
 ) = {
-  assert(path.type == "path")
-  let pts = path-path(target, path)
+  if type(targets) != array { targets = (targets,) }
+  let pts = targets.map(target => path-path(target, path))
+    .join()
     .sorted(key: ((pt, indices)) => indices)
 
   if pts.len() == 0 { return path }

@@ -40,6 +40,7 @@
 	} else { return (o, o) }
 }
 
+
 // math
 
 #let cumsum(array) = {

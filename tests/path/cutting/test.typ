@@ -1,6 +1,6 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge, cetz
-#import "/src/intersection.typ": truncate-path-at-intersection
+#import "/src/intersection.typ": trim-drawable
 
 cut path into #text(green)[before] and #text(red)[after]
 #cetz.canvas({
@@ -12,8 +12,8 @@ cut path into #text(green)[before] and #text(red)[after]
     let path = drawables.first()
     let cutter = drawables.last()
 
-    let start = truncate-path-at-intersection(path, cutter, from-end: false)
-    let end = truncate-path-at-intersection(path, cutter, from-end: true)
+    let start = trim-drawable(path, cutter, from-end: false)
+    let end = trim-drawable(path, cutter, from-end: true)
 
     start.stroke = green
     end.stroke = red
