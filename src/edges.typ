@@ -136,9 +136,9 @@
 
 }
 
-#let edge-effects(
+#let apply-edge-effects(
   ctx,
-  obj,
+  drawable,
   stroke: 1pt,
   labels: (),
   marks: (),
@@ -146,9 +146,7 @@
   extrude: (0,),
   debug: false,
 ) = {
-
-  let (ctx, drawables, bounds) = cetz.process.many(ctx, obj)
-  let drawable = drawables.first()
+  assert(utils.is-drawable(drawable))
 
   if debug-level(debug, "edge.snap") {
     // draw path before trimming is applied
@@ -253,6 +251,32 @@
 }
 
 
+#let draw-edge(ctx, edge) = {
+  let objs = (edge.draw)(edge.vertices)
+  if objs.len() != 1 {
+    utils.error("edge.draw should return a single CeTZ object")
+  }
+  let obj = objs.first()
+  let drawables = cetz.process.element(ctx, obj).drawables
+  if drawables.len() != 1 {
+    utils.error("edge.draw should return a single drawable")
+  }
+  let drawable = drawables.first()
+
+  let snap-to = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)      
+
+  apply-edge-effects(
+    ctx,
+    drawable,
+    stroke: edge.style.stroke,
+    extrude: edge.style.extrude,
+    marks: edge.style.marks,
+    labels: edge.labels,
+    snap-to: snap-to,
+    debug: edge.debug,
+  )
+}
+
 #let _edge(
   vertices,
   style: (:),
@@ -311,10 +335,10 @@
     if fletcher-ctx.pass == "final" {
       let i = fletcher-ctx.current.node
       if first == auto and i > 0 {
-        first = (fletcher-ctx.nodes.at(i - 1).pos)
+        first = fletcher-ctx.nodes.at(i - 1).pos
       }
       if last == auto and i < fletcher-ctx.nodes.len() {
-        last = (fletcher-ctx.nodes.at(i).pos)
+        last = fletcher-ctx.nodes.at(i).pos
       }
     }
     
@@ -350,17 +374,7 @@
       // so we skip path effects, marks, etc for performance
       (edge-data.draw)(edge-data.vertices)
     } else {
-      let snap-to = find-snapping-drawables(ctx, fletcher-ctx.nodes, edge-data)      
-      edge-effects(
-        ctx,
-        (edge-data.draw)(edge-data.vertices),
-        stroke: edge-data.style.stroke,
-        extrude: edge-data.style.extrude,
-        marks: edge-data.style.marks,
-        labels: edge-data.labels,
-        snap-to: snap-to,
-        debug: edge-data.debug,
-      )
+      draw-edge(ctx, edge-data)
     }
   },)
 }

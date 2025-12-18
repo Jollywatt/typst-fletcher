@@ -1,10 +1,7 @@
 #import "deps.typ": cetz
 #import cetz.util
 #import cetz.util.bezier: _cubic-roots, cubic-point
-
-#let is-drawable(obj) = type(obj) == dictionary and obj.at("type", default: none) == "path"
-#let is-path(obj) = type(obj) == array and obj.all(is-subpath)
-#let is-subpath(obj) = type(obj) == array and obj.len() == 3
+#import "utils.typ": is-drawable
 
 // much of this code is copied from cetz's path-util and bezier source files
 // intersection functions by the same name are augmented here
