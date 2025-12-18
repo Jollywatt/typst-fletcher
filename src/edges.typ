@@ -149,6 +149,19 @@
 
   let (ctx, drawables, bounds) = cetz.process.many(ctx, obj)
   let drawable = drawables.first()
+
+  if debug-level(debug, "edge.snap") {
+    // draw path before trimming
+    debug-group({
+      (ctx => (
+        ctx: ctx,
+        drawables: drawable + (
+          stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)), 
+          fill: none
+        ),
+      ),)
+    })
+  }
   
   if snap-to.first() != none {
     drawable = trim-drawable(drawable, snap-to.first(), from-end: true)
