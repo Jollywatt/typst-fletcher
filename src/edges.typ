@@ -144,6 +144,7 @@
   marks: (),
   snap-to: (none, none),
   extrude: (0,),
+  shorten: (0, 0),
   debug: false,
 ) = {
   assert(utils.is-drawable(drawable))
@@ -166,6 +167,12 @@
   }
   if snap-to.last() != none {
     drawable = trim-drawable(drawable, snap-to.last(), from-end: false)
+  }
+
+  shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
+  if shorten.any(s => s != 0) {
+    let path = drawable.segments
+    drawable.segments = cetz.path-util.shorten-to(path, shorten, snap-to: (none, none))
   }
 
   let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
