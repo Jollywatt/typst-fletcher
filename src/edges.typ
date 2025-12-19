@@ -282,6 +282,7 @@
     drawable,
     stroke: edge.style.stroke,
     extrude: edge.style.extrude,
+    shorten: edge.style.shorten,
     marks: edge.style.marks,
     labels: edge.labels,
     snap-to: snap-to,
@@ -323,6 +324,7 @@
         if style.extrude != auto { (extrude: style.extrude) }
         if style.stroke != auto { (stroke: utils.stroke-to-dict(style.stroke)) }
         if style.outset != auto { (outset: style.outset) }
+        if style.shorten != auto { (shorten: style.shorten) }
         if style.marks != auto { (marks: style.marks) }
       },
       labels: labels,
@@ -754,6 +756,7 @@
   label-anchor: auto,
   snap-to: (auto, auto),
   outset: auto,
+  shorten: 0,
   name: none,
   stroke: auto,
   dash: auto,
@@ -798,6 +801,7 @@
     label: label,
     snap-to: snap-to,
     outset: outset,
+    shorten: shorten,
     name: name,
     stroke: stroke,
     dash: dash,
@@ -836,6 +840,7 @@
     style: (
       stroke: stroke,
       outset: utils.as-pair(options.outset),
+      shorten: utils.as-pair(options.shorten),
       marks: options.marks,
       extrude: options.extrude,
     ),
