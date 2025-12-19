@@ -756,6 +756,13 @@
   label-anchor: auto,
   snap-to: (auto, auto),
   outset: auto,
+  /// Distance to shorten the edge at either end.
+  /// 
+  /// If a length is given, the edge is shortened at both ends.
+  /// A pair of lengths `(start, end)` controls shortening at either end
+  /// of the edge independently.
+  /// 
+  /// -> length | number | array
   shorten: 0,
   name: none,
   stroke: auto,
