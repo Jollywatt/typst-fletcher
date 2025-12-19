@@ -27,7 +27,7 @@
   node((0,-1), $G slash ker(f)$, <ker>)
   edge(<G>, "->", name: <e>, bend: 5pt)
   node((1,0), $im(f)$, <im>)
-  edge(<im>, "==>", <ker>, from: -90deg, to: 45deg)
+  edge(<im>, "==>", <ker>, from: (-90deg, 1.5), to: (45deg, 2))
   edge(<G>, "->>", <ker>)
   edge(<im>, (rel: (1,0)), (rel: (0,-1)), (rel: (-2,0)), "=>")
 
