@@ -136,6 +136,11 @@
 
 }
 
+
+/// Apply edge effects to a CeTZ drawable.
+/// These effects include path extrusion and shortening,
+/// mark and label placement, and edge snapping (cutting
+/// the path at its intersections with target drawables).
 #let apply-edge-effects(
   ctx,
   drawable,
