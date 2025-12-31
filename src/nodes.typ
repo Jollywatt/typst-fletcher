@@ -13,7 +13,7 @@
       let style = node.style
       // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
       let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
-      let extrude = style.extrude.map(e => {
+      let extrude = utils.one-or-array(style.extrude).map(e => {
         if type(e) == length { return cetz.util.resolve-number(ctx, e) }
         if type(e) in (int, float) { return e*thickness }
       })

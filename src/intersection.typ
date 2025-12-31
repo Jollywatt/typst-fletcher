@@ -183,8 +183,8 @@
   from-end: false,
 ) = {
   if type(targets) != array { targets = (targets,) }
-  let pts = targets.map(target => path-path(target, path))
-    .join()
+  let pts = (targets.map(target => path-path(target, path))
+    .join() + ())
     .sorted(key: ((pt, indices)) => indices)
 
   if pts.len() == 0 { return path }

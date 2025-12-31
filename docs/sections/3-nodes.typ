@@ -19,8 +19,9 @@ Nodes automatically fit to their content (with an @node.inset), but can also be 
 		node((0,1), `xyz`, fill: b, )
 		let dash = (paint: blue, dash: "dashed")
 		node((1,1), `xyz`, stroke: dash, inset: 1em)
-		node((2,1), `xyz`, fill: b, stroke: blue, extrude: (0, -2))
-		node((3,1), `xyz`, fill: b, height: 5em, corner-radius: 5pt)
+		node((2,1), `xyz`, stroke: b, extrude: (0, -2))
+		node((3,1), `xyz`, fill: b, height: 5em,
+		                   corner-radius: 5pt)
 	}
 )
 ```)

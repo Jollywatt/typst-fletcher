@@ -8,12 +8,14 @@ Import fletcher with:
 #raw(block: true, lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: diagram, node, edge")
 
 Diagrams contain #[@node]s and #[@edge]s.
-Nodes contain content, and edges snap to nodes.
-Nodes and edges can be placed in a @diagram and arranged on a flexible coordinate grid:
+Nodes contain content and can have various shapes and styles, while edges snap to nodes and can be given @edge.marks and #[@edge.label]s.
+Nodes and edges can be placed in a @diagram, or directly into a CeTZ canvas.
+
+When placed in @diagram, nodes and edges are arranged on a #link(<flexigrids>)[flexible coordinate grid].
 
 #example(```typ
 #diagram({
-  node((0,0), $G$) // (column, row)
+  node((0,0), $G$)
   edge("->", $f$) // start/end at prev/next node
   node((1,0), $im(f)$)
   edge((0,0), "->>", $pi$) // start given; end is next node
@@ -22,23 +24,41 @@ Nodes and edges can be placed in a @diagram and arranged on a flexible coordinat
 })
 ```)
 
-Nodes and edges can also be placed directly into a CeTZ canvas, using normal Cartesian coordinates.
-Edges can snap to CeTZ nodes.
+Styles can be controlled with the named arguments of `node()` and `edge()`.
+Default styles can be set by passing the same arguments prefixed with "`node-`" or "`edge-`" to `diagram()`.
+
 #example(```typ
-#import fletcher.cetz
+#diagram(
+	spacing: (1cm, 4mm), // column and row gutter
+	node-inset: 8pt, // padding around node content
+	node-fill: teal.mix(fuchsia),
+	edge-stroke: 2pt + gray,
+	node((0,0))[A], edge(), node((1,0))[B],
+	node((2,1))[C], node((2,-1), fill: orange)[D],
+	edge((1,0), (2,1), bend: 45deg),
+	edge((1,0), "=>", (2,-1), stroke: 1pt + black),
+)
+```)
+
+
+You can also place nodes and edges directly into `cetz.canvas()`.
+Below, we use fletcher's marks to draw an edge in a CeTZ-based figure.
+
+#example(```typ
+#import fletcher.cetz // import this way to ensure compatibility
 #cetz.canvas(length: 5mm, {
 	import cetz.draw: *
 	set-style(fill: teal, edge: (stroke: 1pt + teal))
 	circle((5,0), radius: (1.2,0.8), name: "egg")
 	line((0,1), (1,0), (0,-1), (-1,0), close: true, name: "jewel")
-	edge(<jewel>, "<|--|>", <egg>, bend: 45deg)
+	edge(<jewel>, "stealth--stealth", <egg>, bend: 45deg)
 })
 ```)
 
-== Flexible coordinate grids
+== Flexible coordinate grids <flexigrids>
 
-A @diagram contains a _flexible coordinate grid_, visible when the @flexigrid.debug option of @diagram is on.
-When a node is placed, the rows and columns grow to accommodate the node's size, like a table.
+A @diagram is laid out on a flexible coordinate grid, visible when the @flexigrid.debug option of @diagram is on.
+The grid's rows and columns grow to accommodate the sizes of nodes, like a table.
 
 #example(```typ
 #diagram(
@@ -72,7 +92,24 @@ Notice how the column sizes adjust to the with of the green node:
 	}),
 )
 
-== Physical coordinates
+Nodes can also span multiple columns or rows:
+
+#example(```typ
+#diagram(
+	spacing: 4pt,
+	node-stroke: 1pt,
+	node-fill: white,
+	node-corner-radius: 2pt,
+	node((0,0), [Sight]),
+	node((1,0), [Sound]),
+	node((2,0), [Smell]),
+	node((0,1), [Senses], colspan: 3),
+	node((0,0), rowspan: 2, colspan: 3,
+	  fill: yellow, extrude: 4pt, layer: -1),
+)
+```)
+
+== Coordinate expressions
 
 When placed inside a @diagram, nodes can be positioned at a specific row or column using unitless coordinates, like ```typc node((3, 4))```.
 Nodes can also be placed at physical coordinates, like ```typc node((50mm, 20mm))```, or mixtures like ```typc node((rel: (0, 2em), to: (1, 1)))``` using CeTZ coordinate expressions.
