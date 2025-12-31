@@ -263,9 +263,9 @@
   }
   let drawable = drawables.first()
 
-  let snap-to = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)      
+  let snap-to = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)
 
-  apply-edge-effects(
+  let scene = apply-edge-effects(
     ctx,
     drawable,
     stroke: edge.style.stroke,
@@ -275,6 +275,11 @@
     snap-to: snap-to,
     debug: edge.debug,
   )
+
+  if edge.layer != 0 {
+    scene = cetz.draw.on-layer(edge.layer, scene)
+  }
+  scene
 }
 
 #let _edge(
