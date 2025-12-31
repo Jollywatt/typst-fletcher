@@ -10,7 +10,7 @@
     node((0,0), `height`, height: 2),
     node((1,0), `width`, width: 2),
     node((0,1), `radius`, radius: auto),
-    node(enclose: ((0,2), (1,2)), `corner-radius`, corner-radius: 5pt),
+    node((0,2), colspan: 2, `corner-radius`, corner-radius: 5pt),
   )
 ]
 

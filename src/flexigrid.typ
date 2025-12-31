@@ -85,14 +85,14 @@
       range(colspan).map(i => (
         ..rect,
         pos: (u + i, v),
-        size: ((w - col-gutter*(colspan - 1))/colspan, 0)
+        size: ((w - col-gutter*(colspan - 1))/colspan, h)
       ))
     }
     if rowspan != none {
       range(rowspan).map(j => (
         ..rect,
         pos: (u, v + j),
-        size: (0, (h - row-gutter*(rowspan - 1))/rowspan)
+        size: (w, (h - row-gutter*(rowspan - 1))/rowspan)
       ))
     }
   }).flatten()
