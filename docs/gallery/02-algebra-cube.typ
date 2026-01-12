@@ -1,11 +1,10 @@
-#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
-#set page(width: auto, height: auto, margin: 5mm, fill: white)
+#import "@preview/fletcher:0.6.0" as fletcher: diagram, node, edge
 
 #diagram(
 	node-defocus: 0,
 	spacing: (1cm, 2cm),
 	edge-stroke: 1pt,
-	crossing-thickness: 5,
+	edge-crossing-thickness: 5,
 	mark-scale: 70%,
 	node-fill: luma(97%),
 	node-outset: 3pt,

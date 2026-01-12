@@ -1,6 +1,5 @@
-#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
+#import "@preview/fletcher:0.6.0" as fletcher: diagram, node, edge
 #import fletcher.shapes: house, hexagon
-#set page(width: auto, height: auto, margin: 5mm, fill: white)
 #set text(font: "New Computer Modern")
 
 #let blob(pos, label, tint: white, ..args) = node(
@@ -13,30 +12,28 @@
 )
 
 #diagram(
-	spacing: 8pt,
-	cell-size: (8mm, 10mm),
+	spacing: 15pt,
 	edge-stroke: 1pt,
 	edge-corner-radius: 5pt,
 	mark-scale: 70%,
 
-	blob((0,1), [Add & Norm], tint: yellow, shape: hexagon),
+	blob((0,1), [Add & Norm], tint: yellow, shape: "hexagon"),
 	edge(),
-	blob((0,2), [Multi-Head\ Attention], tint: orange),
-	blob((0,4), [Input], shape: house.with(angle: 30deg),
+	blob((0,2), [Multi-Head\ Attention], <mha>, tint: orange),
+	blob((0,4), [Input], <in>, shape: "house", angle: 30deg,
 		width: auto, tint: red),
 
-	for x in (-.3, -.1, +.1, +.3) {
-		edge((0,2.8), (x,2.8), (x,2), "-|>")
-	},
-	edge((0,2.8), (0,4)),
+	edge(<in>, <mha>, "-|>"),
+	edge(<in>, "-|>", (rel: (+0.3,0), to: <mha>), corner: "|-|"),
+	edge(<in>, "-|>", (rel: (-0.3,0), to: <mha>), corner: "|-|"),
 
-	edge((0,3), "l,uu,r", "--|>"),
-	edge((0,1), (0, 0.35), "r", (1,3), "r,u", "-|>"),
+	edge((0,4), "lu,uu,r", "--|>"),
+	edge((0,1), (0,0.35), "r", (1,3), "r,u", "-|>"),
 	edge((1,2), "d,rr,uu,l", "--|>"),
 
 	blob((2,0), [Softmax], tint: green),
 	edge("<|-"),
-	blob((2,1), [Add & Norm], tint: yellow, shape: hexagon),
+	blob((2,1), [Add & Norm], tint: yellow, shape: "hexagon"),
 	edge(),
 	blob((2,2), [Feed\ Forward], tint: blue),
 )

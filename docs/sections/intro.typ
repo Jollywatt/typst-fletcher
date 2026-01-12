@@ -20,7 +20,7 @@ When placed in @diagram, nodes and edges are arranged on a @flexigrids[flexible 
   node((1,0), $im(f)$)
   edge((0,0), "->>", $pi$) // start given; end is next node
   edge("<--hook'", $tilde(f)$)
-  node((0,-1), $G slash ker(f)$)
+  node((0,1), $G slash ker(f)$)
 })
 ```)
 

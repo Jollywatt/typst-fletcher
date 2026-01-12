@@ -1,13 +1,12 @@
-#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
-#set page(width: auto, height: auto, margin: 5mm, fill: white)
+#import "@preview/fletcher:0.6.0" as fletcher: cetz, node, edge
 
-#diagram(
-	mark-scale:130%,
-$
-	edge("rdr", overline(q), "-<|-")
-	edge(#(4, 0), #(3.5, 0.5), b, "-<|-")
-	edge(#(4, 1), #(3.5, 0.5), overline(b), "-<|-", label-side:#left) \
-	& & edge("d", "-<|-") & & edge(#(3.5, 0.5), #(2, 1), Z', "wave") \
-	& & edge(#(3.5, 2.5), #(2, 2), gamma, "wave") \
-	edge("rru", q, "-|>-") & \
-$)
+#cetz.canvas({
+	let (p1, p2, p3) = ((0,0), (0,1), (1.5,1.5))
+	edge(p1, "-<|-", "lld", $q$)
+	edge(p1, "-|>-", p2)
+	edge(p2, "-|>-", "llu", $overline(q)$)
+	edge(p2, "~", p3, $Z'$)
+	edge(p3, "-|>-", (rel: (.5, .5)), $b$)
+	edge(p3, "-|>-", (rel: (.5, -.5)), $overline(b)$, label-side: bottom)
+	edge(p1, "~", "rrd", $gamma$)
+})

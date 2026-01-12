@@ -1,16 +1,15 @@
-#import "@preview/fletcher:0.5.9" as fletcher: diagram, node, edge
-#set page(width: auto, height: auto, margin: 5mm, fill: white)
+#import "@preview/fletcher:0.6.0" as fletcher: diagram, node, edge
 
 #diagram(
 	spacing: (18mm, 10mm),
 	node-stroke: luma(80%),
+	axes: (ltr, ttb),
 	node((0.5,0), [*Diagram*], name: <d>),
 	node((0,1), [*Node*], name: <n>),
 	node((1,1), [*Edge*], name: <e>),
 
-	edge(<d>, ((), "|-", (0,0.5)), ((), "-|", <n>), <n>, "1!-n!"),
-	edge(<d>, ((), "|-", (0,0.5)), ((), "-|", <e>), <e>, "1!-n?"),
-
+	edge(<d>, <n>, corner: "|-|",  "1!-n!"),
+	edge(<d>, <e>, corner: "|-|",  "1!-n?"),
 
 	edge("1!-n?"),
 
@@ -18,5 +17,5 @@
 
 	edge(<e>, "-|>", <n>, stroke: teal, label: text(teal)[snap], left),
 
-	edge((rel: (-15pt, 0pt), to: <n>), <d>, "-|>", bend: 40deg, stroke: orange, text(orange)[layout], label-angle: auto)
+	edge(<n.north-west>, <d.west>, "-|>", bend: 45deg, stroke: orange, text(orange)[layout], label-angle: auto, snap-method: "move")
 )
