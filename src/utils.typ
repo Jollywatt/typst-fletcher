@@ -191,6 +191,7 @@
 			c.map(interpret-as-uv)
 		}
 	} else if type(c) == dictionary {
+		if "uv" in c { return c }
 		c.pairs().map(((k, v)) => (k, interpret-as-uv(v))).to-dict()
 	} else {
 		c

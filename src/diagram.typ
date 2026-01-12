@@ -22,36 +22,43 @@
 }
 
 
-#let extract-nodes-and-edges-from-equation(eq) = {
+#let extract-nodes-and-edges-from-equation(eq, axes: (ltr, ttb)) = {
 	assert(eq.func() == math.equation)
 	let terms = flatten-sequence-to-array(eq.body)
 
 	let edges = ()
 	let nodes = ()
 
+	let axis-flips = flexigrid.interpret-axes(axes)
+	let to-uv(col, row) = {
+		let (x, y) = (col, -row)
+		if axis-flips.u { x *= -1 }
+		if axis-flips.v { y *= -1 }
+		if axis-flips.order { (x, y) = (y, x) }
+		(x, y)
+	}
+
 	// convert math matrix into array-of-arrays matrix
 	let matrix = ((none,),)
-	let (x, y) = (0, 0)
+	let (col, row) = (0, 0)
 	for child in terms {
 		if child.func() == metadata and "fletcher" in child.value {
 			if child.value.fletcher == "node" {
 				let args = child.value.args
-				args.position = (x, y)
+				args.position = to-uv(col, row)
 				nodes.push(_node(..args))
 			} else if child.value.fletcher == "edge" {
 				let args = child.value.args
-				if args.vertices.at(0) == auto { args.vertices.at(0) = (x, y) }
-				// if args.label != none { edge.label = $edge.label$ } // why is this needed?
-				if args.vertices.at(-1) == auto { args.vertices.at(-1) = (rel: (1, 0)) }
-				// args.node-index = none
+				if args.vertices.at(0) == auto { args.vertices.at(0) = to-uv(col, row) }
+				if args.vertices.at(-1) == auto { args.vertices.at(-1) = (rel: (1, 0), no-flip: true) }
 				edges.push(_edge(..args))
 			}
 		} else if repr(child.func()) == "linebreak" {
-			y -= 1
-			x = 0
+			row += 1
+			col = 0
 			matrix.push((none,))
 		} else if repr(child.func()) == "align-point" {
-			x += 1
+			col += 1
 			matrix.at(-1).push(none)
 		} else {
 			matrix.at(-1).at(-1) += child
@@ -59,11 +66,10 @@
 	}
 
 	// turn matrix into an array of nodes
-	for (y, row) in matrix.enumerate() {
-		for (x, item) in row.enumerate() {
-			if not is-space(item) {
-				nodes.push(node((x, -y), $item$))
-			}
+	for (row, items) in matrix.enumerate() {
+		for (col, item) in items.enumerate() {
+			if is-space(item) { continue }
+			nodes.push(node(to-uv(col, row), $item$))
 		}
 	}
 
@@ -95,7 +101,7 @@
 ) = {
 	let pos = args.pos().map(arg => {
 		if type(arg) == content and arg.func() == math.equation {
-			extract-nodes-and-edges-from-equation(arg)
+			extract-nodes-and-edges-from-equation(arg, axes: axes)
 		} else {
 			arg
 		}
