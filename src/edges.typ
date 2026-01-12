@@ -814,6 +814,26 @@
   /// TODO
   /// -> number | length | array
   extrude: auto,
+
+  /// The radius of round or bevelled corners for multi-vertex edges.
+  /// 
+  /// ```example
+  /// #diagram(
+  ///   spacing: 20pt,
+  ///   edge-stroke: 1pt,
+  ///   node((0,0), `none`),
+  ///   edge("d,rr", "==>", corner-radius: none),
+  ///   node((0,1), `0pt`),
+  ///   edge("r,d,r", "=>", corner-radius: 0pt),
+  ///   node((0,2), `10pt`),
+  ///   edge("rr,d", "->", corner-radius: 10pt),
+  /// )
+  /// ```
+  /// 
+  /// See @paths.path-effects.corner-radius.
+  /// -> length | number | none
+  corner-radius: auto,
+
   /// Canvas layer to draw edge on.
   /// 
   /// Edges with equal layer are drawn in the order they are inserted.
@@ -829,7 +849,7 @@
   /// ```
   /// The `hom` edge function can be inserted into equations, like so:
   /// ```typ
-  /// #diagram($x hom(|->) & f(x)$)
+  /// #diagram($x hom(|=>) & f(x)$)
   /// ```
   /// 
   /// See also @node.in-math.
@@ -889,6 +909,7 @@
       marks: options.marks,
       extrude: options.extrude,
       mark-scale: options.mark-scale,
+      corner-radius: corner-radius,
     ),
     labels: labels,
     snap-to: options.snap-to,
