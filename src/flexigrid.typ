@@ -429,7 +429,8 @@
       if type(c) == dictionary {
         if "uv" in c { return c.uv }
         if "xy" in c { return c.xy }
-      } 
+      }
+      if type(c) == label { return str(c) }
       return c
     })
 
@@ -454,6 +455,7 @@
           return utils.uv-to-xy(grid, new-uv)
         }
       }
+      if type(c) == label { return str(c) }
       return c
     }
 
