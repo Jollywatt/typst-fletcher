@@ -392,12 +392,13 @@
 
 	// crow's foot notation
 	crowfoot: (
-		many-width: 5,
-		many-length: 8,
-		one-width: 5,
-		zero-width: 3.5,
-		gap: 3,
-		first-gap: 5,
+		size: 1,
+		many-width: mark => 5*mark.size,
+		many-length: mark => 8*mark.size,
+		one-width: mark => 5*mark.size,
+		zero-width: mark => 3.5*mark.size,
+		gap: mark => 3*mark.size,
+		first-gap: mark => 5*mark.size,
 		many: true,
 		one: true,
 		zero: true,
