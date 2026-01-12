@@ -4,11 +4,16 @@
 #diagram(
   import cetz.draw: *,
   edge-stroke: blue,
-  edge("-->"),
-  translate(y: -0.5),
-  edge("->", stroke: yellow),
-  translate(y: -0.5),
-  edge("->", stroke: 1pt, dash: "dotted"),
-  translate(y: -0.5),
-  edge("=>", stroke: black),
+  (
+    edge("-->"),
+    edge("->", stroke: yellow),
+    edge("->", stroke: 1pt, dash: "dotted"),
+    edge("=>", stroke: black),
+    edge("<...>"),
+    edge("<..>"),
+    edge("<. .>"),
+    edge("<--->"),
+    edge("<-->"),
+    edge("<- ->"),
+  ).intersperse(translate(y: -0.5))
 )
