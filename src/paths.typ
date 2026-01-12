@@ -468,7 +468,9 @@
   corner-radius: 0,
   miter-limit: 4.0,
 ) = {
-  assert(join in ("miter", "round"))
+  if join not in ("miter", "round") {
+    utils.error("`join` must be one of #..0; got #1", ("miter", "round"), repr(join))
+  }
   
   let (start, close, segments) = simplify-subpath(subpath)
 
@@ -558,7 +560,7 @@
         vertex = offset-vertex(vertex, i-angle, o-angle, offset)
       }
       
-      if radius == none {
+      if r == 0 {
         new-segments.push(("l", vertex))
       } else {
         new-segments += corner-segments(vertex, i-angle, o-angle, r)
@@ -675,6 +677,13 @@
   }
   if type(shorten-end) != array { 
     shorten-end = (shorten-end,)*extrude.len()
+  }
+
+  // for extruded strokes, `radius: 0` still results in round corners
+  // so we let `radius: none` force a non-rounded miter style
+  if corner-radius == none {
+    corner-radius = 0
+    join = "miter"
   }
 
   let corner-radius = (
@@ -819,7 +828,7 @@
   /// 
   /// -> "miter" | "round"
   join: "miter",
-  /// The radius of round of bevelled corners.
+  /// The radius of round or bevelled corners.
   /// 
   /// For round corners, this is the radius of curvature. For bevelled corners, this is the
   /// radius of the tangent circle between the bevel face and the sides of the corner.
@@ -829,8 +838,10 @@
   /// while outer paths have larger radii.
   /// The radius can be negative.
   /// 
+  /// The value `none` is short for zero radius with `join: "miter"`.
+  /// 
   /// Numbers are interpreted in CeTZ canvas units.
-  /// -> number | length
+  /// -> number | length | none
   corner-radius: 0,
   /// Miter limit, beyond which miter joints become bevelled.
   /// 

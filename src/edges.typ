@@ -12,6 +12,9 @@
   extrude: (0,),
   marks: (),
   mark-scale: 1,
+  join: "round",
+  corner-radius: 2.5pt,
+  miter-limit: 4.0,
 )
 
 
@@ -151,6 +154,7 @@
   snap-to: (none, none),
   extrude: (0,),
   shorten: (0, 0),
+  ..extra-path-effect-args,
   debug: false,
 ) = {
   assert(utils.is-drawable(drawable))
@@ -198,6 +202,7 @@
     stroke: stroke,
     fill: none,
     extrude: extrude,
+    ..extra-path-effect-args,
   )
 
   marks
@@ -288,6 +293,9 @@
     labels: edge.labels,
     snap-to: snap-to,
     debug: edge.debug,
+    corner-radius: edge.style.corner-radius,
+    join: edge.style.join,
+    miter-limit: edge.style.miter-limit,
   )
 
   if edge.layer != 0 {
