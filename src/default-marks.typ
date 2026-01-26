@@ -162,6 +162,7 @@
 		tip-end: mark => mark.size*(calc.sin(mark.sharpness) - calc.sin(mark.sharpness + mark.delta)),
 		tail-end: mark => mark.tip-end/2,
 		tail-origin: mark => mark.tip-end,
+		tail-hang: mark => mark.tail-end/2,
 
 		fill: auto,
 		stroke: none,
@@ -189,6 +190,8 @@
 		tip-end: mark => -mark.size,
 		tail-end: mark => mark.tip-end/2,
 		tail-origin: mark => mark.tip-end,
+		tail-hang: mark => mark.tail-end/2,
+
 
 		stroke: none,
 		draw: mark => {
@@ -398,7 +401,6 @@
 		many: true,
 		one: true,
 		zero: true,
-		tail-origin: mark => -mark.many-length,
 		zero-fill: white,
 		fill: none,
 		draw: mark => {
