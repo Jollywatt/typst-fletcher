@@ -8,7 +8,6 @@
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
 	flip: false,
-	scale: 100%,
 	extrude: (0,),
 	tip-end: 0,
 	tail-end: 0,
@@ -136,6 +135,7 @@
 	// mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
 
+
 	if as-tip == auto {
 		as-tip = mark.at("pos", default: 1) != float(mark.rev)
 	}
@@ -177,7 +177,7 @@
 			let m = tip-or-tail-properties(mark, tip: as-tip)
 
 			draw.translate(origin)
-			draw.scale(t.to-absolute()/ctx.length*float(mark.scale))
+			draw.scale(t.to-absolute()/ctx.length)
 			draw.rotate(angle)
 
 			if mark.rev { draw.scale(x: -1) }
@@ -357,6 +357,7 @@
 
 #let test-mark(mark, stroke: 4pt, length: auto, bend: 0deg, debug: 3) = {
 	mark = (pos: 1, rev: false) + resolve-mark(mark)
+
 
 	let t = utils.get-thickness(stroke)
 
