@@ -8,9 +8,10 @@
 #import "debug.typ": debug-level, debug-group, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
-  marks: (),
   stroke: (thickness: 0.048em, cap: "round"),
   extrude: (0,),
+  marks: (),
+  mark-scale: 1,
 )
 
 
@@ -343,6 +344,12 @@
       base: DEFAULT_EDGE_STYLE,
       merge: edge-data.style,
     )
+
+    // resolve marks
+    edge-data.style.marks = edge-data.style.marks.map(mark => {
+      mark.size *= edge-data.style.mark-scale
+      Marks.resolve-mark(mark)
+    })
 
     // if edge appears in a flexigrid, interpret coordinates in uv system by default
     if fletcher-ctx.pass == "final" {

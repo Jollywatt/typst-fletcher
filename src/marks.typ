@@ -53,7 +53,7 @@
 /// ))
 /// ```
 ///
-#let resolve-mark(mark, defaults: (:)) = {
+#let add-mark-defaults(mark, defaults: (:)) = {
 	if mark == none { return none }
 
 	if type(mark) == str { mark = (inherit: mark) }
@@ -68,6 +68,12 @@
 		}
 	}
 
+	return mark
+
+}
+
+#let resolve-mark(mark) = {
+
 	for (key, value) in mark {
     if key == "cap-offset" { continue }
 		if type(value) == function {
@@ -80,7 +86,7 @@
 
 #let interpret-marks(marks) = {
 	marks = marks.enumerate().map(((i, mark)) => {
-		resolve-mark(mark, defaults: (
+		add-mark-defaults(mark, defaults: (
 			pos: i/calc.max(1, marks.len() - 1),
 			rev: i == 0,
 		))
@@ -356,8 +362,7 @@
 }
 
 #let test-mark(mark, stroke: 4pt, length: auto, bend: 0deg, debug: 3) = {
-	mark = (pos: 1, rev: false) + resolve-mark(mark)
-
+	mark = resolve-mark(add-mark-defaults(mark, defaults: (pos: 1, rev: false)))
 
 	let t = utils.get-thickness(stroke)
 
