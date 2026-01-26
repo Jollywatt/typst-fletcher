@@ -74,7 +74,10 @@
     label-prefix: "fletcher.",
     scope: common.scope,
   )
-  set raw(lang: "typc")
+  show raw.where(block: false): set raw(lang: "typc")
+
+  show raw.where(lang: "svg"): it => common.frame(eval(it.text, scope: common.scope))
+
   tidy.show-module(
     docs,
     style: dictionary(tidy.styles.default) + (
@@ -94,14 +97,6 @@
   set text(blue.darken(50%))//, font: "CMU Bright")
   strong(it)
 }
-
-// #show raw.where(lang: "typ"): it => block(
-//   it,
-//   stroke: (left: rgb("#4b6ac690")),
-//   width: 100%,
-//   outset: .8em,
-//   radius: 1em,
-// )
 
 
 #show heading: it => {

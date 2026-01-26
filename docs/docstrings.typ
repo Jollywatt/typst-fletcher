@@ -35,5 +35,5 @@
 #if is-md-target {
   show-fn-docs(sys.inputs.path, sys.inputs.fn-name)
 } else {
-  show-fn-docs("../src/marks.typ", "")
+  show-fn-docs("../src/edges.typ", "")
 }

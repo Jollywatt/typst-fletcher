@@ -655,7 +655,7 @@
 
 
 
-/// Apply path effects to a CeTZ drawable.
+// Apply path effects to a CeTZ drawable.
 #let _path-effect(
   ctx,
   drawables,

@@ -583,11 +583,12 @@
 #let edge(
   /// An edge's positional arguments may specify:
   /// - the edge's @edge.vertices, each given as a CeTZ coordinate;
-  /// - the edge's @edge.marks, e.g., `"->"` or `"solid=/=solid"`.
-  /// - the body content of an edge @edge.label, e.g., `$f$`;
+  /// - the CeTZ path to apply edge marks, styles, and labels to;
+  /// - the edge's @edge.marks, e.g., `"->"` or `"solid=/=solid"`;
+  /// - the body content of an edge @edge.label, e.g., `$f$`; or
   /// - some other style flags (#fletcher.edges.parsing.EDGE_FLAGS.keys().map(raw).join[, ]).
   /// 
-  /// Vertex coordinates must come first, and are optional:
+  /// Vertex coordinates come first but are optional:
   ///
   /// ```typc
   /// edge(from, to, ..) // explicit start and end
@@ -600,6 +601,12 @@
   /// Vertices after the first one can be relative coordinate shorthand
   /// strings containing the characters
   /// ${#"lrudtbnesw".clusters().map(raw).join($, $)}$ or commas, e.g., `edge((0,0), "u,rr,d")`.
+  /// 
+  /// If applying edge effects to a CeTZ path, no vertices should be given and the path should be the first argument:
+  /// 
+  /// ```typc
+  /// edge(cetz.draw.bezier(..), ..) // add marks to a bezier path, for example
+  /// ```
   /// 
   /// If given as positional arguments, an edge's @edge.marks and @edge.label
   /// are disambiguated based on their types.
@@ -647,13 +654,13 @@
   /// edge(.., label: (body: [Label], pos: 25%))
   /// edge(.., [Label], label-pos: 25%)
   /// ```
-  /// Possible label option are:
-  /// - `body`: content to draw
-  /// - `pos`: the label's position along the edge path
-  /// - `sep`: padding between the label's body and the path
-  /// - `side`: which side of the edge to place the body
-  /// 
-  /// Each option has a corresponding edge argument (e.g., `edge(label-pos: ..)`).
+  /// Possible label options are:
+  /// - `body`: the content to draw
+  /// - `angle`: orientation of the label body (see @edge.label-angle)
+  /// - `pos`: the label's position along the edge path (see @edge.label-pos)
+  /// - `sep`: padding between the label's body and the path (see @edge.label-sep)
+  /// - `side`: which side of the edge to place the body (see @edge.label-side)
+  /// - `anchor`: the CeTZ anchor to use for label body (see @edge.label-anchor)
   /// 
   /// Multiple labels can be specified with an array:
   /// ```typc
