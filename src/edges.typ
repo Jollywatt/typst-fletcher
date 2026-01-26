@@ -832,7 +832,6 @@
     options.stroke = 1pt
     options.extrude = ()
   }
-
   options.stroke = utils.stroke-to-dict(options.stroke)
   if options.at("dash", default: auto) != auto {
     options.stroke.dash = options.dash
