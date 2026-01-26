@@ -8,6 +8,7 @@
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
 	flip: false,
+	scale: 1,
 	extrude: (0,),
 	tip-end: 0,
 	tail-end: 0,
@@ -38,21 +39,14 @@
 		mark = parent + mark
 	}
 	if ancestor != none { mark = (kind: ancestor) + mark }
+
 	return mark
 }
 
 
-/// Resolve a mark dictionary by applying inheritance, adding any required
-/// entries, and evaluating any closure entries.
-///
-/// ```example
-/// #context fletcher.resolve-mark((
-/// 	a: 1,
-/// 	b: 2,
-/// 	c: mark => mark.a + mark.b,
-/// ))
-/// ```
-///
+/// Add the mandatory mark parameters to a mark dictionary.
+/// 
+/// See `fletcher.marks.MARK_REQUIRED_DEFAULTS`.
 #let add-mark-defaults(mark, defaults: (:)) = {
 	if mark == none { return none }
 
@@ -72,18 +66,13 @@
 
 }
 
-#let resolve-mark(mark) = {
-
-	for (key, value) in mark {
-    if key == "cap-offset" { continue }
-		if type(value) == function {
-			mark.at(key) = value(mark)
-		}
-	}
-
-	return mark
-}
-
+/// Expand an array of mark specifiers into an array of mark dictionaries,
+/// ensuring `pos` and `rev` mark parameters are present. The default mark
+/// positions depends on the position of each mark and the number of marks;
+/// the first mark in the array is reversed by default.
+/// 
+/// For example, `("<", (inherit: "solid"))` is transformed into
+/// `((inherit: "head", pos: 0, rev: true, ..), (inherit: "solid", pos: 1, rev: false, ..))`
 #let interpret-marks(marks) = {
 	marks = marks.enumerate().map(((i, mark)) => {
 		add-mark-defaults(mark, defaults: (
@@ -100,6 +89,29 @@
 
 	marks
 }
+
+
+/// Resolve all the parameters of a mark dictionary, evaluating any closures
+/// in insertion order. This also applies mark scale by premultiplying the `size`
+/// parameter.
+#let resolve-mark(mark) = {
+	mark = add-mark-defaults(mark)
+
+	if "size" in mark {
+		mark.size *= mark.scale
+	}
+
+
+	for (key, value) in mark {
+    if key == "cap-offset" { continue }
+		if type(value) == function {
+			mark.at(key) = value(mark)
+		}
+	}
+
+	return mark
+}
+
 
 #let tip-or-tail-properties(mark, tip: auto) = {
 	if tip == auto {
