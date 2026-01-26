@@ -8,9 +8,10 @@
 #import "debug.typ": debug-level, debug-group, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
-  marks: (),
   stroke: (thickness: 0.048em, cap: "round"),
   extrude: (0,),
+  marks: (),
+  mark-scale: 1,
 )
 
 
@@ -320,13 +321,7 @@
     let edge-data = (
       class: "edge",
       vertices: vertices,
-      style: {
-        if style.extrude != auto { (extrude: style.extrude) }
-        if style.stroke != auto { (stroke: utils.stroke-to-dict(style.stroke)) }
-        if style.outset != auto { (outset: style.outset) }
-        if style.shorten != auto { (shorten: style.shorten) }
-        if style.marks != auto { (marks: style.marks) }
-      },
+      style: style.pairs().filter(((k, v)) => v != auto).to-dict(),
       labels: labels,
       snap-to: utils.as-pair(snap-to),
       name: name,
@@ -343,6 +338,12 @@
       base: DEFAULT_EDGE_STYLE,
       merge: edge-data.style,
     )
+
+    // resolve marks
+    edge-data.style.marks = edge-data.style.marks.map(mark => {
+      mark.size *= float(edge-data.style.mark-scale)
+      Marks.resolve-mark(mark)
+    })
 
     // if edge appears in a flexigrid, interpret coordinates in uv system by default
     if fletcher-ctx.pass == "final" {
@@ -622,6 +623,12 @@
   /// 
   /// TODO
   marks: (),
+  /// Mark size multiplier.
+  /// 
+  /// The `size` parameter of any marks is multiplied by the mark scale before being drawn.
+  /// 
+  /// -> number | percent | auto
+  mark-scale: auto,
   /// Content to place along the edge.
   /// 
   /// ```example
@@ -805,6 +812,7 @@
   let options = (
     vertices: vertices,
     marks: marks,
+    mark-scale: mark-scale,
     label: label,
     snap-to: snap-to,
     outset: outset,
@@ -824,10 +832,9 @@
     options.stroke = 1pt
     options.extrude = ()
   }
-
-  let stroke = utils.stroke-to-dict(options.stroke)
+  options.stroke = utils.stroke-to-dict(options.stroke)
   if options.at("dash", default: auto) != auto {
-    stroke.dash = options.dash
+    options.stroke.dash = options.dash
   }
 
   let named = args.named()
@@ -845,11 +852,12 @@
   _edge(
     options.vertices,
     style: (
-      stroke: stroke,
+      stroke: options.stroke,
       outset: utils.as-pair(options.outset),
       shorten: utils.as-pair(options.shorten),
       marks: options.marks,
       extrude: options.extrude,
+      mark-scale: options.mark-scale,
     ),
     labels: labels,
     snap-to: options.snap-to,

@@ -19,7 +19,6 @@
 
   "mark": 4,
   "mark.dots": 4 ,
-  "mark.bands": 5,
   "mark.path": 5,
 )
 

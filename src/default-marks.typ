@@ -9,7 +9,7 @@
 		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
 		delta: 53.5deg, // angle spanned by arc of curved arrow edge
 
-		tip-origin: mark => 0.5/float(mark.scale),
+		tip-origin: mark => 0.5,
 		tail-end: mark => calc.min(..mark.extrude),
 		tail-origin: mark => {
 			let a = calc.sin(mark.sharpness + mark.delta) - calc.sin(mark.sharpness)
@@ -73,8 +73,8 @@
 		size: 10,
 		sharpness: 20deg,
 
-		tip-end: mark => -0.25/calc.sin(mark.sharpness)/float(mark.scale),
-		tip-origin: mark => 0.5/calc.sin(mark.sharpness)/float(mark.scale),
+		tip-end: mark => -0.25/calc.sin(mark.sharpness),
+		tip-origin: mark => 0.5/calc.sin(mark.sharpness),
 		tail-origin: mark => -mark.size*calc.cos(mark.sharpness),
 		tip-hang: mark => mark.tail-origin*0.8,
 		tail-hang: -4,
@@ -96,8 +96,8 @@
 		inherit: "straight",
 
 		tip-origin: 0,
-		tip-end: mark => -1/calc.sin(mark.sharpness)/float(mark.scale),
-		tail-end: mark => -0.5/calc.sin(mark.sharpness)/float(mark.scale),
+		tip-end: mark => -1/calc.sin(mark.sharpness),
+		tail-end: mark => -0.5/calc.sin(mark.sharpness),
 
 		stroke: none,
 		fill: auto,
@@ -109,7 +109,7 @@
 		angle: 25deg,
 		rear-angle: mark => calc.atan2(mark.stealth, calc.tan(mark.angle)),
 
-		tip-origin: mark => 0.5/calc.sin(mark.angle)/float(mark.scale),
+		tip-origin: mark => 0.5/calc.sin(mark.angle),
 		tip-end: mark => mark.size*(mark.stealth - 1)*calc.cos(mark.angle),
 		tail-origin: mark => {
 			if mark.stealth > 0 {
@@ -118,7 +118,7 @@
 				let miter-limit = if mark.stroke == none { 0 }
 					else { stroke(mark.stroke).miter-limit }
 
-				let miter-length = 1/float(mark.scale)/calc.sin(wing-angle)
+				let miter-length = 1/calc.sin(wing-angle)
 				// stealth arrows with sharp wings look bigger due to long miter lengths
 				let extra-size = if miter-length < miter-limit {
 					// so account for extra apparent size
@@ -162,6 +162,7 @@
 		tip-end: mark => mark.size*(calc.sin(mark.sharpness) - calc.sin(mark.sharpness + mark.delta)),
 		tail-end: mark => mark.tip-end/2,
 		tail-origin: mark => mark.tip-end,
+		tail-hang: mark => mark.tail-end/2,
 
 		fill: auto,
 		stroke: none,
@@ -189,6 +190,8 @@
 		tip-end: mark => -mark.size,
 		tail-end: mark => mark.tip-end/2,
 		tail-origin: mark => mark.tip-end,
+		tail-hang: mark => mark.tail-end/2,
+
 
 		stroke: none,
 		draw: mark => {
@@ -398,7 +401,6 @@
 		many: true,
 		one: true,
 		zero: true,
-		tail-origin: mark => -mark.many-length,
 		zero-fill: white,
 		fill: none,
 		draw: mark => {

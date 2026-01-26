@@ -8,7 +8,7 @@
 #let MARK_REQUIRED_DEFAULTS = (
 	rev: false,
 	flip: false,
-	scale: 100%,
+	scale: 1,
 	extrude: (0,),
 	tip-end: 0,
 	tail-end: 0,
@@ -39,22 +39,15 @@
 		mark = parent + mark
 	}
 	if ancestor != none { mark = (kind: ancestor) + mark }
+
 	return mark
 }
 
 
-/// Resolve a mark dictionary by applying inheritance, adding any required
-/// entries, and evaluating any closure entries.
-///
-/// ```example
-/// #context fletcher.resolve-mark((
-/// 	a: 1,
-/// 	b: 2,
-/// 	c: mark => mark.a + mark.b,
-/// ))
-/// ```
-///
-#let resolve-mark(mark, defaults: (:)) = {
+/// Add the mandatory mark parameters to a mark dictionary.
+/// 
+/// See `fletcher.marks.MARK_REQUIRED_DEFAULTS`.
+#let add-mark-defaults(mark, defaults: (:)) = {
 	if mark == none { return none }
 
 	if type(mark) == str { mark = (inherit: mark) }
@@ -69,6 +62,43 @@
 		}
 	}
 
+	return mark
+}
+
+/// Expand an array of mark specifiers into an array of mark dictionaries,
+/// ensuring `pos` and `rev` mark parameters are present. The default mark
+/// positions depends on the position of each mark and the number of marks;
+/// the first mark in the array is reversed by default.
+/// 
+/// For example, `("<", (inherit: "solid"))` is transformed into
+/// `((inherit: "head", pos: 0, rev: true, ..), (inherit: "solid", pos: 1, rev: false, ..))`
+#let interpret-marks(marks) = {
+	marks.enumerate()
+		.map(((i, mark)) => {
+			add-mark-defaults(mark, defaults: (
+				pos: i/calc.max(1, marks.len() - 1),
+				rev: i == 0,
+			))
+		})
+		.filter(mark => mark != none) // drop empty marks
+		.map(mark => {
+			mark.tip = (mark.pos == 0) == mark.rev
+			if (mark.pos not in (0, 1)) { mark.tip = none }
+			mark
+		})
+}
+
+
+/// Resolve all the parameters of a mark dictionary, evaluating any closures
+/// in insertion order. This also applies mark scale by premultiplying the `size`
+/// parameter.
+#let resolve-mark(mark) = {
+	mark = add-mark-defaults(mark)
+
+	if "size" in mark {
+		mark.size *= mark.remove("scale") // remove to prevent mistakenly applying twice
+	}
+
 	for (key, value) in mark {
     if key == "cap-offset" { continue }
 		if type(value) == function {
@@ -79,22 +109,6 @@
 	return mark
 }
 
-#let interpret-marks(marks) = {
-	marks = marks.enumerate().map(((i, mark)) => {
-		resolve-mark(mark, defaults: (
-			pos: i/calc.max(1, marks.len() - 1),
-			rev: i == 0,
-		))
-	}).filter(mark => mark != none) // drop empty marks
-
-	marks = marks.map(mark => {
-		mark.tip = (mark.pos == 0) == mark.rev
-		if (mark.pos not in (0, 1)) { mark.tip = none }
-		mark
-	})
-
-	marks
-}
 
 #let tip-or-tail-properties(mark, tip: auto) = {
 	if tip == auto {
@@ -115,26 +129,40 @@
 
 /// Draw a mark at a given position and angle
 #let draw-mark(
-    /// Mark object to draw. Must contain a `draw` entry.
-    /// -> dictionary
-    mark,
-    /// Default stroke style for the mark. The stroke's paint is used as the default fill style. If the mark itself has `stroke` entry, this takes precedence.
-    /// -> stroke
-    stroke: 1pt,
-    /// Coordinate of the origin in the mark's frame, `(0,0)`.
-    /// -> point
-    origin: (0,0),
-    /// Angle of the mark, `0deg` being $->$, counterclockwise.
-    /// -> angle
-    angle: 0deg,
-    /// Which mark center to use as the origin. The coordinate frame origin is `zero`, and the others correspond to the mark's `tip-` and `tail-` properties, e.g., `tip-origin`, depending on whether the mark is acting as a tip (`pos: 1` and `rev: false` or `pos: 0` and `rev: true`) or a tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
-    /// -> "zero" | "origin" | "end" | "hang"
-    anchor: auto,
-    as-tip: auto,
-    debug: false,
+	/// Mark object to draw. Must contain a `draw` entry.
+	/// -> dictionary
+	mark,
+	/// Default stroke style for the mark. The stroke's paint is used as the default fill style. If the mark itself has `stroke` entry, this takes precedence.
+	/// -> stroke
+	stroke: 1pt,
+	/// Coordinate of the origin in the mark's frame, `(0,0)`.
+	/// -> point
+	origin: (0,0),
+	/// Angle of the mark, `0deg` being $->$, counterclockwise.
+	/// -> angle
+	angle: 0deg,
+	/// Which mark center to use as the origin. The coordinate frame origin is `zero`, and the others correspond to the mark's `tip-` and `tail-` properties, e.g., `tip-origin`, depending on whether the mark is acting as a tip (`pos: 1` and `rev: false` or `pos: 0` and `rev: true`) or a tail (`pos: 0` and `rev: false` or `pos: 1` and `rev: true`).
+	/// -> "zero" | "origin" | "end" | "hang"
+	anchor: auto,
+	as-tip: auto,
+	/// Debug annotations to draw.
+	/// 
+	/// If the `mark.dots` debug option is on, the mark is annotated with colored dots indicating its centers:
+	/// #let dot(fill, stroke) = box(height: .5em, align(horizon, line(length: 1.5em, stroke: .6em) +place(center + horizon, circle(radius: .3em, fill: fill, stroke: stroke + .2em))))
+	/// - #dot(red, white) (red dot): the mark's origin point, or where the tip is pointing
+	/// - #dot(white, blue) (blue dot): the end point for the paths's stroke
+	/// - #dot(green, white) (green dot): the hang point, which determines how much to rotate marks by for curved paths
+	debug: false,
 ) = {
-	// mark = resolve-mark(mark)
 	stroke = std.stroke(stroke)
+	let thickness = utils.get-thickness(stroke)
+
+	let fill = mark.at("fill", default: auto)
+	if fill == auto { fill = stroke.paint }
+	if fill == auto { fill = black }
+
+	let stroke = utils.stroke-to-dict(stroke)
+	stroke.dash = none
 
 	if as-tip == auto {
 		as-tip = mark.at("pos", default: 1) != float(mark.rev)
@@ -143,15 +171,6 @@
 	if anchor == auto {
 		anchor = if as-tip { "origin" } else { "end" }
 	}
-
-	let t = utils.get-thickness(stroke)
-
-	let fill = mark.at("fill", default: auto)
-	if fill == auto { fill = stroke.paint }
-	if fill == auto { fill = black }
-
-	let stroke = utils.stroke-to-dict(stroke)
-	stroke.dash = none
 
 	if "stroke" in mark {
 		if mark.stroke == none { stroke = none }
@@ -177,7 +196,7 @@
 			let m = tip-or-tail-properties(mark, tip: as-tip)
 
 			draw.translate(origin)
-			draw.scale(t.to-absolute()/ctx.length*float(mark.scale))
+			draw.scale(thickness.to-absolute()/ctx.length)
 			draw.rotate(angle)
 
 			if mark.rev { draw.scale(x: -1) }
@@ -194,37 +213,16 @@
 				})
 			}
 
-			// if debug-level(get-debug(ctx, debug), "mark.bands") {
-			// 	let x = if as-tip { mark.tip-origin } else { mark.tail-origin }
-			// 	draw.line((0,0), (x,0), stroke: t + red.transparentize(20%))
-			// 	let x = if as-tip { mark.tip-end } else { mark.tail-end }
-			// 	draw.line((0,0), (x,0), stroke: t + blue.transparentize(20%))
-			// 	draw.circle((0,0), radius: 0.5, fill: white.transparentize(20%), stroke: none)
-			// }
+			if debug-level(debug, "mark.dots") {
+				draw.on-layer(1, {
+					let dot(x, r, ..args) = draw.circle((x,0), radius: r, stroke: none, ..args)
 
-			if debug-level(debug, "mark") {
-				let m = if as-tip { (
-					origin: mark.tip-origin,
-					end: mark.tip-end,
-					hang: mark.tip-hang
-				) } else { (
-					origin: mark.tail-origin,
-					end: mark.tail-end,
-					hang: mark.tail-hang
-				) }
-				let m = tip-or-tail-properties(mark, tip: as-tip)
-
-				if debug-level(debug, "mark.dots") {
-					draw.on-layer(1, {
-						let dot(x, r, ..args) = draw.circle((x,0), radius: r, stroke: none, ..args)
-
-						dot(m.origin, 1/2, fill: white) // red origin bg
-						if m.hang != none { dot(m.hang, 1/2, fill: white) } // green hang bg
-						dot(m.end, 3/8, stroke: blue + t/4, fill: white) // blue end
-						dot(m.origin, 1/4, fill: red) // red origin fg
-						if m.hang != none { dot(m.hang, 1/4, fill: green) } // green hang fg
-					})
-				}
+					dot(m.origin, 1/2, fill: white) // red origin bg
+					if m.hang != none { dot(m.hang, 1/2, fill: white) } // green hang bg
+					dot(m.end, 3/8, stroke: blue + thickness/4, fill: white) // blue end
+					dot(m.origin, 1/4, fill: red) // red origin fg
+					if m.hang != none { dot(m.hang, 1/4, fill: green) } // green hang fg
+				})
 			}
 		})
 	})
@@ -355,8 +353,21 @@
   })
 }
 
-#let test-mark(mark, stroke: 4pt, length: auto, bend: 0deg, debug: 3) = {
-	mark = (pos: 1, rev: false) + resolve-mark(mark)
+/// Visualise the anatomy of a fletcher mark.
+/// 
+/// This is useful for debugging mark objects.
+/// 
+/// ```example
+/// #fletcher.marks.test(">", bend: 45deg)
+/// ```
+#let test(
+	mark,
+	stroke: 4pt,
+	length: auto,
+	bend: 0deg,
+	debug: 3,
+) = {
+	mark = resolve-mark(add-mark-defaults(mark, defaults: (pos: 1, rev: false)))
 
 	let t = utils.get-thickness(stroke)
 

@@ -138,6 +138,7 @@
 #module-docs("edges")
 #module-docs("flexigrid")
 #module-docs("paths")
+#module-docs("marks")
 #module-docs("shapes", sort-functions: info => {
   fletcher.shapes.NODE_SHAPES.keys().position(name => name == info.name)
 })
