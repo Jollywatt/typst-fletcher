@@ -8,5 +8,17 @@
   }
 })
 
+#pagebreak()
+
+
+https://github.com/Jollywatt/typst-fletcher/issues/144
+
+#diagram({
+  cetz.draw.set-style(edge: (stroke: black.transparentize(50%)))
+  for m in (30%, 50%, 100%) {
+    edge((0, 0), (2, 0), "-|>", stroke: (thickness: 3pt, cap: "square"), mark-scale: m)
+    cetz.draw.translate(x: 3)
+  }
+})
 
 // todo: test diagram(mark-scale: x) and set-style(mark: (scale: x))

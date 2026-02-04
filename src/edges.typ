@@ -341,7 +341,7 @@
 
     // resolve marks
     edge-data.style.marks = edge-data.style.marks.map(mark => {
-      mark.size *= edge-data.style.mark-scale
+      mark.size *= float(edge-data.style.mark-scale)
       Marks.resolve-mark(mark)
     })
 
