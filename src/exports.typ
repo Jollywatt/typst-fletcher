@@ -1,4 +1,5 @@
-#import "flexigrid.typ" as flexigrids: diagram, flexigrid
+#import "flexigrid.typ" as flexigrids: flexigrid
+#import "diagram.typ": diagram
 #import "nodes.typ" as nodes: node
 #import "edges.typ" as edges: edge
 #import "marks.typ"

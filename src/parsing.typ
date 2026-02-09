@@ -339,7 +339,7 @@
 
 	let is-any(x) = true
 	let is-label(x) = type(x) == label
-	let maybe-body(x) = type(x) == content
+	let maybe-body(x) = type(x) in (content, symbol)
 	let maybe-position(x) = not is-label(x) and not maybe-body(x)
 
 	// node(<position>, ..) unless an enclose node

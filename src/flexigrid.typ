@@ -360,6 +360,10 @@
   objects = utils.as-array(objects) + args.pos().join()
   spacing = utils.as-pair(spacing)
 
+  if args.named().len() > 0 {
+    utils.error("unknown named argument: #..0", args.named().keys())
+  }
+
   cetz.draw.get-ctx(ctx => {
 
     let gutter = spacing.map(g => cetz.util.resolve-number(ctx, g))
@@ -476,6 +480,8 @@
   return path
 }
 
+/// Convert named arguments such as `node-fill: yellow` into
+/// corresponding calls to `cetz.draw.set-style(node: (fill: yellow))`.
 #let interpret-style-arguments(args) = {
   let styles = ()
   for (arg, value) in args {
@@ -484,14 +490,9 @@
       let tree = value
       for p in path.rev() { tree = ((p): tree) }
       styles += cetz.draw.set-style(..tree)
+      let _ = args.remove(arg)
     }
   }
-  return styles
+  return (args, styles)
 }
 
-/// placeholder docstring
-#let diagram(..args) = {
-  let styles = interpret-style-arguments(args.named())
-  let canvas = cetz.canvas(flexigrid(styles, ..args))
-  box(canvas, fill: none, stroke: none)
-}
