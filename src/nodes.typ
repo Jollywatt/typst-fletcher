@@ -283,9 +283,6 @@
     data.size = sizes.bounds
     data.body-size = sizes.body
 
-
-
-
     if data.pos == auto and data.enclose != none {
       // resolve enclose nodes without flexigrid
       // should still support engulfing other nodes
@@ -373,6 +370,23 @@
 
   colspan: none,
   rowspan: none,
+
+  /// Whether to return a `metadata` object which can be placed inside equations,
+  /// instead of returning an array of functions which can be inserted into a CeTZ canvas.
+  /// 
+  /// If you often use fletcher in math mode, consider defining a shortcut:
+  /// ```typ
+  /// #let hom = edge.with(in-math: true)
+  /// #let obj = node.with(in-math: true)
+  /// ```
+  /// Now, `hom` edges and `obj` nodes can be inserted into equations, like so:
+  /// ```typ
+  /// #diagram($x hom(|->) & obj(pi(x), stroke: #yellow)$)
+  /// ```
+  /// 
+  /// See also @edge.in-math.
+  /// -> bool
+  in-math: false,
 ) = {
 
   let style = (
@@ -394,6 +408,7 @@
     style: style,
     layer: layer,
     cellspan: (colspan, rowspan),
+    debug: debug,
   )
 
   let pos = args.pos()
@@ -401,10 +416,11 @@
 
   if options.name != none { options.name = str(options.name) }
 
-  _node(
-    ..options,
-    debug: debug,
-  )
+  if in-math {
+    metadata((fletcher: "node", args: options))
+  } else {
+    _node(..options)
+  }
 
 }
 

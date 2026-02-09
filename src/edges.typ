@@ -297,7 +297,7 @@
 }
 
 #let _edge(
-  vertices,
+  vertices: (),
   style: (:),
   labels: (),
   snap-to: (auto, auto),
@@ -812,6 +812,22 @@
   /// -> number
   layer: 0,
 
+  /// Whether to return a `metadata` object which can be placed inside equations,
+  /// instead of returning an array of functions which can be inserted into a CeTZ canvas.
+  /// 
+  /// If you often use fletcher in math mode, consider defining the shortcut:
+  /// ```typ
+  /// #let hom = edge.with(in-math: true)
+  /// ```
+  /// The `hom` edge function can be inserted into equations, like so:
+  /// ```typ
+  /// #diagram($x hom(|->) & f(x)$)
+  /// ```
+  /// 
+  /// See also @node.in-math.
+  /// -> bool
+  in-math: false,
+
   draw: auto,
   debug: auto,
 ) = {
@@ -856,8 +872,8 @@
   options += determine-edge-kind(named, options)
 
 
-  _edge(
-    options.vertices,
+  let args = (
+    vertices: options.vertices,
     style: (
       stroke: options.stroke,
       outset: utils.as-pair(options.outset),
@@ -873,6 +889,12 @@
     layer: layer,
     debug: debug,
   )
+
+  if in-math {
+    metadata((fletcher: "edge", args: args))
+  } else {
+    _edge(..args)
+  }
 
 }
 
