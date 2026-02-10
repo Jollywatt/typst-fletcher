@@ -417,10 +417,10 @@
   if options.name != none { options.name = str(options.name) }
 
   if in-math {
+    options.body = math.equation(options.body)
     metadata((fletcher: "node", args: options))
   } else {
     _node(..options)
   }
 
 }
-

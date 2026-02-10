@@ -891,6 +891,10 @@
   )
 
   if in-math {
+    args.labels = args.labels.map(label => {
+      label.body = math.equation(label.body)
+      label
+    })
     metadata((fletcher: "edge", args: args))
   } else {
     _edge(..args)
