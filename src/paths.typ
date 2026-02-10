@@ -321,7 +321,7 @@
 /// Offset a vertex to make a miter joint, given the
 /// angles of the incoming and outgoing legs.
 /// 
-/// ```
+/// ```plain
 ///      offset vertex ↓
 /// ───────────────────* ┐
 ///      vertex ↓     /  │ offset 
@@ -358,7 +358,7 @@
 /// Returns the line segment to point `P` and a single cubic
 /// Bézier segment to `Q`.
 /// 
-/// ```
+/// ```plain
 ///             ┌─── d ───┐          
 /// ************P***──────@-[i-angle]
 ///        ..   │   **   /           
@@ -410,7 +410,7 @@
 /// for a miter join and two line segments for a bevel join,
 /// one to point `P` and the other to `Q`.
 /// 
-/// ```
+/// ```plain
 ///                 ┌─ s ─┐
 ///             ┌ d ┼─────┤          
 /// ****************P─────@-[i-angle]

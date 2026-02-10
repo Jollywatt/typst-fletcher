@@ -676,7 +676,7 @@
   ///   dir: ltr,
   ///   spacing: 1cm,
   ///   ..(0%, 25%, 50%, 75%, 100%).map(p => fletcher.diagram(
-  ///   gutter: 2cm,
+  ///     spacing: 2cm,
   ///   	edge((0,0), (1,0), [#p], "->", label-pos: p))
   ///   ),
   /// )
