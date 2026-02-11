@@ -97,13 +97,12 @@
     }
   }).flatten()
 
-
-
   // enlarge cells to fit rects
   // handling fractional rect positions nicely
   for rect in rects {
     let (w, h) = rect.size
     let (u, v) = rect.pos
+
     let (i, j) = (u - u-min, v - v-min)
     let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
     let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
@@ -192,6 +191,7 @@
       }
       if draw-coords {
         let coord = i + grid.u-min
+        if grid.axis-flips.u { coord *= -1 }
         cetz.draw.content((x, grid.y-min), text(10pt, tint, raw(str(coord))), anchor: "north")
         let w = grid.col-sizes.at(i)
         cetz.draw.line((x - w/2, grid.y-min), (x + w/2, grid.y-min), stroke: (thickness: 1pt))
@@ -203,6 +203,7 @@
       }
       if draw-coords {
         let coord = j + grid.v-min
+        if grid.axis-flips.v { coord *= -1 }
         cetz.draw.content((grid.x-min, y), text(10pt, tint, raw(str(coord))), anchor: "east")
         let h = grid.row-sizes.at(j)
         cetz.draw.line((grid.x-min, y - h/2), (grid.x-min, y + h/2), stroke: (thickness: 1pt))
@@ -341,6 +342,38 @@
   return ctx
 }
 
+/// Interpret the @flexigrid.axes option.
+///
+/// Returns a dictionary with:
+/// - `u`: Whether $u$ is reversed
+/// - `v`: Whether $v$ is reversed
+/// - `order`: Whether the axes are swapped to $(v, u)$
+///
+/// -> dictionary
+#let interpret-axes(
+  /// Pair of directions specifying the interpretation of $(u, v)$ coordinates.
+  /// For example, `(ltr, ttb)` means $u$ goes $arrow.r$ and $v$ goes $arrow.b$.
+  axes
+) = {
+	let dirs = axes.map(direction.axis)
+	let flip
+	if dirs == ("horizontal", "vertical") {
+		flip = false
+	} else if dirs == ("vertical", "horizontal") {
+		flip = true
+	} else {
+		error("Axes #0 cannot both be in the same direction. Try `axes: (ltr, ttb)`.", axes)
+	}
+  let (u, v) = (rtl in axes, ttb in axes)
+  // if flip { (u, v) = (v, u) }
+
+  (
+    u: u,
+    v: v,
+    order: flip,
+  )
+}
+
 
 /// A "flexible" coordinate system to be placed in CeTZ canvas which adapts to nodes contained therein.
 /// 
@@ -388,6 +421,7 @@
   /// -> number | length | pair
   spacing: 1,
   origin: (0,0),
+  axes: (ltr, btt),
   columns: auto,
   rows: auto,
   name: none,
@@ -438,15 +472,29 @@
     let layout-pass = process-only-ctx(layout-pass-ctx, objects)
     let (nodes, edges) = layout-pass.shared-state.fletcher
 
+    let axis-flips = interpret-axes(axes)
+    nodes = nodes.map(node => {
+      if axis-flips.order { node.pos = node.pos.rev() }
+      if axis-flips.u { node.pos.at(0) *= -1 }
+      if axis-flips.v { node.pos.at(1) *= -1 }
+      node
+    })
+
     // compute grid cell sizes and positions
     let grid = cell-sizes-from-rects(nodes, gutter)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid)
+    grid.axis-flips = axis-flips
 
     let uv-resolver(ctx, c) = {
       if type(c) == dictionary {
-        if "uv" in c { return utils.uv-to-xy(grid, c.uv) }
+        if "uv" in c {
+          if grid.axis-flips.order { c.uv = c.uv.rev() }
+          if grid.axis-flips.u { c.uv.at(0) *= -1 }
+          if grid.axis-flips.v { c.uv.at(1) *= -1 }
+          return utils.uv-to-xy(grid, c.uv)
+        }
         if "xy" in c { return c.xy }
         if "rel" in c and type(c.rel) == array and c.rel.all(x => type(x) in (int, float)) {
           let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
