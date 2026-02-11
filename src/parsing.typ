@@ -241,6 +241,10 @@
 		has-tail-coords = true
 	}
 
+	if has-cetz-obj and (has-first-coord or has-tail-coords) {
+		utils.error("Edges wrapping CeTZ objects cannot also have vertex arguments; found #..0", coords)
+	}
+
 	// Allow marks argument to be in between two coordinates
 	// (<coord>, <marks>, <rel-coord>)
 	// (<marks>, <rel-coord>) => (auto, <marks>, <rel-coord>)
