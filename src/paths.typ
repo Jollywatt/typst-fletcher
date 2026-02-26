@@ -618,7 +618,9 @@
         let t = n/N
         let pt = bezier.cubic-point(s, end-pt, c1, c2, t)
         let (dx, dy, ..) = bezier.cubic-derivative(s, end-pt, c1, c2, t)
-        let unit-normal = vector.norm((dy, -dx))
+        // let unit-normal = vector.norm((dy, -dx))
+        let len = vector.len((dy, -dx))
+        let unit-normal = if len > 0 { vector.norm((dy, -dx)) } else { (0,0) }
         vector.add(pt, vector.scale(unit-normal, offset))
       })
 

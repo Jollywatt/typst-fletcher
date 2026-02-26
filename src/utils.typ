@@ -217,3 +217,37 @@
 	).at(calc.rem(int(calc.round(i)), 8))
 }
 
+#let thing-to-angle(it) = {
+	if type(it) == angle { return it }
+
+	let angles = range(8).map(i => 45deg*i)
+	
+	if type(it) == alignment {
+		let i = (
+			"right",
+			"right + top",
+			"top",
+			"left + top",
+			"left",
+			"left + bottom",
+			"bottom",
+			"right + bottom",
+		).position(x => x == repr(it))
+		return angles.at(i)
+	}
+
+	let i = (
+		"east",
+		"north-east",
+		"north",
+		"north-west",
+		"west",
+		"south-west",
+		"south",
+		"south-east",
+	).position(x => x == it)
+	if i == none {
+		error("Cannot convert #0 to an angle. Specify an angle, alignment, or anchor like 'north-east'.", repr(it))
+	}
+	return angles.at(i)
+}

@@ -422,9 +422,10 @@
 
 #let EDGE_KINDS = (
   arc: (
-    args: ("bend",),
+    required: ("bend",),
+    optional: (:),
     n-vertices: 2,
-    draw: (bend, (a, b)) => {
+    draw: ((bend,), (a, b)) => {
       let perp-dist = if type(bend) == angle {
         let sin-bend = calc.sin(bend)
         if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
@@ -438,9 +439,10 @@
     }
   ),
   bezier-cubic: (
-    args: ("from", "to"),
+    required: ("from", "to"),
+    optional: (:),
     n-vertices: 2,
-    draw: (from, to, (a, b)) => {
+    draw: ((from, to), (a, b)) => {
       let as-coord(x) = {
         if type(x) == angle { (x, 1) }
         else { x }
@@ -449,71 +451,98 @@
     }
   ),
   bezier-from: (
-    args: ("from",),
+    required: ("from",),
+    optional: (:),
     n-vertices: 2,
-    draw: (from, (a, b)) => {
+    draw: ((from,), (a, b)) => {
       if type(from) == angle { from = (from, 1) }
       cetz.draw.bezier(a, b, (rel: from, to: a))
     }
   ),
   bezier-to: (
-    args: ("to",),
+    required: ("to",),
+    optional: (:),
     n-vertices: 2,
-    draw: (to, (a, b)) => {
+    draw: ((to,), (a, b)) => {
       if type(to) == angle { to = (to, 1) }
       cetz.draw.bezier(a, b, (rel: to, to: b))
     }
   ),
   beizer-through: (
-    args: ("through",),
+    required: ("through",),
+    optional: (:),
     n-vertices: 2,
-    draw: (through, (a, b)) => {
+    draw: ((through,), (a, b)) => {
       cetz.draw.bezier-through(a, through, b)
     }
   ),
+  loop: (
+    required: (),
+    optional: (loop: 0.3, loop-angle: 0deg),
+    draw: ((loop, loop-angle), (a, ..)) => {
+      let angle = utils.thing-to-angle(loop-angle) + 180deg
+      cetz.draw.arc(a, radius: loop, start: angle, delta: -360deg)
+    }
+  )
 )
 
 
 #let determine-edge-kind(named, options) = {
+  let kind = none
   let named-arg-suggestion = none
 
-  for (kind, spec) in EDGE_KINDS {
-    let (args, draw) = spec
-    if args.all(n => n in named) {
-      let draw-args = ()
-      for arg in args { draw-args.push(named.remove(arg)) }
+  for (spec-kind, spec) in EDGE_KINDS {
 
-      if options.draw != auto {
-        utils.error({
-          "edge option `draw` must be `auto` when used with "
-          args.map(repr).join(", ")
-        })
-      }
-      
-      options.draw = draw.with(..draw-args)
+    let has-all-required = spec.required.all(n => n in named)
+    let has-some-optional = spec.optional.keys().any(n => n in named)
 
-      if "n-vertices" in spec {
-        if options.vertices.len() != spec.n-vertices {
-          utils.error({
-            kind
-            " edges (with "
-            args.map(repr).join(", ")
-            " arguments) require exactly "
-            repr(spec.n-vertices)
-            " vertices; got "
-            repr(options.vertices)
-          })
-        }
-      }
-      
+    if spec.required.len() > 0 and has-all-required {
+      kind = spec-kind
       break
-
-    } else if args.any(n => n in named) {
-      named-arg-suggestion = (kind: kind, args: args)
+    } else if has-all-required and has-some-optional {
+      kind = spec-kind
+      break
+    } else if spec.required.any(n => n in named) {
+      named-arg-suggestion = (kind: kind, args: spec.required)
     }
   }
 
 
+  if kind != none {
+    let spec = EDGE_KINDS.at(kind)
+
+    let draw-args = (:)
+
+    for arg in spec.required { draw-args.insert(arg, named.remove(arg)) }
+
+    for (arg, default) in spec.optional {
+      if arg in named { draw-args.insert(arg, named.remove(arg)) }
+      else { draw-args.insert(arg, default)}
+    }
+
+    if options.draw != auto {
+      utils.error({
+        "edge option `draw` must be `auto` when used with "
+        spec.required.map(repr).join(", ")
+      })
+    }
+    options.draw = spec.draw.with(draw-args)
+
+    if "n-vertices" in spec {
+      if options.vertices.len() != spec.n-vertices {
+        utils.error({
+          kind
+          " edges (with "
+          spec.required.map(repr).join(", ")
+          " arguments) require exactly "
+          repr(spec.n-vertices)
+          " vertices; got "
+          repr(options.vertices)
+        })
+      }
+    }
+  }
+  
   // any left over named arguments are unrecognised
   if named.len() > 0 {
     let hint = if named-arg-suggestion != none {
