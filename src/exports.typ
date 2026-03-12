@@ -8,3 +8,6 @@
 #import "diagram.typ": *
 #import "coords.typ": *
 #import "utils.typ"
+
+// expose name
+#let name = "fletcher"
