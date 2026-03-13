@@ -281,7 +281,9 @@
 				interpret-coord-str(coord)
 			} else { coord }
 		})
-	} else {
+
+	} else if options.vertices.len() == 0 {
+		// no vertices from named nor positional args
 		new-options.vertices = (auto, auto)
 	}
 
