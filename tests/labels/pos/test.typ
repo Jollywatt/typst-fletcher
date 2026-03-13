@@ -18,5 +18,5 @@ Segment placement
     (body: `3`, pos: 2.5),
     (body: `4`, pos: 3.5),
     (body: `5`, pos: 4.5),
-  ))
+  ), corner-radius: none)
 })

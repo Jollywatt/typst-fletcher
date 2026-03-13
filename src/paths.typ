@@ -467,6 +467,7 @@
   join: "miter",
   corner-radius: 0,
   miter-limit: 4.0,
+  dynamic-radius: true,
 ) = {
   if join not in ("miter", "round") {
     utils.error("`join` must be one of #..0; got #1", ("miter", "round"), repr(join))
@@ -521,6 +522,12 @@
       if type(corner-radius) == array { corner-radius.at(i, default: 0) }
       else if type(corner-radius) in (int, float) { corner-radius }
     )
+
+    if dynamic-radius {
+      // visual adjustment so that tighter bends have smaller radii
+      let Δθ = utils.wrap-angle-180(o-angle - i-angle)
+      radius *= 1 - (calc.abs(Δθ) - 90deg)/90deg
+    }
 
     let corner-segments(vertex, ..args) = {
       if join == "miter" { return miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
@@ -669,6 +676,7 @@
   join: "miter",
   corner-radius: 0,
   miter-limit: 4.0,
+  dynamic-radius: true,
 ) = {
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
 
@@ -734,6 +742,7 @@
         join: join,
         corner-radius: corner-radius,
         miter-limit: miter-limit,
+        dynamic-radius: dynamic-radius,
       ))
       
       ({
@@ -848,6 +857,21 @@
   /// The higher the limit, the pointier corners can be before being bevelled.
   /// -> number
   miter-limit: 4.0,
+  /// Whether to dynamically adjust corner radii depending on corner sharpness
+  /// for nicer visual results.
+  /// When enabled, the corner radius is decreased for bends of less than $90degree$.
+  /// 
+  /// ```example
+  /// #import fletcher.paths: path-effect
+  /// #cetz.canvas({
+  ///   let obj = cetz.draw.line((0,0), (1,1), (2,0), (2,1), (3,0), (4,0))
+  ///   let args = arguments(obj, corner-radius: 5pt, join: "round") 
+  ///   path-effect(..args, stroke: green)
+  ///   cetz.draw.translate(y: -1)
+  ///   path-effect(..args, dynamic-radius: false)
+  /// })
+  /// ```
+  dynamic-radius: true,
 ) = {
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
 
@@ -878,6 +902,7 @@
       join: join,
       corner-radius: corner-radius,
       miter-limit: miter-limit,
+      dynamic-radius: dynamic-radius,
     )
   })
 }
