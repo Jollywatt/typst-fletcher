@@ -166,20 +166,28 @@
 
 
 
-/// Modify the given path so that it terminates at the first intersection
-/// (ordered by the path parameter) encountered with the target path.
+/// Modify the given path so that it terminates at an intersection
+/// point on the target path.
 /// 
-/// If `from-end` is `true`, then returns the portion of the path between
-/// the last intersection and the end point, otherwise between the start
-/// and the first intersection.
+/// If there are multiple intersection points, the path is terminated
+/// at the one given by `index`, which is by default is the first
+/// intersection point encountered when following the path.
+/// 
+/// If `from-end` is `false`, the portion of the path from the start
+/// to the selected intersection point is returned; otherwise it is
+/// the portion from the intersection to the end.
 #let trim-drawable(
   /// Drawable to truncate, of the form `(type: "path", segments: ..)`.
   path,
   /// Cutting drawables which may intersect the drawable to truncate.
   /// -> path
   targets,
+  /// Index of the intersection point to use to trim the path.
+  /// -> int
+  index: -1,
   /// If `true`, return the portion of the path after all intersections
   /// instead of before.
+  /// -> bool
   from-end: false,
 ) = {
   if type(targets) != array { targets = (targets,) }
@@ -188,7 +196,7 @@
     .sorted(key: ((pt, indices)) => indices)
 
   if pts.len() == 0 { return path }
-  let pt_info = if from-end { pts.last() } else { pts.first() }
+  let pt_info = if from-end { pts.at(-1 - index) } else { pts.at(index) }
 
   let (pt, (subpath-i, segment-i, t)) = pt_info
 

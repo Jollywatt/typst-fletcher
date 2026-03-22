@@ -3,7 +3,6 @@
 #import "marks.typ" as Marks
 #import "parsing.typ"
 #import "paths.typ"
-#import "intersection.typ": trim-drawable
 #import "nodes.typ" as Nodes
 #import "debug.typ": debug-level, debug-group, get-debug
 
@@ -173,10 +172,10 @@
   }
   
   if snap-to.first() != none {
-    drawable = trim-drawable(drawable, snap-to.first(), from-end: true)
+    drawable = paths.intersection.trim-drawable(drawable, snap-to.first(), from-end: true)
   }
   if snap-to.last() != none {
-    drawable = trim-drawable(drawable, snap-to.last(), from-end: false)
+    drawable = paths.intersection.trim-drawable(drawable, snap-to.last(), from-end: false)
   }
 
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))

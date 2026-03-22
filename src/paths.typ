@@ -2,6 +2,7 @@
 #import cetz.vector
 #import cetz.util: bezier
 #import "utils.typ"
+#import "intersection.typ"
 
 
 // TERMINOLOGY

@@ -12,8 +12,8 @@ cut path into #text(green)[before] and #text(red)[after]
     let path = drawables.first()
     let cutter = drawables.last()
 
-    let start = trim-drawable(path, cutter, from-end: false)
-    let end = trim-drawable(path, cutter, from-end: true)
+    let start = trim-drawable(path, cutter, index: 0, from-end: false)
+    let end = trim-drawable(path, cutter, index: 0, from-end: true)
 
     start.stroke = green
     end.stroke = red
