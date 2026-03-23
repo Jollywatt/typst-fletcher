@@ -1,4 +1,4 @@
-#import "@local/tidy:0.4.3"
+#import "@preview/tidy:0.4.3"
 #import "../src/exports.typ" as fletcher
 
 #import "common.typ"
@@ -131,6 +131,7 @@
 
 #module-docs("nodes")
 #module-docs("edges")
+#module-docs("diagram")
 #module-docs("flexigrid")
 #module-docs("paths")
 #module-docs("marks")
