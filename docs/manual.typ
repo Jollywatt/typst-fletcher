@@ -96,6 +96,7 @@
   heading(raw(fn.name + "()"), level: 3)
   rich-ref(fn.name, entity: "function", function: fn.name)
 
+  state("current-function").update(fn.name)
 
   eval(fn.description, mode: "markup", scope: common.scope)
 
@@ -171,8 +172,8 @@
 }
 
 #show link: it => {
-  set text(blue.darken(50%))//, font: "CMU Bright")
-  strong(it)
+  // set text(blue.darken(50%))//, font: "CMU Bright")
+  underline(strong(it))
 }
 
 
@@ -187,42 +188,13 @@
   line(length: 100%)
 }
 
-// #set heading(numbering: "1")
-
-// #import "common.typ": style
-// #show: style.with(refs: true)
-// 
-#show ref: it => {
-
-  if it.element == none { return [NOTHING REFERENCE] }
-
-  if it.element.func() == metadata and "entity" in it.element.value {
-    let (entity, ..ref) = it.element.value
-    let body
-    if entity == "function" {
-      body = raw(ref.function + "()")
-    } else if entity == "argument" {
-      body = raw(ref.argument)
-    } else {
-      panic("what is this?", it.element)
-    }
-    return link(it.element.location(), body)
-  }
-
-  if it.element.func() == heading {
-    return link(it.target, it.element.body)
-  }
-
-  it
-
-}
-
+#show ref: common.show-ref
 
 = Manual <manual>
 
 #{
   set heading(offset: 1)
-  // include "sections/1-intro.typ"
+  include "sections/1-intro.typ"
   // include "sections/2-diagrams.typ"
   // include "sections/3-nodes.typ"
   // include "sections/4-edges.typ"

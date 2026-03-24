@@ -830,7 +830,7 @@
   /// )
   /// ```
   /// 
-  /// See @paths.path-effect.corner-radius.
+  /// See @path-effect.corner-radius.
   /// -> length | number | none
   corner-radius: auto,
 

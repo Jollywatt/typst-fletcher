@@ -11,7 +11,7 @@ Diagrams contain #[@node]s and #[@edge]s.
 Nodes contain content and can have various shapes and styles, while edges snap to nodes and can be given @edge.marks and #[@edge.label]s.
 Nodes and edges can be placed in a @diagram, or directly into a CeTZ canvas.
 
-When placed in @diagram, nodes and edges are arranged on a #link(<flexigrids>)[flexible coordinate grid].
+When placed in @diagram, nodes and edges are arranged on a @flexigrids[flexible coordinate grid].
 
 #example(```typ
 #diagram({

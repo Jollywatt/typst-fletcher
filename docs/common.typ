@@ -3,10 +3,8 @@
 
 #let scope = (
   fletcher: fletcher,
-  diagram: fletcher.diagram,
-  edge: fletcher.edge,
-  node: fletcher.node,
-  cetz: fletcher.cetz,
+  ..dictionary(fletcher),
+
   shape-demo: (shape, tint) => [
     #diagram(
     	node((0,0), raw(shape), shape: shape),
@@ -66,28 +64,47 @@
 }
 
 
+#let show-ref(it) = {
+
+  if it.element == none {
+    highlight(raw(repr(it.target)))
+    metadata((invalid-ref: str(it.target)))
+
+  } else if it.element.func() == metadata and "entity" in it.element.value {
+    show: link.with(it.element.location())
+    let (entity, ..info) = it.element.value
+    if entity == "function" {
+      raw(info.function + "()")
+
+    } else if entity == "argument" {
+      if state("current-function").get() == info.function {
+        raw(info.argument)
+      } else {
+        raw(info.function + "." + info.argument)
+      }
+
+    } else {
+      panic("unknown ref element", it.element)
+    }
+
+  } else if it.element.func() == heading {
+    let body = (
+      if it.supplement == auto { it.element.body }
+      else { it.supplement }
+    )
+    link(it.target, body)
+
+  } else {
+    panic(it)
+  }
+
+
+}
+
 
 #let style(body, refs: true) = {
 
-  let label-prefix = "fletcher."
-
-  show ref: it => {
-    let target = str(it.target)
-    if target.starts-with(label-prefix){ return it }
-
-    let defs = state("tidy-definitions", none).final()
-
-
-    let symbol = target.split(".").last()
-    if defs == none { return raw(symbol) }
-
-    if symbol in defs {
-      target += "()"
-      symbol += "()"
-    }
-
-    link(label(label-prefix + target), symbol)
-  }
+  show ref: show-ref
 
   show heading.where(level: 1): it => {
     if is-md-target {
