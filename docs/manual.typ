@@ -67,9 +67,9 @@
 
 
 #let show-type(type) = { 
-  import tidy.styles.default: colors, default-type-color
+  import tidy.styles.default: colors
   h(2pt)
-  let clr = colors.at(type, default: colors.at("default", default: default-type-color))
+  let clr = colors.at(type, default: colors.default)
   box(outset: 2pt, fill: clr, radius: 2pt, raw(type, lang: none))
   h(2pt)
 }
@@ -92,55 +92,97 @@
 ]
 
 
-#let show-function(fn) = {
-  heading(raw(fn.name + "()"), level: 3)
-  rich-ref(fn.name, entity: "function", function: fn.name)
+#let show-function-signature(fn) = {
+  show: par
+	set text(font: "DejaVu Sans Mono", size: 0.8em)
 
+	text(fn.name, fill: tidy.styles.default.colors.signature-func-name)
+	"("
+
+	let inline = fn.args.len() <= 2
+	if not inline { "\n  " }
+
+	let items = fn.args.pairs().map(((arg-name, info)) => {
+
+		if info.at("description", default: "") == "" {
+			arg-name
+		} else {
+			link(label(fn.name + "." + arg-name), arg-name)
+		}
+
+		if "types" in info {
+			": " + info.types.map(show-type).join(" ")
+		}
+	})
+
+	items.join( if inline {", "} else { ",\n  "})
+	if not inline { ",\n" } + ")"
+
+	if fn.return-types != none {
+		" -> "
+		fn.return-types.map(show-type).join(" ")
+	}
+}
+
+#let show-function-argument(fn, arg, info) = {
+  let first-line = {
+    strong(raw(arg))
+    rich-ref(
+      fn.name + "." + arg,
+      entity: "argument",
+      function: fn.name,
+      argument: arg,
+    )
+    if "types" in info {
+      h(0.5em)
+      info.types.map(show-type).join(text(0.8em)[ or ])
+    }
+    if "default" in info {
+      text(0.8em)[ default ]
+      raw(info.default)
+    }
+    h(1fr)
+    link(label(fn.name), text(gray, $arrow.tl$))
+  }
+
+  let is-long = info.description.len() > 500
+
+  block(
+    inset: 10pt,
+    breakable: is-long,
+    {
+      block(
+        outset: 10pt,
+        width: 100%,
+        radius: 10pt,
+        stroke: (top: .6pt + gray),
+        first-line,
+      )
+      show raw.where(lang: "example"): show-example
+      eval(info.description, mode: "markup", scope: common.scope)
+    },
+  )
+}
+
+
+#let show-function(fn) = {
   state("current-function").update(fn.name)
+
+  [=== #raw(fn.name + "()")]
+  rich-ref(fn.name, entity: "function", function: fn.name)
 
   eval(fn.description, mode: "markup", scope: common.scope)
 
+  show-function-signature(fn)
+
   for (arg, info) in fn.args {
     if info.description == "" { continue }
-    let first-line = {
-      strong(raw(arg))
-      rich-ref(
-        fn.name + "." + arg,
-        entity: "argument",
-        function: fn.name,
-        argument: arg,
-      )
-      if "types" in info {
-        h(0.5em)
-        info.types.map(show-type).join(text(0.8em)[ or ])
-      }
-      if "default" in info {
-        text(0.8em)[ default ]
-        raw(info.default)
-      }
-      h(1fr)
-      link(label(fn.name), text(gray, $arrow.tl$))
-    }
-
-    block(
-      inset: 10pt,
-      {
-        block(
-          outset: 10pt,
-          width: 100%,
-          radius: 10pt,
-          stroke: (top: .6pt + gray),
-          first-line,
-        )
-        show raw.where(lang: "example"): show-example
-        eval(info.description, mode: "markup", scope: common.scope)
-      },
-    )
+    show-function-argument(fn, arg, info)
     v(1em)
   }
 }
 
-#let module-docs(name, sort-functions: it => 0) = {
+#let show-module(name, sort-functions: it => 0) = {
   [== Module #raw(name)]
   
   let path = "/src/" + name + ".typ"
@@ -152,29 +194,12 @@
 
   show raw.where(lang: "svg"): it => common.frame(eval(it.text, scope: common.scope))
 
-  // tidy.show-module(
-  //   docs,
-  //   style: dictionary(tidy.styles.default) + (
-  //     show-reference: (label, name, style-args: none) => {
-  //       name = name.split(".").last()
-  //       link(label, raw(name, lang: none))
-  //     },
-  //     show-example: (..args) => {
-  //       tidy.styles.default.show-example(..args, ratio: 1.5)
-  //     }
-  //   ),
-  //   ..args,
-  // )
-  
   for fn in docs.functions.sorted(key: sort-functions) {
     show-function(fn)
   }
 }
 
-#show link: it => {
-  // set text(blue.darken(50%))//, font: "CMU Bright")
-  underline(strong(it))
-}
+#show link: it => underline(strong(it))
 
 
 #show heading: it => {
@@ -195,22 +220,22 @@
 #{
   set heading(offset: 1)
   include "sections/1-intro.typ"
-  // include "sections/2-diagrams.typ"
-  // include "sections/3-nodes.typ"
-  // include "sections/4-edges.typ"
-  // include "sections/5-marks.typ"
-  // include "sections/6-cetz.typ"
+  include "sections/2-diagrams.typ"
+  include "sections/3-nodes.typ"
+  include "sections/4-edges.typ"
+  include "sections/5-marks.typ"
+  include "sections/6-cetz.typ"
 }
 
 = Function Reference <func-ref>
 
-#module-docs("diagram")
-#module-docs("nodes")
-#module-docs("edges")
-#module-docs("flexigrid")
-#module-docs("paths")
-#module-docs("marks")
-#module-docs("shapes", sort-functions: info => {
+#show-module("diagram")
+#show-module("nodes")
+#show-module("edges")
+#show-module("flexigrid")
+#show-module("paths")
+#show-module("marks")
+#show-module("shapes", sort-functions: info => {
   fletcher.shapes.NODE_SHAPES.keys().position(name => name == info.name)
 })
 
