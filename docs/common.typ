@@ -26,6 +26,29 @@
   ]
 )
 
+#let fn-paths-by-name(mod, path: ()) = {
+  let d = (:)
+  for (name, value) in dictionary(mod) {
+    if type(value) == module {
+      let s = fn-paths-by-name(value, path: (..path, name))
+      for (name, path) in s {
+        if name in d {
+          if path.len() < d.at(name).len() {
+            d.at(name) = path
+          }
+        } else {
+          d.insert(name, path)
+        }
+      }
+    } else if type(value) == function {
+      d.insert(name, path)
+    }
+  }
+  return d
+}
+
+#let FUNCTION_PATHS = fn-paths-by-name(fletcher, path: ("fletcher",))
+
 
 #let x-target = sys.inputs.at("x-target", default: "pdf")
 #let is-md-target = x-target == "md"

@@ -96,6 +96,7 @@
   show: par
 	set text(font: "DejaVu Sans Mono", size: 0.8em)
 
+  text(common.FUNCTION_PATHS.at(fn.name).join(".") + ".")
 	text(fn.name, fill: tidy.styles.default.colors.signature-func-name)
 	"("
 
@@ -238,4 +239,3 @@
 #show-module("shapes", sort-functions: info => {
   fletcher.shapes.NODE_SHAPES.keys().position(name => name == info.name)
 })
-
