@@ -391,7 +391,9 @@
   columns: auto,
   rows: auto,
   name: none,
-  /// placeholder docstring
+  /// Show debug annotations
+  /// #DEBUG_LEVELS.keys().filter(x => x.starts-with("grid")).join("")
+  /// -> bool | number | string | array
   debug: false,
 ) = {
   let col-spec = interpret-rowcol-spec(columns)

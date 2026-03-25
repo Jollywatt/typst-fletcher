@@ -1,5 +1,6 @@
 #import "../src/exports.typ" as fletcher
 #import fletcher: diagram, node, edge
+#import "../src/debug.typ": DEBUG_LEVELS
 
 #let scope = (
   fletcher: fletcher,
@@ -23,7 +24,9 @@
     }
     
     #raw(code, lang: "typc")
-  ]
+  ],
+
+  DEBUG_LEVELS: DEBUG_LEVELS,
 )
 
 #let fn-paths-by-name(mod, path: ()) = {
