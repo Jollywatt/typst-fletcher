@@ -342,10 +342,50 @@
 }
 
 
-/// placeholder docstring
+/// A "flexible" coordinate system to be placed in CeTZ canvas which adapts to nodes contained therein.
+/// 
+/// Objects drawn inside a `flexigrid` have access to a $u v$ coordinate system,
+/// which is a nonlinear grid of rows and columns which stretch to fit nodes, like a table.
+/// Only content placed in @node can affect the $u v$ grid; #[@edge]s and plain CeTZ objects in a flexigrid never affect the layout.
+/// 
+/// By default, nodes and edges use $u v$ coordinates while CeTZ objects use the default $x y$ coordinates.
+/// Use the coordinate expressions `(uv: ..)` and `(xy: ..)` to specify the system.
+/// Both systems can be mixed in coordinate expressions like `((uv: (1,2)), 50%, (xy: (0,0)))`.
+/// 
+/// ```example
+/// #cetz.canvas({
+///   import cetz.draw: *
+///   fletcher.flexigrid(debug: "grid", {
+///     set-style(node: (fill: yellow))
+///     node((0,0))[Nodes...]
+///     node((2,1))[...in $u v$ system]
+///     circle((uv: (2,0)), radius: 5pt, fill: blue)
+///     content((3,2))[Content in $x y$ system]
+///   })
+/// })
+/// ```
+/// 
+/// The main @diagram function is essentially equivalent to @flexigrid wrapped in `cetz.canvas()`.
 #let flexigrid(
   objects,
   ..args,
+  /// Gutter between cells.
+  /// 
+  /// Numbers are interpreted in CeTZ units.
+  /// Column and row gutter can be controlled independently as the first and last numbers in a pair, `(col-gutter, row-gutter)`.
+  /// 
+  /// #let fig(s) = cetz.canvas({
+  ///   fletcher.flexigrid(
+  ///     debug: "grid",
+  ///     spacing: s,
+  ///     node((0,0), [Wide], fill: blue.mix(white)),
+  ///     node((1,1), rotate(90deg, reflow: true)[Tall], fill: green.mix(white))
+  ///   )
+  /// })
+  /// #stack(dir: ltr, spacing: 1fr, ..(0, 5pt, (0.2, 0.8), 1).map(s => {
+  ///   align(center + horizon)[#fig(s) \ #raw("spacing: " + repr(s))]
+  /// }))
+  /// -> number | length | pair
   spacing: 1,
   origin: (0,0),
   columns: auto,

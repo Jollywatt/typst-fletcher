@@ -70,7 +70,23 @@
 	(nodes, edges)
 }
 
-/// placeholder docstring
+/// Draw nodes, edges and CeTZ objects in a @flexigrid layout.
+/// 
+/// Default styles for nodes and edges may be specified with named arguments
+/// such as `node-fill` or `edge-stroke-thickness`.
+/// 
+/// ```example
+/// #diagram(
+/// 	node-shape: rect,
+/// 	node-corner-radius: 2pt,
+/// 	node-outset: 3pt,
+/// 	node-stroke: blue,
+/// 	edge-stroke-thickness: 1pt,
+/// 	node((0,0), $f$),
+/// 	edge(".."),
+/// 	node((1,1), $g$),
+/// )
+/// ```
 #let diagram(..args) = {
   let pos = args.pos().map(arg => {
     if type(arg) == content and arg.func() == math.equation {

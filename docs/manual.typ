@@ -159,7 +159,6 @@
         stroke: (top: .6pt + gray),
         first-line,
       )
-      show raw.where(lang: "example"): show-example
       eval(info.description, mode: "markup", scope: common.scope)
     },
   )
@@ -229,6 +228,8 @@
 }
 
 = Function Reference <func-ref>
+
+#show raw.where(lang: "example"): show-example
 
 #show-module("diagram")
 #show-module("nodes")

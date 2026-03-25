@@ -720,7 +720,7 @@
   /// 
   /// This can be a `ratio`, relative to the total path length,
   /// or a `float` whose integer part refers to the segment number and
-  /// whose fractional part interpolates along the segment (see @paths.point-on-path).
+  /// whose fractional part interpolates along the segment (see @point-on-path).
   /// 
   /// ```example
   /// #diagram({
