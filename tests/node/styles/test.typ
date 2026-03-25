@@ -35,7 +35,7 @@
       node((1,1), emph[Teal], radius: 0.6, fill: teal)
     })
 
-    set-style(node: (stroke: 0.5pt, fill: luma(90%)))
+    set-style(node: (stroke: 0.5pt + black, fill: luma(90%)))
     node((0,2), [Double], extrude: (0, 3))
     node((1,2), [Pad], inset: 15pt, shape: "circle")
   })

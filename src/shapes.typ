@@ -1,5 +1,4 @@
-#import "@preview/cetz:0.4.1"
-
+#import "deps.typ": cetz
 #import cetz.draw
 
 #let resolve-number(len, num) = {
