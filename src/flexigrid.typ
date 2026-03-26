@@ -376,10 +376,11 @@
       edges: (),
       current: (node: 0, edge: 0), // index of current object
     )
-    ctx.style.node = {
-      shapes.DEFAULT_NODE_STYLE
-      shapes.NODE_SHAPES
-    }
+    let node-styles = cetz.styles.resolve(
+      shapes.DEFAULT_NODE_STYLE + shapes.NODE_SHAPES,
+      merge: ctx.style.at("node", default: (:)),
+    )
+    ctx.style.node = node-styles
 
     // for the layout pass, we resolve uv coords by treating them as xy
     let layout-pass-ctx = with-coordinate-resolver(ctx, (ctx, c) => {
@@ -432,10 +433,7 @@
         flexigrid: grid,
         debug: debug,
       )
-      ctx.style.node = {
-        shapes.DEFAULT_NODE_STYLE
-        shapes.NODE_SHAPES
-      }
+      ctx.style.node = node-styles
       return (ctx: ctx)
     },)
 
@@ -495,4 +493,3 @@
   }
   return (args, styles)
 }
-

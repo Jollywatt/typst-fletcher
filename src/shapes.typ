@@ -80,7 +80,6 @@
 #NODE_SHAPES.insert("rect", (
   width: auto,
   height: auto,
-  corner-radius: auto,
   draw: rect,
 ))
 
