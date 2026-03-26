@@ -41,7 +41,7 @@ Default styles can be set by passing the same arguments prefixed with "`node-`" 
 ```)
 
 
-You can also place nodes and edges directly into `cetz.canvas()`.
+You can also place nodes and edges directly into `cetz.canvas()` and set node and edge styles with `cetz.draw.seet-style()`.
 Below, we use fletcher's marks to draw an edge in a CeTZ-based figure.
 
 #example(```typ
@@ -57,8 +57,8 @@ Below, we use fletcher's marks to draw an edge in a CeTZ-based figure.
 
 == Flexible coordinate grids <flexigrids>
 
-A @diagram is laid out on a flexible coordinate grid, visible when the @flexigrid.debug option of @diagram is on.
-The grid's rows and columns grow to accommodate the sizes of nodes, like a table.
+Fletcher defines a "flexible" coordinate system for creating tabular layouts, visible when the `debug` option of @diagram is on.
+The rows and columns in this coordinate system grow to accommodate the sizes of nodes, like a table:
 
 #example(```typ
 #diagram(
@@ -71,6 +71,8 @@ The grid's rows and columns grow to accommodate the sizes of nodes, like a table
 	cetz.draw.polygon("tall.north-east", 6, radius: 4pt)
 )
 ```)
+
+Under the hood, a @diagram is just a @flexigrid inside a CeTZ canvas. You can also use the flexigrid coordinate system inside a normal CeTZ canvas (see @cetz-interop for details.)
 
 Coordinates can be fractional; the center of a node placed at `0.25` is $25%$ between the adjacent columns or rows.
 Notice how the column sizes adjust to the with of the green node:
@@ -111,8 +113,8 @@ Nodes can also span multiple columns or rows:
 
 == Coordinate expressions
 
-When placed inside a @diagram, nodes can be positioned at a specific row or column using unitless coordinates, like ```typc node((3, 4))```.
-Nodes can also be placed at physical coordinates, like ```typc node((50mm, 20mm))```, or mixtures like ```typc node((rel: (0, 2em), to: (1, 1)))``` using CeTZ coordinate expressions.
+Dimensionless coordinates like `(2, 3)` in a @node or @edge refer to columns/rows in the grid.
+You can also use physical lengths like `(20mm, 5mm)` or any CeTZ coordinate expression, including anchors.
 
 #example(```typ
 #diagram(
