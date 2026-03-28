@@ -34,3 +34,32 @@
 }), caption: [
   Various edge kinds.
 ])
+
+#pagebreak()
+
+Edge loops
+
+#diagram(
+  node-fill: green,
+  node-stroke: 0.1em + black,
+  node((0,0), [0], name: "0", extrude: (0,2), outset: 2pt),
+  node((0,1), [1], name: "1"),
+  node((1,0), [2], name: "2"),
+  node((2,0), [3], name: "3"),
+  node((1,1), [4], name: "4"),
+  node((2,1), [5], name: "5"),
+
+  edge(<0>, "->", <1>, $b$),
+  edge(<0>, <1>, $b$, "->"),
+  edge(<0>, <2>, $a$, "->"),
+  edge(<1>, <1>, $a$, "->", loop-angle: top),
+  edge(<1>, <4>, $a$, "->"),
+  edge(<2>, <3>, $a$, "->"),
+  edge(<2>, <4>, $b$, "->"),
+  edge(<3>, <2>, $b$, "->", label-side: bottom),
+  edge(<3>, <3>, $a$, "->", loop-angle: right),
+  edge(<4>, <0>, $a$, "->"),
+  edge(<4>, <5>, $b$, "->"),
+  edge(<5>, <4>, $a$, "->", label-side: bottom),
+  edge(<5>, <5>, $b$, "->", loop-angle: right),
+)
