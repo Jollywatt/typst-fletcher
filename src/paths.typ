@@ -200,6 +200,113 @@
 
 
 
+/// Shorten a path at the start or end by subpath/segment index
+/// and $t$-parameter (not by path length, see `cetz.path-util.shorten-to` for that).
+#let trim-path(
+  /// CeTZ drawable, a dictionary containing key `"segments"`.
+  path,
+  /// Path index `(subpath-i, segment-i, t)` to start the path from.
+  from: none,
+  /// Path index `(subpath-i, segment-i, t)` to terminate the path at.
+  to: none,
+) = {
+  assert(utils.is-drawable(path))
+
+  if from != none and to != none {
+    (from, to) = (from, to).sorted()
+  }
+
+  if to != none {
+    let (subpath-i, segment-i, t) = to
+
+    // CETZ NAMING: path.segments are actually subpaths
+    let prior-subpaths = path.segments.slice(0, subpath-i)
+    let this-subpath = path.segments.at(subpath-i)
+
+    let (start, closed, segments) = this-subpath
+    let prior-segments = segments.slice(0, segment-i)
+    let this-segment = segments.at(segment-i)
+
+    let prev-pt = {
+      if segment-i > 0 { segments.at(segment-i - 1).last() }
+      else { start }
+    }
+
+    let sliced-segment
+
+    let kind = this-segment.first()
+    if kind == "l" {
+      let (_, pt) = this-segment
+      let new-pt = cetz.vector.lerp(prev-pt, pt, t)
+      sliced-segment = ("l", new-pt)
+
+    } else if kind == "c" {
+      let s = prev-pt
+      let (_, c1, c2, e) = this-segment
+      let (lo, hi) = cetz.path-util.bezier.split(s, e, c1, c2, t)
+      let (_, e, c1, c2) = lo
+      sliced-segment = ("c", c1, c2, e)
+    }
+
+    let sliced-subpath = (start, closed, (..prior-segments, sliced-segment))
+
+    // CETZ NAMING: path.segments are actually subpaths
+    path.segments = (..prior-subpaths, sliced-subpath)
+  }
+
+
+  if from != none {
+    let (subpath-i, segment-i, t) = from
+
+    if to != none and to.slice(0, 2) == (subpath-i, segment-i) {
+      // ensure [0, 1] maps onto original segment, even if segment got shortened
+      t = t/to.last()
+    }
+
+    // CETZ NAMING: path.segments are actually subpaths
+    let this-subpath = path.segments.at(subpath-i)
+    let post-subpaths = path.segments.slice(subpath-i + 1)
+
+    let (start, closed, segments) = this-subpath
+    let this-segment = segments.at(segment-i)
+    let post-segments = segments.slice(segment-i + 1)
+
+    let prev-pt = {
+      if segment-i > 0 { segments.at(segment-i - 1).last() }
+      else { start }
+    }
+
+    let sliced-segment
+
+    let kind = this-segment.first()
+    if kind == "l" {
+      let (_, pt) = this-segment
+      let new-pt = cetz.vector.lerp(prev-pt, pt, t)
+      sliced-segment = this-segment
+      start = new-pt
+    } else if kind == "c" {
+      let s = prev-pt
+      let (_, c1, c2, e) = this-segment
+      let (lo, hi) = cetz.path-util.bezier.split(s, e, c1, c2, t)
+      let (s, e, c1, c2) = hi
+      sliced-segment = ("c", c1, c2, e)
+      start = s
+    }
+
+    let sliced-subpath = (start, closed, (sliced-segment, ..post-segments))
+
+    // CETZ NAMING: path.segments are actually subpaths
+    path.segments = (sliced-subpath, ..post-subpaths)
+  }
+
+
+  path
+}
+
+
+
+
+
 /// Approximate a circular arc with a cubic Bézier segment.
 /// 
 /// This similar to `cetz.drawable.arc()` except that it never
