@@ -98,19 +98,28 @@
 
   } else if it.element.func() == metadata and "entity" in it.element.value {
     show: link.with(it.element.location())
-    let (entity, ..info) = it.element.value
-    if entity == "function" {
-      raw(info.function + "()")
 
-    } else if entity == "argument" {
-      if state("current-function").get() == info.function {
-        raw(info.argument)
+    if it.supplement != auto {
+      // custom label text
+      it.supplement
+      
+    } else {
+      // format entity
+      let (entity, ..info) = it.element.value
+      if entity == "function" {
+        raw(info.function + "()")
+
+      } else if entity == "argument" {
+        if state("current-function").get() == info.function {
+          raw(info.argument)
+        } else {
+          raw(info.function + "." + info.argument)
+        }
+
       } else {
-        raw(info.function + "." + info.argument)
+        panic("unknown ref element", it.element)
       }
 
-    } else {
-      panic("unknown ref element", it.element)
     }
 
   } else if it.element.func() == heading {

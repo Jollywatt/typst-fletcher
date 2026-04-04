@@ -8,8 +8,8 @@ Import fletcher with:
 #raw(block: true, lang: "typ", "#import \"@preview/fletcher:" + VERSION + "\" as fletcher: diagram, node, edge")
 
 Diagrams contain #[@node]s and #[@edge]s.
-Nodes contain content and can have various shapes and styles, while edges snap to nodes and can be given @edge.marks and #[@edge.label]s.
-Nodes and edges can be placed in a @diagram, or directly into a CeTZ canvas.
+Nodes contain content and can have various shapes and styles, while edges snap to nodes and can be given @edge.marks[marks] and @edge.label[labels].
+Nodes and edges can be placed in a @diagram, or @draw-in-cetz[directly into a CeTZ canvas].
 
 When placed in @diagram, nodes and edges are arranged on a @flexigrids[flexible coordinate grid].
 
@@ -94,7 +94,7 @@ Notice how the column sizes adjust to the with of the green node:
 	}),
 )
 
-Nodes can also span multiple columns or rows:
+When inside a flexigrid, nodes can also span multiple columns or rows:
 
 #example(```typ
 #diagram(
@@ -102,9 +102,9 @@ Nodes can also span multiple columns or rows:
 	node-stroke: 1pt,
 	node-fill: white,
 	node-corner-radius: 2pt,
-	node((0,0), [Sight]),
+	node((0,0), [Sight], name: <sight>),
 	node((1,0), [Sound]),
-	node((2,0), [Smell]),
+	node((2,0), [Smell], name: <smell>),
 	node((0,1), [Senses], colspan: 3),
 	node((0,0), rowspan: 2, colspan: 3,
 	  fill: yellow, extrude: 4pt, layer: -1),

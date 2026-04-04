@@ -15,7 +15,7 @@ Fletcher builds on top of CeTZ by defining:
 - @diagram, which is simply @flexigrid wrapped in a CeTZ canvas with styling shortcuts.
 
 
-== Drawing in a CeTZ canvas
+== Drawing in a CeTZ canvas <draw-in-cetz>
 
 You can place nodes and edges directly inside a CeTZ canvas.
 If you still want to use tabular layouts like in @diagram, you can wrap the objects in a @flexigrid.
