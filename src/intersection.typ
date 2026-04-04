@@ -3,15 +3,15 @@
 #import cetz.util.bezier: _cubic-roots, cubic-point
 #import "utils.typ": is-drawable
 
-// much of this code is copied from cetz's path-util and bezier source files
+// much of this code is copied from cetz's path-util and bezier source files.
 // intersection functions by the same name are augmented here
-// to return the location of the intersection points along with
-// their corresponding path t parameters 
+// to return the intersection points along with their corresponding index/t parameters
+// along the line, curve or path given as the *second* argument
 
 
 /// Identical to `cetz.intersection.line-line` but returns
 /// a pair `(pt, t)` of the point and its t parameter along
-/// the a-b line segment (or `none`).
+/// the c-d line segment (or `none`).
 #let line-line(a, b, c, d, ray: false) = {
   let lli8(x1, y1, x2, y2, x3, y3, x4, y4) = {
     let nx = (x1*y2 - y1*x2)*(x3 - x4)-(x1 - x2)*(x3*y4 - y3*x4)
@@ -36,10 +36,10 @@
     }
     if ray or (on-line(pt, a, b) and on-line(pt, c, d)) {
       let t = {
-        if calc.abs(b.at(0) - a.at(0)) > 0 {
-          (pt.at(0) - a.at(0))/(b.at(0) - a.at(0))
-        } else if calc.abs(b.at(1) - a.at(1)) > 0 {
-          (pt.at(1) - a.at(1))/(b.at(1) - a.at(1))
+        if calc.abs(d.at(0) - c.at(0)) > 0 {
+          (pt.at(0) - c.at(0))/(d.at(0) - c.at(0))
+        } else if calc.abs(d.at(1) - c.at(1)) > 0 {
+          (pt.at(1) - c.at(1))/(d.at(1) - c.at(1))
         } else {
           0.
         }
@@ -79,7 +79,7 @@
   for t in roots {
     let pt = cubic-point(s, e, c1, c2, t)
     if ray {
-      pts.push(pt)
+      pts.push((pt, t))
     } else {
       let s = if calc.abs(lb.at(0) - la.at(0)) >= 1e-6 {
         (pt.at(0) - la.at(0)) / (lb.at(0) - la.at(0))
@@ -87,17 +87,17 @@
         (pt.at(1) - la.at(1)) / (lb.at(1) - la.at(1))
       }
       if s >= 0 and s <= 1 {
-        pts.push(pt)
+        pts.push((pt, t))
       }
     }
   }
-  return pts.zip(roots)
+  return pts
 }
 
 
 /// Identical to `cetz.intersection.line-path` but returns
 /// an array of pairs `(pt, (subpath-i, segment-i, t))` of each
-/// intersection point and its index/location along the path/subpath/segment.
+/// intersection point and its index/parameter along the path.
 #let line-path(la, lb, path) = {
   let pt_t_pairs = ()
 
@@ -133,7 +133,7 @@
 
 /// Identical to `cetz.intersection.path-path` but returns
 /// an array of pairs `(pt, (subpath-i, segment-i, t))` of each
-/// intersection point and its index/location along the path/subpath/segment.
+/// intersection point and its index/parameter along the *second* path.
 #let path-path(a, b, samples: 8) = {
   assert(is-drawable(a))
   let pt_loc_pairs = ()
@@ -191,9 +191,8 @@
   from-end: false,
 ) = {
   if type(targets) != array { targets = (targets,) }
-  let pts = (targets.map(target => path-path(target, path))
-    .join() + ())
-    .sorted(key: ((pt, indices)) => indices)
+  let pts = (targets.map(target => path-path(target, path)).join() + ())
+    .sorted(key: ((pt, index-param-along-path)) => index-param-along-path)
 
   if pts.len() == 0 { return path }
   let pt_info = if from-end { pts.at(-1 - index) } else { pts.at(index) }
@@ -227,7 +226,7 @@
       new-segments.push(this-segment)
       origin = pt.map(float)
     } else {
-      let (_ss_, c1, c2, e) = this-segment
+      let (_, c1, c2, e) = this-segment
       let (left, right) = cetz.path-util.bezier.split(prev-pt, e, c1, c2, t)
       let (s, e, c1, c2) = right
       origin = s
