@@ -14,8 +14,10 @@
   "node.inset": 4,
   "node.outset": 4,
 
-  "edge.snap": 5,
   "edge.label": 5,
+  "edge.snap": 5,
+  "edge.snap.from": 6,
+  "edge.snap.to": 6,
 
   "mark": 4,
   "mark.dots": 4 ,

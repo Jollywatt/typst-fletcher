@@ -264,7 +264,6 @@
 
     return target-drawables
   })
-
 }
 
 
@@ -296,6 +295,32 @@
     join: edge.style.join,
     miter-limit: edge.style.miter-limit,
   )
+
+  if debug-level(edge.debug, "edge.snap") {
+    // visualise the drawables that the edge is supposed to snap to
+    debug-group((ctx => {
+      let (snap-start, snap-end) = snap-to
+      let drawables = ()
+      if snap-start != none and debug-level(edge.debug, "edge.snap.from") {
+        drawables += snap-start.map(path => {
+          path.stroke = green.transparentize(30%)
+          path.fill = green.transparentize(80%)
+          path
+        })
+      }
+      if snap-end != none and debug-level(edge.debug, "edge.snap.to") {
+        drawables += snap-end.map(path => {
+          path.stroke = red.transparentize(30%)
+          path.fill = red.transparentize(80%)
+          path
+        })
+      }
+      return (
+        ctx: ctx,
+        drawables: drawables,
+      )
+    },))
+  }
 
   if edge.layer != 0 {
     scene = cetz.draw.on-layer(edge.layer, scene)
