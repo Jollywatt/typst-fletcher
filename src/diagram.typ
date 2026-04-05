@@ -2,6 +2,7 @@
 #import "deps.typ": cetz
 #import "edges.typ": _edge
 #import "nodes.typ": node, _node
+#import "parsing.typ": interpret-style-arguments
 
 #let is-space(el) = {
 	if el == none { return true }
@@ -35,7 +36,7 @@
 		if child.func() == metadata and "fletcher" in child.value {
 			if child.value.fletcher == "node" {
 				let args = child.value.args
-        args.position = (x, y)
+				args.position = (x, y)
 				nodes.push(_node(..args))
 			} else if child.value.fletcher == "edge" {
 				let args = child.value.args
@@ -70,6 +71,8 @@
 	(nodes, edges)
 }
 
+
+
 /// Draw nodes, edges and CeTZ objects in a @flexigrid layout.
 /// 
 /// Default styles for nodes and edges may be specified with named arguments
@@ -88,14 +91,14 @@
 /// )
 /// ```
 #let diagram(..args) = {
-  let pos = args.pos().map(arg => {
-    if type(arg) == content and arg.func() == math.equation {
-      extract-nodes-and-edges-from-equation(arg)
-    } else {
-      arg
-    }
-  }).join().flatten()
-  let (named, styles) = flexigrid.interpret-style-arguments(args.named())
-  let canvas = cetz.canvas(flexigrid.flexigrid(styles, pos, ..named))
-  box(canvas, fill: none, stroke: none)
+	let pos = args.pos().map(arg => {
+		if type(arg) == content and arg.func() == math.equation {
+			extract-nodes-and-edges-from-equation(arg)
+		} else {
+			arg
+		}
+	}).join().flatten()
+	let (named, styles) = interpret-style-arguments(args.named())
+	let canvas = cetz.canvas(flexigrid.flexigrid(styles, pos, ..named))
+	box(canvas, fill: none, stroke: none)
 }

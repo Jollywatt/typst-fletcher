@@ -377,3 +377,47 @@
 
 	return options
 }
+
+
+#let split-style-argument(arg) = {
+	let compounds = (
+		"corner-radius",
+		"snap-method",
+	)
+
+	let path = ()
+	while arg.len() > 0 {
+		let c = compounds.find(c => arg.starts-with(c))
+		if c != none {
+			path.push(c)
+			arg = arg.slice(c.len())
+			continue
+		}
+		let i = arg.position("-")
+		if i == none { 
+			path.push(arg)
+			break
+		}
+		path.push(arg.slice(0, i))
+		arg = arg.slice(i + 1)
+	}
+	return path
+}
+
+/// Convert named arguments such as `node-fill: yellow` into
+/// corresponding calls to `cetz.draw.set-style(node: (fill: yellow))`.
+#let interpret-style-arguments(args) = {
+	import "deps.typ": cetz.draw.set-style
+
+	let styles = ()
+	for (arg, value) in args {
+		let path = split-style-argument(arg)
+		if path.first() in ("node", "edge") {
+			let tree = value
+			for p in path.rev() { tree = ((p): tree) }
+			styles += set-style(..tree)
+			let _ = args.remove(arg)
+		}
+	}
+	return (args, styles)
+}

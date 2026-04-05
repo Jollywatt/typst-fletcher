@@ -1,5 +1,5 @@
 #set page(width: auto, height: auto, margin: 1em)
-#import "/src/flexigrid.typ": split-style-argument, interpret-style-arguments
+#import "/src/parsing.typ": split-style-argument
 
 #for (arg, path) in (
   "node-fill": ("node", "fill"),
