@@ -4,10 +4,10 @@
 
 #import "shapes.typ"
 
-/// Calculate the appropriate sizes `w0` and `w1` of adjacent cells
-/// when placing a node of width `W` at position `0 <= t <= 1 ` with
-/// cell gutter `g`.
-/// https://jollywatt.github.io/flexigrid
+// Calculate the appropriate sizes `w0` and `w1` of adjacent cells
+// when placing a node of width `W` at position `0 <= t <= 1 ` with
+// cell gutter `g`.
+// https://jollywatt.github.io/flexigrid
 #let cell-sizer(W, w0, w1, t, g) = {
   if t == 0 { return (W, 0) }
   let x0 = -t*calc.max(
@@ -19,11 +19,11 @@
   return (x0 + W, W - (t - 1)/t*x0)
 }
 
-/// From an array of rectangles, each of the form
-/// `(pos: array, size: array, weight: number)`,
-/// calculate the sizes of flexigrid cells.
-/// 
-/// Rectangle positions can be fractional.
+// From an array of rectangles, each of the form
+// `(pos: array, size: array, weight: number)`,
+// calculate the sizes of flexigrid cells.
+// 
+// Rectangle positions can be fractional.
 #let cell-sizes-from-rects(rects, (col-gutter, row-gutter)) = {
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
@@ -221,11 +221,11 @@
 
 }
 
-/// A row/column specifier can be
-/// - `auto`, meaning all row/columns are automatically sized
-/// - a number or length, specifying the size
-/// - an array of the above, specifying each row/column individually
-/// - a function taking the index and returning a size, `none` or `auto`
+// A row/column specifier can be
+// - `auto`, meaning all row/columns are automatically sized
+// - a number or length, specifying the size
+// - an array of the above, specifying each row/column individually
+// - a function taking the index and returning a size, `none` or `auto`
 #let interpret-rowcol-spec(input) = {
   if input == auto { return i => auto }
   if type(input) == array { return i => input.at(i) }
