@@ -883,11 +883,25 @@
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
   /// -> pair
   snap-to: (auto, auto),
-  /// When snapping then end of an edge to an object, one method is to shorten the edge to where meets
-  /// the object (the `"trim"` method), and another method is to move the edge's end vertex to the edge
+  /// When an edge snaps to an object's outline, the edge can be shifted in two ways:
+  /// one method is to shorten the edge to the point where it meets
+  /// the object (the `"trim"` method); the other method is to move the edge's end vertex to the edge
   /// of the object (the `"move"` method).
   /// 
   /// You can pass a pair such as `("trim", "move")` to control the methods for the start and end of the edge independently.
+  /// 
+  /// ```example
+  /// #diagram(
+  ///   debug: "edge.snap",
+  ///   node-fill: yellow,
+  ///   node-shape: circle,
+  ///   node((0,0), [Snapping]),
+  ///   edge("->", `trim`, bend: +90deg, snap-method: "trim"),
+  ///   edge("->", `move`, bend: -90deg, snap-method: "move"),
+  ///   node((1,0), [Method]),
+  /// )
+  /// ```
+  /// 
   /// -> "trim" | "move" | pair 
   snap-method: auto,
   outset: auto,
