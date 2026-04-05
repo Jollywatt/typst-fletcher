@@ -58,12 +58,75 @@
 	#outline(
 		title: [Function Reference],
 		target: selector(heading).after(<func-ref>, inclusive: false),
-    depth: 3,
+    depth: 2,
 	)
 
 ]
 
 #v(1fr)
+
+
+
+#show heading: it => {
+  let size = (40pt, 25pt, 20pt, 15pt).at(it.level, default: 10pt)
+  text(size, it)
+}
+#show heading.where(level: 1): it => {
+  pagebreak(weak: true)
+  align(center, text(weight: 200, smallcaps(it)))
+  line(length: 100%)
+}
+
+#show link: it => underline(strong(it))
+#show ref: common.show-ref
+
+= Manual <manual>
+
+#{
+  set heading(offset: 1)
+  include "sections/1-intro.typ"
+  include "sections/2-diagrams.typ"
+  include "sections/3-nodes.typ"
+  include "sections/4-edges.typ"
+  include "sections/5-marks.typ"
+  include "sections/6-cetz.typ"
+}
+
+
+
+= Function Reference <func-ref>
+
+#let DOCSTRINGS = {
+  tidy.parse-module(read("../src/diagram.typ")).functions
+  tidy.parse-module(read("../src/flexigrid.typ")).functions
+  tidy.parse-module(read("../src/nodes.typ")).functions
+  tidy.parse-module(read("../src/edges.typ")).functions
+  tidy.parse-module(read("../src/paths.typ")).functions
+  tidy.parse-module(read("../src/marks.typ")).functions
+  tidy.parse-module(read("../src/shapes.typ")).functions
+  tidy.parse-module(read("../src/parsing.typ")).functions
+}.map(fn => (fn.name, fn)).to-dict()
+
+
+#let insert-at-path(dict, path, value) = {
+  if path.len() > 0 {
+    let p = path.remove(0)
+    dict + ((p): insert-at-path(dict.at(p, default: (:)), path, value))
+  } else {
+    dict.insert(value, value)
+    dict
+  }
+}
+
+// dictionary reflecting the entire package submodule structure
+#let exports = (:)
+#for (name, path) in common.FUNCTION_PATHS {
+  if name in DOCSTRINGS {
+    exports = insert-at-path(exports, path, name)
+  }
+}
+#let exports = exports.fletcher
+
 
 
 #let show-type(type) = { 
@@ -96,7 +159,12 @@
   show: par
 	set text(font: "DejaVu Sans Mono", size: 0.8em)
 
-  text(common.FUNCTION_PATHS.at(fn.name).join(".") + ".")
+  if fn.name in common.FUNCTION_PATHS {
+    text(common.FUNCTION_PATHS.at(fn.name).join(".") + ".")
+  } else {
+    text(red)[unexported: ]
+  }
+
 	text(fn.name, fill: tidy.styles.default.colors.signature-func-name)
 	"("
 
@@ -126,14 +194,16 @@
 }
 
 #let show-function-argument(fn, arg, info) = {
+  
+  rich-ref(
+    fn.name + "." + arg,
+    entity: "argument",
+    function: fn.name,
+    argument: arg,
+  )
+
   let first-line = {
     strong(raw(arg))
-    rich-ref(
-      fn.name + "." + arg,
-      entity: "argument",
-      function: fn.name,
-      argument: arg,
-    )
     if "types" in info {
       h(0.5em)
       info.types.map(show-type).join(text(0.8em)[ or ])
@@ -147,7 +217,6 @@
   }
 
   let is-long = info.description.len() > 500
-
   block(
     inset: 10pt,
     breakable: is-long,
@@ -165,11 +234,13 @@
 }
 
 
-#let show-function(fn) = {
+
+#let show-fn(name) = {
+  let fn = DOCSTRINGS.at(name)
   state("current-function").update(fn.name)
 
-  [=== #raw(fn.name + "()")]
   rich-ref(fn.name, entity: "function", function: fn.name)
+  [=== #raw(fn.name + "()")]
 
   eval(fn.description, mode: "markup", scope: common.scope)
 
@@ -182,61 +253,67 @@
   }
 }
 
-#let show-module(name, sort-functions: it => 0) = {
-  [== Module #raw(name)]
-  
-  let path = "/src/" + name + ".typ"
-  let docs = tidy.parse-module(read(path),
-    label-prefix: "fletcher.",
-    scope: common.scope,
-  )
-  show raw.where(block: false): set raw(lang: "typc")
 
-  show raw.where(lang: "svg"): it => common.frame(eval(it.text, scope: common.scope))
-
-  for fn in docs.functions.sorted(key: sort-functions) {
-    show-function(fn)
-  }
-}
-
-#show link: it => underline(strong(it))
-
-
-#show heading: it => {
-  let size = (30pt, 25pt, 20pt, 15pt).at(it.level, default: 10pt)
-  text(size, it)
-}
-
-#show heading.where(level: 1): it => {
-  pagebreak(weak: true)
-  it
-  line(length: 100%)
-}
-
-#show ref: common.show-ref
-
-= Manual <manual>
-
-#{
-  set heading(offset: 1)
-  include "sections/1-intro.typ"
-  include "sections/2-diagrams.typ"
-  include "sections/3-nodes.typ"
-  include "sections/4-edges.typ"
-  include "sections/5-marks.typ"
-  include "sections/6-cetz.typ"
-}
-
-= Function Reference <func-ref>
 
 #show raw.where(lang: "example"): show-example
 
-#show-module("diagram")
-#show-module("nodes")
-#show-module("edges")
-#show-module("flexigrid")
-#show-module("paths")
-#show-module("marks")
-#show-module("shapes", sort-functions: info => {
-  fletcher.shapes.NODE_SHAPES.keys().position(name => name == info.name)
-})
+
+== Main functions
+
+#show-fn(exports.remove("diagram"))
+#show-fn(exports.remove("node"))
+#show-fn(exports.remove("edge"))
+#show-fn(exports.remove("flexigrid"))
+
+
+== Module `marks`
+
+#show-fn(exports.marks.remove("test"))
+#for name in exports.marks.keys() {
+  show-fn(exports.marks.remove(name))
+}
+
+
+== Module `shapes`
+
+These are the built in node shapes, usable with the @node.shape option.
+
+#grid(
+  columns: (1fr,)*5,
+  align: center + horizon,
+  inset: 0.5em,
+  ..fletcher.shapes.NODE_SHAPES.keys()
+    .filter(name => name != "none")
+    .enumerate()
+    .map(((i, name)) => {
+      let c = color.oklch(80%, 70%, 20deg*i)
+      let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
+      fletcher.diagram(fletcher.node((0,0), body, shape: name, stroke: c))
+    })
+)
+
+#for name in exports.shapes.keys() {
+  show-fn(exports.shapes.remove(name))
+}
+
+
+== Module `paths`
+
+#show-fn(exports.paths.remove("path-effect"))
+#show-fn(exports.paths.remove("trim-path"))
+#show-fn(exports.paths.remove("trim-to-intersection"))
+#for name in exports.paths.keys() {
+  show-fn(exports.paths.remove(name))
+}
+
+
+== Module `parsing`
+
+#for name in exports.parsing.keys() {
+  show-fn(exports.parsing.remove(name))
+}
+
+
+== Docstrings not in this manual
+#exports
+

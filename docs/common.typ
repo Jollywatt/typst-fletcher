@@ -30,26 +30,36 @@
 )
 
 #let fn-paths-by-name(mod, path: ()) = {
-  let d = (:)
+  let fns = (:)
+  
+  // First pass: collect functions at this level
+  for (name, value) in dictionary(mod) {
+    if type(value) == function {
+      fns.insert(name, path)
+    }
+  }
+  
+  // Second pass: recurse into modules
   for (name, value) in dictionary(mod) {
     if type(value) == module {
       let s = fn-paths-by-name(value, path: (..path, name))
       for (name, path) in s {
-        if name in d {
-          if path.len() < d.at(name).len() {
-            d.at(name) = path
+        if name in fns {
+          if path.len() < fns.at(name).len() {
+            fns.at(name) = path
           }
         } else {
-          d.insert(name, path)
+          fns.insert(name, path)
         }
       }
-    } else if type(value) == function {
-      d.insert(name, path)
     }
   }
-  return d
+  
+  return fns
 }
 
+// ordered dictionary of all functions and their shortest exported paths
+// e.g., `node` has shortest path `fletcher.node` (not `fletcher.nodes.node`)
 #let FUNCTION_PATHS = fn-paths-by-name(fletcher, path: ("fletcher",))
 
 
