@@ -176,7 +176,7 @@
 /// If `from-end` is `false`, the portion of the path from the start
 /// to the selected intersection point is returned; otherwise it is
 /// the portion from the intersection to the end.
-#let trim-drawable(
+#let trim-to-intersection(
   /// Drawable to truncate, of the form `(type: "path", segments: ..)`.
   path,
   /// Cutting drawables which may intersect the drawable to truncate.

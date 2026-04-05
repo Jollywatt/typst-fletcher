@@ -30,8 +30,8 @@
     let d0 = drawable-to-path(edge)
     let d1 = drawable-to-path(src)
     let d2 = drawable-to-path(tgt)
-    d0 = paths.intersection.trim-drawable(d0, d1, from-end: true, index: -1)
-    d0 = paths.intersection.trim-drawable(d0, d2, index: -1)
+    d0 = paths.intersection.trim-to-intersection(d0, d1, from-end: true, index: -1)
+    d0 = paths.intersection.trim-to-intersection(d0, d2, index: -1)
     d0.stroke = stroke
     (ctx => (
       ctx: ctx,
