@@ -303,7 +303,11 @@
 }
 
 
-
+#let intersections(path, targets) = {
+  if type(targets) != array { targets = (targets,) }
+  (targets.map(target => intersection.path-path(target, path)).join() + ())
+    .sorted(key: ((pt, path-index)) => path-index)
+}
 
 /// Shorten a path drawable so it starts or ends at an intersection point
 /// with another drawable.
@@ -329,10 +333,7 @@
   index: 0,
 ) = {
 
-  if type(targets) != array { targets = (targets,) }
-
-  let pts = targets.map(target => intersection.path-path(target, path)).join()
-    .sorted(key: ((pt, path-index)) => path-index)
+  let pts = intersections(path, targets)
   if pts.len() == 0 { return path }
 
   if trim == "start" {

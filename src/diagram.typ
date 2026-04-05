@@ -72,7 +72,6 @@
 }
 
 
-
 /// Draw nodes, edges and CeTZ objects in a @flexigrid layout.
 /// 
 /// Default styles for nodes and edges may be specified with named arguments

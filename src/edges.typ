@@ -14,6 +14,7 @@
   join: "round",
   corner-radius: 2.5pt,
   miter-limit: 4.0,
+  snap-method: "trim",
 )
 
 
@@ -158,19 +159,6 @@
 ) = {
   assert(paths.is-drawable(drawable))
 
-  if debug-level(debug, "edge.snap") {
-    // draw path before trimming is applied
-    debug-group({
-      (ctx => (
-        ctx: ctx,
-        drawables: drawable + (
-          stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)), 
-          fill: none
-        ),
-      ),)
-    })
-  }
-  
   if snap-to.first() != none {
     drawable = paths.trim-to-intersection(drawable, snap-to.first(), trim: "start")
   }
@@ -266,20 +254,66 @@
   })
 }
 
+#let process-edge-drawable(ctx, edge) = {
+  let objs = (edge.draw)(edge.vertices)
+  if objs.len() != 1 { utils.error("edge.draw should return a single CeTZ object") }
+
+  let drawables = cetz.process.element(ctx, objs.first()).drawables
+  if drawables.len() != 1 { utils.error("edge.draw should return a single drawable") }
+
+  return drawables.first()
+}
+
+#let apply-vertex-moving-snap-method(ctx, edge, drawable, snap-to) = {
+  let old-drawable = drawable
+
+  if edge.style.snap-method.first() == "move" and snap-to.first() != none {
+    let pts = paths.intersections(drawable, snap-to.first())
+    if pts.len() > 0 {
+      let (pt, index) = pts.first()
+      edge.vertices.first() = cetz.util.revert-transform(ctx.transform, pt)
+      drawable = process-edge-drawable(ctx, edge)
+    }
+  }
+
+  if edge.style.snap-method.last() == "move" and snap-to.last() != none {
+    let pts = paths.intersections(old-drawable, snap-to.last())
+    if pts.len() > 0 {
+      let (pt, index) = pts.last()
+      edge.vertices.last() = cetz.util.revert-transform(ctx.transform, pt)
+      drawable = process-edge-drawable(ctx, edge)
+    }
+  }
+
+  return drawable
+}
+
 
 #let draw-edge(ctx, edge) = {
-  let objs = (edge.draw)(edge.vertices)
-  if objs.len() != 1 {
-    utils.error("edge.draw should return a single CeTZ object")
-  }
-  let obj = objs.first()
-  let drawables = cetz.process.element(ctx, obj).drawables
-  if drawables.len() != 1 {
-    utils.error("edge.draw should return a single drawable")
-  }
-  let drawable = drawables.first()
 
+  let drawable = process-edge-drawable(ctx, edge)
+
+  if debug-level(edge.debug, "edge.snap") {
+    // show where edge would be drawn without any snapping
+    debug-group({
+      (ctx => (
+        ctx: ctx,
+        drawables: drawable + (
+          stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)), 
+          fill: none
+        ),
+      ),)
+    })
+  }
+  
   let snap-to = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)
+
+  let drawable = apply-vertex-moving-snap-method(ctx, edge, drawable, snap-to)
+
+  let snap-to-trim-method = (
+    if edge.style.snap-method.first() == "trim" { snap-to.first() },
+    if edge.style.snap-method.last() == "trim" { snap-to.last() },
+  )
 
   let scene = apply-edge-effects(
     ctx,
@@ -289,7 +323,7 @@
     shorten: edge.style.shorten,
     marks: edge.style.marks,
     labels: edge.labels,
-    snap-to: snap-to,
+    snap-to: snap-to-trim-method,
     debug: edge.debug,
     corner-radius: edge.style.corner-radius,
     join: edge.style.join,
@@ -363,13 +397,25 @@
     )
 
     // resolve styles
-    let ctx-edge = ctx.style.at("edge", default: (:))
-    ctx-edge.stroke = utils.stroke-to-dict(ctx-edge.at("stroke", default: (:)))
+    let ctx-style = ctx.style.at("edge", default: (:))
+
+    if "stroke" in ctx-style {
+      // strokes must be dictionaries to enable folding
+      ctx-style.stroke = utils.stroke-to-dict(ctx-style.stroke)
+    }
+
     edge-data.style = cetz.styles.resolve(
-      ctx-edge,
+      ctx-style,
       base: DEFAULT_EDGE_STYLE,
       merge: edge-data.style,
     )
+
+    // validate some styles
+    edge-data.style.snap-method = utils.as-pair(edge-data.style.snap-method).map(m => {
+      let options = ("trim", "move")
+      if m not in options { utils.error("Snapping method must be #..1; got #0", repr(m), options) }
+      m
+    })
 
     // resolve marks
     edge-data.style.marks = edge-data.style.marks.map(mark => {
@@ -831,7 +877,19 @@
   /// 
   /// -> anchor
   label-anchor: auto,
+  /// Names or coordinates of nodes or CeTZ objects to snap the edge's ends to.
+  /// 
+  /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
+  /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
+  /// -> pair
   snap-to: (auto, auto),
+  /// When snapping then end of an edge to an object, one method is to shorten the edge to where meets
+  /// the object (the `"trim"` method), and another method is to move the edge's end vertex to the edge
+  /// of the object (the `"move"` method).
+  /// 
+  /// You can pass a pair such as `("trim", "move")` to control the methods for the start and end of the edge independently.
+  /// -> "trim" | "move" | pair 
+  snap-method: auto,
   outset: auto,
   /// Distance to shorten the edge at either end.
   /// 
@@ -921,6 +979,7 @@
     mark-scale: mark-scale,
     label: label,
     snap-to: snap-to,
+    snap-method: snap-method,
     outset: outset,
     shorten: shorten,
     name: name,
@@ -965,6 +1024,7 @@
       extrude: options.extrude,
       mark-scale: options.mark-scale,
       corner-radius: corner-radius,
+      snap-method: options.snap-method,
     ),
     labels: labels,
     snap-to: options.snap-to,
