@@ -2,7 +2,6 @@
 #import cetz.vector
 #import cetz.util: bezier
 #import "utils.typ"
-#import "intersection.typ"
 
 
 // TERMINOLOGY
@@ -10,9 +9,18 @@
 // CeTZ paths are arrays of subpaths, which are structures consisting of
 // an array of segments.
 // 
+// <drawable> := (type: "path", segments: <path>, fill: .., stroke: ..)
 // <path> := (<sub-path>*,)
 // <sub-path> := (<origin>, <closed>, (<segment>*,))
 // <segment> := ("l" | "c", <vector>*)
+// 
+// Warning: CeTZ source code often conflates "subpaths" with "segments".
+
+#let is-drawable(it) = type(it) == dictionary and it.at("type", default: none) == "path"
+#let is-path(it) = type(it) == array and it.all(is-subpath)
+#let is-subpath(it) = type(it) == array and it.len() == 3 and type(it.at(1)) == bool
+#let is-segment(it) = type(it) == array and it.len() > 1 and it.first() in "lc"
+
 
 
 /// Simplify a subpath by deleting trivial/zero-length
@@ -200,7 +208,7 @@
   /// Path index `(subpath-i, segment-i, t)` to terminate the path at.
   to: none,
 ) = {
-  assert(utils.is-drawable(path))
+  assert(is-drawable(path))
 
   if from != none and to != none {
     (from, to) = (from, to).sorted()

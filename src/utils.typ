@@ -19,11 +19,6 @@
 #let is-edge(o) = type(o) == dictionary and "class" in o and o.class == "edge"
 #let is-cetz(o) = type(o) == array and o.all(el => type(el) == function)
 
-#let is-drawable(obj) = type(obj) == dictionary and obj.at("type", default: none) == "path"
-#let is-path(obj) = type(obj) == array and obj.all(is-subpath)
-#let is-subpath(obj) = type(obj) == array and obj.len() == 3
-
-
 #let as-array(o) = {
 	if type(o) == array { return o }
 	if o == none { return () }

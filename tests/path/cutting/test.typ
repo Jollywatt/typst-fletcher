@@ -1,6 +1,5 @@
 #set page(width: auto, height: auto, margin: 1em)
-#import "/src/exports.typ" as fletcher: diagram, node, edge, cetz
-#import "/src/intersection.typ": trim-to-intersection
+#import "/src/exports.typ" as fletcher: diagram, node, edge, cetz, paths
 
 cut path into #text(green)[before] and #text(red)[after]
 #cetz.canvas({
@@ -12,8 +11,8 @@ cut path into #text(green)[before] and #text(red)[after]
     let path = drawables.first()
     let cutter = drawables.last()
 
-    let start = trim-to-intersection(path, cutter, index: 0, from-end: false)
-    let end = trim-to-intersection(path, cutter, index: 0, from-end: true)
+    let start = paths.intersection.trim-to-intersection(path, cutter, index: 0, from-end: false)
+    let end = paths.intersection.trim-to-intersection(path, cutter, index: 0, from-end: true)
 
     start.stroke = green
     end.stroke = red
@@ -51,4 +50,40 @@ cut path into #text(green)[before] and #text(red)[after]
     line((0,1), (1,2), (3,1), (1.2,1))
     arc-through((1,1), (2.5,0), (4,1))
   }), line((0,1.5), (4,1.5), stroke: blue))
+})
+
+
+#pagebreak()
+
+
+#cetz.canvas({
+  import cetz.draw: *
+
+  set-style(line: (stroke: 0.5pt))
+
+  let snap-to(edge, src, tgt, stroke: black) = get-ctx(ctx => {
+    let drawable-to-path(it) = cetz.process.element(ctx, it.first()).drawables.first()
+    let d0 = drawable-to-path(edge)
+    let d1 = drawable-to-path(src)
+    let d2 = drawable-to-path(tgt)
+    d0 = paths.intersection.trim-to-intersection(d0, d1, from-end: true, index: -1)
+    d0 = paths.intersection.trim-to-intersection(d0, d2, index: -1)
+    d0.stroke = stroke
+    (ctx => (
+      ctx: ctx,
+      drawables: d0
+    ),)
+  })
+
+  let o1 = circle((0,0), radius: 0.5)
+  let o2 = rect((2,1), (4,3))
+  let edge = line((0,0), (2,0), (3,2))
+  o1
+  o2
+  edge
+  snap-to(edge, o1, o2, stroke: red)
+
+  let edge = line((0,0), (1,1), (0,2), (-1,1), (0,0))
+  edge
+  snap-to(edge, o1, o1, stroke: blue)
 })

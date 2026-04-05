@@ -156,7 +156,7 @@
   ..extra-path-effect-args,
   debug: false,
 ) = {
-  assert(utils.is-drawable(drawable))
+  assert(paths.is-drawable(drawable))
 
   if debug-level(debug, "edge.snap") {
     // draw path before trimming is applied

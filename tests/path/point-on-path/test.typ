@@ -23,3 +23,4 @@
 // beyond end
 #let (pos, vel, acc) = paths.point-on-path(none, path, segment: 3)
 #assert.eq(pos, (10,10,0))
+

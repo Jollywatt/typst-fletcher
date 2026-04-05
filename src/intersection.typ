@@ -1,7 +1,6 @@
 #import "deps.typ": cetz
 #import cetz.util
 #import cetz.util.bezier: _cubic-roots, cubic-point
-#import "utils.typ": is-drawable
 
 // much of this code is copied from cetz's path-util and bezier source files.
 // intersection functions by the same name are augmented here
@@ -99,7 +98,7 @@
 /// an array of pairs `(pt, (subpath-i, segment-i, t))` of each
 /// intersection point and its index/parameter along the path.
 #let line-path(la, lb, path) = {
-  let pt_t_pairs = ()
+  let pts = ()
 
   for (subpath-i, (start, closed, segments)) in path.at("segments", default: ()).enumerate() {
     let origin = start
@@ -108,11 +107,11 @@
         let pt_t = line-line(la, lb, origin, args.last())
         if pt_t != none {
           let (pt, t) = pt_t
-          pt_t_pairs.push((pt, (subpath-i, segment-i, t)))
+          pts.push((pt, (subpath-i, segment-i, t)))
         }
       } else if kind == "c" {
         let (c1, c2, e) = args
-        pt_t_pairs += line-cubic(la, lb, origin, e, c1, c2)
+        pts += line-cubic(la, lb, origin, e, c1, c2)
           .map(((pt, t)) => (pt, (subpath-i, segment-i, t)))
       }
 
@@ -123,26 +122,25 @@
       let pt_t = line-line(la, lb, origin, start)
       if pt_t != none {
         let (pt, t) = pt_t
-        pt_t_pairs.push((pt, (subpath-i, segment-i, t)))
+        pts.push((pt, (subpath-i, segment-i, t)))
       }
     }
   }
 
-  return pt_t_pairs
+  return pts
 }
 
 /// Identical to `cetz.intersection.path-path` but returns
 /// an array of pairs `(pt, (subpath-i, segment-i, t))` of each
 /// intersection point and its index/parameter along the *second* path.
 #let path-path(a, b, samples: 8) = {
-  assert(is-drawable(a))
-  let pt_loc_pairs = ()
+  let pts = ()
 
   for ((start, closed, segments)) in a.at("segments", default: ()) {
     let origin = start
     for ((kind, ..args)) in segments {
       if kind == "l" {
-        pt_loc_pairs += line-path(origin, args.last(), b)
+        pts += line-path(origin, args.last(), b)
       } else if kind == "c" {
         let (c1, c2, e) = args
         let line-strip = range(samples + 1).map(t => {
@@ -150,7 +148,7 @@
         })
 
         for i in range(1, line-strip.len()) {
-          pt_loc_pairs += line-path(line-strip.at(i - 1), line-strip.at(i), b)
+          pts += line-path(line-strip.at(i - 1), line-strip.at(i), b)
         }
       }
 
@@ -158,10 +156,10 @@
     }
 
     if closed {
-      pt_loc_pairs += line-path(origin, start, b)
+      pts += line-path(origin, start, b)
     }
   }
-  return pt_loc_pairs
+  return pts
 }
 
 
