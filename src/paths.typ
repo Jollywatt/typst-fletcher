@@ -2,6 +2,7 @@
 #import cetz.vector
 #import cetz.util: bezier
 #import "utils.typ"
+#import "intersection.typ"
 
 
 // TERMINOLOGY
@@ -303,6 +304,45 @@
 
 
 
+
+/// Shorten a path drawable so it starts or ends at an intersection point
+/// with another drawable.
+/// 
+/// If there are multiple intersection points, the path is terminated
+/// at the one given by `index`, where intersections are ordered along the
+/// path starting from the start or end depending on the trimming mode.
+#let trim-to-intersection(
+  /// Drawable to truncate, of the form `(type: "path", segments: ..)`.
+  /// -> drawable
+  path,
+  /// Cutting drawables which may intersect the drawable to truncate.
+  /// -> array of drawables
+  targets,
+  /// Whether to trim/shorten the start or end of the path.
+  /// -> "start" | "end"
+  trim: "start",
+  /// Index of the intersection point to use to trim the path.
+  /// If trimming from the start, indexing begins at the start of the path;
+  /// if trimming from the end, indexing is reversed so it starts at the
+  /// intersection closest to the end.
+  /// -> int
+  index: 0,
+) = {
+
+  if type(targets) != array { targets = (targets,) }
+
+  let pts = targets.map(target => intersection.path-path(target, path)).join()
+    .sorted(key: ((pt, path-index)) => path-index)
+  if pts.len() == 0 { return path }
+
+  if trim == "start" {
+    let (pt, path-index) = pts.at(index)
+    trim-path(path, from: path-index)
+  } else if trim == "end" {
+    let (pt, path-index) = pts.rev().at(index)
+    trim-path(path, to: path-index)
+  }
+}
 
 
 /// Approximate a circular arc with a cubic Bézier segment.
@@ -940,7 +980,6 @@
     )
   })
 }
-
 
 
 

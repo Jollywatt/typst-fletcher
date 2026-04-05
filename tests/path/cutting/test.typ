@@ -11,8 +11,8 @@ cut path into #text(green)[before] and #text(red)[after]
     let path = drawables.first()
     let cutter = drawables.last()
 
-    let start = paths.intersection.trim-to-intersection(path, cutter, index: 0, from-end: false)
-    let end = paths.intersection.trim-to-intersection(path, cutter, index: 0, from-end: true)
+    let start = paths.trim-to-intersection(path, cutter, trim: "end", index: -1)
+    let end = paths.trim-to-intersection(path, cutter, trim: "start", index: -1)
 
     start.stroke = green
     end.stroke = red
@@ -21,7 +21,13 @@ cut path into #text(green)[before] and #text(red)[after]
       set-transform(none)
       rect(bounds.low, bounds.high, stroke: yellow)
     })
-    (ctx => (ctx: ctx, drawables: (path, start, end, cutter)),)
+
+    (ctx => (ctx: ctx, drawables: (
+      path,
+      start,
+      end,
+      cutter,
+    )),)
   })
 
   
@@ -55,7 +61,6 @@ cut path into #text(green)[before] and #text(red)[after]
 
 #pagebreak()
 
-
 #cetz.canvas({
   import cetz.draw: *
 
@@ -66,8 +71,8 @@ cut path into #text(green)[before] and #text(red)[after]
     let d0 = drawable-to-path(edge)
     let d1 = drawable-to-path(src)
     let d2 = drawable-to-path(tgt)
-    d0 = paths.intersection.trim-to-intersection(d0, d1, from-end: true, index: -1)
-    d0 = paths.intersection.trim-to-intersection(d0, d2, index: -1)
+    d0 = paths.trim-to-intersection(d0, d1, trim: "start")
+    d0 = paths.trim-to-intersection(d0, d2, trim: "end")
     d0.stroke = stroke
     (ctx => (
       ctx: ctx,
@@ -87,3 +92,4 @@ cut path into #text(green)[before] and #text(red)[after]
   edge
   snap-to(edge, o1, o1, stroke: blue)
 })
+

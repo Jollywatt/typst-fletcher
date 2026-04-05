@@ -172,10 +172,10 @@
   }
   
   if snap-to.first() != none {
-    drawable = paths.intersection.trim-drawable(drawable, snap-to.first(), from-end: true)
+    drawable = paths.trim-to-intersection(drawable, snap-to.first(), trim: "start")
   }
   if snap-to.last() != none {
-    drawable = paths.intersection.trim-drawable(drawable, snap-to.last(), from-end: false)
+    drawable = paths.trim-to-intersection(drawable, snap-to.last(), trim: "end")
   }
 
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
