@@ -41,7 +41,7 @@ Default styles can be set by passing the same arguments prefixed with "`node-`" 
 ```)
 
 
-You can also place nodes and edges directly into `cetz.canvas()` and set node and edge styles with `cetz.draw.seet-style()`.
+You can also place nodes and edges directly into `cetz.canvas()` and set node and edge styles with `cetz.draw.set-style()`.
 Below, we use fletcher's marks to draw an edge in a CeTZ-based figure.
 
 #example(```typ
@@ -71,8 +71,6 @@ The rows and columns in this coordinate system grow to accommodate the sizes of 
 	cetz.draw.polygon("tall.north-east", 6, radius: 4pt)
 )
 ```)
-
-Under the hood, a @diagram is just a @flexigrid inside a CeTZ canvas. You can also use the flexigrid coordinate system inside a normal CeTZ canvas (see @cetz-interop for details.)
 
 Coordinates can be fractional; the center of a node placed at `0.25` is $25%$ between the adjacent columns or rows.
 Notice how the column sizes adjust to the with of the green node:
@@ -107,9 +105,12 @@ When inside a flexigrid, nodes can also span multiple columns or rows:
 	node((2,0), [Smell], name: <smell>),
 	node((0,1), [Senses], colspan: 3),
 	node((0,0), rowspan: 2, colspan: 3,
-	  fill: yellow, extrude: 4pt, layer: -1),
+	  fill: yellow, extrude: 4pt, layer: -1, []),
 )
 ```)
+
+Under the hood, a @diagram is just a @flexigrid inside a CeTZ canvas. You can also use the flexigrid coordinate system inside a normal CeTZ canvas (see @cetz-interop for details.)
+
 
 == Coordinate expressions
 
