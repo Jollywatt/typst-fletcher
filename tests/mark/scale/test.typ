@@ -21,4 +21,15 @@ https://github.com/Jollywatt/typst-fletcher/issues/144
   }
 })
 
-// todo: test diagram(mark-scale: x) and set-style(mark: (scale: x))
+
+#pagebreak()
+
+#diagram(
+  mark-scale: 200%,
+  edge("-|>"),
+)
+
+#diagram(
+  cetz.draw.set-style(edge: (mark-scale: 200%)),
+  edge("-|>"),
+)

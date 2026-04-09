@@ -693,7 +693,9 @@
   marks: (),
   /// Mark size multiplier.
   /// 
-  /// The `size` parameter of any marks is multiplied by the mark scale before being drawn.
+  /// The `size` parameter of each mark is multiplied by the mark scale before being drawn.
+  /// 
+  /// This is an edge style that can also be set using `diagram(mark-scale: ..)` or `cetz.draw.set-style(edge: (mark-scale: ..))`.
   /// 
   /// -> number | percent | auto
   mark-scale: auto,

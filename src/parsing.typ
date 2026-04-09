@@ -411,8 +411,17 @@
 
 	let styles = ()
 	for (arg, value) in args {
+
+		// special cases
+		if arg == "mark-scale" {
+			styles += set-style(edge: (mark-scale: args.remove(arg)))
+		}
+
+
+		// attempt to parse other arguments
 		let path = split-style-argument(arg)
 		if path.first() in ("node", "edge") {
+			// node-foo-bar: .. -> node: (foo: (bar: ..))
 			let tree = value
 			for p in path.rev() { tree = ((p): tree) }
 			styles += set-style(..tree)
