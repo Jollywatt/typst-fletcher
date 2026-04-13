@@ -69,13 +69,17 @@
 
 #let resolve-node-styles(ctx, data) = {
   let (style, shape, body) = data
-  let ctx-style-node = ctx.style.at("node", default: (:))
+
+  let node-styles = cetz.styles.resolve(
+    DEFAULT_NODE_STYLE + NODE_SHAPES,
+    merge: ctx.style.at("node", default: (:)),
+  )
 
   // a node shape is a dictionary with a `draw` entry
   let all-shapes = NODE_SHAPES // default shapes
   // other shapes can be specified via
   // set-style(node: ((shape-name): (..)))
-  for (k, v) in ctx-style-node {
+  for (k, v) in node-styles {
     if type(v) == dictionary and "draw" in v {
       all-shapes.insert(k, v)
     }
@@ -96,8 +100,8 @@
   if shape == auto {
     // if no shape is matched to node arguments
     // default shape can be given via set-style(node: (shape: ..))
-    if "shape" in ctx-style-node {
-      shape = ctx-style-node.shape
+    if "shape" in node-styles {
+      shape = node-styles.shape
     }
   }
 
@@ -159,7 +163,7 @@
   // - set-style(node: (prop: val)) affects all nodes not specified above
   // - set-style(prop: val) doesn't affect nodes at all
   let style = cetz.styles.resolve(
-    ctx-style-node,
+    node-styles,
     base: (
       (shape): DEFAULT_NODE_STYLE.keys()
         .map(k => (k, auto)).to-dict(),
@@ -238,10 +242,6 @@
         nodes: (),
         edges: (),
       )
-      ctx.style.node = {
-        DEFAULT_NODE_STYLE
-        NODE_SHAPES
-      }
     }
     let fletcher-ctx = ctx.shared-state.fletcher
 

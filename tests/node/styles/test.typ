@@ -55,3 +55,16 @@
 
 // TODO: test error messages
 // #diagram(node((0,0), frobnicate: 42))
+
+#page[
+  Node styles in canvas
+  #cetz.canvas({
+    import cetz.draw: *
+    node((0,0), [Hello])
+    set-style(node: (fill: yellow, stroke: 1pt, corner-radius: 2pt))
+    set-style(node: (circle: (fill: teal, stroke: none)))
+    node((2,0), [World])
+    node((0,-1), [A], radius: 1em)
+    node((2,-1), [B], radius: 1em, fill: none, stroke: 2pt)
+  })
+]
