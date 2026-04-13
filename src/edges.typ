@@ -646,6 +646,25 @@
       let angle = utils.thing-to-angle(loop-angle) + 180deg
       cetz.draw.arc(a, radius: loop, start: angle, delta: -360deg)
     }
+  ),
+  corner: (
+    required: ("corner",),
+    optional: (:),
+    draw: ((corner,), (a, b)) => {
+      if corner == "|-" {
+        cetz.draw.line(a, (a, "|-", b), b)
+      } else if corner == "-|" {
+        cetz.draw.line(a, (a, "-|", b), b)
+      } else if corner == "-|-" {
+        let mid = (a, 50%, b)
+        cetz.draw.line(a, (a, "-|", mid), (mid, "|-", b), b)
+      } else if corner == "|-|" {
+        let mid = (a, 50%, b)
+        cetz.draw.line(a, (a, "|-", mid), (mid, "-|", b), b)
+      } else {
+        utils.error("edge shape `corner` accepts one of #..0; got #1", ("-|", "|-", "-|-", "|-|"), repr(corner))
+      }
+    }
   )
 )
 
