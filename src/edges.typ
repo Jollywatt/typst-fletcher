@@ -462,6 +462,7 @@
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.edge += 1
+      ctx.shared-state.fletcher.current.uv = last
     }
     if fletcher-ctx.pass != "final" {
       ctx.shared-state.fletcher.edges.push(edge-data)
@@ -470,6 +471,7 @@
     if fletcher-ctx.pass == "layout" {
       // for the layout pass, we only need to identify nodes/edges/anchors
       // so we skip path effects, marks, etc for performance
+      (c => (ctx: ctx),)
       (edge-data.draw)(edge-data.vertices)
     } else {
       draw-edge(ctx, edge-data)

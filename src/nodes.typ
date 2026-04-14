@@ -295,6 +295,14 @@
       }
     }
 
+    if data.pos == auto {
+      if "current" in fletcher-ctx {
+        data.pos = fletcher-ctx.current.uv
+      } else {
+        utils.error("node has no position")
+      }
+    }
+
     if fletcher-ctx.pass == "final" {
       // node position was calculated by flexigrid
       // copy that position to actual node
@@ -311,6 +319,7 @@
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.node += 1
+      ctx.shared-state.fletcher.current.uv = data.pos
     }
     if fletcher-ctx.pass != "final" {
       ctx.shared-state.fletcher.nodes.push(data)

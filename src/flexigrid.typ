@@ -450,7 +450,7 @@
       pass: "layout",
       nodes: (),
       edges: (),
-      current: (node: 0, edge: 0), // index of current object
+      current: (node: 0, edge: 0, uv: (0,0)), // index of current object
     )
     let node-styles = cetz.styles.resolve(
       shapes.DEFAULT_NODE_STYLE + shapes.NODE_SHAPES,
@@ -521,7 +521,7 @@
         pass: "final",
         nodes: nodes,
         edges: edges,
-        current: (node: 0, edge: 0),
+        current: (node: 0, edge: 0, uv: (0, 0)),
         flexigrid: grid,
         debug: debug,
       )

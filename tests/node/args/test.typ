@@ -11,3 +11,12 @@
   node((0,1), <b>)
   edge(<a>, "->", <b>, [Nodes with labels and no body])
 })
+
+#diagram({
+  node[Nodes]
+  edge("r", "=>")
+  node[Without]
+  edge("dl,r", "-->")
+  node[Positions]
+})
+
