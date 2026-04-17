@@ -358,113 +358,110 @@
   draw: vertices => none,
   layer: 0,
   debug: auto,
-) = {
-
-  cetz.draw.get-ctx(ctx => {
-    
-    if "fletcher" not in ctx.shared-state {
-      ctx.shared-state.fletcher = (
-        pass: none,
-        nodes: (),
-        edges: (),
-      )
-    }
-    let fletcher-ctx = ctx.shared-state.fletcher
-
-    let edge-data = (
-      class: "edge",
-      vertices: vertices,
-      style: style.pairs().filter(((k, v)) => v != auto).to-dict(),
-      labels: labels,
-      snap-to: utils.as-pair(snap-to),
-      name: name,
-      draw: draw,
-      layer: layer,
-      debug: get-debug(ctx, debug),
+) = cetz.draw.get-ctx(ctx => {
+  
+  if "fletcher" not in ctx.shared-state {
+    ctx.shared-state.fletcher = (
+      pass: none,
+      nodes: (),
+      edges: (),
     )
+  }
+  let fletcher-ctx = ctx.shared-state.fletcher
 
-    // resolve styles
-    let ctx-style = ctx.style.at("edge", default: (:))
+  let edge-data = (
+    class: "edge",
+    vertices: vertices,
+    style: style.pairs().filter(((k, v)) => v != auto).to-dict(),
+    labels: labels,
+    snap-to: snap-to,
+    name: name,
+    draw: draw,
+    layer: layer,
+    debug: get-debug(ctx, debug),
+  )
 
-    if "stroke" in ctx-style {
-      // strokes must be dictionaries to enable folding
-      ctx-style.stroke = utils.stroke-to-dict(ctx-style.stroke)
+  // resolve styles
+  let ctx-style = ctx.style.at("edge", default: (:))
+
+  if "stroke" in ctx-style {
+    // strokes must be dictionaries to enable folding
+    ctx-style.stroke = utils.stroke-to-dict(ctx-style.stroke)
+  }
+
+  edge-data.style = cetz.styles.resolve(
+    ctx-style,
+    base: DEFAULT_EDGE_STYLE,
+    merge: edge-data.style,
+  )
+
+  // validate some styles
+  edge-data.style.snap-method = utils.as-pair(edge-data.style.snap-method).map(m => {
+    let options = ("trim", "move")
+    if m not in options { utils.error("Snapping method must be #..1; got #0", repr(m), options) }
+    m
+  })
+
+  // resolve marks
+  edge-data.style.marks = edge-data.style.marks.map(mark => {
+    mark.size *= float(edge-data.style.mark-scale)
+    Marks.resolve-mark(mark)
+  })
+
+  // if edge appears in a flexigrid, interpret coordinates in uv system by default
+  if fletcher-ctx.pass == "final" {
+    edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
+  }
+
+  // resolve auto vertices to prev/next node
+  let (first, .., last) = edge-data.vertices
+  if fletcher-ctx.pass == "final" {
+    let i = fletcher-ctx.current.node
+    if first == auto and i > 0 {
+      first = fletcher-ctx.nodes.at(i - 1).pos
     }
-
-    edge-data.style = cetz.styles.resolve(
-      ctx-style,
-      base: DEFAULT_EDGE_STYLE,
-      merge: edge-data.style,
-    )
-
-    // validate some styles
-    edge-data.style.snap-method = utils.as-pair(edge-data.style.snap-method).map(m => {
-      let options = ("trim", "move")
-      if m not in options { utils.error("Snapping method must be #..1; got #0", repr(m), options) }
-      m
-    })
-
-    // resolve marks
-    edge-data.style.marks = edge-data.style.marks.map(mark => {
-      mark.size *= float(edge-data.style.mark-scale)
-      Marks.resolve-mark(mark)
-    })
-
-    // if edge appears in a flexigrid, interpret coordinates in uv system by default
-    if fletcher-ctx.pass == "final" {
-      edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
+    if last == auto and i < fletcher-ctx.nodes.len() {
+      last = fletcher-ctx.nodes.at(i).pos
     }
+  }
+  
+  // give reasonable defaults rather than panic
+  if first == auto { first = () }
+  if last == auto { last = (rel: (1, 0)) }
+  edge-data.vertices.first() = first
+  edge-data.vertices.last() = last
 
-    // resolve auto vertices to prev/next node
-    let (first, .., last) = edge-data.vertices
-    if fletcher-ctx.pass == "final" {
-      let i = fletcher-ctx.current.node
-      if first == auto and i > 0 {
-        first = fletcher-ctx.nodes.at(i - 1).pos
-      }
-      if last == auto and i < fletcher-ctx.nodes.len() {
-        last = fletcher-ctx.nodes.at(i).pos
-      }
-    }
-    
-    // give reasonable defaults rather than panic
-    if first == auto { first = () }
-    if last == auto { last = (rel: (1, 0)) }
-    edge-data.vertices.first() = first
-    edge-data.vertices.last() = last
+  // snap to cetz nodes if first/last vertex is a node name
+  if type(first) == str and edge-data.snap-to.first() == auto {
+    if first in ctx.nodes { edge-data.snap-to.first() = first }
+  }
+  if type(last) == str and edge-data.snap-to.last() == auto {
+    if last in ctx.nodes { edge-data.snap-to.last() = last }
+  }
 
-    // snap to cetz nodes if first/last vertex is a node name
-    if type(first) == str and edge-data.snap-to.first() == auto {
-      if first in ctx.nodes { edge-data.snap-to.first() = first }
-    }
-    if type(last) == str and edge-data.snap-to.last() == auto {
-      if last in ctx.nodes { edge-data.snap-to.last() = last }
-    }
+  // resolve vertex coordinate expressions
+  // discard ctx because we do not want to update ctx.prev.pt
+  // edge vertices should never affect nodes with relative positions
+  let (_, first, ..mid-vertices, last) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
+  edge-data.vertices = (first, ..mid-vertices, last)
 
-    // resolve vertex coordinate expressions
-    // discard ctx because we do not want to update ctx.prev.pt
-    // edge vertices should never affect nodes with relative positions
-    let (_, first, ..mid-vertices, last) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
-    edge-data.vertices = (first, ..mid-vertices, last)
+  if "current" in fletcher-ctx {
+    ctx.shared-state.fletcher.current.edge += 1
+    ctx.shared-state.fletcher.current.uv = last
+  }
+  if fletcher-ctx.pass != "final" {
+    ctx.shared-state.fletcher.edges.push(edge-data)
+  }
 
-    if "current" in fletcher-ctx {
-      ctx.shared-state.fletcher.current.edge += 1
-      ctx.shared-state.fletcher.current.uv = last
-    }
-    if fletcher-ctx.pass != "final" {
-      ctx.shared-state.fletcher.edges.push(edge-data)
-    }
-
-    if fletcher-ctx.pass == "layout" {
-      // for the layout pass, we only need to identify nodes/edges/anchors
-      // so we skip path effects, marks, etc for performance
-      (c => (ctx: ctx),)
-      (edge-data.draw)(edge-data.vertices)
-    } else {
-      draw-edge(ctx, edge-data)
-    }
-  },)
-}
+  if fletcher-ctx.pass == "layout" {
+    // for the layout pass, we only need to identify nodes/edges/anchors
+    // so we skip path effects, marks, etc for performance
+    (c => (ctx: ctx),)
+    (edge-data.draw)(edge-data.vertices)
+  } else {
+    draw-edge(ctx, edge-data)
+  }
+})
 
 
 
@@ -1003,11 +1000,11 @@
     marks: marks,
     mark-scale: mark-scale,
     label: label,
-    snap-to: snap-to,
+    snap-to: utils.as-pair(snap-to),
     snap-method: snap-method,
-    outset: outset,
-    shorten: shorten,
-    name: name,
+    outset: utils.as-pair(outset),
+    shorten: utils.as-pair(shorten),
+    name: if name != none { str(name) },
     stroke: stroke,
     dash: dash,
     extrude: extrude,
@@ -1043,8 +1040,8 @@
     vertices: options.vertices,
     style: (
       stroke: options.stroke,
-      outset: utils.as-pair(options.outset),
-      shorten: utils.as-pair(options.shorten),
+      outset: options.outset,
+      shorten: options.shorten,
       marks: options.marks,
       extrude: options.extrude,
       mark-scale: options.mark-scale,
@@ -1053,7 +1050,7 @@
     ),
     labels: labels,
     snap-to: options.snap-to,
-    name: if name != none { str(options.name) },
+    name: options.name,
     draw: options.draw,
     layer: layer,
     debug: debug,
