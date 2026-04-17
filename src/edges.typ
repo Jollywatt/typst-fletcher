@@ -152,6 +152,58 @@
 }
 
 
+#let apply-decorations(
+  ctx,
+  element,
+  stroke: 1pt,
+  smooth: 1,
+  shorten: .5,
+  amplitude: 8,
+  wavelength: 10,
+) = {
+
+  // sigmoid of x/d
+  let σ(x, d) = {
+    if d == 0 { float(x >= 0) }
+    else if x/d > 10 { return 1 }
+    else {
+      let e = calc.exp(x/d)
+      e/(1 + e)
+    }
+  }
+
+  let unit-length = ctx.length.to-absolute()
+  let thickness = utils.get-thickness(stroke).to-absolute()
+
+  let (drawables,) = cetz.process.element(ctx, element.first())
+
+  let total-length = cetz.path-util.length(drawables.first().segments)
+
+  let amplitude = utils.to-length(amplitude, units-of: thickness)
+
+  let wavelength = utils.to-length(wavelength, units-of: thickness, ratios-of: total-length)/unit-length
+
+  let (t0-short, t1-short) = utils.as-pair(shorten)
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length))
+  let (t0-smooth, t1-smooth) = utils.as-pair(smooth)
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length))
+
+  // https://www.desmos.com/CALCULATOR/dz7ju1havq
+  let amplitude-fn(t) = {
+    t = float(t)
+    let c = 2
+    amplitude*σ(c*(2*(t - t0-smooth) - t0-short), t0-smooth)*σ(c*(2*(1 - t - t1-smooth) - t1-short), t1-smooth)
+  }
+
+  cetz.decorations.wave(
+    element,
+    amplitude: amplitude-fn,
+    stroke: stroke,
+    segment-length: wavelength,
+  )
+}
+
+
 /// Apply edge effects to a CeTZ drawable.
 /// These effects include path extrusion and shortening,
 /// mark and label placement, and edge snapping (cutting
@@ -184,7 +236,7 @@
 		debug: debug,
 	)
 
-  paths._path-effect(
+  let path = paths._path-effect(
     ctx,
     (drawable,),
     shorten-start: shorten-start,
@@ -195,46 +247,13 @@
     ..extra-path-effect-args,
   )
 
+  let path = apply-decorations(ctx, path, stroke: stroke)
+
+  path
+
   marks
 
   draw-labels-on-path(ctx, drawable.segments, labels, debug: debug)
-}
-
-
-
-#let apply-edge-snapping(ctx, edge, drawable, snap-to) = {
-  let old-drawable = drawable
-
-  let (snap-start, snap-end) = snap-to
-  let (method-start, method-end) = edge.style.snap-method
-
-  if snap-start != none and method-start == "move" {
-    let pts = paths.intersections(drawable, snap-start)
-    if pts.len() > 0 {
-      let (pt, index) = pts.first()
-      edge.vertices.first() = cetz.util.revert-transform(ctx.transform, pt)
-      drawable = process-edge-drawable(ctx, edge)
-    }
-  }
-
-  if snap-end != none and method-end == "move" {
-    let pts = paths.intersections(old-drawable, snap-end)
-    if pts.len() > 0 {
-      let (pt, index) = pts.last()
-      edge.vertices.last() = cetz.util.revert-transform(ctx.transform, pt)
-      drawable = process-edge-drawable(ctx, edge)
-    }
-  }
-
-  if snap-start != none and method-start == "trim" {
-    drawable = paths.trim-to-intersection(drawable, snap-start, trim: "start")
-  }
-
-  if snap-end != none and method-end == "trim" {
-    drawable = paths.trim-to-intersection(drawable, snap-end, trim: "end")
-  }
-
-  return drawable
 }
 
 
@@ -282,6 +301,42 @@
 }
 
 
+#let apply-edge-snapping(ctx, edge, drawable, snap-to) = {
+  let old-drawable = drawable
+
+  let (snap-start, snap-end) = snap-to
+  let (method-start, method-end) = edge.style.snap-method
+
+  if snap-start != none and method-start == "move" {
+    let pts = paths.intersections(drawable, snap-start)
+    if pts.len() > 0 {
+      let (pt, index) = pts.first()
+      edge.vertices.first() = cetz.util.revert-transform(ctx.transform, pt)
+      drawable = process-edge-drawable(ctx, edge)
+    }
+  }
+
+  if snap-end != none and method-end == "move" {
+    let pts = paths.intersections(old-drawable, snap-end)
+    if pts.len() > 0 {
+      let (pt, index) = pts.last()
+      edge.vertices.last() = cetz.util.revert-transform(ctx.transform, pt)
+      drawable = process-edge-drawable(ctx, edge)
+    }
+  }
+
+  if snap-start != none and method-start == "trim" {
+    drawable = paths.trim-to-intersection(drawable, snap-start, trim: "start")
+  }
+
+  if snap-end != none and method-end == "trim" {
+    drawable = paths.trim-to-intersection(drawable, snap-end, trim: "end")
+  }
+
+  return drawable
+}
+
+
 #let draw-edge(ctx, edge) = {
 
   let drawable = process-edge-drawable(ctx, edge)
@@ -302,6 +357,7 @@
   let snap-objects = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)
 
   let drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
+
 
   let scene = apply-edge-effects(
     ctx,

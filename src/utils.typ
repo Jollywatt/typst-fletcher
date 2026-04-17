@@ -40,6 +40,30 @@
 	} else { return (o, o) }
 }
 
+/// Convert a number, ratio, or (relative) length to an absolute length.
+#let to-length(
+	it,
+	/// Ratios are taken as fractions of this length.
+	ratios-of: none,
+	/// Numbers are taken as multiples of this length.
+	units-of: none,
+) = {
+	let to-abs(it) = if it.em != 0 { it.to-absolute() } else { it.abs }
+
+	if type(it) == ratio {
+		if ratios-of == none { error("expected length, got #0", it) }
+		float(it)*ratios-of
+	} else if type(it) in (int, float) {
+		if units-of == none { error("expected length, got #0", it) }
+		it*units-of
+	} else if type(it) == length {
+		to-abs(it)
+	} else if type(it) == relative {
+		if ratios-of == none { error("expected length, got #0", it) }
+		it.ratio*float(ratios-of) + to-abs(it.length)
+	}
+}
+
 
 // math
 
