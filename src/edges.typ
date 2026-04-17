@@ -15,6 +15,12 @@
   corner-radius: 2.5pt,
   miter-limit: 4.0,
   snap-method: "trim",
+  decorate: (
+    kind: none,
+    amplitude: 8,
+    wavelength: 10,
+    smooth: 1
+  )
 )
 
 
@@ -156,11 +162,23 @@
   ctx,
   element,
   stroke: 1pt,
+  kind: "wave",
   smooth: 1,
   shorten: .5,
   amplitude: 8,
   wavelength: 10,
 ) = {
+  let kinds = (
+    wave: cetz.decorations.wave,
+    zigzag: cetz.decorations.zigzag,
+    coil: cetz.decorations.coil,
+    square: cetz.decorations.square,
+    "~": cetz.decorations.wave,
+  )
+  if kind not in kinds {
+    utils.error("unknown decoration kind #0. Try #..1", repr(kind), kinds.keys())
+  }
+  let decorate-fn = kinds.at(kind)
 
   // sigmoid of x/d
   let σ(x, d) = {
@@ -195,7 +213,7 @@
     amplitude*σ(c*(2*(t - t0-smooth) - t0-short), t0-smooth)*σ(c*(2*(1 - t - t1-smooth) - t1-short), t1-smooth)
   }
 
-  cetz.decorations.wave(
+  decorate-fn(
     element,
     amplitude: amplitude-fn,
     stroke: stroke,
@@ -218,6 +236,7 @@
   shorten: (0, 0),
   ..extra-path-effect-args,
   debug: false,
+  decorate: none,
 ) = {
   assert(paths.is-drawable(drawable))
 
@@ -247,7 +266,18 @@
     ..extra-path-effect-args,
   )
 
-  let path = apply-decorations(ctx, path, stroke: stroke)
+  if decorate != none {
+    path = apply-decorations(
+      ctx,
+      path,
+      stroke: stroke,
+      kind: decorate.kind,
+      amplitude: decorate.amplitude,
+      wavelength: decorate.wavelength,
+      smooth: decorate.smooth,
+
+    )
+  }
 
   path
 
@@ -358,7 +388,6 @@
 
   let drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
 
-
   let scene = apply-edge-effects(
     ctx,
     drawable,
@@ -366,11 +395,12 @@
     extrude: edge.style.extrude,
     shorten: edge.style.shorten,
     marks: edge.style.marks,
+    decorate: edge.style.decorate,
     labels: edge.labels,
-    debug: edge.debug,
     corner-radius: edge.style.corner-radius,
     join: edge.style.join,
     miter-limit: edge.style.miter-limit,
+    debug: edge.debug,
   )
 
   if debug-level(edge.debug, "edge.snap") {
@@ -728,6 +758,20 @@
 
 }
 
+#let interpret-decorate-arg(it) = {
+  if it == none { return none }
+  if type(it) == str { it = (kind: it) }
+  if type(it) != dictionary {
+    utils.error("edge `decorate` option should be a string, dictionary or none; got #0", it)
+  }
+  let valid = DEFAULT_EDGE_STYLE.decorate.keys()
+  let invalid = it.keys().filter(k => k not in valid)
+  if invalid.len() > 0 {
+    utils.error("unknown key `#0` in edge `decorate` option: Try #..1", invalid.first(), valid)
+  }
+  return it
+}
+
 /// Draw a path with arrow marks, labels, and automatic snapping to nodes.
 #let edge(
   /// An edge's positional arguments may specify:
@@ -741,7 +785,7 @@
   ///
   /// ```typc
   /// edge(from, to, ..) // explicit start and end
-  /// edge(to, ..) == edge(auto, to, ..) // start from previous node
+  /// edge(to, ..) in (none, edge)(auto, to, ..) // start from previous node
   /// edge(..) == edge(auto, auto, ..) // between previous and next nodes
   /// edge(from, v1, v2, ..vs, to, ..) // multiple vertices
   /// edge(from, "->", to) // for two vertices, marks can go in the middle
@@ -1066,6 +1110,7 @@
     extrude: extrude,
     layer: layer,
     draw: draw,
+    decorate: decorate,
   )
 
   options += parsing.interpret-edge-positional-args(args.pos(), options)
@@ -1079,6 +1124,8 @@
   if options.at("dash", default: auto) != auto {
     options.stroke.dash = options.dash
   }
+
+  options.decorate = interpret-decorate-arg(options.decorate)
 
   let named = args.named()
   let (named, labels) = interpret-label-args(named + (
@@ -1103,6 +1150,7 @@
       mark-scale: options.mark-scale,
       corner-radius: corner-radius,
       snap-method: options.snap-method,
+      decorate: options.decorate,
     ),
     labels: labels,
     snap-to: options.snap-to,
