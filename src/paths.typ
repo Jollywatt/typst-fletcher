@@ -199,8 +199,8 @@
 
 
 
-/// Shorten a path at the start or end by subpath/segment index
-/// and $t$-parameter (not by path length, see `cetz.path-util.shorten-to` for that).
+/// Shorten a path from either end by subpath/segment index and $t$-parameter
+/// (not by path length, see `cetz.path-util.shorten-to` for that).
 #let trim-path(
   /// CeTZ drawable, a dictionary containing key `"segments"`.
   path,
@@ -981,7 +981,5 @@
     )
   })
 }
-
-
 
 

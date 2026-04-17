@@ -541,7 +541,7 @@
       cetz.draw.bezier(a, b, (rel: to, to: b))
     }
   ),
-  beizer-through: (
+  bezier-through: (
     required: ("through",),
     optional: (:),
     n-vertices: 2,
@@ -729,16 +729,19 @@
   /// ```
   /// ->
   ..args,
+
   /// Array of coordinates for the edge.
   /// 
   /// Vertices can also be specified as leading positional arguments
   /// (so `edge((0,1), (1,1), $f$, ..)` is the same as `edge($f$, vertices: ((0,1), (1,1)), ..)`).
   /// -> array
   vertices: (),
+  
   /// Marks or arrows to draw along the edge.
   /// 
   /// TODO
   marks: (),
+  
   /// Mark size multiplier.
   /// 
   /// The `size` parameter of each mark is multiplied by the mark scale before being drawn.
@@ -747,6 +750,7 @@
   /// 
   /// -> number | percent | auto
   mark-scale: auto,
+
   /// Content to place along the edge.
   /// 
   /// ```example
@@ -780,6 +784,7 @@
   /// 
   /// -> content | dictionary | array
   label: none,
+
   /// Position along the edge path to place labels.
   /// 
   /// ```svg
@@ -811,6 +816,7 @@
   /// 
   /// -> ratio | number | length
   label-pos: 50%,
+
   /// Which side of the edge to place the label on.
   /// 
   /// If `auto`, the label is placed roughly above straight edges, or on the outside of curved edges.
@@ -841,12 +847,15 @@
   /// 
   /// -> auto | none | center | top | bottom | left | right | start | end
   label-side: auto,
+
   /// Separation between label body and the edge.
   /// 
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-sep: 3pt)` or as a @edge.label option like `edge(.., label: (body: $f$, sep: 3pt))`.
   /// -> length
   label-sep: 3pt,
+
   label-fill: auto,
+
   /// Angle of the label's body.
   /// 
   /// A positive angle goes anticlockwise, with `0deg` being upright.
@@ -872,6 +881,7 @@
   /// 
   /// -> angle | auto | top | bottom | left | right
   label-angle: 0deg,
+
   /// The CeTZ anchor to use for the label content.
   /// 
   /// If `auto`, the anchor is automatically chosen depending on @edge.label-side and the edge's angle.
@@ -879,12 +889,14 @@
   /// 
   /// -> anchor
   label-anchor: auto,
+
   /// Names or coordinates of nodes or CeTZ objects to snap the edge's ends to.
   /// 
   /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
   /// -> pair
   snap-to: (auto, auto),
+
   /// When an edge snaps to an object's outline, the edge can be shifted in two ways:
   /// one method is to shorten the edge to the point where it meets
   /// the object (the `"trim"` method); the other method is to move the edge's end vertex to the edge
@@ -906,7 +918,9 @@
   /// 
   /// -> "trim" | "move" | pair 
   snap-method: auto,
+
   outset: auto,
+
   /// Distance to shorten the edge at either end.
   /// 
   /// If a length is given, the edge is shortened at both ends.
@@ -915,9 +929,13 @@
   /// 
   /// -> length | number | array
   shorten: 0,
+
   name: none,
+
   stroke: auto,
+
   dash: auto,
+  
   /// Draw a separate stroke for each extrusion offset to
   /// obtain a multi-stroke effect. Offsets may be numbers
   /// (specifying multiples of the stroke's thickness) or lengths.
@@ -963,6 +981,9 @@
   /// -> length | number | none
   corner-radius: auto,
 
+  
+  decorate: none,
+
   /// Canvas layer to draw edge on.
   /// 
   /// Edges with equal layer are drawn in the order they are inserted.
@@ -986,6 +1007,7 @@
   in-math: false,
 
   draw: auto,
+
   debug: auto,
 ) = {
 
