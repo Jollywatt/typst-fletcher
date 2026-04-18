@@ -3,11 +3,19 @@
 
 #cetz.canvas({
   import cetz.draw: *
-  for l in (1, 1.5, 2, 2.5, 3) {
-    edge(line((0,0), (l,0)), "<->", decorate: "wave")
+  for l in (0.5, 1, 1.5, 2) {
+    edge(line((0,0), (l,0)), decorate: "wave")
     translate(y: -0.5)
   }
 })
+
+#pagebreak()
+
+With marks
+
+#diagram(edge("<~>", decorate: (wavelength: 2))) \
+#diagram(edge("<<~>>", decorate: (wavelength: 2))) \
+#diagram(edge("<<<~>>>", decorate: (wavelength: 2))) \
 
 
 #pagebreak()

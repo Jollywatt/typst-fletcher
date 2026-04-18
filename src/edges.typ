@@ -19,8 +19,8 @@
     kind: none,
     amplitude: 8,
     wavelength: 10,
-    smooth: 1,
-    shorten: 1,
+    smooth: auto,
+    shorten: 0,
   )
 )
 
@@ -169,6 +169,9 @@
   amplitude: 8,
   wavelength: 10,
 ) = {
+  if kind == none {
+    return element
+  }
   let kinds = (
     wave: cetz.decorations.wave,
     zigzag: cetz.decorations.zigzag,
@@ -200,12 +203,12 @@
 
   let amplitude = utils.to-length(amplitude, units-of: thickness)
 
-  let wavelength = utils.to-length(wavelength, units-of: thickness, ratios-of: total-length)/unit-length
+  let wavelength = utils.to-length(wavelength, units-of: thickness, ratios-of: total-length, to-float: unit-length)
 
   let (t0-short, t1-short) = utils.as-pair(shorten)
-    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length))
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length, to-float: unit-length))
   let (t0-smooth, t1-smooth) = utils.as-pair(smooth)
-    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length))
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length, to-float: unit-length))
 
   // https://www.desmos.com/CALCULATOR/dz7ju1havq
   let amplitude-fn(t) = {
@@ -470,17 +473,21 @@
 
   // resolve styles
   let ctx-style = ctx.style.at("edge", default: (:))
-
   if "stroke" in ctx-style {
     // strokes must be dictionaries to enable folding
     ctx-style.stroke = utils.stroke-to-dict(ctx-style.stroke)
   }
-
   edge-data.style = cetz.styles.resolve(
     ctx-style,
     base: DEFAULT_EDGE_STYLE,
     merge: edge-data.style,
   )
+
+  // resolve marks
+  edge-data.style.marks = edge-data.style.marks.map(mark => {
+    mark.size *= float(edge-data.style.mark-scale)
+    Marks.resolve-mark(mark)
+  })
 
   // validate some styles
   edge-data.style.snap-method = utils.as-pair(edge-data.style.snap-method).map(m => {
@@ -489,11 +496,20 @@
     m
   })
 
-  // resolve marks
-  edge-data.style.marks = edge-data.style.marks.map(mark => {
-    mark.size *= float(edge-data.style.mark-scale)
-    Marks.resolve-mark(mark)
-  })
+  if edge-data.style.decorate.smooth == auto {
+    let mark-0 = edge-data.style.marks.find(m => m.pos == 0)
+    let mark-1 = edge-data.style.marks.find(m => m.pos == 1)
+    let t = edge-data.style.stroke.thickness
+    edge-data.style.decorate.smooth = (
+      if mark-0 == none { 0 } else { 1.0 },
+      if mark-1 == none { 0 } else { 1.0 },
+    )
+    edge-data.style.decorate.shorten = (
+      if mark-0 == none { 0 } else { -(0 + 2*mark-0.tip-hang)*t },
+      if mark-1 == none { 0 } else { -(0 + 2*mark-1.tip-hang)*t },
+    )
+  }
+
 
   // if edge appears in a flexigrid, interpret coordinates in uv system by default
   if fletcher-ctx.pass == "final" {

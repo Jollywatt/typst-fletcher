@@ -47,10 +47,12 @@
 	ratios-of: none,
 	/// Numbers are taken as multiples of this length.
 	units-of: none,
+	/// Always return a float by dividing lengths by this length.
+	to-float: none,
 ) = {
 	let to-abs(it) = if it.em != 0 { it.to-absolute() } else { it.abs }
 
-	if type(it) == ratio {
+	it = if type(it) == ratio {
 		if ratios-of == none { error("expected length, got #0", it) }
 		float(it)*ratios-of
 	} else if type(it) in (int, float) {
@@ -61,6 +63,12 @@
 	} else if type(it) == relative {
 		if ratios-of == none { error("expected length, got #0", it) }
 		it.ratio*float(ratios-of) + to-abs(it.length)
+	}
+
+	if type(to-float) == length and type(it) == length {
+		it/to-float
+	} else {
+		it
 	}
 }
 
