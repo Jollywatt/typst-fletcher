@@ -19,7 +19,8 @@
     kind: none,
     amplitude: 8,
     wavelength: 10,
-    smooth: 1
+    smooth: 1,
+    shorten: 1,
   )
 )
 
@@ -183,7 +184,7 @@
   // sigmoid of x/d
   let σ(x, d) = {
     if d == 0 { float(x >= 0) }
-    else if x/d > 10 { return 1 }
+    else if x/d > 10 { return 1. }
     else {
       let e = calc.exp(x/d)
       e/(1 + e)
@@ -275,7 +276,7 @@
       amplitude: decorate.amplitude,
       wavelength: decorate.wavelength,
       smooth: decorate.smooth,
-
+      shorten: decorate.shorten,
     )
   }
 
@@ -759,7 +760,7 @@
 }
 
 #let interpret-decorate-arg(it) = {
-  if it == none { return none }
+  if it in (auto, none) { return it }
   if type(it) == str { it = (kind: it) }
   if type(it) != dictionary {
     utils.error("edge `decorate` option should be a string, dictionary or none; got #0", it)
@@ -1066,7 +1067,7 @@
   corner-radius: auto,
 
   
-  decorate: none,
+  decorate: auto,
 
   /// Canvas layer to draw edge on.
   /// 
