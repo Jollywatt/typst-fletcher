@@ -25,7 +25,7 @@ Test that the points and path indices returned by\
 
 #cetz.canvas({
   import cetz.draw: *
-  set-transform(cetz.matrix.ident(4))
+  scale(y: -1)
 
 
   let show-intersections(o1, o2) = get-ctx(ctx => {
@@ -43,6 +43,12 @@ Test that the points and path indices returned by\
 
       let (pt, pt2) = cetz.util.revert-transform(ctx.transform, pt, pt2)
       let c = color.oklch(80%, 100%, t*360deg)
+
+      // the velocity vector live in the tangent space
+      // so it transforms as if it were at the origin
+      // thus we delete the 4th component from the transform matrix
+      let t = ctx.transform.map(v => v.slice(0, 3)).slice(0, 3)
+      let x-vel = cetz.matrix.mul-vec(t, x-vel)
 
       // pt is returned directly by intersection function
       circle(pt, radius: 2pt, fill: c, stroke: none)
