@@ -496,14 +496,17 @@
     m
   })
 
+  let mark-0 = edge-data.style.marks.find(m => m.pos == 0)
+  let mark-1 = edge-data.style.marks.find(m => m.pos == 1)
   if edge-data.style.decorate.smooth == auto {
-    let mark-0 = edge-data.style.marks.find(m => m.pos == 0)
-    let mark-1 = edge-data.style.marks.find(m => m.pos == 1)
-    let t = edge-data.style.stroke.thickness
     edge-data.style.decorate.smooth = (
       if mark-0 == none { 0 } else { 1.0 },
       if mark-1 == none { 0 } else { 1.0 },
     )
+  }
+  if edge-data.style.decorate.shorten == auto {
+    panic()
+    let t = edge-data.style.stroke.thickness
     edge-data.style.decorate.shorten = (
       if mark-0 == none { 0 } else { -(0 + 2*mark-0.tip-hang)*t },
       if mark-1 == none { 0 } else { -(0 + 2*mark-1.tip-hang)*t },

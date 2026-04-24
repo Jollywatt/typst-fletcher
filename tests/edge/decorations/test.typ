@@ -17,6 +17,12 @@ With marks
 #diagram(edge("<<~>>", decorate: (wavelength: 2))) \
 #diagram(edge("<<<~>>>", decorate: (wavelength: 2))) \
 
+#pagebreak()
+
+With marks and styles
+
+#diagram(edge("rrr", "<~>", decorate: (shorten: 4))) \
+
 
 #pagebreak()
 
@@ -41,3 +47,16 @@ Style inheritance
     edge()
   }
 })
+
+#pagebreak()
+
+#diagram(
+  node-fill: yellow,
+  node-shape: rect,
+  cetz.draw.set-style(edge: (corner-radius: 1em)),
+  node((0,0), [A], <A>),
+  edge("r,d,r", "<~>"),
+  edge("dd,rr,u", decorate: (kind: "zigzag", smooth: (3,0), shorten: (0, 5pt))),
+  node((2,-1), [B], <B>),
+)
+
