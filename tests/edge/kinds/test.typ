@@ -63,3 +63,15 @@ Edge loops
   edge(<5>, <4>, $a$, "->", label-side: bottom),
   edge(<5>, <5>, $b$, "->", loop-angle: right),
 )
+
+#pagebreak()
+
+Corner edges
+
+#for c in ("-|", "|-", "|-|", "-|-") {
+  diagram(
+    node(text(white, $ #raw(c) $), radius: 1em, fill: black),
+    edge("rd", "->", corner: c),
+  )
+  linebreak()
+}
