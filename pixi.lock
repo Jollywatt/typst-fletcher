@@ -15,10 +15,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-ng-14.2.0-h4852527_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nushell-0.95.0-hffdb0bd_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.4.1-h7b32b05_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.2-h35e630c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/typos-1.30.0-h8fae777_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/typst-0.13.1-h53e704d_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/tytanic-0.2.2-h53e704d_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/typst-0.14.2-h4c46f8d_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/tytanic-0.3.3-he64ecbb_0.conda
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ca-certificates-2025.1.31-hf0a4a13_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-19.1.7-ha82da77_0.conda
@@ -26,8 +26,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nushell-0.95.0-h783d0cf_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.4.1-h81ee809_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typos-1.30.0-h0716509_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.13.1-h0716509_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.2.2-h0716509_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.14.2-hd1458d2_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.3.3-h6fdd925_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
   sha256: fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726
@@ -168,17 +168,17 @@ packages:
   license_family: MIT
   size: 7686021
   timestamp: 1719358942667
-- conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.4.1-h7b32b05_0.conda
-  sha256: cbf62df3c79a5c2d113247ddea5658e9ff3697b6e741c210656e239ecaf1768f
-  md5: 41adf927e746dc75ecf0ef841c454e48
+- conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.2-h35e630c_0.conda
+  sha256: c0ef482280e38c71a08ad6d71448194b719630345b0c9c60744a2010e8a8e0cb
+  md5: da1b85b6a87e141f5140bb9924cecab0
   depends:
   - __glibc >=2.17,<3.0.a0
   - ca-certificates
-  - libgcc >=13
+  - libgcc >=14
   license: Apache-2.0
   license_family: Apache
-  size: 2939306
-  timestamp: 1739301879343
+  size: 3167099
+  timestamp: 1775587756857
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.4.1-h81ee809_0.conda
   sha256: 4f8e2389e1b711b44182a075516d02c80fa7a3a7e25a71ff1b5ace9eae57a17a
   md5: 75f9f0c7b1740017e2db83a53ab9a28e
@@ -212,51 +212,50 @@ packages:
   license_family: MIT
   size: 2705083
   timestamp: 1740828253407
-- conda: https://conda.anaconda.org/conda-forge/linux-64/typst-0.13.1-h53e704d_0.conda
-  sha256: e863d9e1581a31064c2f12d71f8e27058d16ec5a897c2d469b6a24665c2689e4
-  md5: 2a61bbad3fdbc1675419d36695f716f2
+- conda: https://conda.anaconda.org/conda-forge/linux-64/typst-0.14.2-h4c46f8d_0.conda
+  sha256: 2051dee6a67d43a0ff0fd2ff9dacd8ef533e89d0b30feedf87613fc84b00c247
+  md5: 6733bfb9b4338039e182ca3a41253ab5
   depends:
   - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - openssl >=3.4.1,<4.0a0
+  - libgcc >=14
+  - openssl >=3.5.4,<4.0a0
   constrains:
   - __glibc >=2.17
   license: Apache-2.0
   license_family: Apache
-  size: 13178185
-  timestamp: 1741356392643
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.13.1-h0716509_0.conda
-  sha256: 84268cfb391e34e34c455c781728cc298c06bef41987d876aaea55b3509d707c
-  md5: 81b207d1e979d5318596a7916450fe8e
+  size: 15445965
+  timestamp: 1765697444419
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/typst-0.14.2-hd1458d2_0.conda
+  sha256: 201e08fc74e3dc8161d583bb50d23ae07b4537c5efa41c8a7e1ba46a30261ea6
+  md5: 750223ac708cb65d0d32fa61d84e35e4
   depends:
   - __osx >=11.0
   constrains:
   - __osx >=11.0
   license: Apache-2.0
   license_family: Apache
-  size: 12551990
-  timestamp: 1741356577909
-- conda: https://conda.anaconda.org/conda-forge/linux-64/tytanic-0.2.2-h53e704d_0.conda
-  sha256: 7003ba57dcc5ddf956232bf09e9118943b0083894ebc10d7903d6dd53a2efbd5
-  md5: d035690cad4b1faacb4af27d8a62c816
+  size: 14708782
+  timestamp: 1765697750603
+- conda: https://conda.anaconda.org/conda-forge/linux-64/tytanic-0.3.3-he64ecbb_0.conda
+  sha256: cbfe9368c6128111a7b3370522defc3dd64e10b983d5ce38e78f2b9fbfcde3c4
+  md5: 730f264a459ee428fb9712e4659da885
   depends:
+  - openssl
   - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - openssl >=3.4.1,<4.0a0
+  - libgcc >=14
+  - openssl >=3.5.5,<4.0a0
   constrains:
   - __glibc >=2.17
-  license: MIT
-  license_family: MIT
-  size: 13356478
-  timestamp: 1741384657793
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.2.2-h0716509_0.conda
-  sha256: 53eb7a0d94aa92aeea0c2254f85ca07e9ef5ca9bbb5bdcbdc106d531937964c0
-  md5: c1918e41ceb0004428b40302bcacb5a3
+  license: MIT or Apache-2.0
+  size: 17001534
+  timestamp: 1770243718389
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/tytanic-0.3.3-h6fdd925_0.conda
+  sha256: add3c9be8cf46804407d9c338af22d5504989563e67df532d08ec3c698ba875d
+  md5: 37f63b74cfc1b0e9bd441631e9feb9bf
   depends:
   - __osx >=11.0
   constrains:
   - __osx >=11.0
-  license: MIT
-  license_family: MIT
-  size: 12826503
-  timestamp: 1741385282598
+  license: MIT or Apache-2.0
+  size: 16300273
+  timestamp: 1770243801436
