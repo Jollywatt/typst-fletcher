@@ -8,9 +8,6 @@
 	"double": (extrude: (-2, +2)),
 	"triple": (extrude: (-4, 0, +4)),
 	"crossing": (crossing: true),
-	"wave": (decorate: "wave"),
-	"zigzag": (decorate: "zigzag"),
-	"coil": (decorate: "coil"),
 )
 
 #let LINE_ALIASES = (
@@ -23,7 +20,11 @@
 	"..": (dash: "dotted"),
 	". .": (dash: "loosely-dotted"),
 	"...": (dash: "densely-dotted"),
-	"~": EDGE_FLAGS.wave,
+	"~": (decorate: "wave"),
+	"wave": (decorate: "wave"),
+	"zigzag": (decorate: "zigzag"),
+	"coil": (decorate: "coil"),
+	"square": (decorate: "square"),
 	" ": (extrude: ()),
 )
 
