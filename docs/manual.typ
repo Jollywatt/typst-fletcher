@@ -137,17 +137,6 @@
   h(2pt)
 }
 
-#let show-example(code) = {
-  let result = eval(code.text, mode: "markup", scope: common.scope)
-  let code = raw(code.text, lang: "typ")
-
-  grid(
-    columns: (1fr, auto),
-    gutter: 1em,
-    code,
-    result,
-  )
-}
 
 #let rich-ref(id, ..args) = [
   #metadata(args.named())
@@ -255,7 +244,7 @@
 
 
 
-#show raw.where(lang: "example"): show-example
+#show raw.where(lang: "example"): common.show-example
 
 
 == Main functions

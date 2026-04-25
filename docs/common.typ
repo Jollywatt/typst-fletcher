@@ -91,6 +91,7 @@
   } else {
     grid(
       columns: (1fr, auto),
+      align: horizon,
       gutter: 1em,
       code,
       preview,

@@ -1104,7 +1104,35 @@
   /// -> length | number | none
   corner-radius: auto,
 
-  
+  /// Apply CeTZ _path decorations_ do the edge, such as wave or zigzag effects.
+  /// 
+  /// This can be a dictionary containing any of:
+  /// - `kind`, one of `"wave"`, `"zigzag"`, `"square"` or `"coil"`
+  /// - `wavelength`
+  /// - `amplitude`
+  /// - `shorten`, distance from ends to start effect from
+  /// - `smooth`, distance over which to "ramp" the effect's amplitude for a smoother transition
+  /// 
+  /// The `shorten` and `smooth` options can be lengths, distances (interpreted as multiples of `wavelength`) or a pair of these, controlling the values at the star and end of the path independently.
+  /// 
+  /// ```example
+  /// #diagram(
+  ///   edge("ru,r", decorate: (kind: "wave", shorten: 5mm, smooth: 0)),
+  /// )
+  /// ```
+  /// ```example
+  /// #diagram(edge("rr", decorate: (
+  ///   kind: "square",
+  ///   amplitude: 3mm,
+  ///   shorten: 0,
+  ///   smooth: 2mm,
+  /// )))
+  /// ```
+  /// ```example
+  /// #diagram(
+  ///   edge("ru,r", "~>", decorate: (shorten: (2, 0))),
+  /// )
+  /// ```
   decorate: auto,
 
   /// Canvas layer to draw edge on.
