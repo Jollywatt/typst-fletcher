@@ -824,7 +824,7 @@
   ///
   /// ```typc
   /// edge(from, to, ..) // explicit start and end
-  /// edge(to, ..) in (none, edge)(auto, to, ..) // start from previous node
+  /// edge(to, ..) == edge(auto, to, ..) // start from previous node
   /// edge(..) == edge(auto, auto, ..) // between previous and next nodes
   /// edge(from, v1, v2, ..vs, to, ..) // multiple vertices
   /// edge(from, "->", to) // for two vertices, marks can go in the middle
@@ -837,18 +837,18 @@
   /// If applying edge effects to a CeTZ path, no vertices should be given and the path should be the first argument:
   /// 
   /// ```typc
-  /// edge(cetz.draw.bezier(..), ..) // add marks to a bezier path, for example
+  /// edge(cetz.draw.bezier(..), "<->") // add marks to a cetz path
   /// ```
   /// 
   /// If given as positional arguments, an edge's @edge.marks and @edge.label
   /// are disambiguated based on their types.
   /// For example, the following are equivalent:
   /// ```typc
-  /// edge((0,0), (1,0), $f$, "->")
-  /// edge((0,0), (1,0), "->", $f$)
-  /// edge((0,0), (1,0), $f$, marks: "->")
-  /// edge((0,0), (1,0), "->", label: $f$)
-  /// edge((0,0), (1,0), label: $f$, marks: "->")
+  /// edge(.., $f$, "->")
+  /// edge(.., "->", $f$)
+  /// edge(.., $f$, marks: "->")
+  /// edge(.., "->", label: $f$)
+  /// edge(.., label: $f$, marks: "->")
   /// ```
   /// ->
   ..args,

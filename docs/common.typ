@@ -84,7 +84,6 @@
 
 #let example(code) = {
   let preview = eval(code.text, mode: "markup", scope: scope)
-
   if is-md-target {
     frame(preview)
     code
@@ -93,7 +92,7 @@
       columns: (1fr, auto),
       align: horizon,
       gutter: 1em,
-      code,
+      raw(code.text, lang: "typ"),
       preview,
     )
   }

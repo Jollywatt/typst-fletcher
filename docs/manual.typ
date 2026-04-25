@@ -245,6 +245,7 @@
 
 
 #show raw.where(lang: "example"): common.example
+#show raw.where(lang: "svg"): it => eval(it.text, mode: "code", scope: common.scope)
 #set raw(lang: "typc")
 
 #show-fn(exports.remove("diagram"), level: 2)
@@ -253,7 +254,7 @@
 #show-fn(exports.remove("flexigrid"), level: 2)
 
 
-== Module `marks`
+== The `marks` module
 
 #show-fn(exports.marks.remove("test"))
 #for name in exports.marks.keys() {
@@ -261,7 +262,7 @@
 }
 
 
-== Module `shapes`
+== The `shapes` module
 
 These are the built in node shapes, usable with the @node.shape option.
 
@@ -284,7 +285,7 @@ These are the built in node shapes, usable with the @node.shape option.
 }
 
 
-== Module `paths`
+== The `paths` module
 
 #show-fn(exports.paths.remove("path-effect"))
 #show-fn(exports.paths.remove("trim-path"))
@@ -294,7 +295,7 @@ These are the built in node shapes, usable with the @node.shape option.
 }
 
 
-== Module `parsing`
+== The `parsing` module
 
 #for name in exports.parsing.keys() {
   show-fn(exports.parsing.remove(name))
