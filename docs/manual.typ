@@ -224,12 +224,12 @@
 
 
 
-#let show-fn(name) = {
+#let show-fn(name, level: 3) = {
   let fn = DOCSTRINGS.at(name)
   state("current-function").update(fn.name)
 
   rich-ref(fn.name, entity: "function", function: fn.name)
-  [=== #raw(fn.name + "()")]
+  heading(raw(fn.name + "()"), level: level)
 
   eval(fn.description, mode: "markup", scope: common.scope)
 
@@ -244,15 +244,13 @@
 
 
 
-#show raw.where(lang: "example"): common.show-example
+#show raw.where(lang: "example"): common.example
+#set raw(lang: "typc")
 
-
-== Main functions
-
-#show-fn(exports.remove("diagram"))
-#show-fn(exports.remove("node"))
-#show-fn(exports.remove("edge"))
-#show-fn(exports.remove("flexigrid"))
+#show-fn(exports.remove("diagram"), level: 2)
+#show-fn(exports.remove("node"), level: 2)
+#show-fn(exports.remove("edge"), level: 2)
+#show-fn(exports.remove("flexigrid"), level: 2)
 
 
 == Module `marks`
