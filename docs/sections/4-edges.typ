@@ -4,30 +4,60 @@
 
 = Edges <edges>
 
+@edge[`edge(..vertices, marks, labels, ..)`]
 
+Use the @edge function inside a @diagram, `cetz.canvas()` or @flexigrid to draw lines or paths with various _edge effects_ applied to them.
+
+Fletcher's edge effects include:
+- automatic @edge.snap-to[snapping] to nodes or CeTZ objects
+- convenient placement of @edge.label[labels]
+- the addition of @edge.marks[marks] at the ends or along the path
+- multi-stroke effects with @edge.extrude[extrude]
+- @edge.corner-radius[corner rounding]
+- CeTZ path @edge.decorate[decorations]
+
+You can specify an edge with a sequence of vertex coordinates, similar to `cetz.draw.line(..)`, or with named arguments (such as `bend: 30deg` or `corner: "|-"`) as shortcuts for some @edge-kinds[common edge kinds].
+Instead of specifying coordinates, you can also @cetz-edge[wrap a CeTZ path] in @edge to apply fletcher's edge effects to a CeTZ object,
 
 == Straight edges
 
-#example(```typ
-#diagram({
-  node((-1,-1), $ bullet $)
-  node((0,0), $G$, <G>)
-  edge("l,d", "..>")
-  node((0,-1), $G slash ker(f)$, <ker>)
-  // edge(<G>, "->", name: <e>, bend: 5pt)
-  node((1,0), $im(f)$, <im>)
-  // edge(<im>, "==>", <ker>, from: (-90deg, 1.5), to: (45deg, 2))
-  edge(<G>, "->>", <ker>)
-  edge(<im>, (rel: (1,0)), (rel: (0,-1)), (rel: (-2,0)), "=>")
+By default, an edge is displayed as a straight polyline between its two or more vertices.
+Straight edges support corner rounding with @edge.corner-radius, which is #fletcher.edges.DEFAULT_EDGE_STYLE.corner-radius by default (from `fletcher.edges.DEFAULT_EDGE_STYLE`).
 
+#example(```typ
+#diagram(
+  node((0,0), $A$, <A>),
+  node((3,0), $B$, <end>),
+  edge(<A>, (1,0), (1,1), (2,0), <end>, "=>", $f(x)$),
+  edge(<A>, "d,rrr,u", "--|>", stroke: blue),
+)
+```)
+
+=== Specifying edge vertices
+
+
+#example(```typ
+#diagram(spacing: (12mm, 6mm), axes: (ltr, ttb), {
+  node((0,-1), $A times B times C$, <abc>)
+  node((-1,0), $A$, <a>)
+  node((0,1), $B$, <b>)
+  node((1,0), $C$, <c>)
+
+  edge(<a>, <b>, bend: -18deg, "- -")
+  edge(<c>, <b>, bend: +18deg, "<-<<")
+  edge(<a>, <abc>, $a$, "--")
+  edge(<b>, <abc>, "<=>")
+  edge(<c>, <abc>, $c$)
+
+  node((.6,3), [_just a thought..._])
+  edge(auto, <b>, "..|>", corner: "-|")
 })
 ```)
 
-
-== Common edge kinds
+== Common edge kinds <edge-kinds>
 
 By default, edges are displayed as straight paths between two or more vertices.
-To make it easy to achieve common edge shapes, like arcs, loops or right-angled corners, edges can have different _kinds_, depending on the combination of named arguments present.w
+To make it easy to achieve common edge shapes, like arcs, loops or right-angled corners, edges can have different _kinds_, depending on the combination of named arguments present.
 
 #table(
   columns: 3,
@@ -107,12 +137,7 @@ Edges with one or two right-angled corners can be specified with `corner`, which
 ), (2,1.5), label-fill: white)
 
 
-== CeTZ edges
+== CeTZ edges <cetz-edge>
 
 For more control, you can wrap any CeTZ path in @edge to apply any of fletcher's edge effects to it.
-When used in this mode, edges have no vertices, but can be given:
-- @edge.marks[marks]
-- @edge.label[labels]
-- @edge.extrude[extrusion effects]
-- @edge.snap-to[snapping targets]
-- @edge.decorate[decorations]
+When used in this mode, edges may have no vertices.
