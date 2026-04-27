@@ -1,11 +1,8 @@
-#import "../src/exports.typ" as fletcher
-
 #import "common.typ"
-
-#let VERSION = toml("/typst.toml").package.version
-
+#import common: fletcher
 
 // cover page
+
 #v(10%)
 
 #align(center)[
@@ -39,7 +36,7 @@
 
   #link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
-  *Version #VERSION*
+  *Version #common.VERSION*
 ]
 
 #v(1fr)
@@ -93,7 +90,7 @@
 = Function Reference <func-ref>
 
 #import common: show-fn
-#let exports = common.exports
+#let exports = common.EXPORT_TREE
 #show raw.where(lang: "example"): common.example
 #show raw.where(lang: "svg"): it => eval(it.text, mode: "code", scope: common.scope)
 #set raw(lang: "typc")

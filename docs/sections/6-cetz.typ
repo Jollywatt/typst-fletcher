@@ -21,29 +21,31 @@ Under the hood, fletcher builds upon CeTZ by defining:
 Instead of using @diagram, you can place nodes and edges directly inside a CeTZ canvas.
 If you still want to use tabular layouts like in @diagram, you can wrap the objects in a @flexigrid.
 For example, the following are equivalent:
-#table(columns: (1fr, 1fr),
-[Using @diagram], [Using `cetz.canvas()`],
-```typ
-#diagram(
-  node-fill: teal,
-  edge-stroke-thickness: 1pt,
-  node((0,0), [Hello]),
-  edge("->"),
-  node((2,1), [There]),
-)
-```,
-```typ
-#cetz.canvas({
-  import cetz.draw: *
-  set-style(node: (fill: teal),
-            edge: (stroke: 1pt))
-  fletcher.flexigrid({
-    node((0,0), [Hello])
-    edge("->")
-    node((2,1), [There])
+#table(
+  columns: (1fr, 1fr),
+  [Using @diagram], [Using `cetz.canvas()`],
+  ```typ
+  #diagram(
+    node-fill: teal,
+    edge-stroke-thickness: 1pt,
+    node((0,0), [Hello]),
+    edge("->"),
+    node((2,1), [There]),
+  )
+  ```,
+  ```typ
+  #cetz.canvas({
+    import cetz.draw: *
+    set-style(node: (fill: teal),
+              edge: (stroke: 1pt))
+    fletcher.flexigrid({
+      node((0,0), [Hello])
+      edge("->")
+      node((2,1), [There])
+    })
   })
-})
-```)
+  ```,
+)
 Drawing inside a CeTZ canvas is encouraged when your diagram does not have a natural table-like structure or is very complex.
 However, some features only work inside @diagram or @flexigrid (for example, in a `cetz.canvas()` edges cannot snap to nodes declared later).
 

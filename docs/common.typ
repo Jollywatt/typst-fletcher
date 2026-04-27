@@ -3,9 +3,8 @@
 #import "../src/debug.typ": DEBUG_LEVELS
 #import "@preview/tidy:0.4.3"
 
-
 #let VERSION = toml("/typst.toml").package.version
-#let target = sys.inputs.at("target", default: none)
+#let is-html = sys.inputs.at("target", default: none) == "html"
 
 #let scope = (
   fletcher: fletcher,
@@ -36,17 +35,16 @@
   DEBUG_LEVELS: DEBUG_LEVELS,
 )
 
+
 #let fn-paths-by-name(mod, path: ()) = {
   let fns = (:)
 
-  // First pass: collect functions at this level
   for (name, value) in dictionary(mod) {
     if type(value) == function {
       fns.insert(name, path)
     }
   }
 
-  // Second pass: recurse into modules
   for (name, value) in dictionary(mod) {
     if type(value) == module {
       let s = fn-paths-by-name(value, path: (..path, name))
@@ -67,20 +65,22 @@
 
 // ordered dictionary of all functions and their shortest exported paths
 // e.g., `node` has shortest path `fletcher.node` (not `fletcher.nodes.node`)
-#let FUNCTION_PATHS = fn-paths-by-name(fletcher, path: ("fletcher",))
+#let FUNCTION_PATHS = fn-paths-by-name(fletcher)
 
 
 #let DOCSTRINGS = (
-  {
-    tidy.parse-module(read("../src/diagram.typ")).functions
-    tidy.parse-module(read("../src/flexigrid.typ")).functions
-    tidy.parse-module(read("../src/nodes.typ")).functions
-    tidy.parse-module(read("../src/edges.typ")).functions
-    tidy.parse-module(read("../src/paths.typ")).functions
-    tidy.parse-module(read("../src/marks.typ")).functions
-    tidy.parse-module(read("../src/shapes.typ")).functions
-    tidy.parse-module(read("../src/parsing.typ")).functions
-  }
+  (
+    "../src/diagram.typ",
+    "../src/flexigrid.typ",
+    "../src/nodes.typ",
+    "../src/edges.typ",
+    "../src/paths.typ",
+    "../src/marks.typ",
+    "../src/shapes.typ",
+    "../src/parsing.typ",
+  )
+    .map(path => tidy.parse-module(read(path)).functions)
+    .join()
     .map(fn => (fn.name, fn))
     .to-dict()
 )
@@ -97,13 +97,12 @@
 }
 
 // dictionary reflecting the entire package submodule structure
-#let exports = (:)
+#let EXPORT_TREE = (:)
 #for (name, path) in FUNCTION_PATHS {
   if name in DOCSTRINGS {
-    exports = insert-at-path(exports, path, name)
+    EXPORT_TREE = insert-at-path(EXPORT_TREE, path, name)
   }
 }
-#let exports = exports.fletcher
 
 
 
@@ -226,14 +225,16 @@
 
 
 #let frame(it) = {
-  html.frame(pad(5mm, scale(120%, reflow: true, it)))
+  html.div(class: "svg-frame", {
+    html.frame(pad(5mm, scale(120%, reflow: true, it)))
+  })
 }
 
 
 #let example(code) = {
   let preview = eval(code.text, mode: "markup", scope: scope)
-  let code = raw(code.text, lang: "typ", block: true)
-  if target == "html" {
+
+  if is-html {
     html.div(class: "code-example", {
       html.div(class: "codeblock", code)
       frame(preview)
@@ -250,6 +251,10 @@
 
 
 #let show-ref(it) = {
+  if is-html {
+    // return strong[LINK<#it.element>]
+  }
+
   if it.element == none {
     highlight(raw(repr(it.target)))
     metadata((invalid-ref: str(it.target)))
@@ -284,24 +289,14 @@
   }
 }
 
-#let add-toc() = {
-  html.div(class: "book-toc-content", {
-    html.nav(id: "TableOfContents", {
-      [
-        - hello
-          - there
-        - bye
-      ]
-    })
-  })
-}
 
 
 #let style(body) = {
   show ref: show-ref
   set raw(lang: "typc")
   show raw.where(lang: "example"): example
-  show raw.where(lang: "svg"): it => frame(eval(it.text, mode: "code", scope: scope))
+
+  show raw.where(lang: "svg"): it => html.div(class: "svg-figure", frame(eval(it.text, mode: "code", scope: scope)))
 
   body
 }
