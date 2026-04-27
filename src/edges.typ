@@ -4,7 +4,7 @@
 #import "parsing.typ"
 #import "paths.typ"
 #import "nodes.typ" as Nodes
-#import "debug.typ": debug-level, debug-group, get-debug
+#import "debug.typ": debug-group, debug-level, get-debug
 
 #let DEFAULT_EDGE_STYLE = (
   stroke: (thickness: 0.048em, cap: "round"),
@@ -21,7 +21,7 @@
     wavelength: 10,
     smooth: auto,
     shorten: 0,
-  )
+  ),
 )
 
 
@@ -31,20 +31,19 @@
   labels,
   debug: false,
 ) = {
-
-	let sample-pt(t, reverse) = {
-		let (x, x-vel, x-accel) = {
+  let sample-pt(t, reverse) = {
+    let (x, x-vel, x-accel) = {
       if type(t) in (int, float) {
         paths.point-on-path(ctx, path, segment: t)
       } else {
         paths.point-on-path(ctx, path, length: t)
       }
     }
-		let x = cetz.util.revert-transform(ctx.transform, x)
-		let x-vel = cetz.util.revert-transform(ctx.transform, x-vel)
-		let x-accel = cetz.util.revert-transform(ctx.transform, x-accel)
-		(x, x-vel, x-accel)
-	}
+    let x = cetz.util.revert-transform(ctx.transform, x)
+    let x-vel = cetz.util.revert-transform(ctx.transform, x-vel)
+    let x-accel = cetz.util.revert-transform(ctx.transform, x-accel)
+    (x, x-vel, x-accel)
+  }
 
 
   for label in labels {
@@ -53,7 +52,11 @@
 
     if label.anchor != auto {
       if label.side != auto {
-        utils.error("label options `anchor: #0` and `side: #1` cannot be used together; one must be `auto`", repr(label.anchor), repr(label.side))
+        utils.error(
+          "label options `anchor: #0` and `side: #1` cannot be used together; one must be `auto`",
+          repr(label.anchor),
+          repr(label.side),
+        )
       }
       // anchor is set explicitly; don't deduce anchor from side
       label.side = none
@@ -61,12 +64,15 @@
 
     // 1. resolve label.angle to angle
     if type(label.angle) == alignment {
-      label.angle = tangent-angle - (
-        right: 0deg,
-        top: 90deg,
-        left: 180deg,
-        bottom: 270deg,
-      ).at(repr(label.angle))
+      label.angle = (
+        tangent-angle
+          - (
+            right: 0deg,
+            top: 90deg,
+            left: 180deg,
+            bottom: 270deg,
+          ).at(repr(label.angle))
+      )
     } else if label.angle == auto {
       if calc.abs(tangent-angle) > 90deg {
         label.angle = tangent-angle + 180deg
@@ -85,21 +91,21 @@
       let is-curving = cetz.vector.len(accel) > 1e-5
       if is-curving {
         // ...if the edge is curved, label is on the outer side
-        label.side = accel.at(0)*vel.at(1) - accel.at(1)*vel.at(0) > 0
+        label.side = accel.at(0) * vel.at(1) - accel.at(1) * vel.at(0) > 0
         // formula comes from sign of z-coord of cross product
       } else {
         // ...if edge is straight, label is generally north of it
         label.side = top
       }
     }
-    
+
     if type(label.side) == alignment {
-      let v = (0,0)
-      if label.side.x == right  { v.first() = +1 }
-      if label.side.x == left   { v.first() = -1 }
-      if label.side.y == top    { v.last()  = +1 }
-      if label.side.y == bottom { v.last()  = -1 }
-      if v == (0,0) {
+      let v = (0, 0)
+      if label.side.x == right { v.first() = +1 }
+      if label.side.x == left { v.first() = -1 }
+      if label.side.y == top { v.last() = +1 }
+      if label.side.y == bottom { v.last() = -1 }
+      if v == (0, 0) {
         if label.side == alignment.start {
           label.anchor = utils.angle-to-anchor(tangent-angle)
         } else if label.side == alignment.end {
@@ -117,7 +123,7 @@
       let delta = if label.side { -90deg } else { +90deg }
       label.anchor = utils.angle-to-anchor(tangent-angle + delta - label.angle)
     }
-   
+
     if label.fill == auto {
       label.fill = if label.anchor == "center" { white }
     }
@@ -144,7 +150,6 @@
       })
     }
   }
-
 }
 
 
@@ -186,11 +191,9 @@
 
   // sigmoid of x/d
   let σ(x, d) = {
-    if d == 0 { float(x >= 0) }
-    else if x/d > 10 { return 1. }
-    else {
-      let e = calc.exp(x/d)
-      e/(1 + e)
+    if d == 0 { float(x >= 0) } else if x / d > 10 { return 1. } else {
+      let e = calc.exp(x / d)
+      e / (1 + e)
     }
   }
 
@@ -205,16 +208,22 @@
 
   let wavelength = utils.to-length(wavelength, units-of: thickness, ratios-of: total-length, to-float: unit-length)
 
-  let (t0-short, t1-short) = utils.as-pair(shorten)
-    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length, to-float: unit-length))
-  let (t0-smooth, t1-smooth) = utils.as-pair(smooth)
-    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength/total-length, to-float: unit-length))
+  let (t0-short, t1-short) = utils
+    .as-pair(shorten)
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength / total-length, to-float: unit-length))
+  let (t0-smooth, t1-smooth) = utils
+    .as-pair(smooth)
+    .map(utils.to-length.with(ratios-of: total-length, units-of: wavelength / total-length, to-float: unit-length))
 
   // https://www.desmos.com/CALCULATOR/dz7ju1havq
   let amplitude-fn(t) = {
     t = float(t)
     let c = 2
-    amplitude*σ(c*(2*(t - t0-smooth) - t0-short), t0-smooth)*σ(c*(2*(1 - t - t1-smooth) - t1-short), t1-smooth)
+    (
+      amplitude
+        * σ(c * (2 * (t - t0-smooth) - t0-short), t0-smooth)
+        * σ(c * (2 * (1 - t - t1-smooth) - t1-short), t1-smooth)
+    )
   }
 
   decorate-fn(
@@ -251,13 +260,13 @@
   }
 
   let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
-		ctx,
-		drawable.segments,
-		marks,
-		stroke: stroke,
-		extrude: extrude,
-		debug: debug,
-	)
+    ctx,
+    drawable.segments,
+    marks,
+    stroke: stroke,
+    extrude: extrude,
+    debug: debug,
+  )
 
   let path = paths._path-effect(
     ctx,
@@ -302,11 +311,12 @@
     return cetz.process.many(ctx, objs).drawables
   }
 
-  return (0, -1).map(i => { // first and last index
+  return (0, -1).map(i => {
+    // first and last index
     let snap-to = edge.snap-to.at(i)
     let pos = edge.vertices.at(i)
     let outset = edge.style.outset.at(i)
-    
+
     let target-drawables
     if type(snap-to) == str {
       // look up fletcher or cetz node by name
@@ -321,10 +331,7 @@
     } else if snap-to == auto {
       // find fletcher nodes nearby
       let dist(node) = cetz.vector.dist(node.pos, pos)
-      let node = nodes
-        .filter(n => dist(n) <= cetz.vector.len(n.size)/2)
-        .sorted(key: dist)
-        .at(0, default: none)
+      let node = nodes.filter(n => dist(n) <= cetz.vector.len(n.size) / 2).sorted(key: dist).at(0, default: none)
       if node != none {
         target-drawables = node-drawables(node, outset)
       }
@@ -372,22 +379,24 @@
 
 
 #let draw-edge(ctx, edge) = {
-
   let drawable = process-edge-drawable(ctx, edge)
 
   if debug-level(edge.debug, "edge.snap") {
     // show where edge would be drawn without any snapping
     debug-group({
-      (ctx => (
-        ctx: ctx,
-        drawables: drawable + (
-          stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)), 
-          fill: none
+      (
+        ctx => (
+          ctx: ctx,
+          drawables: drawable
+            + (
+              stroke: (thickness: 0.5pt, paint: purple.transparentize(50%)),
+              fill: none,
+            ),
         ),
-      ),)
+      )
     })
   }
-  
+
   let snap-objects = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)
 
   let drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
@@ -409,28 +418,30 @@
 
   if debug-level(edge.debug, "edge.snap") {
     // visualise the drawables that the edge is supposed to snap to
-    debug-group((ctx => {
-      let (snap-start, snap-end) = snap-objects
-      let drawables = ()
-      if snap-start != none and debug-level(edge.debug, "edge.snap.from") {
-        drawables += snap-start.map(path => {
-          path.stroke = green.transparentize(30%)
-          path.fill = green.transparentize(80%)
-          path
-        })
-      }
-      if snap-end != none and debug-level(edge.debug, "edge.snap.to") {
-        drawables += snap-end.map(path => {
-          path.stroke = red.transparentize(30%)
-          path.fill = red.transparentize(80%)
-          path
-        })
-      }
-      return (
-        ctx: ctx,
-        drawables: drawables,
-      )
-    },))
+    debug-group((
+      ctx => {
+        let (snap-start, snap-end) = snap-objects
+        let drawables = ()
+        if snap-start != none and debug-level(edge.debug, "edge.snap.from") {
+          drawables += snap-start.map(path => {
+            path.stroke = green.transparentize(30%)
+            path.fill = green.transparentize(80%)
+            path
+          })
+        }
+        if snap-end != none and debug-level(edge.debug, "edge.snap.to") {
+          drawables += snap-end.map(path => {
+            path.stroke = red.transparentize(30%)
+            path.fill = red.transparentize(80%)
+            path
+          })
+        }
+        return (
+          ctx: ctx,
+          drawables: drawables,
+        )
+      },
+    ))
   }
 
   if edge.layer != 0 {
@@ -449,7 +460,6 @@
   layer: 0,
   debug: auto,
 ) = cetz.draw.get-ctx(ctx => {
-  
   if "fletcher" not in ctx.shared-state {
     ctx.shared-state.fletcher = (
       pass: none,
@@ -490,11 +500,13 @@
   })
 
   // validate some styles
-  edge-data.style.snap-method = utils.as-pair(edge-data.style.snap-method).map(m => {
-    let options = ("trim", "move")
-    if m not in options { utils.error("Snapping method must be #..1; got #0", repr(m), options) }
-    m
-  })
+  edge-data.style.snap-method = utils
+    .as-pair(edge-data.style.snap-method)
+    .map(m => {
+      let options = ("trim", "move")
+      if m not in options { utils.error("Snapping method must be #..1; got #0", repr(m), options) }
+      m
+    })
 
   let mark-0 = edge-data.style.marks.find(m => m.pos == 0)
   let mark-1 = edge-data.style.marks.find(m => m.pos == 1)
@@ -508,8 +520,8 @@
     panic()
     let t = edge-data.style.stroke.thickness
     edge-data.style.decorate.shorten = (
-      if mark-0 == none { 0 } else { -(0 + 2*mark-0.tip-hang)*t },
-      if mark-1 == none { 0 } else { -(0 + 2*mark-1.tip-hang)*t },
+      if mark-0 == none { 0 } else { -(0 + 2 * mark-0.tip-hang) * t },
+      if mark-1 == none { 0 } else { -(0 + 2 * mark-1.tip-hang) * t },
     )
   }
 
@@ -530,7 +542,7 @@
       last = fletcher-ctx.nodes.at(i).pos
     }
   }
-  
+
   // give reasonable defaults rather than panic
   if first == auto { first = () }
   if last == auto { last = (rel: (1, 0)) }
@@ -572,8 +584,7 @@
 
 
 #let interpret-marks-arg(marks) = {
-  if marks == none { (marks: ()) }
-  else if type(marks) == array {
+  if marks == none { (marks: ()) } else if type(marks) == array {
     (marks: Marks.interpret-marks(marks))
   } else if type(marks) in (str, symbol) {
     let (marks, options) = parsing.parse-mark-shorthand(marks)
@@ -592,14 +603,14 @@
       let perp-dist = if type(bend) == angle {
         let sin-bend = calc.sin(bend)
         if calc.abs(sin-bend) < 1e-3 { return cetz.draw.line(a, b) }
-        let half-chord-len = cetz.vector.dist(a, b)/2
-        half-chord-len*(1 - calc.cos(bend))/sin-bend
+        let half-chord-len = cetz.vector.dist(a, b) / 2
+        half-chord-len * (1 - calc.cos(bend)) / sin-bend
       } else {
         bend
       }
       let midpoint = (a: (a, 50%, b), b: a, number: perp-dist, angle: -90deg)
       cetz.draw.merge-path(cetz.draw.arc-through(a, midpoint, b))
-    }
+    },
   ),
   bezier-cubic: (
     required: ("from", "to"),
@@ -607,11 +618,10 @@
     n-vertices: 2,
     draw: ((from, to), (a, b)) => {
       let as-coord(x) = {
-        if type(x) == angle { (x, 1) }
-        else { x }
+        if type(x) == angle { (x, 1) } else { x }
       }
       cetz.draw.bezier(a, b, (rel: as-coord(from), to: a), (rel: as-coord(to), to: b))
-    }
+    },
   ),
   bezier-from: (
     required: ("from",),
@@ -620,7 +630,7 @@
     draw: ((from,), (a, b)) => {
       if type(from) == angle { from = (from, 1) }
       cetz.draw.bezier(a, b, (rel: from, to: a))
-    }
+    },
   ),
   bezier-to: (
     required: ("to",),
@@ -629,7 +639,7 @@
     draw: ((to,), (a, b)) => {
       if type(to) == angle { to = (to, 1) }
       cetz.draw.bezier(a, b, (rel: to, to: b))
-    }
+    },
   ),
   bezier-through: (
     required: ("through",),
@@ -637,7 +647,7 @@
     n-vertices: 2,
     draw: ((through,), (a, b)) => {
       cetz.draw.bezier-through(a, through, b)
-    }
+    },
   ),
   loop: (
     required: (),
@@ -645,7 +655,7 @@
     draw: ((loop, loop-angle), (a, ..)) => {
       let angle = utils.thing-to-angle(loop-angle) + 180deg
       cetz.draw.arc(a, radius: loop, start: angle, delta: -360deg)
-    }
+    },
   ),
   corner: (
     required: ("corner",),
@@ -664,8 +674,8 @@
       } else {
         utils.error("edge shape `corner` accepts one of #..0; got #1", ("-|", "|-", "-|-", "|-|"), repr(corner))
       }
-    }
-  )
+    },
+  ),
 )
 
 
@@ -674,7 +684,6 @@
   let named-arg-suggestion = none
 
   for (spec-kind, spec) in EDGE_KINDS {
-
     let has-all-required = spec.required.all(n => n in named)
     let has-some-optional = spec.optional.keys().any(n => n in named)
 
@@ -698,8 +707,7 @@
     for arg in spec.required { draw-args.insert(arg, named.remove(arg)) }
 
     for (arg, default) in spec.optional {
-      if arg in named { draw-args.insert(arg, named.remove(arg)) }
-      else { draw-args.insert(arg, default)}
+      if arg in named { draw-args.insert(arg, named.remove(arg)) } else { draw-args.insert(arg, default) }
     }
 
     if options.draw != auto {
@@ -724,30 +732,27 @@
       }
     }
   }
-  
+
   // any left over named arguments are unrecognised
   if named.len() > 0 {
     let hint = if named-arg-suggestion != none {
       " For "
       named-arg-suggestion.kind
       " edges, also specify "
-      named-arg-suggestion.args
-        .filter(n => n not in named)
-        .map(repr).join(", ", last: " and ")
+      named-arg-suggestion.args.filter(n => n not in named).map(repr).join(", ", last: " and ")
       "."
     }
-		utils.error("Unknown edge arguments #..0." + hint, named.keys())
-	}
+    utils.error("Unknown edge arguments #..0." + hint, named.keys())
+  }
 
   if options.draw == auto {
     options.draw = vertices => cetz.draw.line(..vertices)
   }
 
   return (draw: options.draw)
-  
 }
 
-// consumes `label-*` named arguments and validates 
+// consumes `label-*` named arguments and validates
 #let interpret-label-args(named, options) = {
   let default-spec = (
     body: none,
@@ -765,21 +770,19 @@
     if suffix in default-spec {
       default-spec.at(suffix) = named.remove(arg)
     } else {
-      let possible-options = default-spec.keys()
-        .map(o => "label-" + o)
+      let possible-options = default-spec.keys().map(o => "label-" + o)
       utils.error("invalid option #0. Try #..1", repr(arg), possible-options)
     }
   }
 
-  
+
   let as-label-spec(x) = {
     if x == none {
       return none
     } else if type(x) == dictionary {
       let spec = default-spec
       for (k, v) in x {
-        if k in spec { spec.at(k) = v }
-        else {
+        if k in spec { spec.at(k) = v } else {
           utils.error("invalid label property #0. Try: #..1", repr(k), spec.keys())
         }
       }
@@ -791,10 +794,9 @@
 
 
   let spec = utils.one-or-array(options.label).map(as-label-spec).filter(l => l != none)
-  
+
 
   return (named, spec)
-
 }
 
 #let interpret-decorate-arg(it) = {
@@ -819,7 +821,7 @@
   /// - the edge's @edge.marks, e.g., `"->"` or `"solid=/=solid"`;
   /// - the body content of an edge @edge.label, e.g., `$f$`; or
   /// - some other style flags (#fletcher.edges.parsing.EDGE_FLAGS.keys().map(raw).join[, ]).
-  /// 
+  ///
   /// Vertex coordinates come first but are optional:
   ///
   /// ```typc
@@ -829,17 +831,17 @@
   /// edge(from, v1, v2, ..vs, to, ..) // multiple vertices
   /// edge(from, "->", to) // for two vertices, marks can go in the middle
   /// ```
-  /// 
+  ///
   /// Vertices after the first one can be relative coordinate shorthand
   /// strings containing the characters
   /// ${#"lrudtbnesw".clusters().map(raw).join($, $)}$ or commas, e.g., `edge((0,0), "u,rr,d")`.
-  /// 
+  ///
   /// If applying edge effects to a CeTZ path, no vertices should be given and the path should be the first argument:
-  /// 
+  ///
   /// ```typc
   /// edge(cetz.draw.bezier(..), "<->") // add marks to a cetz path
   /// ```
-  /// 
+  ///
   /// If given as positional arguments, an edge's @edge.marks and @edge.label
   /// are disambiguated based on their types.
   /// For example, the following are equivalent:
@@ -852,34 +854,30 @@
   /// ```
   /// ->
   ..args,
-
   /// Array of coordinates for the edge.
-  /// 
+  ///
   /// Vertices can also be specified as leading positional arguments
   /// (so `edge((0,1), (1,1), $f$, ..)` is the same as `edge($f$, vertices: ((0,1), (1,1)), ..)`).
   /// -> array
   vertices: (),
-  
   /// Marks or arrows to draw along the edge.
-  /// 
+  ///
   /// TODO
   marks: (),
-  
   /// Mark size multiplier.
-  /// 
+  ///
   /// The `size` parameter of each mark is multiplied by the mark scale before being drawn.
-  /// 
+  ///
   /// This is an edge style that can also be set using `diagram(mark-scale: ..)` or `cetz.draw.set-style(edge: (mark-scale: ..))`.
-  /// 
+  ///
   /// -> number | percent | auto
   mark-scale: auto,
-
   /// Content to place along the edge.
-  /// 
+  ///
   /// ```example
   /// #diagram(edge("->", $f$))
   /// ```
-  /// 
+  ///
   /// The label body may also be given as a positional argument.
   /// ```typc
   /// edge(.., [Label])
@@ -899,17 +897,16 @@
   /// - `sep`: padding between the label's body and the path (see @edge.label-sep)
   /// - `side`: which side of the edge to place the body (see @edge.label-side)
   /// - `anchor`: the CeTZ anchor to use for label body (see @edge.label-anchor)
-  /// 
+  ///
   /// Multiple labels can be specified with an array:
   /// ```typc
   /// edge(.., label: ([First label], (body: [Second label], pos: 25%)))
   /// ```
-  /// 
+  ///
   /// -> content | dictionary | array
   label: none,
-
   /// Position along the edge path to place labels.
-  /// 
+  ///
   /// ```svg
   /// stack(
   ///   dir: ltr,
@@ -920,11 +917,11 @@
   ///   ),
   /// )
   /// ```
-  /// 
+  ///
   /// This can be a `ratio`, relative to the total path length,
   /// or a `float` whose integer part refers to the segment number and
   /// whose fractional part interpolates along the segment (see @point-on-path).
-  /// 
+  ///
   /// ```example
   /// #diagram({
   ///   edge((0,0), (1,1), (2,1), (2,0), "->", label: (
@@ -934,25 +931,24 @@
   ///   ))
   /// })
   /// ```
-  /// 
+  ///
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-pos: 50%)` or as a @edge.label option like `edge(.., label: (body: $f$, pos: 50%))`.
-  /// 
+  ///
   /// -> ratio | number | length
   label-pos: 50%,
-
   /// Which side of the edge to place the label on.
-  /// 
+  ///
   /// If `auto`, the label is placed roughly above straight edges, or on the outside of curved edges.
-  /// 
+  ///
   /// If `center` or `none`, the label is placed directly over the edge, and the label fill defaults to white.
-  /// 
+  ///
   /// An alignment (e.g., `top`, `left`, `top + left`) means place the label beside the edge to whichever side is nearer that direction.
   /// If given as an alignment, the side may flip depending on the edge's angle.
-  /// 
+  ///
   /// If `true`, the label is placed above the edge assuming it goes left to right;
   /// `false` is the opposite side.
   /// If given as a boolean, the side does not flip depending on the edge's angle.
-  /// 
+  ///
   /// The special alignment values `start` and `end` place the label before or after a point, travelling along the edge. This works best when used like `(pos: 0%, side: start)` or `(pos: 100%, side: end)`.
   /// ```example
   /// #diagram(edge((0,0), "->", (1,1), label: (
@@ -965,31 +961,28 @@
   ///   (body: `bottom`, side: bottom, pos: 100%),
   /// )))
   /// ```
-  /// 
+  ///
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-side: top)` or as a @edge.label option like `edge(.., label: (body: $f$, side: top))`.
-  /// 
+  ///
   /// -> auto | none | center | top | bottom | left | right | start | end
   label-side: auto,
-
   /// Separation between label body and the edge.
-  /// 
+  ///
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-sep: 3pt)` or as a @edge.label option like `edge(.., label: (body: $f$, sep: 3pt))`.
   /// -> length
   label-sep: 3pt,
-
   label-fill: auto,
-
   /// Angle of the label's body.
-  /// 
+  ///
   /// A positive angle goes anticlockwise, with `0deg` being upright.
-  /// 
+  ///
   /// An alignment (e.g., `top`, `right`) means to rotate the label with the
   /// edge's direction, such that the label is upright along edges going in
   /// that direction.
-  /// 
+  ///
   /// If `auto`, the best of `left` or `right` is chosen; that is,
   /// the label is rotated to be tangent to the edge and roughly the right way up.
-  /// 
+  ///
   /// ```svg
   /// stack(
   ///   dir: ltr,
@@ -999,34 +992,31 @@
   ///   }).map(align.with(bottom)),
   /// )
   /// ```
-  /// 
+  ///
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-angle: auto)` or as a @edge.label option like `edge(.., label: (body: $f$, angle: auto))`.
-  /// 
+  ///
   /// -> angle | auto | top | bottom | left | right
   label-angle: 0deg,
-
   /// The CeTZ anchor to use for the label content.
-  /// 
+  ///
   /// If `auto`, the anchor is automatically chosen depending on @edge.label-side and the edge's angle.
   /// This must be `auto` if the `side` option is set.
-  /// 
+  ///
   /// -> anchor
   label-anchor: auto,
-
   /// Names or coordinates of nodes or CeTZ objects to snap the edge's ends to.
-  /// 
+  ///
   /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
   /// -> pair
   snap-to: (auto, auto),
-
   /// When an edge snaps to an object's outline, the edge can be shifted in two ways:
   /// one method is to shorten the edge to the point where it meets
   /// the object (the `"trim"` method); the other method is to move the edge's end vertex to the edge
   /// of the object (the `"move"` method).
-  /// 
+  ///
   /// You can pass a pair such as `("trim", "move")` to control the methods for the start and end of the edge independently.
-  /// 
+  ///
   /// ```example
   /// #diagram(
   ///   debug: "edge.snap",
@@ -1038,27 +1028,21 @@
   ///   node((1,0), [Method]),
   /// )
   /// ```
-  /// 
-  /// -> "trim" | "move" | pair 
+  ///
+  /// -> "trim" | "move" | pair
   snap-method: auto,
-
   outset: auto,
-
   /// Distance to shorten the edge at either end.
-  /// 
+  ///
   /// If a length is given, the edge is shortened at both ends.
   /// A pair of lengths `(start, end)` controls shortening at either end
   /// of the edge independently.
-  /// 
+  ///
   /// -> length | number | array
   shorten: 0,
-
   name: none,
-
   stroke: auto,
-
   dash: auto,
-  
   /// Draw a separate stroke for each extrusion offset to
   /// obtain a multi-stroke effect. Offsets may be numbers
   /// (specifying multiples of the stroke's thickness) or lengths.
@@ -1084,9 +1068,8 @@
   /// TODO
   /// -> number | length | array
   extrude: auto,
-
   /// The radius of round or bevelled corners for multi-vertex edges.
-  /// 
+  ///
   /// ```example
   /// #diagram(
   ///   spacing: 20pt,
@@ -1099,22 +1082,21 @@
   ///   edge("rr,d", "->", corner-radius: 10pt),
   /// )
   /// ```
-  /// 
+  ///
   /// See @path-effect.corner-radius.
   /// -> length | number | none
   corner-radius: auto,
-
   /// Apply CeTZ _path decorations_ do the edge, such as wave or zigzag effects.
-  /// 
+  ///
   /// This can be a dictionary containing any of:
   /// - `kind`, one of `"wave"`, `"zigzag"`, `"square"` or `"coil"`
   /// - `wavelength`
   /// - `amplitude`
   /// - `shorten`, distance from ends to start effect from
   /// - `smooth`, distance over which to "ramp" the effect's amplitude for a smoother transition
-  /// 
+  ///
   /// The `shorten` and `smooth` options can be lengths, distances (interpreted as multiples of `wavelength`) or a pair of these, controlling the values at the star and end of the path independently.
-  /// 
+  ///
   /// ```example
   /// #diagram(
   ///   edge("ru,r", decorate: (kind: "wave", shorten: 5mm, smooth: 0)),
@@ -1134,16 +1116,14 @@
   /// )
   /// ```
   decorate: auto,
-
   /// Canvas layer to draw edge on.
-  /// 
+  ///
   /// Edges with equal layer are drawn in the order they are inserted.
   /// -> number
   layer: 0,
-
   /// Whether to return a `metadata` object which can be placed inside equations,
   /// instead of returning an array of functions which can be inserted into a CeTZ canvas.
-  /// 
+  ///
   /// If you often use fletcher in math mode, consider defining the shortcut:
   /// ```typ
   /// #let hom = edge.with(in-math: true)
@@ -1152,16 +1132,13 @@
   /// ```typ
   /// #diagram($x hom(|=>) & f(x)$)
   /// ```
-  /// 
+  ///
   /// See also @node.in-math.
   /// -> bool
   in-math: false,
-
   draw: auto,
-
   debug: auto,
 ) = {
-
   let options = (
     vertices: vertices,
     marks: marks,
@@ -1195,14 +1172,18 @@
   options.decorate = interpret-decorate-arg(options.decorate)
 
   let named = args.named()
-  let (named, labels) = interpret-label-args(named + (
-    label-pos: label-pos,
-    label-side: label-side,
-    label-sep: label-sep,
-    label-fill: label-fill,
-    label-angle: label-angle,
-    label-anchor: label-anchor,
-  ), options)
+  let (named, labels) = interpret-label-args(
+    named
+      + (
+        label-pos: label-pos,
+        label-side: label-side,
+        label-sep: label-sep,
+        label-fill: label-fill,
+        label-angle: label-angle,
+        label-anchor: label-anchor,
+      ),
+    options,
+  )
   options += determine-edge-kind(named, options)
 
 
@@ -1236,6 +1217,4 @@
   } else {
     _edge(..args)
   }
-
 }
-
