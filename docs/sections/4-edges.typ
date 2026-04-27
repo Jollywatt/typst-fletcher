@@ -33,26 +33,21 @@ Straight edges support corner rounding with @edge.corner-radius, which is #fletc
 )
 ```)
 
-=== Specifying edge vertices
+=== Specifying vertices
 
-
+You can omit edge vertices or use `auto` to refer to adjacent nodes.
+For example:
 #example(```typ
-#diagram(spacing: (12mm, 6mm), axes: (ltr, ttb), {
-  node((0,-1), $A times B times C$, <abc>)
-  node((-1,0), $A$, <a>)
-  node((0,1), $B$, <b>)
-  node((1,0), $C$, <c>)
-
-  edge(<a>, <b>, bend: -18deg, "- -")
-  edge(<c>, <b>, bend: +18deg, "<-<<")
-  edge(<a>, <abc>, $a$, "--")
-  edge(<b>, <abc>, "<=>")
-  edge(<c>, <abc>, $c$)
-
-  node((.6,3), [_just a thought..._])
-  edge(auto, <b>, "..|>", corner: "-|")
+#diagram({
+  edge((-1,0), "~>") // edge going to next node
+  node((0,0), [A])
+  edge("<..>") // edge between adjacent nodes
+  edge("->", (.5,1), bend: -30deg) // edge from previous node
+  node((1,0), [B])
 })
 ```)
+This can be written more explicitly using `auto` as the first or last vertex of an edge, as in `node((-1,0), "~>", auto)` or `edge(auto, auto, "<..>")`.
+
 
 == Common edge kinds <edge-kinds>
 
@@ -64,9 +59,14 @@ To make it easy to achieve common edge shapes, like arcs, loops or right-angled 
   stroke: none,
   table.header([Kind], [Required arguments], [Optional]),
   table.hline(),
-  ..fletcher.edges.EDGE_KINDS.pairs().map(((k, v)) => {
-    (raw(k), v.required.map(raw).join(", "), v.optional.keys().map(raw).join(", "))
-  }).flatten()
+  ..fletcher
+    .edges
+    .EDGE_KINDS
+    .pairs()
+    .map(((k, v)) => {
+      (raw(k), v.required.map(raw).join(", "), v.optional.keys().map(raw).join(", "))
+    })
+    .flatten(),
 )
 
 #let edge-kind-examples(examples, ..extra-args) = {
@@ -77,9 +77,9 @@ To make it easy to achieve common edge shapes, like arcs, loops or right-angled 
     ..examples.map(args => align(horizon, {
       diagram(
         node(radius: 1pt, fill: black),
-        edge("->", ..extra-args, ..args, [#raw(repr(args))])
+        edge("->", ..extra-args, ..args, [#raw(repr(args))]),
       )
-    }))
+    })),
   )
 }
 
@@ -129,15 +129,38 @@ A perfectly circular loop can be specified by giving either the loop's radius as
 
 Edges with one or two right-angled corners can be specified with `corner`, which is a string of `"-"` and `"|"` specifying the order of horizontal or vertical segments.
 
-#edge-kind-examples((
-  (corner: "|-"),
-  (corner: "-|"),
-  (corner: "|-|"),
-  (corner: "-|-"),
-), (2,1.5), label-fill: white)
+#edge-kind-examples(
+  (
+    (corner: "|-"),
+    (corner: "-|"),
+    (corner: "|-|"),
+    (corner: "-|-"),
+  ),
+  (2, 1.5),
+  label-fill: white,
+)
 
 
 == CeTZ edges <cetz-edge>
 
 For more control, you can wrap any CeTZ path in @edge to apply any of fletcher's edge effects to it.
 When used in this mode, edges may have no vertices.
+
+For example, below we draw a composite CeTZ path from lines and a cubic Bézier segment and apply fletcher's marks, multistroke effects, label placement and snapping.
+#example(```typ
+#cetz.canvas({
+  import cetz.draw: *
+  let path = merge-path({
+    line((0,0), (0,1))
+    bezier((0,1), (2,0), (1,1), (1,0))
+    line((2,0), (2,1))
+  })
+  scale(1.4)
+  circle((0,0), radius: .4, name: "orb")
+  edge(path, "<=>", snap-to: ("orb", none), label: (
+    (body: $L$, pos: 0.5),
+    (body: $R$, pos: 2.5, side: right),
+    (body: `mid`, pos: 1.5, side: center, angle: auto),
+  ), label-sep: 10pt)
+})
+```)

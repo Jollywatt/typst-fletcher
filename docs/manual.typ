@@ -287,6 +287,7 @@ These are the built in node shapes, usable with the @node.shape option.
 
 == The `paths` module
 
+#show-fn(exports.edges.remove("apply-edge-effects"))
 #show-fn(exports.paths.remove("path-effect"))
 #show-fn(exports.paths.remove("trim-path"))
 #show-fn(exports.paths.remove("trim-to-intersection"))

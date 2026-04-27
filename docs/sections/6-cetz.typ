@@ -4,7 +4,8 @@
 
 = Integrating with CeTZ <cetz-interop>
 
-Fletcher builds on top of CeTZ by defining:
+Fletcher aims to be compatible with CeTZ, in the sense that you can use as little or as much of fletcher's features with CeTZ and vice versa.
+Under the hood, fletcher builds upon CeTZ by defining:
 
 - @flexigrid, which defines a $u v$ coordinate system for table-like layouts within a CeTZ canvas;
 
@@ -17,7 +18,7 @@ Fletcher builds on top of CeTZ by defining:
 
 == Drawing in a CeTZ canvas <draw-in-cetz>
 
-You can place nodes and edges directly inside a CeTZ canvas.
+Instead of using @diagram, you can place nodes and edges directly inside a CeTZ canvas.
 If you still want to use tabular layouts like in @diagram, you can wrap the objects in a @flexigrid.
 For example, the following are equivalent:
 #table(columns: (1fr, 1fr),
@@ -43,31 +44,13 @@ For example, the following are equivalent:
   })
 })
 ```)
-
+Drawing inside a CeTZ canvas is encouraged when your diagram does not have a natural table-like structure or is very complex.
+However, some features only work inside @diagram or @flexigrid (for example, in a `cetz.canvas()` edges cannot snap to nodes declared later).
 
 Normal CeTZ objects may be placed in a @flexigrid, but must opt-in to use $u v$ coordinates with `(uv: coord)`, while nodes and edges use $u v$ coordinates by default (you can use `(xy: coord)` to opt-out).
 Nodes and edges can be given names and participate in CeTZ's anchoring system.
 
 == Applying edge effects to CeTZ paths
 
-You can wrap a CeTZ path in @edge to apply edge effects to it.
-This is useful if you are have a CeTZ-first drawing but want to use fletcher's arrows, edge snapping, stroke extrusion, corner rounding or convenient label placement.
-
-For example, below we draw a composite CeTZ path from lines and a cubic Bézier segment and apply fletcher's marks, multistroke effects, label placement and snapping.
-#example(```typ
-#cetz.canvas({
-  import cetz.draw: *
-  let path = merge-path({
-    line((0,0), (0,1))
-    bezier((0,1), (2,0), (1,1), (1,0))
-    line((2,0), (2,1))
-  })
-  scale(1.4)
-  circle((0,0), radius: .4, name: "orb")
-  edge(path, "<=>", snap-to: ("orb", none), label: (
-    (body: $L$, pos: 0.5),
-    (body: $R$, pos: 2.5, side: right),
-    (body: `mid`, pos: 1.5, side: center, angle: auto),
-  ), label-sep: 10pt)
-})
-```)
+You can wrap a CeTZ path in @edge to apply edge effects to it (see @cetz-edge).
+Using @edge in this way is a convenient wrapper to the path modification functions offered by fletcher, which includes @path-effect for applying corner rounding (for @edge.corner-radius) and offsetting (for @edge.extrude) to CeTZ paths, and @apply-edge-effects for placing marks and labels.
