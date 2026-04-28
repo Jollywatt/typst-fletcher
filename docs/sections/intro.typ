@@ -24,8 +24,8 @@ When placed in @diagram, nodes and edges are arranged on a @flexigrids[flexible 
 })
 ```)
 
-Styles can be controlled with the named arguments of `node()` and `edge()`.
-Default styles can be set by passing the same arguments prefixed with "`node-`" or "`edge-`" to `diagram()`.
+Styles can be controlled with the named arguments of @node and @edge.
+Default styles can be set by passing the same arguments prefixed with "`node-`" or "`edge-`" to @diagram.
 
 #example(```typ
 #diagram(
@@ -76,20 +76,20 @@ Coordinates can be fractional; the center of a node placed at `0.25` is $25%$ be
 Notice how the column sizes adjust to the with of the green node:
 
 #stack(
-	dir: ltr,
-	spacing: 1fr,
-	..(0, .25, .5, .75, 1).map(t => {
-		let c = (orange, red, green, blue).map(x => x.lighten(50%))
-		fletcher.diagram(
-			debug: "grid.cells",
-			spacing: 2mm,
-			node-corner-radius: 3pt,
-			node((0,0), [a], fill: c.at(0), width: 10mm, height: 10mm),
-			node((1,0), [b], fill: c.at(1), width: 5mm, height: 5mm),
-			node((t,-1), $(#t, 1)$, fill: c.at(2), width: 20mm, height: 5mm),
-			node((0,-2), [d], fill: c.at(3), width: 5mm, height: 5mm),
-		)
-	}),
+  dir: ltr,
+  spacing: 1fr,
+  ..(0, .25, .5, .75, 1).map(t => {
+    let c = (orange, red, green, blue).map(x => x.lighten(50%))
+    fletcher.diagram(
+      debug: "grid.cells",
+      spacing: 2mm,
+      node-corner-radius: 3pt,
+      node((0, 0), [a], fill: c.at(0), width: 10mm, height: 10mm),
+      node((1, 0), [b], fill: c.at(1), width: 5mm, height: 5mm),
+      node((t, -1), $(#t, 1)$, fill: c.at(2), width: 20mm, height: 5mm),
+      node((0, -2), [d], fill: c.at(3), width: 5mm, height: 5mm),
+    )
+  }),
 )
 
 When inside a flexigrid, nodes can also span multiple columns or rows:

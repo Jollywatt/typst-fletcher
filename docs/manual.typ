@@ -78,19 +78,19 @@
 
 #{
   set heading(offset: 1)
-  include "sections/1-intro.typ"
-  include "sections/2-diagrams.typ"
-  include "sections/3-nodes.typ"
-  include "sections/4-edges.typ"
-  include "sections/5-marks.typ"
-  include "sections/6-cetz.typ"
+  include "sections/intro.typ"
+  include "sections/diagrams.typ"
+  include "sections/nodes.typ"
+  include "sections/edges.typ"
+  include "sections/marks.typ"
+  include "sections/cetz.typ"
 }
 
 
 = Function Reference <func-ref>
 
 #import common: show-fn
-#let exports = common.EXPORT_TREE
+#let exports = common.EXPORT_TREE.fletcher
 #show raw.where(lang: "example"): common.example
 #show raw.where(lang: "svg"): it => eval(it.text, mode: "code", scope: common.scope)
 #set raw(lang: "typc")

@@ -4,7 +4,8 @@
 #import "@preview/tidy:0.4.3"
 
 #let VERSION = toml("/typst.toml").package.version
-#let is-html = sys.inputs.at("target", default: none) == "html"
+// #let is-html = sys.inputs.at("target", default: none) == "html"
+#let is-html() = target() == "html"
 
 #let scope = (
   fletcher: fletcher,
@@ -65,7 +66,7 @@
 
 // ordered dictionary of all functions and their shortest exported paths
 // e.g., `node` has shortest path `fletcher.node` (not `fletcher.nodes.node`)
-#let FUNCTION_PATHS = fn-paths-by-name(fletcher)
+#let FUNCTION_PATHS = fn-paths-by-name(fletcher, path: ("fletcher",))
 
 
 #let DOCSTRINGS = (
@@ -122,7 +123,7 @@
 
 
 #let show-function-signature(fn) = {
-  show: par
+  show: html.div.with(class: "fn-signature")
   set text(font: "DejaVu Sans Mono", size: 0.8em)
 
   if fn.name in FUNCTION_PATHS {
@@ -226,15 +227,16 @@
 
 #let frame(it) = {
   html.div(class: "svg-frame", {
-    html.frame(pad(5mm, scale(120%, reflow: true, it)))
+    html.frame(pad(2mm, scale(120%, reflow: true, it)))
   })
 }
 
 
-#let example(code) = {
+#let example(code) = context {
   let preview = eval(code.text, mode: "markup", scope: scope)
+  let code = raw(code.text, lang: "typ", block: true)
 
-  if is-html {
+  if is-html() {
     html.div(class: "code-example", {
       html.div(class: "codeblock", code)
       frame(preview)
@@ -251,10 +253,6 @@
 
 
 #let show-ref(it) = {
-  if is-html {
-    // return strong[LINK<#it.element>]
-  }
-
   if it.element == none {
     highlight(raw(repr(it.target)))
     metadata((invalid-ref: str(it.target)))
@@ -296,7 +294,7 @@
   set raw(lang: "typc")
   show raw.where(lang: "example"): example
 
-  show raw.where(lang: "svg"): it => html.div(class: "svg-figure", frame(eval(it.text, mode: "code", scope: scope)))
+  show raw.where(lang: "svg"): it => frame(eval(it.text, mode: "code", scope: scope))
 
   body
 }
