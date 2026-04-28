@@ -344,7 +344,12 @@
   ..args,
   /// Content to draw in the node. -> content
   body: none,
-  /// Shape
+  /// The shape of the node's body enclosing its label.
+  ///
+  /// Built-in shapes are #fletcher.shapes.NODE_SHAPES.keys().map(it => raw(repr(it))).join(last: [ and ])[, ].
+  ///
+  /// See also the @node-shapes section of the manual.
+  /// -> auto | none | string
   shape: auto,
 
   /// Fill style of the node.
