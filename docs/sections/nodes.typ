@@ -5,7 +5,7 @@
 = Nodes
 
 Nodes are content centered at a coordinate.
-Nodes automatically fit to their content (with an @node.inset), but can also be given a specific size and shape, and can have a @node.stroke and @node.fill.
+Nodes automatically fit to their content (with an @node.inset[inset]), but can also be given a specific size and shape, and can have a @node.stroke[stroke] and @node.fill[fill].
 
 #example(```typ
 #diagram(
@@ -26,29 +26,40 @@ Nodes automatically fit to their content (with an @node.inset), but can also be 
 )
 ```)
 
-== Node shapes
+== Node shapes <node-shapes>
 
 By default, nodes are circular if their content is small and square, and rectangular if it is tall or wide.
-The @node.shape option accepts #fletcher.shapes.NODE_SHAPES.keys().map(repr).map(raw).join(last: [ or ], [, ]), and each shape has a set of associated options like `"width"`, `"radius"`, and so on.
+The @node.shape[shape] option can be set to any of the following built-in shapes.
 
-// #example(```typ
-// #diagram(
-// 	node-fill: gradient.radial(white, blue, radius: 200%),
-// 	node-stroke: blue,
-// 	(
-// 		node((0,0), [Blue Pill], shape: "circle")
-//   ),
-// )
-// ```)
+#context if is-html() {
+  html.div(class: "flex", style: "flex-wrap: wrap; align-items: center;", {
+    fletcher
+      .shapes
+      .NODE_SHAPES
+      .keys()
+      .filter(name => name != "none")
+      .enumerate()
+      .map(((i, name)) => {
+        let c = color.oklch(80%, 70%, 20deg * i)
+        let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
+        frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
+      })
+      .join()
+  })
+} else {
+  fletcher
+    .shapes
+    .NODE_SHAPES
+    .pairs()
+    .map(((name, attrs)) => [
+      - #raw(name)
+        #for attr in attrs.keys() {
+          if attr == "draw" { continue }
+          [- #attr]
+        }
+    ])
+    .join()
+}
 
-// #fletcher.shapes.NODE_SHAPES.pairs().map(((name, attrs)) => {
-//   [
-//     - #raw(name)
-//       #for attr in attrs.keys() {
-//         if attr == "draw" { continue }
-//         [- #attr]
-//       }
-//   ]
-// }).join()
-
-// #diagram(node((), [hello], fill: yellow, shape: "rect"))
+Some shapes have style options like `width` or `radius`, and sometimes the shape can be inferred from the options given.
+For example, `node(.., radius: 3cm)` is implicitly `node(.., shape: "circle", radius: 3cm)`.

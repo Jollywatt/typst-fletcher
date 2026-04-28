@@ -4,18 +4,30 @@
 #import "@preview/tidy:0.4.3"
 
 #let VERSION = toml("/typst.toml").package.version
-// #let is-html = sys.inputs.at("target", default: none) == "html"
 #let is-html() = target() == "html"
+
+#let frame(it) = context {
+  if is-html() {
+    html.div(class: "svg-frame", {
+      html.frame(pad(3mm, scale(100%, reflow: true, it)))
+    })
+  } else {
+    it
+  }
+}
+
+
 
 #let scope = (
   fletcher: fletcher,
   ..dictionary(fletcher),
+  frame: frame,
   shape-demo: (shape, tint) => [
-    #diagram(
+    #frame(diagram(
       node((0, 0), raw(shape), shape: shape),
       node-stroke: tint,
       node-fill: tint.lighten(90%),
-    )
+    ))
     #let code = {
       "node(.., shape: "
       repr(shape)
@@ -35,6 +47,27 @@
   ],
   DEBUG_LEVELS: DEBUG_LEVELS,
 )
+
+
+#let example(code) = context {
+  let preview = eval(code.text, mode: "markup", scope: scope)
+  let code = raw(code.text, lang: "typ", block: true)
+
+  if is-html() {
+    html.div(class: "code-example", {
+      html.div(class: "codeblock", code)
+      frame(preview)
+    })
+  } else {
+    grid(
+      columns: (1fr, auto),
+      align: horizon,
+      gutter: 1em,
+      code, preview,
+    )
+  }
+}
+
 
 
 #let fn-paths-by-name(mod, path: ()) = {
@@ -106,150 +139,12 @@
 }
 
 
-
-#let show-type(type) = {
-  import tidy.styles.default: colors
-  h(2pt)
-  let clr = colors.at(type, default: colors.default)
-  box(outset: 2pt, fill: clr, radius: 2pt, raw(type, lang: none))
-  h(2pt)
-}
-
-
 #let rich-ref(id, ..args) = [
   #metadata(args.named())
   #label(id)
 ]
 
 
-#let show-function-signature(fn) = {
-  show: html.div.with(class: "fn-signature")
-  set text(font: "DejaVu Sans Mono", size: 0.8em)
-
-  if fn.name in FUNCTION_PATHS {
-    text(FUNCTION_PATHS.at(fn.name).join(".") + ".")
-  } else {
-    text(red)[unexported: ]
-  }
-
-  text(fn.name, fill: tidy.styles.default.colors.signature-func-name)
-  "("
-
-  let inline = fn.args.len() <= 2
-  if not inline { "\n  " }
-
-  let items = fn
-    .args
-    .pairs()
-    .map(((arg-name, info)) => {
-      if info.at("description", default: "") == "" {
-        arg-name
-      } else {
-        link(label(fn.name + "." + arg-name), arg-name)
-      }
-
-      if "types" in info {
-        ": " + info.types.map(show-type).join(" ")
-      }
-    })
-
-  items.join(if inline { ", " } else { ",\n  " })
-  if not inline { ",\n" } + ")"
-
-  if fn.return-types != none {
-    " -> "
-    fn.return-types.map(show-type).join(" ")
-  }
-}
-
-#let show-function-argument(fn, arg, info) = {
-  rich-ref(
-    fn.name + "." + arg,
-    entity: "argument",
-    function: fn.name,
-    argument: arg,
-  )
-
-  let first-line = {
-    box(heading(raw(arg), level: 3))
-    if "types" in info {
-      h(0.5em)
-      info.types.map(show-type).join(text(0.8em)[ or ])
-    }
-    if "default" in info {
-      text(0.8em)[ default ]
-      raw(info.default)
-    }
-    h(1fr)
-    link(label(fn.name), text(gray, $arrow.tl$))
-  }
-
-  let is-long = info.description.len() > 500
-  block(
-    inset: 10pt,
-    breakable: is-long,
-    {
-      block(
-        outset: 10pt,
-        width: 100%,
-        radius: 10pt,
-        stroke: (top: .6pt + gray),
-        first-line,
-      )
-      eval(info.description, mode: "markup", scope: scope)
-    },
-  )
-}
-
-
-
-#let show-fn(name, level: 3) = {
-  let fn = DOCSTRINGS.at(name)
-  state("current-function").update(fn.name)
-
-  rich-ref(fn.name, entity: "function", function: fn.name)
-  heading(raw(fn.name + "()"), level: level)
-
-  eval(fn.description, mode: "markup", scope: scope)
-
-  show-function-signature(fn)
-
-  for (arg, info) in fn.args {
-    if info.description == "" { continue }
-    show-function-argument(fn, arg, info)
-    v(1em)
-  }
-}
-
-
-
-
-
-#let frame(it) = {
-  html.div(class: "svg-frame", {
-    html.frame(pad(2mm, scale(120%, reflow: true, it)))
-  })
-}
-
-
-#let example(code) = context {
-  let preview = eval(code.text, mode: "markup", scope: scope)
-  let code = raw(code.text, lang: "typ", block: true)
-
-  if is-html() {
-    html.div(class: "code-example", {
-      html.div(class: "codeblock", code)
-      frame(preview)
-    })
-  } else {
-    grid(
-      columns: (1fr, auto),
-      align: horizon,
-      gutter: 1em,
-      code, preview,
-    )
-  }
-}
 
 
 #let show-ref(it) = {
@@ -291,9 +186,9 @@
 
 #let style(body) = {
   show ref: show-ref
+
   set raw(lang: "typc")
   show raw.where(lang: "example"): example
-
   show raw.where(lang: "svg"): it => frame(eval(it.text, mode: "code", scope: scope))
 
   body

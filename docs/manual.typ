@@ -51,7 +51,7 @@
   #colbreak()
   #outline(
     title: [Function Reference],
-    target: selector(heading).after(<func-ref>, inclusive: false),
+    target: selector(heading).after(<func-ref>, inclusive: false).before(<end>),
     depth: 2,
   )
 
@@ -89,7 +89,7 @@
 
 = Function Reference <func-ref>
 
-#import common: show-fn
+#import "components.typ": *
 #let exports = common.EXPORT_TREE.fletcher
 #show raw.where(lang: "example"): common.example
 #show raw.where(lang: "svg"): it => eval(it.text, mode: "code", scope: common.scope)
@@ -155,3 +155,5 @@ These are the built in node shapes, usable with the @node.shape option.
 
 == Docstrings not in this manual
 #exports
+
+#metadata(none) <end>

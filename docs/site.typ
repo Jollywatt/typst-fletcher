@@ -1,40 +1,40 @@
-#let body = context [
-  #set heading(numbering: "1.")
+#import "common.typ"
+#show: common.style
 
-  #show ref: it => {
-    let id = str(it.target)
-    let labels = query(it.target)
-    let single = if target() == "paged" {
-      labels.first()
-    } else {
-      labels.last()
-    }
-    link(single.location(), [Link from #target()])
-  }
+#show math.equation.where(block: false): it => {
+  box(html.frame(it))
+}
 
-  #let richref(id) = {
-    if target() == "paged" {
-      label("-" + id)
-    } else {
-      label(id)
-    }
-  }
+#asset(".gitignore", "*")
 
-  == Title <a>
+#let encode-frontmatter(..args) = "---\n" + yaml.encode(args.named()) + "\n---"
 
-  See @a.
-]
-#document("test.pdf", body)
-#document("test.html", body)
-
-// #document("manual.pdf", include "manual.typ")
-
-/*
 // output an html file and frontmatter pair in the same directory
 #let doc(dir, body, frontmatter: (:)) = {
-  document(dir + "/index.html", body)
-  asset(dir + "/frontmatter.md", "---\n" + yaml.encode(frontmatter) + "\n---")
+  document(dir + "/_index.html", body)
+  asset(dir + "/frontmatter.md", encode-frontmatter(..frontmatter))
 }
+
+
+#doc("gallery/", frontmatter: (
+  title: "Gallery",
+  weight: 1,
+  bookFlatSection: true,
+))[
+  = Gallery!
+]
+
+
+#asset(
+  "manual/_index.md",
+  encode-frontmatter(
+    weight: 1,
+    bookFlatSection: true,
+    bookCollapseSection: false,
+    title: "Manual",
+  ),
+)
+
 
 #let sections = (
   "intro": "Intro",
@@ -47,96 +47,53 @@
 
 #for (i, (file, name)) in sections.pairs().enumerate() [
   #let body = include "/docs/sections/" + file + ".typ"
-  // #document("manual/" + file + "/index.html", it, title: name)
-  // #label(file)
-  // #asset(
-  //   "manual/" + file + "/frontmatter.md",
-  //   ```
-  //   ---
-  //   title: "{TITLE}"
-  //   weight: {NUM}
-  //   ---
-  //   ```
-  //     .text
-  //     .replace("{TITLE}", name)
-  //     .replace("{NUM}", str(i + 1)),
-  // )
   #doc("manual/sections/" + file, body, frontmatter: (
     title: name,
     weight: i + 1,
   ))
 ]
 
-#asset(".gitignore", "*")
-
-#asset(
-  "manual/_index.md",
-  ```
-  ---
-  weight: 1
-  bookFlatSection: true
-  bookCollapseSection: false
-  title: "Manual"
-  ---
-  ```.text,
-)
-
-
 
 #asset(
   "reference/_index.md",
-  ```
-  ---
-  weight: 2
-  bookFlatSection: true
-  bookCollapseSection: false
-  title: "Reference"
-  ---
-  ```.text,
+  encode-frontmatter(
+    weight: 2,
+    bookFlatSection: true,
+    bookCollapseSection: false,
+    title: "Reference",
+  ),
 )
 
-#import "common.typ"
-#show: common.style
+#import "components.typ"
 
-#let fn-doc(modules, name) = {
-  document("reference/" + modules + "/" + name + "/index.html", common.show-fn(name))
-  asset(
-    "reference/" + modules + "/" + name + "/frontmatter.md",
-    ```
-    ---
-    title: "{TITLE}"
-    ---
-    ```
-      .text
-      .replace("{TITLE}", name),
-  )
+#let fn-doc(modules, name, ..args) = context {
+  doc("reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
 }
 
 #let exports = common.EXPORT_TREE.fletcher
 
-#let module-doc(name) = {
+#let module-doc(name, ..args) = {
   asset(
     "reference/" + name + "/_index.md",
-    ```
-    ---
-    bookCollapseSection: true
-    title: "The {TITLE} module"
-    ---
-    ```
-      .text
-      .replace("{TITLE}", name),
+    encode-frontmatter(
+      bookCollapseSection: true,
+      title: "The " + name + " module",
+      ..args.named(),
+    ),
   )
 }
 
-#fn-doc("", exports.remove("diagram"))
-#fn-doc("", exports.remove("node"))
-#fn-doc("", exports.remove("edge"))
-#fn-doc("", exports.remove("flexigrid"))
 
-#module-doc("marks")
+
+#fn-doc("", exports.remove("diagram"), weight: 1)
+#fn-doc("", exports.remove("node"), weight: 2)
+#fn-doc("", exports.remove("edge"), weight: 3)
+#fn-doc("", exports.remove("flexigrid"), weight: 4)
+
+#module-doc("marks", weight: 5)
 #fn-doc("marks", exports.marks.remove("test"))
 
-#module-doc("path")
+#module-doc("path", weight: 6)
 #fn-doc("path", exports.edges.remove("apply-edge-effects"))
 #fn-doc("path", exports.paths.remove("path-effect"))
 #fn-doc("path", exports.paths.remove("trim-path"))
@@ -148,47 +105,37 @@
 
 
 
-#doc("reference/shapes/", frontmatter: (title: "Cool!"))[whow]
 
-// #document("reference/shapes/index.html")[
-//   == The `shapes` module
+#doc("reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
 
-//   These are the built in node shapes, usable with the @node.shape option.
+  == The `shapes` module
 
-//   #import common.fletcher
-//   #grid(
-//     columns: (1fr,) * 5,
-//     align: center + horizon,
-//     inset: 0.5em,
-//     ..fletcher
-//       .shapes
-//       .NODE_SHAPES
-//       .keys()
-//       .filter(name => name != "none")
-//       .enumerate()
-//       .map(((i, name)) => {
-//         let c = color.oklch(80%, 70%, 20deg * i)
-//         let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
-//         fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c))
-//       })
-//   )
-// ]
+  These are the built in node shapes, usable with the @node.shape option.
+
+  #import common.fletcher
+  #html.div(class: "flex", style: "flex-wrap: wrap; align-items: center;", {
+    fletcher
+      .shapes
+      .NODE_SHAPES
+      .keys()
+      .filter(name => name != "none")
+      .enumerate()
+      .map(((i, name)) => {
+        let c = color.oklch(80%, 70%, 20deg * i)
+        let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
+        common.frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
+      })
+      .join()
+  })
+]
 
 #for name in exports.shapes.keys() {
   fn-doc("shapes", exports.shapes.remove(name))
 }
 
 
-#document("gallery/index.html")[
-  = Gallery!
-]
-#asset(
-  "gallery/frontmatter.md",
-  ```
-  ---
-  title: "Gallery"
-  weight: 1
-  bookFlatSection: true
-  ---
-  ```.text,
-)
+#module-doc("parsing", weight: 8)
+
+#for name in exports.parsing.keys() {
+  fn-doc("parsing", exports.parsing.remove(name))
+}
