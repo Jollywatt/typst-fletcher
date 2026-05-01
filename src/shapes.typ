@@ -39,28 +39,10 @@
 
 /// The default rectangle node shape.
 ///
-/// #shape-demo("rect", green)
+/// #shape-demo("rect")
 ///
 /// - `corner-radius`: Accepts the same inputs as ```typc cetz.draw.rect(radius: ..)```.
-///
-///   #let opts = (
-///     0,
-///     5pt,
-///     (south: 1em),
-///   )
-///   #frame(diagram(for (i, opt) in opts.enumerate() {
-///     let l = box(
-///       inset: 10pt,
-///       raw("corner-radius: " + repr(opt)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "rect",
-///       corner-radius: opt,
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 5pt, (south: 1em)).map(o => shape-demo("rect", green, corner-radius: o, label: raw("corner-radius: " + repr(o)))))
 #let rect(node) = {
   let (w, h) = resolve-size(node)
   let x = w / 2 + node.extrude
@@ -93,24 +75,10 @@
 
 /// A circular node shape.
 ///
-/// #shape-demo("circle", red)
+/// #shape-demo("circle")
 ///
 /// - `fit`: Adjusts how comfortably the circle fits the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "circle",
-///       fit: fit,
-///       stroke: red,
-///       fill: red.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("circle", fit: o)))
 #let circle(node) = {
   let (w, h) = node.size
   let fit = node.style.fit
@@ -129,24 +97,10 @@
 
 /// An elliptical node shape.
 ///
-/// #shape-demo("ellipse", orange)
+/// #shape-demo("ellipse")
 ///
 /// - `fit`: Adjusts how comfortably the ellipse fits the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "ellipse",
-///       fit: fit,
-///       stroke: orange,
-///       fill: orange.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("ellipse", fit: o)))
 #let ellipse(node) = {
   let (w, h) = resolve-size(node)
   let f = 1 + node.style.fit * (calc.sqrt(2) - 1)
@@ -165,22 +119,10 @@
 
 /// A capsule node shape.
 ///
-/// #shape-demo("pill", teal)
+/// #shape-demo("pill")
 ///
-/// #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///   let l = box(
-///     stroke: (dash: "dashed", thickness: 0.5pt),
-///     inset: 10pt,
-///     raw("fit: " + repr(fit)),
-///   )
-///   node((i, 0), l,
-///     inset: 0pt,
-///     shape: "pill",
-///     fit: fit,
-///     stroke: teal,
-///     fill: teal.lighten(90%),
-///   )
-/// })
+/// - `fit`: Adjusts how comfortably the pill fits the label's bounding box.
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("pill", fit: o)))
 #let pill(node) = {
   let (w, h) = resolve-size(node)
   let r = calc.min(w, h)
@@ -202,54 +144,17 @@
 
 /// A slanted rectangle node shape.
 ///
-/// #shape-demo("parallelogram", olive)
+/// #shape-demo("parallelogram")
 ///
 /// - `flip` (boolean): Whether to slant the horizontal or vertical edges.
-///
-///   #frame(diagram(for (i, flip) in (false, true).enumerate() {
-///     node((i, 0), raw("flip: " + repr(flip)),
-///       shape: "parallelogram",
-///       flip: flip,
-///       angle: if flip { 10deg } else { 20deg },
-///       stroke: olive,
-///       fill: olive.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(false, true).map(o => shape-demo("parallelogram", flip: o, label: raw("flip: " + repr(o)), angle: if o { 10deg } else { 20deg })))
 ///
 /// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg`... unless you want your document to be larger than the solar system.
-///
-///   #frame(diagram(for (i, angle) in (-20deg, 0deg, 45deg).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("angle: " + repr(angle)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "parallelogram",
-///       angle: angle,
-///       stroke: olive,
-///       fill: olive.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(-20deg, 0deg, 45deg).map(o => shape-demo("parallelogram", angle: o, label: raw("angle: " + repr(o)), inset: 10pt)))
 ///
 /// - `fit`: Adjusts how comfortably the parallelogram fits the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "parallelogram",
-///       fit: fit,
-///       stroke: olive,
-///       fill: olive.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("parallelogram", fit: o)))
 #let parallelogram(node) = {
   let (w, h) = resolve-size(node)
   let (flip, fit, angle) = node.style
@@ -287,59 +192,17 @@
 
 /// An isosceles trapezoid node shape.
 ///
-/// #shape-demo("keystone", green)
+/// #shape-demo("keystone")
 ///
 /// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg` unless you want your document to be larger than the solar system.
-///
-///   #frame(diagram(for (i, angle) in (-20deg, 0deg, 45deg).enumerate() {
-///     let l = box(
-///       inset: 10pt,
-///       raw("angle: " + repr(angle)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "keystone",
-///       angle: angle,
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(-20deg, 0deg, 45deg).map(o => shape-demo("keystone", angle: o)))
 ///
 /// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
-///
-///   #frame(diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
-///     let l = box(
-///       inset: 10pt,
-///       raw("dir: " + repr(dir)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "keystone",
-///       dir: dir,
-///       angle: if dir in (top, bottom) { 20deg } else { 10deg },
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("keystone", dir: o)))
 ///
 /// - `fit` (number): Adjusts how comfortably the trapezium fits the label's bounding box.
-///
-///   #for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     diagram(node((i, 0), l,
-///       inset: 0pt,
-///       shape: "keystone",
-///       fit: fit,
-///       stroke: green,
-///       fill: green.lighten(90%),
-///     ))
-///     h(5mm)
-///   }
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("keystone", fit: o)))
 #let keystone(node) = {
   let (dir, angle, fit) = node.style
   assert(dir in (top, bottom, left, right))
@@ -382,24 +245,10 @@
 
 /// A rhombus node shape.
 ///
-/// #shape-demo("diamond", purple)
+/// #shape-demo("diamond")
 ///
 /// - `fit`: Adjusts how comfortably the diamond fits the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "diamond",
-///       fit: fit,
-///       stroke: purple,
-///       fill: purple.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("diamond", fit: o)))
 #let diamond(node) = {
   let (w, h) = resolve-size(node)
   let φ = calc.atan2(w, h)
@@ -423,40 +272,17 @@
 
 /// An isosceles triangle node shape.
 ///
-/// #shape-demo("triangle", fuchsia)
+/// #shape-demo("triangle")
 ///
 /// Either the `angle` or `aspect` style parameter may be given, but
 /// not both. The triangle's base coincides with the label's base and widens to
 /// enclose the label; see https://www.desmos.com/calculator/i4i9svunj4.
 ///
 /// - `dir` (top, bottom, left, right): The side the shorter parallel edge is on.
-///
-///   #frame(diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
-///     node((i, 0), raw(repr(dir)),
-///       inset: 5pt,
-///       shape: "triangle",
-///       dir: dir,
-///       stroke: fuchsia,
-///       fill: fuchsia.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("triangle", dir: o)))
 ///
 /// - `fit`: Adjusts how comfortably the triangle fits the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "triangle",
-///       fit: fit,
-///       stroke: fuchsia,
-///       fill: fuchsia.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("triangle", fit: o)))
 #let triangle(node) = {
   let (dir, angle, aspect, fit) = node.style
   assert(dir in (top, bottom, left, right))
@@ -504,22 +330,14 @@
 
 /// A pentagonal house-like node shape.
 ///
-/// #shape-demo("house", eastern)
+/// #shape-demo("house")
 ///
 /// - `dir`: Direction of the roof of the house.
-///
-///   #frame(diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
-///     node((i, 0), raw("dir: " + repr(dir)),
-///       inset: 5pt,
-///       shape: "house",
-///       dir: dir,
-///       stroke: eastern,
-///       fill: eastern.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("house", dir: o)))
 ///
 /// - `angle`: The slant of the roof. A plain rectangle is `0deg`, and
 ///   `90deg` is a point stretching past Pluto.
+///   #frame-row(..(0deg, 10deg, 20deg).map(o => shape-demo("house", angle: o)))
 #let house(node) = {
   let (dir, angle) = node.style
   let flip = dir in (right, left) // flip along diagonal line x = y
@@ -558,36 +376,16 @@
 
 /// A chevron node shape.
 ///
-/// #shape-demo("chevron", yellow)
+/// #shape-demo("chevron")
 ///
 /// - `dir`: Direction the chevron points.
+///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("chevron", dir: o)))
 ///
-///   #frame(diagram(for (i, dir) in (top, bottom, right, left).enumerate() {
-///     node((i, 0), raw("dir: " + repr(dir)),
-///       inset: 5pt,
-///       shape: "chevron",
-///       dir: dir,
-///       stroke: yellow,
-///       fill: yellow.lighten(90%),
-///     )
-///   }))
 /// - `angle`: The slant of the arrow. A plain rectangle is `0deg`.
-/// - `fit`: Adjusts how comfortably the chevron fits the label's bounding box.
+///   #frame-row(..(0deg, 10deg, 20deg).map(o => shape-demo("chevron", angle: o)))
 ///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "chevron",
-///       fit: fit,
-///       stroke: yellow,
-///       fill: yellow.lighten(90%),
-///     )
-///   }))
+/// - `fit`: Adjusts how comfortably the chevron fits the label's bounding box.
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("chevron", fit: o)))
 #let chevron(node) = {
   let (dir, angle, fit) = node.style
   let flip = dir in (right, left) // flip along diagonal line x = y
@@ -634,36 +432,16 @@
 
 /// An (irregular) hexagon node shape.
 ///
-/// #shape-demo("hexagon", aqua)
+/// #shape-demo("hexagon")
 ///
 /// - `angle`: Half the exterior angle, `0deg` being a rectangle.
+///   #frame-row(..(0deg, 30deg, 45deg).map(o => shape-demo("hexagon", angle: o)))
+///
 /// - `flip` (boolean): Whether to put the points on the sides or top and bottom.
+///   #frame-row(..(false, true).map(o => shape-demo("hexagon", flip: o)))
 ///
-///   #diagram(for (i, flip) in (false, true).enumerate() {
-///     node((i, 0), raw("flip: " + repr(flip)),
-///       shape: "hexagon",
-///       flip: flip,
-///       angle: if flip { 10deg } else { 20deg },
-///       stroke: aqua,
-///       fill: aqua.lighten(90%),
-///     )
-///   }))
 /// - `fit`: Adjusts how comfortably the hexagon fits the label's bounding box.
-///
-///   #diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "hexagon",
-///       fit: fit,
-///       stroke: aqua,
-///       fill: aqua.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("hexagon", fit: o)))
 #let hexagon(node) = {
   let (angle, flip, fit) = node.style
   let (w, h) = resolve-size(node)
@@ -702,20 +480,11 @@
 
 /// A truncated rectangle node shape.
 ///
-/// #shape-demo("octagon", maroon)
+/// #shape-demo("octagon")
 ///
 /// - `truncate` (number, length): Size of the truncated corners. A number is
 ///   interpreted as a multiple of the smaller of the node's width or height.
-///
-///   #frame(diagram(for (i, t) in (0, 0.5, 1).enumerate() {
-///     node((i, 0), raw("truncate: " + repr(t)),
-///       inset: 5pt,
-///       shape: "octagon",
-///       truncate: t,
-///       stroke: maroon,
-///       fill: maroon.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("octagon", truncate: o)))
 #let octagon(node) = {
   let (w, h) = resolve-size(node)
   let (x, y) = (w / 2 + node.extrude, h / 2 + node.extrude)
@@ -750,47 +519,16 @@
 
 /// A 3D cylinder node shape.
 ///
-/// #shape-demo("cylinder", gray)
+/// #shape-demo("cylinder")
 ///
 /// - `fit`: Adjusts how exactly the cylinder fits around the label's bounding box.
-///
-///   #frame(diagram(for (i, fit) in (0, 0.5, 1).enumerate() {
-///     let l = box(
-///       stroke: (dash: "dashed", thickness: 0.5pt),
-///       inset: 10pt,
-///       raw("fit: " + repr(fit)),
-///     )
-///     node((i, 0), l,
-///       inset: 0pt,
-///       shape: "cylinder",
-///       fit: fit,
-///       stroke: gray,
-///       fill: gray.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("cylinder", fit: o)))
 ///
 /// - `tilt` (angle): Controls the perspective tilt: `0deg` is side on.
-///
-///   #frame(diagram(for (i, tilt) in (10deg, 5deg, 0deg, -5deg).enumerate() {
-///     node((i, 0), raw("tilt: " + repr(tilt)),
-///       shape: "cylinder",
-///       tilt: tilt,
-///       stroke: gray,
-///       fill: gray.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(10deg, 5deg, 0deg, -5deg).map(o => shape-demo("cylinder", tilt: o)))
 ///
 /// - `rings` (length, array, none): Array of vertical positions at which to draw arcs around the body.
-///
-///   #frame(diagram(for (i, rings) in (none, (0,), (0, 3pt), (0, 100% - 3pt)).enumerate() {
-///     node((i, 0), align(center, raw("rings:\n" + repr(rings))),
-///       shape: "cylinder",
-///       inset: 8pt,
-///       stroke: gray,
-///       rings: rings,
-///       fill: gray.lighten(90%),
-///     )
-///   }))
+///   #frame-row(..(none, (0,), (0, 3pt), (0, 100% - 3pt)).map(o => shape-demo("cylinder", rings: o, label: align(center, raw("rings:\n" + repr(o))), inset: 8pt)))
 #let cylinder(node) = {
   let (fit, tilt, rings) = node.style
 
