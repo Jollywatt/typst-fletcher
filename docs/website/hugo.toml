@@ -1,0 +1,9 @@
+baseURL = 'https://example.org/'
+locale = 'en-us'
+title = 'fletcher docs'
+
+markup.goldmark.renderer.unsafe = true
+
+[module]
+[[module.imports]]
+path = 'github.com/alex-shpak/hugo-book'

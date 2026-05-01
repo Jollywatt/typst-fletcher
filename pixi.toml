@@ -17,3 +17,13 @@ nushell = ">=0.112.2,<0.113"
 typos = "*"
 typst = "==0.14.2"
 tytanic = "==0.3.3"
+
+[feature.site.dependencies]
+go = "*"
+hugo = "*"
+
+[feature.site.tasks]
+site = "scripts/site.nu"
+
+[environments]
+site = ["site"]

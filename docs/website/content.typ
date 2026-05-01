@@ -1,11 +1,11 @@
-#import "common.typ"
+#import "../common.typ"
+#import "../components.typ"
+
 #show: common.style
 
 #show math.equation.where(block: false): it => {
   box(html.frame(it))
 }
-
-#asset(".gitignore", "*")
 
 #let encode-frontmatter(..args) = "---\n" + yaml.encode(args.named()) + "\n---"
 
@@ -16,7 +16,7 @@
 }
 
 
-#doc("gallery/", frontmatter: (
+#doc("docs/gallery/", frontmatter: (
   title: "Gallery",
   weight: 1,
   bookFlatSection: true,
@@ -26,7 +26,7 @@
 
 
 #asset(
-  "manual/_index.md",
+  "docs/manual/_index.md",
   encode-frontmatter(
     weight: 1,
     bookFlatSection: true,
@@ -47,7 +47,7 @@
 
 #for (i, (file, name)) in sections.pairs().enumerate() [
   #let body = include "/docs/sections/" + file + ".typ"
-  #doc("manual/sections/" + file, body, frontmatter: (
+  #doc("docs/manual/sections/" + file, body, frontmatter: (
     title: name,
     weight: i + 1,
   ))
@@ -55,7 +55,7 @@
 
 
 #asset(
-  "reference/_index.md",
+  "docs/reference/_index.md",
   encode-frontmatter(
     weight: 2,
     bookFlatSection: true,
@@ -64,17 +64,16 @@
   ),
 )
 
-#import "components.typ"
 
 #let fn-doc(modules, name, ..args) = context {
-  doc("reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
+  doc("docs/reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
 }
 
 #let exports = common.EXPORT_TREE.fletcher
 
 #let module-doc(name, ..args) = {
   asset(
-    "reference/" + name + "/_index.md",
+    "docs/reference/" + name + "/_index.md",
     encode-frontmatter(
       bookCollapseSection: true,
       title: "The " + name + " module",
@@ -106,7 +105,7 @@
 
 
 
-#doc("reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
+#doc("docs/reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
   == The `shapes` module
 
   These are the built in @node-shapes[node shapes], usable with the @node.shape option.
@@ -124,3 +123,51 @@
 #for name in exports.parsing.keys() {
   fn-doc("parsing", exports.parsing.remove(name))
 }
+
+
+
+#asset("_index.md", ```md
+---
+title: ""
+layout: landing
+---
+
+<div class="book-hero">
+
+# fletcher {anchor=false}
+
+[{{< badge style="info" title="Hugo" value="0.158" >}}](https://github.com/gohugoio/hugo/releases/tag/v0.158.0)
+[{{< badge style="default" title="License" value="MIT" >}}](https://github.com/alex-shpak/hugo-book/blob/main/LICENSE)
+
+{{<button href="/docs/gallery/">}}Gallery{{</button>}}
+{{<button href="/docs/manual/">}}Manual{{</button>}}
+{{<button href="/docs/reference/">}}Function Reference{{</button>}}
+
+</div>
+
+{{% columns %}}
+
+- ## What Hugo-Book Theme Is
+    Hugo book theme is primarily designed to create technical documentation sites that are easy to read, write, navigate and maintain. It is an attempt to create a sustainable web project.
+
+{{% /columns %}}
+
+{{% columns %}}
+
+- {{< card >}}
+
+    ## Probably fast
+
+    Build on Hugo static site generator. "The world’s fastest framework for building websites".
+    {{< /card >}}
+
+- {{< card >}}
+
+    ## 50% JS free
+
+    All important features are working even with JavaScript disabled in browser, including interactive shortcodes.
+    {{< /card >}}
+
+{{% /columns %}}
+
+```.text)
