@@ -15,7 +15,6 @@
 
 
 #let show-function-signature(fn) = {
-  show: html.div.with(class: "fn-signature")
   set text(font: "DejaVu Sans Mono", size: 0.8em)
 
   if fn.name in common.FUNCTION_PATHS {
@@ -63,7 +62,7 @@
     argument: arg,
   )
 
-  if common.is-html() or true {
+  if common.is-html() {
     html.div(class: "fn-arg", {
       [== #raw(arg)]
 
@@ -106,7 +105,7 @@
           stroke: (top: .6pt + gray),
           first-line,
         )
-        eval(info.description, mode: "markup", scope: scope)
+        eval(info.description, mode: "markup", scope: common.scope)
       },
     )
 

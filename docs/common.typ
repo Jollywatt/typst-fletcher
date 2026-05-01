@@ -4,7 +4,7 @@
 #import "@preview/tidy:0.4.3"
 
 #let VERSION = toml("/typst.toml").package.version
-#let is-html() = target() == "html"
+#let is-html() = if "target" in std { target() == "html" } else { false }
 
 #let frame(it) = context {
   if is-html() {
