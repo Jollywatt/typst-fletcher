@@ -1031,6 +1031,15 @@
   ///
   /// -> "trim" | "move" | pair
   snap-method: auto,
+  /// Gap between the end of the edge and connected nodes.
+  /// Similar to @node.outset, but specific to the current edge instead of
+  /// the target node.
+  ///
+  /// Can be a single length or a pair of lengths `(from, to)` to control the
+  /// outset at either end of the edge.
+  ///
+  /// See also @edge.shorten.
+  /// -> length | pair
   outset: auto,
   /// Distance to shorten the edge at either end.
   ///
@@ -1038,6 +1047,7 @@
   /// A pair of lengths `(start, end)` controls shortening at either end
   /// of the edge independently.
   ///
+  /// See also @edge.outset.
   /// -> length | number | array
   shorten: 0,
   name: none,

@@ -26,6 +26,36 @@ Nodes automatically fit to their content (with an @node.inset[inset]), but can a
 )
 ```)
 
+== Node styles <node-styles>
+
+Node styles can be set with named arguments to @node.
+Default node styles can be set by passing options to the enclosing @diagram with the `node-` prefix, or by using `cetz.draw.set-style(node: ..)`.
+
+#example(```typ
+#diagram(
+  node-stroke: 2pt, // default stroke style for nodes
+  node((0,0), fill: yellow, [A]),
+  edge("<->"),
+  {
+    import cetz.draw: *
+    set-style(node: (extrude: (2,0)))
+    node((1,0), stroke: yellow, [B], outset: 4pt) // stroke becomes 2pt + yellow
+  }
+)
+```)
+
+Like CeTZ styles, `cetz.draw.set-style()` is scoped to the current `cetz.draw.group()`.
+
+Available node styles:
+
+- @node.fill
+- @node.stroke
+- @node.extrude
+- @node.inset
+- @node.outset
+
+
+
 == Node shapes <node-shapes>
 
 By default, nodes are circular if their content is small and square, and rectangular if it is tall or wide.

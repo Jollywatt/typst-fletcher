@@ -68,6 +68,7 @@
   }
 }
 
+#(scope.example = example)
 
 
 #let fn-paths-by-name(mod, path: ()) = {
