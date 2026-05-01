@@ -111,24 +111,9 @@
 
 == The `shapes` module
 
-These are the built in node shapes, usable with the @node.shape option.
+These are the built in @node-shapes[node shapes], usable with the @node.shape option.
 
-#grid(
-  columns: (1fr,) * 5,
-  align: center + horizon,
-  inset: 0.5em,
-  ..fletcher
-    .shapes
-    .NODE_SHAPES
-    .keys()
-    .filter(name => name != "none")
-    .enumerate()
-    .map(((i, name)) => {
-      let c = color.oklch(80%, 70%, 20deg * i)
-      let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
-      fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c))
-    })
-)
+#common.shapes-gallery
 
 #for name in exports.shapes.keys() {
   show-fn(exports.shapes.remove(name))

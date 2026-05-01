@@ -39,7 +39,7 @@
 
 /// The default rectangle node shape.
 ///
-/// #shape-demo("rect")
+/// #shape-demo("rect", show-code: true)
 ///
 /// - `corner-radius`: Accepts the same inputs as ```typc cetz.draw.rect(radius: ..)```.
 ///   #frame-row(..(0, 5pt, (south: 1em)).map(o => shape-demo("rect", green, corner-radius: o, label: raw("corner-radius: " + repr(o)))))
@@ -75,7 +75,7 @@
 
 /// A circular node shape.
 ///
-/// #shape-demo("circle")
+/// #shape-demo("circle", show-code: true)
 ///
 /// - `fit`: Adjusts how comfortably the circle fits the label's bounding box.
 ///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("circle", fit: o)))
@@ -97,7 +97,7 @@
 
 /// An elliptical node shape.
 ///
-/// #shape-demo("ellipse")
+/// #shape-demo("ellipse", show-code: true)
 ///
 /// - `fit`: Adjusts how comfortably the ellipse fits the label's bounding box.
 ///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("ellipse", fit: o)))
@@ -119,7 +119,7 @@
 
 /// A capsule node shape.
 ///
-/// #shape-demo("pill")
+/// #shape-demo("pill", show-code: true)
 ///
 /// - `fit`: Adjusts how comfortably the pill fits the label's bounding box.
 ///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("pill", fit: o)))
@@ -144,7 +144,7 @@
 
 /// A slanted rectangle node shape.
 ///
-/// #shape-demo("parallelogram")
+/// #shape-demo("parallelogram", show-code: true)
 ///
 /// - `flip` (boolean): Whether to slant the horizontal or vertical edges.
 ///   #frame-row(..(false, true).map(o => shape-demo("parallelogram", flip: o, label: raw("flip: " + repr(o)), angle: if o { 10deg } else { 20deg })))
@@ -192,7 +192,7 @@
 
 /// An isosceles trapezoid node shape.
 ///
-/// #shape-demo("keystone")
+/// #shape-demo("keystone", show-code: true)
 ///
 /// - `angle`: Angle of the slant, `0deg` is a rectangle. Don't set to
 ///   `90deg` unless you want your document to be larger than the solar system.
@@ -245,7 +245,7 @@
 
 /// A rhombus node shape.
 ///
-/// #shape-demo("diamond")
+/// #shape-demo("diamond", show-code: true)
 ///
 /// - `fit`: Adjusts how comfortably the diamond fits the label's bounding box.
 ///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("diamond", fit: o)))
@@ -272,7 +272,7 @@
 
 /// An isosceles triangle node shape.
 ///
-/// #shape-demo("triangle")
+/// #shape-demo("triangle", show-code: true)
 ///
 /// Either the `angle` or `aspect` style parameter may be given, but
 /// not both. The triangle's base coincides with the label's base and widens to
@@ -330,7 +330,7 @@
 
 /// A pentagonal house-like node shape.
 ///
-/// #shape-demo("house")
+/// #shape-demo("house", show-code: true)
 ///
 /// - `dir`: Direction of the roof of the house.
 ///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("house", dir: o)))
@@ -376,7 +376,7 @@
 
 /// A chevron node shape.
 ///
-/// #shape-demo("chevron")
+/// #shape-demo("chevron", show-code: true)
 ///
 /// - `dir`: Direction the chevron points.
 ///   #frame-row(..(top, bottom, right, left).map(o => shape-demo("chevron", dir: o)))
@@ -432,7 +432,7 @@
 
 /// An (irregular) hexagon node shape.
 ///
-/// #shape-demo("hexagon")
+/// #shape-demo("hexagon", show-code: true)
 ///
 /// - `angle`: Half the exterior angle, `0deg` being a rectangle.
 ///   #frame-row(..(0deg, 30deg, 45deg).map(o => shape-demo("hexagon", angle: o)))
@@ -480,7 +480,7 @@
 
 /// A truncated rectangle node shape.
 ///
-/// #shape-demo("octagon")
+/// #shape-demo("octagon", show-code: true)
 ///
 /// - `truncate` (number, length): Size of the truncated corners. A number is
 ///   interpreted as a multiple of the smaller of the node's width or height.
@@ -519,7 +519,7 @@
 
 /// A 3D cylinder node shape.
 ///
-/// #shape-demo("cylinder")
+/// #shape-demo("cylinder", show-code: true)
 ///
 /// - `fit`: Adjusts how exactly the cylinder fits around the label's bounding box.
 ///   #frame-row(..(0, 0.5, 1).map(o => shape-demo("cylinder", fit: o)))

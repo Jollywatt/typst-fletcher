@@ -107,26 +107,11 @@
 
 
 #doc("reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
-
   == The `shapes` module
 
-  These are the built in node shapes, usable with the @node.shape option.
+  These are the built in @node-shapes[node shapes], usable with the @node.shape option.
 
-  #import common.fletcher
-  #html.div(class: "flex", style: "flex-wrap: wrap; align-items: center;", {
-    fletcher
-      .shapes
-      .NODE_SHAPES
-      .keys()
-      .filter(name => name != "none")
-      .enumerate()
-      .map(((i, name)) => {
-        let c = color.oklch(80%, 70%, 20deg * i)
-        let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
-        common.frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
-      })
-      .join()
-  })
+  #common.shapes-gallery
 ]
 
 #for name in exports.shapes.keys() {

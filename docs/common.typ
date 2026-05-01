@@ -103,6 +103,22 @@
   }
 }
 
+#let shapes-gallery = frame-row(
+  gap: 20mm,
+  ..fletcher
+    .shapes
+    .NODE_SHAPES
+    .keys()
+    .filter(name => name != "none")
+    .enumerate()
+    .map(((i, name)) => {
+      let c = shape-colors.at(name).darken(50%)
+      let body = text(c, pad(-1em, link(label(name), pad(1em, raw(name)))))
+      shape-demo(name, label: body)
+    })
+)
+
+
 #let scope = (
   fletcher: fletcher,
   ..dictionary(fletcher),
