@@ -1,7 +1,7 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level, debug-group, get-debug
-#import "shapes.typ": NODE_SHAPES, DEFAULT_NODE_STYLE
+#import "debug.typ": debug-group, debug-level, get-debug
+#import "shapes.typ": DEFAULT_NODE_STYLE, NODE_SHAPES
 #import "parsing.typ"
 
 
@@ -29,9 +29,9 @@
       }
     }
 
-    if node.layer != 0 { objs = cetz.draw.on-layer(node.layer, objs) }
-    let group = cetz.draw.group(objs, name: node.name)
-    group = group.first()(ctx)
+      if node.layer != 0 { objs = cetz.draw.on-layer(node.layer, objs) }
+      let group = cetz.draw.group(objs, name: node.name)
+      group = group.first()(ctx)
 
     // override anchor behaviour for nodes
     let calc-anchors = if "node" in (group.anchors)(()) {
@@ -47,19 +47,23 @@
     debug-group({
       cetz.draw.translate(origin)
       if debug-level(debug, "node.origin") {
-        cetz.draw.circle((0,0), radius: 0.8pt, fill: red, stroke: none)
+        cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
       }
       let (w, h) = node.size
       if debug-level(debug, "node.stroke") {
         cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
       }
       if debug-level(debug, "node.outset") {
-        let o = node.style.outset
-        cetz.draw.rect(
-          (rel: (-o, -o), to: (-w/2,-h/2)),
-          (rel: (+o, +o), to: (+w/2,+h/2)),
-          stroke: (paint: red, thickness: 0.25pt, dash: (.75pt,.25pt)),
-        )
+        cetz.draw.get-ctx(ctx => {
+          cetz.draw.set-style(stroke: (paint: green, thickness: 0.5pt, dash: "densely-dotted"))
+          let outset = utils.to-length(node.style.outset, to-float: ctx.length)
+          (node.draw)(node + (
+            body: none,
+            size: node.body-size,
+            unit-length: ctx.length,
+            extrude: outset,
+          ))
+        })
       }
     })
   }
@@ -351,6 +355,26 @@
   stroke: auto,
   /// Padding between the node's content and its outline.
   inset: auto,
+  /// Separation between the node's outline to the snapping region for edges.
+  ///
+  /// This does not affect the node's appearance or layout, only how closely edges connect to it.
+  ///
+  /// When the `node.outline` debug mode is on, the node outset is visualised as a think green dotted outline.
+  ///
+  /// #example(```typ
+  /// #diagram(
+  /// 	debug: "node.outset",
+  /// 	node-stroke: 1pt,
+  /// 	node((0,0), [Hello]),
+  /// 	edge("<->"),
+  ///   node((1,0), [World], outset: 5pt, shape: "ellipse"),
+  /// )
+  /// ```)
+  ///
+  /// See also @edge.outset, which controls how closely individual edges connect to nodes.
+  ///
+  /// -> length
+  outset: auto,
   /// Draw strokes around the node at the given offsets to
   /// obtain a multi-stroke effect.
   /// Offsets can be numbers specifying multiples of the @node.stroke's thickness or lengths.
@@ -402,6 +426,7 @@
     fill: fill,
     stroke: stroke,
     inset: inset,
+    outset: outset,
     extrude: extrude,
   ).pairs().filter(((k, v)) => v != auto).to-dict() 
   style += args.named()
