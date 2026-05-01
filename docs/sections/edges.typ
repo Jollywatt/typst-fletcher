@@ -70,17 +70,12 @@ To make it easy to achieve common edge shapes, like arcs, loops or right-angled 
 )
 
 #let edge-kind-examples(examples, ..extra-args) = {
-  show: box // prevent breaking
-  stack(
-    dir: ltr,
-    spacing: 1fr,
-    ..examples.map(args => align(horizon, {
-      diagram(
-        node(radius: 1pt, fill: black),
-        edge("->", ..extra-args, ..args, [#raw(repr(args))]),
-      )
-    })),
-  )
+  frame-row(..examples.map(args => align(horizon, {
+    diagram(
+      node(radius: 1pt, fill: black),
+      edge("->", ..extra-args, ..args, [#raw(repr(args))]),
+    )
+  })))
 }
 
 === Arc edges <edge-kind-arc>

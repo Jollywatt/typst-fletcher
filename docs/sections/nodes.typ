@@ -61,35 +61,49 @@ Available node styles:
 By default, nodes are circular if their content is small and square, and rectangular if it is tall or wide.
 The @node.shape[shape] option can be set to any of the following built-in shapes.
 
-#context if is-html() {
-  html.div(class: "flex", style: "flex-wrap: wrap; align-items: center;", {
-    fletcher
-      .shapes
-      .NODE_SHAPES
-      .keys()
-      .filter(name => name != "none")
-      .enumerate()
-      .map(((i, name)) => {
-        let c = color.oklch(80%, 70%, 20deg * i)
-        let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
-        frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
-      })
-      .join()
-  })
-} else {
-  fletcher
+// #context if is-html() {
+//   html.div(class: "flex", style: "flex-wrap: wrap; align-items: center;", {
+//     fletcher
+//       .shapes
+//       .NODE_SHAPES
+//       .keys()
+//       .filter(name => name != "none")
+//       .enumerate()
+//       .map(((i, name)) => {
+//         let c = color.oklch(80%, 70%, 20deg * i)
+//         let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
+//         frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
+//       })
+//       .join()
+//   })
+// } else {
+//   fletcher
+//     .shapes
+//     .NODE_SHAPES
+//     .pairs()
+//     .map(((name, attrs)) => [
+//       - #raw(name)
+//         #for attr in attrs.keys() {
+//           if attr == "draw" { continue }
+//           [- #attr]
+//         }
+//     ])
+//     .join()
+// }
+#frame-row(
+  ..fletcher
     .shapes
     .NODE_SHAPES
-    .pairs()
-    .map(((name, attrs)) => [
-      - #raw(name)
-        #for attr in attrs.keys() {
-          if attr == "draw" { continue }
-          [- #attr]
-        }
-    ])
-    .join()
-}
+    .keys()
+    .filter(name => name != "none")
+    .enumerate()
+    .map(((i, name)) => {
+      let c = color.oklch(80%, 70%, 20deg * i)
+      let body = text(c.mix(black), pad(-1em, link(label(name), pad(1em, raw(name)))))
+      frame(fletcher.diagram(fletcher.node((0, 0), body, shape: name, stroke: c)))
+    })
+
+)
 
 Some shapes have style options like `width` or `radius`, and sometimes the shape can be inferred from the options given.
 For example, `node(.., radius: 3cm)` is implicitly `node(.., shape: "circle", radius: 3cm)`.

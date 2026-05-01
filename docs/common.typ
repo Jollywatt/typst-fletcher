@@ -16,19 +16,76 @@
   }
 }
 
+#let frame-row(..args, gap: 5mm) = context {
+  if is-html() {
+    html.div(class: "frame-row", args.pos().map(frame).join())
+  } else {
+    set stack(dir: ltr, spacing: 1fr)
+    layout(size => {
+      let total = 0pt
+      let row = ()
+      for fig in args.pos() {
+        total += measure(fig).width + gap
+        if total > size.width {
+          stack(none, ..row, none)
+          row = ()
+          total = 0pt
+        }
+        row.push(align(center + horizon, fig))
+      }
+      stack(none, ..row, none)
+    })
+  }
+}
 
 
-#let scope = (
-  fletcher: fletcher,
-  ..dictionary(fletcher),
-  frame: frame,
-  shape-demo: (shape, tint) => [
-    #frame(diagram(
-      node((0, 0), raw(shape), shape: shape),
-      node-stroke: tint,
-      node-fill: tint.lighten(90%),
-    ))
-    #let code = {
+#let shape-colors = (
+  rect: green,
+  circle: red,
+  ellipse: orange,
+  pill: teal,
+  parallelogram: olive,
+  keystone: green,
+  diamond: purple,
+  triangle: fuchsia,
+  house: eastern,
+  chevron: yellow,
+  hexagon: aqua,
+  octagon: maroon,
+  cylinder: gray,
+)
+
+// helper for node shapes docstrings
+#let shape-demo(shape, label: auto, ..args, show-code: false) = {
+  let tint = shape-colors.at(shape, default: gray)
+
+  let has-args = args.named().len() > 0
+  if label == auto {
+    if has-args {
+      let (k, v) = args.named().pairs().first()
+      label = raw(k + ": " + repr(v))
+    } else {
+      label = raw(shape)
+    }
+  }
+
+
+  if "fit" in args.named() {
+    label = box(
+      stroke: (dash: "dashed", thickness: 0.5pt),
+      inset: 10pt,
+      raw("fit: " + repr(args.named().fit)),
+    )
+    args = arguments(..args, inset: 0)
+  }
+  frame(diagram(
+    node((0, 0), label, shape: shape, inset: 5pt, ..args),
+    node-stroke: tint,
+    node-fill: tint.lighten(90%),
+  ))
+
+  if show-code {
+    let code = {
       "node(.., shape: "
       repr(shape)
       ", "
@@ -42,9 +99,16 @@
         .join(", ")
       ")"
     }
+    par(raw(code, lang: "typc"))
+  }
+}
 
-    #raw(code, lang: "typc")
-  ],
+#let scope = (
+  fletcher: fletcher,
+  ..dictionary(fletcher),
+  frame: frame,
+  frame-row: frame-row,
+  shape-demo: shape-demo,
   DEBUG_LEVELS: DEBUG_LEVELS,
 )
 

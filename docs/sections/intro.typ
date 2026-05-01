@@ -75,22 +75,18 @@ The rows and columns in this coordinate system grow to accommodate the sizes of 
 Coordinates can be fractional; the center of a node placed at `0.25` is $25%$ between the adjacent columns or rows.
 Notice how the column sizes adjust to the with of the green node:
 
-#stack(
-  dir: ltr,
-  spacing: 1fr,
-  ..(0, .25, .5, .75, 1).map(t => {
-    let c = (orange, red, green, blue).map(x => x.lighten(50%))
-    fletcher.diagram(
-      debug: "grid.cells",
-      spacing: 2mm,
-      node-corner-radius: 3pt,
-      node((0, 0), [a], fill: c.at(0), width: 10mm, height: 10mm),
-      node((1, 0), [b], fill: c.at(1), width: 5mm, height: 5mm),
-      node((t, -1), $(#t, 1)$, fill: c.at(2), width: 20mm, height: 5mm),
-      node((0, -2), [d], fill: c.at(3), width: 5mm, height: 5mm),
-    )
-  }),
-)
+#frame-row(..(0, .25, .5, .75, 1).map(t => {
+  let c = (orange, red, green, blue).map(x => x.lighten(50%))
+  fletcher.diagram(
+    debug: "grid.cells",
+    spacing: 2mm,
+    node-corner-radius: 3pt,
+    node((0, 0), [a], fill: c.at(0), width: 10mm, height: 10mm),
+    node((1, 0), [b], fill: c.at(1), width: 5mm, height: 5mm),
+    node((t, -1), $(#t, 1)$, fill: c.at(2), width: 20mm, height: 5mm),
+    node((0, -2), [d], fill: c.at(3), width: 5mm, height: 5mm),
+  )
+}))
 
 When inside a flexigrid, nodes can also span multiple columns or rows:
 
