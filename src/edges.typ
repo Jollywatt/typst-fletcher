@@ -907,16 +907,10 @@
   label: none,
   /// Position along the edge path to place labels.
   ///
-  /// ```svg
-  /// stack(
-  ///   dir: ltr,
-  ///   spacing: 1cm,
-  ///   ..(0%, 25%, 50%, 75%, 100%).map(p => fletcher.diagram(
-  ///     spacing: 2cm,
-  ///   	edge((0,0), (1,0), [#p], "->", label-pos: p))
-  ///   ),
-  /// )
-  /// ```
+  /// #frame-row(..(0%, 25%, 50%, 75%, 100%).map(p => fletcher.diagram(
+  ///   spacing: 2cm,
+  ///   edge((0,0), (1,0), [#p], "->", label-pos: p))
+  /// ))
   ///
   /// This can be a `ratio`, relative to the total path length,
   /// or a `float` whose integer part refers to the segment number and
@@ -983,15 +977,9 @@
   /// If `auto`, the best of `left` or `right` is chosen; that is,
   /// the label is rotated to be tangent to the edge and roughly the right way up.
   ///
-  /// ```svg
-  /// stack(
-  ///   dir: ltr,
-  ///   spacing: 5mm,
-  ///   ..(0deg, 90deg, auto, right, top, bottom).map(angle => {
-  ///     diagram(edge((0,1), (2,0), "->", [#angle], label-angle: angle))
-  ///   }).map(align.with(bottom)),
-  /// )
-  /// ```
+  /// #frame-row(..(0deg, 90deg, auto, right, top, bottom).map(angle => {
+  ///   diagram(edge((0,1), (2,0), "->", [#angle], label-angle: angle))
+  /// }).map(align.with(bottom)))
   ///
   /// This can be given as an _edge argument_ like `edge(.., $f$, label-angle: auto)` or as a @edge.label option like `edge(.., label: (body: $f$, angle: auto))`.
   ///

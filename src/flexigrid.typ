@@ -22,7 +22,7 @@
 // From an array of rectangles, each of the form
 // `(pos: array, size: array, weight: number)`,
 // calculate the sizes of flexigrid cells.
-// 
+//
 // Rectangle positions can be fractional.
 #let cell-sizes-from-rects(rects, (col-gutter, row-gutter)) = {
   let (u-min, u-max) = (float.inf, -float.inf)
@@ -287,7 +287,7 @@
       (x + w/2, y + h/2, 0.),
      )
     }).join()
-    
+
     let (low, high) = cetz.process.aabb.aabb(points)
 
     node.pos = cetz.vector.scale(cetz.vector.add(low, high), 0.5)
@@ -309,7 +309,7 @@
       node.body-size.at(1) = cell.h
       node.size.at(1) = cell.h
     }
-    
+
     let (w, h) = node.size
     let (x-shift, y-shift) = (0, 0)
 
@@ -376,15 +376,15 @@
 
 
 /// A "flexible" coordinate system to be placed in CeTZ canvas which adapts to nodes contained therein.
-/// 
+///
 /// Objects drawn inside a `flexigrid` have access to a $u v$ coordinate system,
 /// which is a nonlinear grid of rows and columns which stretch to fit nodes, like a table.
 /// Only content placed in @node can affect the $u v$ grid; #[@edge]s and plain CeTZ objects in a flexigrid never affect the layout.
-/// 
+///
 /// By default, nodes and edges use $u v$ coordinates while CeTZ objects use the default $x y$ coordinates.
 /// Use the coordinate expressions `(uv: ..)` and `(xy: ..)` to specify the system.
 /// Both systems can be mixed in coordinate expressions like `((uv: (1,2)), 50%, (xy: (0,0)))`.
-/// 
+///
 /// ```example
 /// #cetz.canvas({
 ///   import cetz.draw: *
@@ -397,16 +397,16 @@
 ///   })
 /// })
 /// ```
-/// 
+///
 /// The main @diagram function is essentially equivalent to @flexigrid wrapped in `cetz.canvas()`.
 #let flexigrid(
   objects,
   ..args,
   /// Gutter between cells.
-  /// 
+  ///
   /// Numbers are interpreted in CeTZ units.
   /// Column and row gutter can be controlled independently as the first and last numbers in a pair, `(col-gutter, row-gutter)`.
-  /// 
+  ///
   /// #let fig(s) = cetz.canvas({
   ///   fletcher.flexigrid(
   ///     debug: "grid",
@@ -415,7 +415,7 @@
   ///     node((1,1), rotate(90deg, reflow: true)[Tall], fill: green.mix(white))
   ///   )
   /// })
-  /// #stack(dir: ltr, spacing: 1fr, ..(0, 5pt, (0.2, 0.8), 1).map(s => {
+  /// #frame-row(..(0, 5pt, (0.2, 0.8), 1).map(s => {
   ///   align(center + horizon)[#fig(s) \ #raw("spacing: " + repr(s))]
   /// }))
   /// -> number | length | pair
