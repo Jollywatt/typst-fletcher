@@ -15,11 +15,21 @@
 
 
 #let show-function-signature(fn) = {
+  show: par
+  show: it => {
+    if common.is-html() {
+      html.pre(it, class: "fn-signature")
+    } else {
+      it
+    }
+  }
+
   set text(font: "DejaVu Sans Mono", size: 0.8em)
 
   if fn.name in common.FUNCTION_PATHS {
     text(common.FUNCTION_PATHS.at(fn.name).join(".") + ".")
   } else {
+    panic("unexported function", fn.name)
     text(red)[unexported: ]
   }
 
@@ -40,7 +50,7 @@
         link(label(fn.name + "." + arg-name), arg-name)
       }
 
-      if "types" in info {
+      if "types" in info and info.types != ("",) {
         ": " + info.types.map(show-type).join(" ")
       }
     })
@@ -52,6 +62,8 @@
     " -> "
     fn.return-types.map(show-type).join(" ")
   }
+
+
 }
 
 #let show-function-argument(fn, arg, info) = {
@@ -121,14 +133,11 @@
 
   common.rich-ref(fn.name, entity: "function", function: fn.name)
 
-  if common.is-html() {
-    [= #raw(common.FUNCTION_PATHS.at(fn.name).join(".") + "." + name + "()")]
-  } else {
-    heading(raw(fn.name + "()"), level: level)
-    show-function-signature(fn)
-  }
+  heading(raw(common.FUNCTION_PATHS.at(fn.name).join(".") + "." + name + "()"), level: level)
 
   eval(fn.description, mode: "markup", scope: common.scope)
+
+  show-function-signature(fn)
 
   for (arg, info) in fn.args {
     if info.description == "" { continue }
