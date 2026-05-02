@@ -125,49 +125,58 @@
 }
 
 
+#doc("", frontmatter: (title: "Fletcher"))[
+  #html.div(class: "book-hero")[
+    #components.logo
+  ]
 
-#asset("_index.md", ```md
----
-title: ""
-layout: landing
----
+  #link("https://typst.app/universe/package/fletcher/", html.img(src: "https://img.shields.io/badge/Typst-Universe-239dad"))
 
-<div class="book-hero">
 
-# fletcher {anchor=false}
+]
 
-[{{< badge style="info" title="Hugo" value="0.158" >}}](https://github.com/gohugoio/hugo/releases/tag/v0.158.0)
-[{{< badge style="default" title="License" value="MIT" >}}](https://github.com/alex-shpak/hugo-book/blob/main/LICENSE)
+// #asset("_index.md", ```md
+// ---
+// title: ""
+// layout: landing
+// ---
 
-{{<button href="/docs/gallery/">}}Gallery{{</button>}}
-{{<button href="/docs/manual/">}}Manual{{</button>}}
-{{<button href="/docs/reference/">}}Function Reference{{</button>}}
+// <div class="book-hero">
 
-</div>
+// # fletcher {anchor=false}
 
-{{% columns %}}
+// [{{< badge style="info" title="Hugo" value="0.158" >}}](https://github.com/gohugoio/hugo/releases/tag/v0.158.0)
+// [{{< badge style="default" title="License" value="MIT" >}}](https://github.com/alex-shpak/hugo-book/blob/main/LICENSE)
 
-- ## What Hugo-Book Theme Is
-    Hugo book theme is primarily designed to create technical documentation sites that are easy to read, write, navigate and maintain. It is an attempt to create a sustainable web project.
+// {{<button href="/docs/gallery/">}}Gallery{{</button>}}
+// {{<button href="/docs/manual/">}}Manual{{</button>}}
+// {{<button href="/docs/reference/">}}Function Reference{{</button>}}
 
-{{% /columns %}}
+// </div>
 
-{{% columns %}}
+// {{% columns %}}
 
-- {{< card >}}
+// - ## What Hugo-Book Theme Is
+//     Hugo book theme is primarily designed to create technical documentation sites that are easy to read, write, navigate and maintain. It is an attempt to create a sustainable web project.
 
-    ## Probably fast
+// {{% /columns %}}
 
-    Build on Hugo static site generator. "The world’s fastest framework for building websites".
-    {{< /card >}}
+// {{% columns %}}
 
-- {{< card >}}
+// - {{< card >}}
 
-    ## 50% JS free
+//     ## Probably fast
 
-    All important features are working even with JavaScript disabled in browser, including interactive shortcodes.
-    {{< /card >}}
+//     Build on Hugo static site generator. "The world’s fastest framework for building websites".
+//     {{< /card >}}
 
-{{% /columns %}}
+// - {{< card >}}
 
-```.text)
+//     ## 50% JS free
+
+//     All important features are working even with JavaScript disabled in browser, including interactive shortcodes.
+//     {{< /card >}}
+
+// {{% /columns %}}
+
+// ```.text)

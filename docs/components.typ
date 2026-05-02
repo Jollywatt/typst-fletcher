@@ -1,5 +1,21 @@
 #import "common.typ"
 
+#let logo = common.frame(stack(
+  spacing: 17pt,
+  {
+    import common.fletcher: diagram, edge, node
+    set text(1.3em)
+    diagram(
+      spacing: 27mm,
+      node((0, 1), $A$),
+      node((1, 1), $B$),
+      edge((0, 1), (1, 1), $f$, ">>->", stroke: 1pt),
+    )
+  },
+  text(3.2em, emph[fletcher]),
+  [_(noun) a maker of arrows_],
+))
+
 #let show-type(type) = {
   if common.is-html() {
     html.span(class: "type", title: type, raw(type, lang: "typc"))
