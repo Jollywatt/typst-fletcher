@@ -1,18 +1,18 @@
 #import "common.typ"
 
 #let logo = common.frame(stack(
-  spacing: 17pt,
+  spacing: 12pt,
   {
     import common.fletcher: diagram, edge, node
     set text(1.3em)
     diagram(
-      spacing: 27mm,
+      spacing: 25mm,
       node((0, 1), $A$),
       node((1, 1), $B$),
       edge((0, 1), (1, 1), $f$, ">>->", stroke: 1pt),
     )
   },
-  text(3.2em, emph[fletcher]),
+  move(dy: -.3em, text(3.2em, emph[fletcher])),
   [_(noun) a maker of arrows_],
 ))
 
@@ -82,7 +82,7 @@
 
 }
 
-#let show-function-argument(fn, arg, info) = {
+#let show-function-argument(fn, arg, info, level: 3) = {
   common.rich-ref(
     fn.name + "." + arg,
     entity: "argument",
@@ -92,7 +92,7 @@
 
   if common.is-html() {
     html.div(class: "fn-arg", {
-      [== #raw(arg)]
+      heading(raw(arg), level: level)
 
       html.div(class: "fn-arg-details", {
         if "types" in info {
@@ -108,7 +108,7 @@
     })
   } else {
     let first-line = {
-      box(heading(raw(arg), level: 3))
+      box(heading(raw(arg), level: level))
       if "types" in info {
         h(0.5em)
         info.types.map(show-type).join(text(0.8em)[ or ])
@@ -157,6 +157,6 @@
 
   for (arg, info) in fn.args {
     if info.description == "" { continue }
-    show-function-argument(fn, arg, info)
+    show-function-argument(fn, arg, info, level: level + 1)
   }
 }

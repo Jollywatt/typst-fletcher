@@ -1,26 +1,14 @@
 #import "common.typ"
 #import common: fletcher
+#import "components.typ": *
 
 // cover page
 
 #v(10%)
 
 #align(center)[
-  #stack(
-    spacing: 17pt,
-    {
-      import fletcher: diagram, edge, node
-      set text(1.3em)
-      diagram(
-        spacing: 27mm,
-        node((0, 1), $A$),
-        node((1, 1), $B$),
-        edge((0, 1), (1, 1), $f$, ">>->", stroke: 1pt),
-      )
-    },
-    text(3.2em, emph[fletcher]),
-    [_(noun) a maker of arrows_],
-  )
+
+  #logo
 
   #v(30pt)
 
@@ -89,7 +77,6 @@
 
 = Function Reference <func-ref>
 
-#import "components.typ": *
 #let exports = common.EXPORT_TREE.fletcher
 #show raw.where(lang: "example"): common.example
 #show raw.where(lang: "svg"): it => eval(it.text, mode: "code", scope: common.scope)
@@ -136,9 +123,3 @@ These are the built in @node-shapes[node shapes], usable with the @node.shape op
 #for name in exports.parsing.keys() {
   show-fn(exports.parsing.remove(name))
 }
-
-
-== Docstrings not in this manual
-#exports
-
-#metadata(none) <end>

@@ -2,4 +2,4 @@
 #show: style
 
 
-= Diagrams
+= Diagrams and Layout

@@ -41,8 +41,6 @@
 
 
 
-
-
 #doc("gallery/", frontmatter: (
   title: "Gallery",
   weight: 1,
@@ -92,7 +90,7 @@
 
 
 #let fn-doc(modules, name, ..args) = context {
-  doc("reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
+  doc("reference/" + modules + "/" + name, components.show-fn(name, level: 1), frontmatter: (title: name, ..args.named()))
 }
 
 #let exports = common.EXPORT_TREE.fletcher

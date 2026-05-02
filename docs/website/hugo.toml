@@ -1,6 +1,6 @@
 baseURL = 'https://example.org/'
 locale = 'en-us'
-title = 'fletcher docs'
+title = 'fletcher manual'
 
 markup.goldmark.renderer.unsafe = true
 

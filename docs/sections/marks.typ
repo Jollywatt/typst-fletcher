@@ -2,4 +2,4 @@
 #show: style
 
 
-= Arrows and marks
+= Marks and Arrows
