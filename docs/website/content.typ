@@ -16,7 +16,7 @@
 }
 
 
-#doc("docs/gallery/", frontmatter: (
+#doc("gallery/", frontmatter: (
   title: "Gallery",
   weight: 1,
   bookFlatSection: true,
@@ -26,7 +26,7 @@
 
 
 #asset(
-  "docs/manual/_index.md",
+  "manual/_index.md",
   encode-frontmatter(
     weight: 1,
     bookFlatSection: true,
@@ -47,7 +47,7 @@
 
 #for (i, (file, name)) in sections.pairs().enumerate() [
   #let body = include "/docs/sections/" + file + ".typ"
-  #doc("docs/manual/sections/" + file, body, frontmatter: (
+  #doc("manual/" + file, body, frontmatter: (
     title: name,
     weight: i + 1,
   ))
@@ -55,7 +55,7 @@
 
 
 #asset(
-  "docs/reference/_index.md",
+  "reference/_index.md",
   encode-frontmatter(
     weight: 2,
     bookFlatSection: true,
@@ -66,14 +66,14 @@
 
 
 #let fn-doc(modules, name, ..args) = context {
-  doc("docs/reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
+  doc("reference/" + modules + "/" + name, components.show-fn(name), frontmatter: (title: name, ..args.named()))
 }
 
 #let exports = common.EXPORT_TREE.fletcher
 
 #let module-doc(name, ..args) = {
   asset(
-    "docs/reference/" + name + "/_index.md",
+    "reference/" + name + "/_index.md",
     encode-frontmatter(
       bookCollapseSection: true,
       title: "The " + name + " module",
@@ -105,7 +105,7 @@
 
 
 
-#doc("docs/reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
+#doc("reference/shapes/", frontmatter: (title: "The shapes module", weight: 7, bookCollapseSection: true))[
   == The `shapes` module
 
   These are the built in @node-shapes[node shapes], usable with the @node.shape option.

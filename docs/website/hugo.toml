@@ -10,3 +10,4 @@ path = 'github.com/alex-shpak/hugo-book'
 
 [params]
 BookTheme = "auto"
+BookSection = '*'
