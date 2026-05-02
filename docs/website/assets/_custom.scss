@@ -25,6 +25,11 @@
   text-align: center;
 }
 
+.book-search {
+  // until the search results aren't rubbish, hide the search box
+  display: none;
+}
+
 .markdown {
   pre {
     padding: $padding-8;
