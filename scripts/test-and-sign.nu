@@ -1,21 +1,14 @@
 #!/usr/bin/env nu
 
-# for use with jujutsu vcs
-# run tests and annotate commits with result
-
-def main [] {
+# Run tests and sign the commit by adding it to the tests-passing and tests-failing revset aliases
+# which are assumed to exist in jj's repo config file
+def test-and-sign [] {
     let commit_id = (jj log -r @ --template commit_id --no-graph)
-    
+
     mut succeeded = false
-    echo pre
     try {
         pixi run tt run
         $succeeded = true
-    }
-    echo post
-
-    if (which jdj | length) == 0 {
-        echo "Couldn't find jj; results not logged."
     }
 
     mut config = open (jj config path --repo)
@@ -27,5 +20,13 @@ def main [] {
         $config.revset-aliases.tests-failing = $failing ++ ' | ' ++ $commit_id
     }
     echo ($config | to toml) | save (jj config path --repo) --force
+}
 
+# Run tytanic tests and, if using jujutsu vcs, sign the commit
+def main [] {
+  if (which jj | length) == 0 {
+    tt run
+  } else {
+    test-and-sign
+  }
 }

@@ -1,9 +1,9 @@
 name: CI
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   tests:
@@ -12,20 +12,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Probe runner package cache
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: cargo
-          version: 1.0
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.9.5
 
-      - name: Install tytanic from crates.io
-        uses: baptiste0928/cargo-install@v3.0.0
-        with:
-          crate: tytanic
-          version: '0.2.1'
-
-      - name: Run test suite
-        run: tt run
+      - name: Run tests
+        run: pixi run test
 
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
