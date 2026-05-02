@@ -2,6 +2,8 @@
 
 const here = path self
 
+const BASE_URL = '/typst-fletcher'
+
 # Commands to compile, build and serve documentation site
 def main [] {
   ^$here --help
@@ -59,7 +61,7 @@ def "main post" [] {
 # Build compiled docs into functional site with hugo
 def "main build" [] {
   cd docs/website
-  hugo build
+  hugo build --baseURL $BASE_URL
 }
 
 # Compile and build docs site with typst and hugo
