@@ -450,6 +450,15 @@
   scene
 }
 
+#let remove-no-flip-coords(ctx, c) = {
+  if type(c) == dictionary and "no-flip" in c {
+    let (no-flip, ..rest) = c
+    rest
+  } else {
+    c
+  }
+}
+
 #let _edge(
   vertices: (),
   style: (:),
@@ -529,7 +538,12 @@
   // if edge appears in a flexigrid, interpret coordinates in uv system by default
   if fletcher-ctx.pass == "final" {
     edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
+  } else {
+
+    // resolve special no-flip marks
+    edge-data.vertices = edge-data.vertices.map(remove-no-flip-coords.with(ctx))
   }
+
 
   // resolve auto vertices to prev/next node
   let (first, .., last) = edge-data.vertices

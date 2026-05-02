@@ -274,7 +274,7 @@
 			u += du
 			v += dv
 		}
-		return (rel: (u, v))
+		return (rel: (u, v), no-flip: true)
 	}
 
 	if coords.len() > 0 {

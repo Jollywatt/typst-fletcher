@@ -41,9 +41,18 @@
   row-gutter: 3,
 )
 
-#for u in (..range(20), 10.2, 14.8, 15.5) {
-  for v in (..range(-5, 5), 0.5, -2.2) {
-    let xy = uv-to-xy(test-grid, (u, v))
-    assert.eq(xy-to-uv(test-grid, xy), (u, v))
+#let flips = (
+  (order: false, u: false, v: false),
+  (order: false, u: false, v: true),
+)
+
+#for flip in flips {
+  let g = test-grid
+  g.axis-flips = flip
+  for u in (..range(20), 10.2, 14.8, 15.5) {
+    for v in (..range(-5, 5), 0.5, -2.2) {
+      let xy = uv-to-xy(g, (u, v))
+      assert.eq(xy-to-uv(g, xy), (u, v))
+    }
   }
 }

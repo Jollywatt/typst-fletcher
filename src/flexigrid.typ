@@ -340,6 +340,12 @@
     if "xy" in c { return c.xy }
     if "uv" in c { return utils.uv-to-xy(grid, c.uv) }
     if "rel" in c and type(c.rel) == dictionary and "uv" in c.rel {
+      if c.remove("no-flip", default: false) {
+        let (u, v) = c.rel.uv
+        if grid.axis-flips.u { c.rel.uv.first() *= -1 }
+        if grid.axis-flips.v { c.rel.uv.last() *= -1 }
+        if grid.axis-flips.order { c.rel.uv = c.rel.uv.rev() }
+      }
       // resolve relative expressions (rel: (uv: Δ), to: X)
       // by adding X + Δ in uv-space, not xy-space
       let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))

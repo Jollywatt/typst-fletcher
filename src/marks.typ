@@ -253,6 +253,10 @@
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0.,0.,0.))
 	let sample-pt(t, reverse) = {
 		let info = cetz.path-util.point-at(path, t, reverse: reverse)
+		if info == none {
+			// don't crash if path has zero length
+			return (cetz.path-util.first-subpath-start(path), 0deg)
+		}
 		let pt = cetz.util.apply-transform(inv-transform, info.point)
 		let dir = cetz.vector.angle2(cetz.util.apply-transform(inv-transform, info.direction), inv-origin)
 		(pt, dir)
