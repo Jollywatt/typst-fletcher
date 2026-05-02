@@ -7,3 +7,6 @@ markup.goldmark.renderer.unsafe = true
 [module]
 [[module.imports]]
 path = 'github.com/alex-shpak/hugo-book'
+
+[params]
+BookTheme = "auto"

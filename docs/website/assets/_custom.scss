@@ -14,6 +14,24 @@
     }
 */
 
+.markdown {
+  pre {
+    padding: $padding-8;
+    background: var(--gray-100);
+    border: none;
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    font-size: 0.9em;
+  }
+
+  code {
+    border: none;
+    background: none;
+    font-size: 1em;
+    padding: 0;
+  }
+}
+
 pre.fn-signature {
   background: none;
   padding: 0;
