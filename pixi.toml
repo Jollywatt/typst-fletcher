@@ -1,4 +1,4 @@
-[project]
+[workspace]
 name = "fletcher"
 authors = ["jollywatt <jo.alex.w@gmail.com>"]
 channels = ["conda-forge"]
@@ -8,13 +8,12 @@ platforms = ["osx-arm64", "linux-64"]
 readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
 test = "scripts/test-and-sign.nu"
-fix = "tt update"
 manual = "typst watch --root . docs/manual.typ"
 install = "scripts/install.nu"
 check = "scripts/check.nu"
 
 [dependencies]
-nushell = ">=0.95.0,<0.96"
+nushell = ">=0.112.2,<0.113"
 typos = "*"
 typst = "==0.14.2"
 tytanic = "==0.3.3"
