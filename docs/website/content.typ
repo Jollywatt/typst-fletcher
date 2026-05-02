@@ -16,14 +16,40 @@
 }
 
 
+
+#doc("", frontmatter: (title: "Fletcher"))[
+  #html.div(class: "book-hero")[
+    #components.logo
+
+    A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
+    built on top of #link("https://cetz-package.github.io")[CeTZ].
+
+    *Version #common.VERSION*
+  ]
+
+  #show: html.div.with(style: "text-align: center")
+
+  #link("manual.pdf", html.img(src: "https://img.shields.io/badge/Manual-PDF-orange"))
+  #link("https://typst.app/universe/package/fletcher/", html.img(src: "https://img.shields.io/badge/Typst-Universe-239dad"))
+  #link("https://github.com/Jollywatt/typst-fletcher/", html.img(src: "https://img.shields.io/badge/GitHub-Repo-blue?logo=github"))
+  #link("https://forum.typst.app", html.img(src: "https://img.shields.io/badge/ask-on%20Typst%20forum-239dad"))
+  #link("https://discord.com/channels/1054443721975922748/1260973351900414102", html.img(src: "https://img.shields.io/badge/ask-on%20Discord-2a4d7e"))
+
+  This is a #highlight[largely incomplete] web version of the manual for this package.
+
+]
+
+
+
+
+
 #doc("gallery/", frontmatter: (
   title: "Gallery",
   weight: 1,
   bookFlatSection: true,
 ))[
-  = Gallery!
+  = Gallery
 ]
-
 
 #asset(
   "manual/_index.md",
@@ -37,11 +63,11 @@
 
 
 #let sections = (
-  "intro": "Intro",
-  "diagrams": "Diagrams",
+  "intro": "Quick Overview",
+  "diagrams": "Diagrams and Layout",
   "nodes": "Nodes",
   "edges": "Edges",
-  "marks": "Marks",
+  "marks": "Marks and Arrows",
   "cetz": "CeTZ Integration",
 )
 
@@ -60,7 +86,7 @@
     weight: 2,
     bookFlatSection: true,
     bookCollapseSection: false,
-    title: "Reference",
+    title: "Function Reference",
   ),
 )
 
@@ -123,60 +149,3 @@
 #for name in exports.parsing.keys() {
   fn-doc("parsing", exports.parsing.remove(name))
 }
-
-
-#doc("", frontmatter: (title: "Fletcher"))[
-  #html.div(class: "book-hero")[
-    #components.logo
-  ]
-
-  #link("https://typst.app/universe/package/fletcher/", html.img(src: "https://img.shields.io/badge/Typst-Universe-239dad"))
-
-
-]
-
-// #asset("_index.md", ```md
-// ---
-// title: ""
-// layout: landing
-// ---
-
-// <div class="book-hero">
-
-// # fletcher {anchor=false}
-
-// [{{< badge style="info" title="Hugo" value="0.158" >}}](https://github.com/gohugoio/hugo/releases/tag/v0.158.0)
-// [{{< badge style="default" title="License" value="MIT" >}}](https://github.com/alex-shpak/hugo-book/blob/main/LICENSE)
-
-// {{<button href="/docs/gallery/">}}Gallery{{</button>}}
-// {{<button href="/docs/manual/">}}Manual{{</button>}}
-// {{<button href="/docs/reference/">}}Function Reference{{</button>}}
-
-// </div>
-
-// {{% columns %}}
-
-// - ## What Hugo-Book Theme Is
-//     Hugo book theme is primarily designed to create technical documentation sites that are easy to read, write, navigate and maintain. It is an attempt to create a sustainable web project.
-
-// {{% /columns %}}
-
-// {{% columns %}}
-
-// - {{< card >}}
-
-//     ## Probably fast
-
-//     Build on Hugo static site generator. "The world’s fastest framework for building websites".
-//     {{< /card >}}
-
-// - {{< card >}}
-
-//     ## 50% JS free
-
-//     All important features are working even with JavaScript disabled in browser, including interactive shortcodes.
-//     {{< /card >}}
-
-// {{% /columns %}}
-
-// ```.text)

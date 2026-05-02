@@ -64,11 +64,17 @@ def "main build" [] {
   hugo build --baseURL $BASE_URL
 }
 
+def pdf-manual [] {
+  ./scripts/compile.nu manual
+  mv docs/manual.typ docs/website/static
+}
+
 # Compile and build docs site with typst and hugo
 def "main deploy" [--typst-path: path = typst] {
   main compile --typst-path $typst_path
   main post
   main build
+  pdf-manual
 }
 
 # Serve docs site with hugo
