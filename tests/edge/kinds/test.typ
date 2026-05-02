@@ -21,15 +21,15 @@
 #figure(diagram(debug: "", spacing: 1, {
   import cetz.draw: *
 
-  node((-1,-1), $ bullet $)
+  node((-1,1), $ bullet $)
   node((0,0), $G$, <G>)
   edge("l,d", "..>")
-  node((0,-1), $G slash ker(f)$, <ker>)
+  node((0,1), $G slash ker(f)$, <ker>)
   edge(<G>, "->", name: <e>, bend: 5pt)
   node((1,0), $im(f)$, <im>)
   edge(<im>, "==>", <ker>, from: (-90deg, 1.5), to: (45deg, 2))
   edge(<G>, "->>", <ker>)
-  edge(<im>, (rel: (1,0)), (rel: (0,-1)), (rel: (-2,0)), "=>")
+  edge(<im>, (rel: (1,0)), (rel: (0,1)), (rel: (-2,0)), "=>")
 
 }), caption: [
   Various edge kinds.
@@ -42,12 +42,12 @@ Edge loops
 #diagram(
   node-fill: green,
   node-stroke: 0.1em + black,
-  node((0,0), [0], name: "0", extrude: (0,2), outset: 2pt),
-  node((0,1), [1], name: "1"),
-  node((1,0), [2], name: "2"),
-  node((2,0), [3], name: "3"),
-  node((1,1), [4], name: "4"),
-  node((2,1), [5], name: "5"),
+  node((0,1), [0], name: "0", extrude: (0,2), outset: 2pt),
+  node((0,0), [1], name: "1"),
+  node((1,1), [2], name: "2"),
+  node((2,1), [3], name: "3"),
+  node((1,0), [4], name: "4"),
+  node((2,0), [5], name: "5"),
 
   edge(<0>, "->", <1>, $b$),
   edge(<0>, <1>, $b$, "->"),

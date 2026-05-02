@@ -10,9 +10,9 @@
   #set box(fill: yellow)
   #diagram(debug: "grid.cells", spacing: spacing, {
     import cetz.draw: *
-    node((0,0), box(width: 1cm, height: 1cm), inset: 0)
-    node((1,0), box(width: 2cm, height: 1cm), inset: 0)
-    node((1,1), box(width: 1cm, height: 5mm), inset: 0)
+    node((0,1), box(width: 1cm, height: 1cm), inset: 0)
+    node((1,1), box(width: 2cm, height: 1cm), inset: 0)
+    node((1,0), box(width: 1cm, height: 5mm), inset: 0)
     node((3,0))
     for u in range(-2, 5) {
       for v in range(-1, 3) {

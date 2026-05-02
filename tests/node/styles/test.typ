@@ -7,10 +7,10 @@
   #diagram(
     cetz.draw.set-style(node: (stroke: 1pt)),
     cetz.draw.scale(y: -1),
-    node((0,0), `height`, height: 2),
-    node((1,0), `width`, width: 2),
+    node((0,2), `height`, height: 2),
+    node((1,2), `width`, width: 2),
     node((0,1), `radius`, radius: auto),
-    node((0,2), colspan: 2, `corner-radius`, corner-radius: 5pt),
+    node((0,0), colspan: 2, `corner-radius`, corner-radius: 5pt),
   )
 ]
 
@@ -19,7 +19,6 @@
 
   #diagram({
     import cetz.draw: *
-    scale(y: -1)
 
     set-style(fill: red) // should not affect nodes
     set-style(node: (stroke: 1pt + blue))
@@ -47,6 +46,7 @@
   
   #diagram(
     debug: "grid node",
+    axes: (ltr, btt),
     node((0,0)),
     node((1,0.5)),
     node((2,1), stroke: 1pt, radius: 5pt),

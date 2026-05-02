@@ -7,7 +7,7 @@
 })
 
 #diagram({
-  node((1,0), <a>)
-  node((0,1), <b>)
+  node((0,0), <a>)
+  node((-1,-1), <b>)
   edge(<a>, "->", <b>, [Nodes with labels and no body])
 })

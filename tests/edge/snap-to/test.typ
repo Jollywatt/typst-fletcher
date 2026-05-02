@@ -22,11 +22,11 @@
 		node-fill: white,
 		node-corner-radius: 2pt,
 		edge-snap-method: method,
-		node((0,0), [Sight], name: <sight>),
-		node((1,0), [Sound]),
-		node((2,0), [Smell], name: <smell>),
-		node((0,1), [Senses], colspan: 3),
-		edge((0,0), (2,0), from: -90deg, to: -90deg)
+		node((0,1), [Sight], name: <sight>),
+		node((1,1), [Sound]),
+		node((2,1), [Smell], name: <smell>),
+		node((0,0), [Senses], colspan: 3),
+		edge((0,1), (2,1), from: -90deg, to: -90deg)
 	)
 }
 

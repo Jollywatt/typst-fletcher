@@ -36,16 +36,16 @@ Label body shows the value of `label-side`.
 #pagebreak()
 
 #diagram(spacing: (3cm, 1cm), {
-	for (i, a) in (left, center, right).enumerate() {
+	for (i, a) in (right, center, left).enumerate() {
 		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
-			edge((j, 2*i), (j, 2*i - 1), label: [#a], "->", label-side: a, bend: θ)
+			edge((j, 2*i), (j, 2*i + 1), label: [#a], "->", label-side: a, bend: θ)
 		}
 	}
 })
 
 #diagram(spacing: 1.5cm, {
 	for (i, a) in (top, center, bottom).enumerate() {
-		for (j, θ) in (-30deg, 0deg, 50deg).enumerate() {
+		for (j, θ) in (50deg, 0deg, -30deg).enumerate() {
 			edge((2*i, j), (2*i + 1, j), label: [#a], "->", label-side: a, bend: θ)
 		}
 	}
@@ -82,7 +82,7 @@ Default to outer side of curve
 	(body: `end`, pos: 100%, side: end),
 )))
 
-#diagram(edge((1,0), ">->", (0,1), label: (
+#diagram(edge((1,1), ">->", (0,0), label: (
 	(body: `start`, pos: 0, side: start),
 	(body: `end`, pos: 1, side: end),
 )))

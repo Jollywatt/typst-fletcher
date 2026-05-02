@@ -89,7 +89,10 @@
 /// 	node((1,1), $g$),
 /// )
 /// ```
-#let diagram(..args) = {
+#let diagram(
+	..args,
+  axes: (ltr, ttb),
+) = {
 	let pos = args.pos().map(arg => {
 		if type(arg) == content and arg.func() == math.equation {
 			extract-nodes-and-edges-from-equation(arg)
@@ -98,6 +101,11 @@
 		}
 	}).join().flatten()
 	let (named, styles) = interpret-style-arguments(args.named())
-	let canvas = cetz.canvas(flexigrid.flexigrid(styles, pos, ..named))
+	let canvas = cetz.canvas(flexigrid.flexigrid(
+		styles,
+		pos,
+		axes: axes,
+		..named,
+	))
 	box(canvas, fill: none, stroke: none)
 }

@@ -57,6 +57,6 @@ Style inheritance
   node((0,0), [A], <A>),
   edge("r,d,r", "<~>"),
   edge("dd,rr,u", decorate: (kind: "zigzag", smooth: (3,0), shorten: (0, 5pt))),
-  node((2,-1), [B], <B>),
+  node((2,1), [B], <B>),
 )
 

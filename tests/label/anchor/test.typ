@@ -2,7 +2,7 @@
 #import "/src/exports.typ" as fletcher: diagram, node, edge, cetz
 
 #diagram(debug: "edge.label", {
-  edge((0,0), (1,1), label: (
+  edge((0,1), (1,0), label: (
     (body: "NE", anchor: "north-east"),
     (body: "NW", anchor: "north-west"),
     (body: "SW", anchor: "south-west"),
