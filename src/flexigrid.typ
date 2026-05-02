@@ -332,6 +332,26 @@
   return ctx
 }
 
+// evaluate coordinate expressions involving uv-coords
+// e.g., (uv: (u, v)) resolves to utils.uv-to-xy(grid, (u, v))
+#let flexigrid-coord-resolver(grid, ctx, c) = {
+  if type(c) == label { return str(c) }
+  if type(c) == dictionary {
+    if "xy" in c { return c.xy }
+    if "uv" in c { return utils.uv-to-xy(grid, c.uv) }
+    if "rel" in c and type(c.rel) == dictionary and "uv" in c.rel {
+      // resolve relative expressions (rel: (uv: Δ), to: X)
+      // by adding X + Δ in uv-space, not xy-space
+      let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
+      let prev-uv = utils.xy-to-uv(grid, prev-xy)
+      let new-uv = cetz.vector.add(prev-uv, c.rel.uv)
+      return utils.uv-to-xy(grid, new-uv)
+    }
+  }
+  return c
+}
+
+
 // mirrors cetz.process.many except discards
 // everything but ctx, used for layout pass
 #let process-only-ctx(ctx, objs) = {
@@ -487,25 +507,6 @@
     grid += cell-centers-from-sizes(grid)
     grid.axis-flips = axis-flips
 
-    let uv-resolver(ctx, c) = {
-      if type(c) == dictionary {
-        if "uv" in c {
-          if grid.axis-flips.order { c.uv = c.uv.rev() }
-          if grid.axis-flips.u { c.uv.at(0) *= -1 }
-          if grid.axis-flips.v { c.uv.at(1) *= -1 }
-          return utils.uv-to-xy(grid, c.uv)
-        }
-        if "xy" in c { return c.xy }
-        if "rel" in c and type(c.rel) == array and c.rel.all(x => type(x) in (int, float)) {
-          let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
-          let prev-uv = utils.xy-to-uv(grid, prev-xy)
-          let new-uv = cetz.vector.add(prev-uv, c.rel)
-          return utils.uv-to-xy(grid, new-uv)
-        }
-      }
-      if type(c) == label { return str(c) }
-      return c
-    }
 
     // let (_, ..node-coords) = cetz.coordinate.resolve(
     //   with-coordinate-resolver(ctx, uv-resolver),
@@ -516,7 +517,7 @@
 
     // provide extra context used by objects
     (ctx => {
-      ctx = with-coordinate-resolver(ctx, uv-resolver)
+      ctx = with-coordinate-resolver(ctx, flexigrid-coord-resolver.with(grid))
       ctx.shared-state.fletcher = (
         pass: "final",
         nodes: nodes,

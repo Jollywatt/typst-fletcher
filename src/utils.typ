@@ -151,8 +151,15 @@
 /// - `col-centers`, defining $x$ values for each $u$ value
 /// - `row-center`, defining $y$ values for each $v$ value
 /// - `u-min` and `v-min`, defining the coordinate origin
+/// - `axis-flips`, a dictionary containing
+/// 	- `order`, whether $(u, v) |-> (v, u)$ are swapped
+/// 	- `u`, whether the first coordinate is negated
+/// 	- `v`, whether the second coordinate is negated
 #let uv-to-xy(grid, uv) = {
   let (u, v, ..) = uv
+	if grid.axis-flips.order { (u, v) = (v, u) }
+	if grid.axis-flips.u { u *= -1 }
+	if grid.axis-flips.v { v *= -1 }
   let (i, j) = (u - grid.u-min, v - grid.v-min)
   let (x, y) = (
     interp(grid.col-centers, i, spacing: grid.col-gutter),
@@ -161,6 +168,7 @@
   return (x, y)
 }
 
+/// Exact inverse of `uv-to-xy` for a fixed grid
 #let xy-to-uv(grid, xy) = {
   let (x, y, ..) = xy
   let (i, j) = (
@@ -168,14 +176,25 @@
     interp-inv(grid.row-centers, y, spacing: grid.row-gutter),
   )
   let (u, v) = (grid.u-min + i, grid.v-min + j)
+	if grid.axis-flips.u { u *= -1 }
+	if grid.axis-flips.v { v *= -1 }
+	if grid.axis-flips.order { (u, v) = (v, u) }
   return (u, v)
 }
 
+// replace (u,v) with (uv: (u,v)) recursively inside a coord expr
 #let interpret-as-uv(c) = {
-	if type(c) == array and c.all(x => type(x) in (int, float)) {
-		return (uv: c)
+	if type(c) == array {
+		if c.len() == 2 and c.all(x => type(x) in (int, float)) {
+			(uv: c)
+		} else {
+			c.map(interpret-as-uv)
+		}
+	} else if type(c) == dictionary {
+		c.pairs().map(((k, v)) => (k, interpret-as-uv(v))).to-dict()
+	} else {
+		c
 	}
-	return c
 }
 
 

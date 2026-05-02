@@ -560,8 +560,8 @@
   // resolve vertex coordinate expressions
   // discard ctx because we do not want to update ctx.prev.pt
   // edge vertices should never affect nodes with relative positions
-  let (_, first, ..mid-vertices, last) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
-  edge-data.vertices = (first, ..mid-vertices, last)
+  let (_, ..vertices) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
+  edge-data.vertices = vertices
 
   if "current" in fletcher-ctx {
     ctx.shared-state.fletcher.current.edge += 1
