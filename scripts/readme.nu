@@ -51,7 +51,7 @@ def gallery [] {
 		let row = $n * $cols
 		{
 			tag: tr
-			content: ($cells | range $row..($row + $cols - 1))
+			content: ($cells | slice $row..($row + $cols - 1))
 		}
 	}
 	{tag: table, content: $rows} | to xml --indent 2 --self-closed
