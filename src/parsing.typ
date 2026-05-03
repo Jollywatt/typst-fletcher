@@ -384,6 +384,8 @@
 	let compounds = (
 		"corner-radius",
 		"snap-method",
+		"crossing-thickness",
+		"crossing-fill",
 	)
 
 	let path = ()

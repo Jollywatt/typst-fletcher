@@ -22,6 +22,8 @@
     smooth: auto,
     shorten: 0,
   ),
+  crossing-fill: white,
+  crossing-thickness: 3,
 )
 
 
@@ -250,6 +252,7 @@
   ..extra-path-effect-args,
   debug: false,
   decorate: none,
+  crossing-stroke: none,
 ) = {
   assert(paths.is-drawable(drawable))
 
@@ -290,6 +293,18 @@
       smooth: decorate.smooth,
       shorten: decorate.shorten,
     )
+  }
+
+
+  if crossing-stroke != none {
+    (ctx => {
+      let drawables = cetz.process.many(ctx, path).drawables
+        .map(drawable => {
+          drawable.stroke = crossing-stroke
+          drawable
+        })
+      (ctx: ctx, drawables: drawables)
+    },)
   }
 
   path
@@ -401,6 +416,20 @@
 
   let drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
 
+
+  let crossing-stroke
+  if edge.crossing == true {
+    // panic()
+    crossing-stroke = stroke((
+      paint: edge.style.crossing-fill,
+      thickness: utils.to-length(
+        edge.style.crossing-thickness,
+        units-of: edge.style.stroke.thickness,
+      )
+    ))
+  }
+
+
   let scene = apply-edge-effects(
     ctx,
     drawable,
@@ -414,6 +443,7 @@
     join: edge.style.join,
     miter-limit: edge.style.miter-limit,
     debug: edge.debug,
+    crossing-stroke: crossing-stroke,
   )
 
   if debug-level(edge.debug, "edge.snap") {
@@ -467,6 +497,7 @@
   name: none,
   draw: vertices => none,
   layer: 0,
+  crossing: false,
   debug: auto,
 ) = cetz.draw.get-ctx(ctx => {
   if "fletcher" not in ctx.shared-state {
@@ -487,6 +518,7 @@
     name: name,
     draw: draw,
     layer: layer,
+    crossing: crossing,
     debug: get-debug(ctx, debug),
   )
 
@@ -1131,6 +1163,33 @@
   /// Edges with equal layer are drawn in the order they are inserted.
   /// -> number
   layer: 0,
+
+  /// Draw a backdrop under the edge to give the illusion of it crossing over other lines.
+  ///
+  /// If `true`, draws a backdrop of color @edge.crossing-fill with a thickness @edge.crossing-stroke,
+  /// which are both styles that can be set at the diagram level.
+  ///
+  /// ```example
+  /// #diagram({
+  ///   edge((0,1), (1,0), stroke: 1pt)
+  ///   edge((0,0), (1,1), stroke: 1pt)
+  ///   edge((2,1), (3,0), stroke: 1pt)
+  ///   edge((2,0), (3,1), stroke: 1pt, crossing: true)
+  /// })
+  /// ```
+  ///
+  /// To make sure crossing lines are drawn above other lines,
+  /// order them later in the diagram or use @edge.layer.
+  /// -> bool
+  crossing: false,
+  /// Color of the "crossing" backdrop  (drawn when @edge.crossing is enabled).
+  /// This should match the background of the figure to give the illusion of breaking lines below it.
+  /// -> color
+  crossing-fill: auto,
+  /// Width of the "crossing" backdrop (drawn when @edge.crossing is enabled) as a length or a multiple of the stroke's thickness.
+  /// -> number | length
+  crossing-thickness: auto,
+
   /// Whether to return a `metadata` object which can be placed inside equations,
   /// instead of returning an array of functions which can be inserted into a CeTZ canvas.
   ///
@@ -1163,6 +1222,9 @@
     dash: dash,
     extrude: extrude,
     layer: layer,
+    crossing: crossing,
+    crossing-fill: crossing-fill,
+    crossing-thickness: crossing-thickness,
     draw: draw,
     decorate: decorate,
   )
@@ -1209,12 +1271,15 @@
       corner-radius: corner-radius,
       snap-method: options.snap-method,
       decorate: options.decorate,
+      crossing-fill: options.crossing-fill,
+      crossing-thickness: options.crossing-thickness,
     ),
     labels: labels,
     snap-to: options.snap-to,
     name: options.name,
     draw: options.draw,
     layer: layer,
+    crossing: options.crossing,
     debug: debug,
   )
 
