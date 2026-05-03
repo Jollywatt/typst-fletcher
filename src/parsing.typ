@@ -357,8 +357,6 @@
 	if options.enclose == none {
 		if peek(args, maybe-position) {
 			options.position = args.remove(0)
-		} else {
-			options.position = auto
 		}
 	} else {
 		// enclose nodes may have no position

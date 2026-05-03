@@ -300,11 +300,7 @@
     }
 
     if data.pos == auto {
-      if "current" in fletcher-ctx {
-        data.pos = fletcher-ctx.current.uv
-      } else {
-        utils.error("node has no position")
-      }
+      utils.error("node has no position")
     }
 
     if fletcher-ctx.pass == "final" {
@@ -323,7 +319,6 @@
 
     if "current" in fletcher-ctx {
       ctx.shared-state.fletcher.current.node += 1
-      ctx.shared-state.fletcher.current.uv = data.pos
     }
     if fletcher-ctx.pass != "final" {
       ctx.shared-state.fletcher.nodes.push(data)

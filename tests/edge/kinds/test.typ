@@ -70,7 +70,7 @@ Corner edges
 
 #for c in ("-|", "|-", "|-|", "-|-") {
   diagram(
-    node(text(white, $ #raw(c) $), radius: 1em, fill: black),
+    node((0,0), text(white, $ #raw(c) $), radius: 1em, fill: black),
     edge("rd", "->", corner: c),
   )
   linebreak()
