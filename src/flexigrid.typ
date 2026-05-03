@@ -25,6 +25,55 @@
 //
 // Rectangle positions can be fractional.
 #let cell-sizes-from-rects(rects, (col-gutter, row-gutter)) = {
+
+  // first, normalise rects to get rid of cellspan and enclose
+
+  // interpret rects with colspan/rowspan as multiple rects
+  // whose total sizes (plus gutter) is the original size
+  // this is the only step that is sensitive to the order of rects
+  rects = rects.map(rect => {
+    let (colspan, rowspan) = rect.cellspan
+    if colspan == none and rowspan == none { return rect }
+    let (u, v) = rect.pos
+    let (w, h) = rect.size
+    if colspan != none {
+      range(colspan).map(i => (
+        ..rect,
+        pos: (u + i, v),
+        size: ((w - col-gutter*(colspan - 1))/colspan, h)
+      ))
+    }
+    if rowspan != none {
+      range(rowspan).map(j => (
+        ..rect,
+        pos: (u, v + j),
+        size: (w, (h - row-gutter*(rowspan - 1))/rowspan)
+      ))
+    }
+  }).flatten()
+
+  // interpret enclose nodes as multiple rects
+  rects = rects.map(rect => {
+    if rect.enclose == none { return rect }
+
+    let (u-min, u-max) = (float.inf, -float.inf)
+    let (v-min, v-max) = (float.inf, -float.inf)
+    for (u, v) in rect.enclose {
+      if u < u-min { u-min = u }
+      if u-max < u { u-max = u }
+      if v < v-min { v-min = v }
+      if v-max < v { v-max = v }
+    }
+
+    rect.pos = (u-min, v-min)
+    rect.cellspan = (u-max - u-min + 1, v-max - v-min + 1)
+    // panic(rect)
+    return rect
+  })
+
+
+  // determine bounds of coordinate system
+
   let (u-min, u-max) = (float.inf, -float.inf)
   let (v-min, v-max) = (float.inf, -float.inf)
 
@@ -52,50 +101,6 @@
 
   let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
   let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
-
-
-  // interpret enclose nodes as multiple rects
-  rects = rects.map(rect => {
-    if rect.enclose == none { return rect }
-
-    let (u-min, u-max) = (float.inf, -float.inf)
-    let (v-min, v-max) = (float.inf, -float.inf)
-    for (u, v) in rect.enclose {
-      if u < u-min { u-min = u }
-      if u-max < u { u-max = u }
-      if v < v-min { v-min = v }
-      if v-max < v { v-max = v }
-    }
-
-    rect.pos = (u-min, v-min)
-    rect.cellspan = (u-max - u-min + 1, v-max - v-min + 1)
-    // panic(rect)
-    return rect
-  })
-
-  // interpret rects with colspan/rowspan as multiple rects
-  // whose total sizes (plus gutter) is the original size
-  // this is the only step that is sensitive to the order of rects
-  rects = rects.map(rect => {
-    let (colspan, rowspan) = rect.cellspan
-    if colspan == none and rowspan == none { return rect }
-    let (u, v) = rect.pos
-    let (w, h) = rect.size
-    if colspan != none {
-      range(colspan).map(i => (
-        ..rect,
-        pos: (u + i, v),
-        size: ((w - col-gutter*(colspan - 1))/colspan, h)
-      ))
-    }
-    if rowspan != none {
-      range(rowspan).map(j => (
-        ..rect,
-        pos: (u, v + j),
-        size: (w, (h - row-gutter*(rowspan - 1))/rowspan)
-      ))
-    }
-  }).flatten()
 
   // enlarge cells to fit rects
   // handling fractional rect positions nicely
