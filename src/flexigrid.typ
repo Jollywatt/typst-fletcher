@@ -37,17 +37,19 @@
     let (u, v) = rect.pos
     let (w, h) = rect.size
     if colspan != none {
-      range(colspan).map(i => (
+      let size = ((w - col-gutter*(colspan - 1))/colspan, h)
+      range(calc.abs(colspan)).map(i => (
         ..rect,
-        pos: (u + i, v),
-        size: ((w - col-gutter*(colspan - 1))/colspan, h)
+        pos: (u + colspan.signum()*i, v),
+        size: size,
       ))
     }
     if rowspan != none {
-      range(rowspan).map(j => (
+      let size = (w, (h - row-gutter*(rowspan - 1))/rowspan)
+      range(calc.abs(rowspan)).map(j => (
         ..rect,
-        pos: (u, v + j),
-        size: (w, (h - row-gutter*(rowspan - 1))/rowspan)
+        pos: (u, v + rowspan.signum()*j),
+        size: size,
       ))
     }
   }).flatten()
@@ -262,8 +264,14 @@
   let (x, y) = node.pos
   let (x1, y1) = (x, y)
   let (colspan, rowspan) = node.cellspan
-  if colspan != none { x1 += colspan - 1 }
-  if rowspan != none { y1 += rowspan - 1 }
+  if colspan != none {
+    if colspan > 0 { x1 += colspan - 1 }
+    if colspan < 0 { x += colspan + 1 }
+  }
+  if rowspan != none {
+    if rowspan > 0 { y1 += rowspan - 1 }
+    if rowspan < 0 { y += rowspan + 1 }
+  }
 
   let lo = utils.interp-grid-cell(grid, (x, y))
   let hi = utils.interp-grid-cell(grid, (x1, y1))
@@ -494,6 +502,7 @@
     )
     ctx.style.node = node-styles
 
+    let axis-flips = interpret-axes(axes)
 
     // for the layout pass, we do not yet know the grid, so use a default
     let default-grid = (
@@ -503,7 +512,7 @@
       v-min: 0,
       col-gutter: 1,
       row-gutter: 1,
-      axis-flips: interpret-axes(axes),
+      axis-flips: axis-flips,
     )
 
     let layout-pass-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(default-grid))
@@ -512,12 +521,20 @@
     let layout-pass = process-only-ctx(layout-pass-ctx, objects)
     let (nodes, edges) = layout-pass.shared-state.fletcher
 
+    nodes = nodes.map(node => {
+      let (cs, rs) = node.cellspan
+      if cs != none and axis-flips.u { cs *= -1 }
+      if rs != none and axis-flips.v { rs *= -1 }
+      node.cellspan = (cs, rs)
+      node
+    })
+
     // compute grid cell sizes and positions
     let grid = cell-sizes-from-rects(nodes, gutter)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid)
-    grid.axis-flips = interpret-axes(axes)
+    grid.axis-flips = axis-flips
 
 
     nodes = nodes.map(node => place-node-in-grid(node, grid))
