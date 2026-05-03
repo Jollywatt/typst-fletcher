@@ -240,6 +240,7 @@
       cellspan,
     ) = options.named()
 
+
     if "fletcher" not in ctx.shared-state {
       ctx.shared-state.fletcher = (
         pass: none,
@@ -297,6 +298,10 @@
       } else {
         data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..data.enclose,)
       }
+    }
+
+    if fletcher-ctx.pass != none {
+      data.pos = utils.interpret-as-uv(data.pos)
     }
 
     if data.pos == auto {

@@ -323,7 +323,7 @@
   node
 }
 
-#let with-coordinate-resolver(ctx, resolver) = {
+#let with-coord-resolver(ctx, resolver) = {
   if type(ctx.resolve-coordinate) == array {
     ctx.resolve-coordinate.push(resolver)
   } else {
@@ -472,58 +472,58 @@
     let (_, origin) = cetz.coordinate.resolve(ctx, origin)
     // cetz.draw.translate(origin) // todo
 
+    /* Layout Pass */    
+    // During the layout pass, we determine the intrinsic sizes of all nodes
+    // in the flexgrid and use this to determine the grid specification.
+
     ctx.shared-state.fletcher = (
       pass: "layout",
       nodes: (),
       edges: (),
       current: (node: 0, edge: 0), // index of current object
     )
+
     let node-styles = cetz.styles.resolve(
       shapes.DEFAULT_NODE_STYLE + shapes.NODE_SHAPES,
       merge: ctx.style.at("node", default: (:)),
     )
     ctx.style.node = node-styles
 
-    // for the layout pass, we resolve uv coords by treating them as xy
-    let layout-pass-ctx = with-coordinate-resolver(ctx, (ctx, c) => {
-      if type(c) == dictionary {
-        if "uv" in c { return c.uv }
-        if "xy" in c { return c.xy }
-      }
-      if type(c) == label { return str(c) }
-      return c
-    })
+
+    // for the layout pass, we do not yet know the grid, so use a default
+    let default-grid = (
+      col-centers: (0,),
+      row-centers: (0,),
+      u-min: 0,
+      v-min: 0,
+      col-gutter: 1,
+      row-gutter: 1,
+      axis-flips: interpret-axes(axes),
+    )
+
+    let layout-pass-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(default-grid))
 
     // run layout pass to retrieve fletcher objects
     let layout-pass = process-only-ctx(layout-pass-ctx, objects)
     let (nodes, edges) = layout-pass.shared-state.fletcher
-
-    let axis-flips = interpret-axes(axes)
-    nodes = nodes.map(node => {
-      if axis-flips.order { node.pos = node.pos.rev() }
-      if axis-flips.u { node.pos.at(0) *= -1 }
-      if axis-flips.v { node.pos.at(1) *= -1 }
-      node
-    })
 
     // compute grid cell sizes and positions
     let grid = cell-sizes-from-rects(nodes, gutter)
     grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
     grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
     grid += cell-centers-from-sizes(grid)
-    grid.axis-flips = axis-flips
+    grid.axis-flips = interpret-axes(axes)
 
-
-    // let (_, ..node-coords) = cetz.coordinate.resolve(
-    //   with-coordinate-resolver(ctx, uv-resolver),
-    //   ..nodes.map(n => utils.interpret-as-uv(n.pos)),
-    // )
 
     nodes = nodes.map(node => place-node-in-grid(node, grid))
 
-    // provide extra context used by objects
+    /* Final pass */
+    // The final pass processes the nodes and returns the result to the
+    // enclosing cetz canvas.
+
+    // extra context used by objects
     (ctx => {
-      ctx = with-coordinate-resolver(ctx, flexigrid-coord-resolver.with(grid))
+      ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(grid))
       ctx.shared-state.fletcher = (
         pass: "final",
         nodes: nodes,
