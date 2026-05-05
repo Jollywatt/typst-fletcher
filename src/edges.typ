@@ -978,14 +978,14 @@
   ///
   /// If `auto`, the label is placed roughly above straight edges, or on the outside of curved edges.
   ///
-  /// If `center` or `none`, the label is placed directly over the edge, and the label fill defaults to white.
-  ///
   /// An alignment (e.g., `top`, `left`, `top + left`) means place the label beside the edge to whichever side is nearer that direction.
   /// If given as an alignment, the side may flip depending on the edge's angle.
   ///
   /// If `true`, the label is placed above the edge assuming it goes left to right;
   /// `false` is the opposite side.
-  /// If given as a boolean, the side does not flip depending on the edge's angle.
+  /// In these cases, the side never flips depending on the edge's angle.
+  ///
+  /// If `center` or `none`, the label is placed directly over the edge, and the label fill defaults to white.
   ///
   /// The special alignment values `start` and `end` place the label before or after a point, travelling along the edge. This works best when used like `(pos: 0%, side: start)` or `(pos: 100%, side: end)`.
   /// ```example
@@ -1040,7 +1040,11 @@
   ///
   /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
-  /// -> pair
+  /// 
+  /// *@edge.debug options:* You can use the `debug: "edge.snap"` option to see the edge's path before snapping is applied.
+  /// Additionally, the debug options `"edge.snap.from"` and `"edge.snap.to"` highlight the nodes that are ultimately snapped to.
+  /// 
+  /// -> none | auto | pair
   snap-to: (auto, auto),
   /// When an edge snaps to an object's outline, the edge can be shifted in two ways:
   /// one method is to shorten the edge to the point where it meets
@@ -1064,11 +1068,21 @@
   /// -> "trim" | "move" | pair
   snap-method: auto,
   /// Gap between the end of the edge and connected nodes.
-  /// Similar to @node.outset, but specific to the current edge instead of
-  /// the target node.
   ///
+  /// Similar to @node.outset, but specific to the edge instead of
+  /// the target node.
   /// Can be a single length or a pair of lengths `(from, to)` to control the
-  /// outset at either end of the edge.
+  /// outset at either end.
+  /// 
+  /// ```example
+  /// #diagram(
+  ///   node-fill: teal,
+  ///   node((0,0), [A], <a>),
+  ///   node((1,0), [B], <b>),
+  ///   edge(<a>, "<->", <b>, bend: +60deg, [No outset]),
+  ///   edge(<a>, "<->", <b>, bend: -60deg, outset: 5pt, [Outset]),
+  /// )
+  /// ```
   ///
   /// See also @edge.shorten.
   /// -> length | pair
@@ -1089,43 +1103,40 @@
   /// obtain a multi-stroke effect. Offsets may be numbers
   /// (specifying multiples of the stroke's thickness) or lengths.
   ///
-  /// ```svg
-  /// diagram({
-  ///   (
+  /// #frame-row(..(
   ///     (0,),
   ///     (-1.5,+1.5),
   ///     (-2,0,+2),
   ///     (-.5em,),
-  ///     (0, 5pt,),
-  ///   ).enumerate().map(((i, e)) => {
-  ///     edge(
-  ///       (2*i, 0), (2*i + 1, 0), [#e], "|->",
-  ///       extrude: e, stroke: 1pt, label-sep: 1em)
-  ///   }).join()
-  /// })
-  /// ```
+  ///     (0, 5pt),
+  ///   ).map(e => {
+  ///   diagram(edge(
+  ///     (0, 0), (1, 0), [#e], "|->",
+  ///     extrude: e, stroke: 1pt, label-sep: 1em
+  ///   ))
+  /// }))
   ///
   /// Notice how the strokes terminate on the marks properly.
   /// This is defined by the `cap-offset` option of the marks.
   /// TODO
   /// -> number | length | array
   extrude: auto,
-  /// The radius of round or bevelled corners for multi-vertex edges.
+  /// The radius of round or bevelled corners.
+  /// 
+  /// For extruded edges, this defines the radius of curvature of
+  /// the _innermost_ stroke as you go around the bend.
+  /// Note that `none`, which enables miter joins, is different from `0`.
+  /// 
+  /// #frame-row(..(none, 0pt, 5pt).map(it => {
+  ///   	diagram(
+  ///   		edge-stroke: 1pt,
+  ///   		edge("r,t,rd,r", "=>", raw(repr(it)), label-pos: 60%, corner-radius: it)
+  ///   	)
+  ///   }))
   ///
-  /// ```example
-  /// #diagram(
-  ///   spacing: 20pt,
-  ///   edge-stroke: 1pt,
-  ///   node((0,0), `none`),
-  ///   edge("d,rr", "==>", corner-radius: none),
-  ///   node((0,1), `0pt`),
-  ///   edge("r,d,r", "=>", corner-radius: 0pt),
-  ///   node((0,2), `10pt`),
-  ///   edge("rr,d", "->", corner-radius: 10pt),
-  /// )
-  /// ```
-  ///
-  /// See @path-effect.corner-radius.
+  /// This length specifies the corner radius for right-angled bends.
+  /// The actual radius is smaller for acute angles and larger for obtuse angles to balance things visually.
+  /// See @path-effect.corner-radius for details.
   /// -> length | number | none
   corner-radius: auto,
   /// Apply CeTZ _path decorations_ do the edge, such as wave or zigzag effects.
@@ -1161,6 +1172,16 @@
   /// Canvas layer to draw edge on.
   ///
   /// Edges with equal layer are drawn in the order they are inserted.
+  /// 
+  /// #frame-row(..(0, 2).map(it => {
+  ///   diagram({
+  ///     node((0,0), $ times $, fill: yellow)
+  ///     edge((-1,0), (+1,0), "->", raw("layer: " + repr(it)), layer: it, label-side: start, label-pos: 0%)
+  ///   })
+  /// }))
+  /// 
+  /// See also @node.layer, which is `1` by default.
+  /// 
   /// -> number
   layer: 0,
 
