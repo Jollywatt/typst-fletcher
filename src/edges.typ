@@ -1170,12 +1170,13 @@
   /// which are both styles that can be set at the diagram level.
   ///
   /// ```example
-  /// #diagram({
-  ///   edge((0,1), (1,0), stroke: 1pt)
-  ///   edge((0,0), (1,1), stroke: 1pt)
-  ///   edge((2,1), (3,0), stroke: 1pt)
-  ///   edge((2,0), (3,1), stroke: 1pt, crossing: true)
-  /// })
+  /// #diagram(
+  ///   edge-stroke: 2pt,
+  ///   edge((0,1), (1,0)),
+  ///   edge((0,0), (1,1)),
+  ///   edge((2,1), (3,0)),
+  ///   edge((2,0), (3,1), crossing: true),
+  /// )
   /// ```
   ///
   /// To make sure crossing lines are drawn above other lines,
@@ -1184,9 +1185,29 @@
   crossing: false,
   /// Color of the "crossing" backdrop  (drawn when @edge.crossing is enabled).
   /// This should match the background of the figure to give the illusion of breaking lines below it.
+  /// 
+  /// #frame-row(..(white, gray, yellow).map(it => {
+  ///   diagram(
+  ///     edge-crossing-fill: it,
+  ///     edge-stroke: 2pt,
+  ///     edge((0,1), (1,0)),
+  ///     edge((0,0), (1,1), "crossing"),
+  ///   )
+  /// }))
   /// -> color
   crossing-fill: auto,
   /// Width of the "crossing" backdrop (drawn when @edge.crossing is enabled) as a length or a multiple of the stroke's thickness.
+  /// 
+  /// #frame-row(..(3, 5, 5pt).map(it => {
+  ///   diagram(
+  ///     edge-crossing-thickness: it,
+  ///     edge-stroke: 2pt,
+  ///     edge((0,1), (1,0)),
+  ///     edge((0,0), (1,1), "crossing"),
+  ///     edge((0.5,1), (1,0.5), stroke: 1pt, "crossing"),
+  ///     node((0.5, 1.5), raw(repr(it)))
+  ///   )
+  /// }))
   /// -> number | length
   crossing-thickness: auto,
 
