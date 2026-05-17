@@ -1,0 +1,181 @@
+:root {
+	font-family: system-ui, segoe ui, Roboto, Helvetica, Arial, sans-serif, apple color emoji, segoe ui emoji;
+	--sidebar-width: 12rem;
+	--small-screen-width: 50rem;
+}
+
+* {
+	/*outline: 0.5px solid #f001;*/
+}
+
+body {
+  margin: 0;
+  display: flex;
+}
+
+article {
+ padding: 1em;
+}
+
+.vertical {
+	writing-mode: vertical-rl
+}
+
+h1, h2 {
+	font-weight: 300;
+}
+
+a {
+	color: unset;
+	cursor: pointer;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+input#menu-control {
+	display: none;
+}
+
+nav {
+	padding: 1rem;
+	padding-right: 0;
+	font-size: 0.9rem;
+  width: var(--sidebar-width);
+  height: 100vh;
+  box-sizing: border-box;
+  position: fixed;
+  overflow-y: scroll;
+	line-height: 1.9;
+  z-index: 10;
+}
+
+
+nav li {
+	white-space: nowrap;
+	overflow-x: hidden;
+}
+nav li {
+  overflow: hidden;
+  white-space: nowrap;
+}
+nav li:hover {
+  overflow-x: visible;
+}
+
+
+
+nav ul {
+	list-style: none;
+	padding-left: 1rem;
+}
+nav > ul, nav > ul > li > ul {
+	padding: 0;
+}
+
+nav summary {
+	list-style: none;
+	cursor: pointer;
+}
+nav details summary::after {
+	content: "+";
+	float: right;
+	margin-right: 0.5rem;
+}
+nav details[open] summary::after {
+	content: "−";
+}
+
+
+nav a {
+	text-decoration: none;
+}
+
+img {
+	height: unset;
+	width: unset;
+}
+.codeblock {
+	width: 100%;
+}
+.codeblock pre {
+	background: #def;
+	padding: 0.5em;
+	overflow-x: scroll;
+	border-radius: 0.25em;
+}
+
+@media screen and (min-width: 50rem) {
+	/* Wide page */
+
+	main {
+		margin: auto;
+		width: calc(min(40rem + 30vw, 100vw));
+	}
+
+	article {
+		margin-left: var(--sidebar-width);
+	}
+
+	#menu-button {
+		display: none;
+	}
+}
+
+#menu-button {
+	cursor: pointer;
+}
+
+
+
+
+@media screen and not (min-width: 50rem) {
+	/* Narrow page */
+
+
+	#menu-button {
+		position: fixed;
+		top: 0;
+		left: 0;
+		background-color: white;
+		padding: 1rem;
+		border-bottom-right-radius: 1rem;
+		box-shadow: 0 0 1rem #0002;
+	}
+
+	nav {
+		left: calc(-1*var(--sidebar-width));
+		transition: left 0.2s;
+		background: white;
+	}
+
+	article {
+		margin-left: 0;
+		margin-top: 1rem;
+		transition: margin-left 0.2s;
+	}
+
+	#menu-control:checked ~ nav {
+		left: 0px;
+		box-shadow: 0 0 15px #0003;
+	}
+
+	.menu-overlay {
+		display: block;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: white;
+		transition: opacity 0.2s;
+		opacity: 0.5;
+	}
+
+	#menu-control:not(:checked) ~ .menu-overlay {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+
+}

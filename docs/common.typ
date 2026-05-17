@@ -8,9 +8,7 @@
 
 #let frame(it) = context {
   if is-html() {
-    html.div(class: "svg-frame", {
-      html.frame(pad(3mm, scale(100%, reflow: true, it)))
-    })
+    html.frame(pad(3mm, scale(100%, reflow: true, it)))
   } else {
     it
   }
