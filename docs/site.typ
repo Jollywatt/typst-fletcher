@@ -3,56 +3,101 @@
 
 #show: common.style
 
-
 #let menu-tree = state("menu-tree", (:))
 
+#let nav-expander-script = ```js
+  // A script to automatically enlarge the navbar when hovering over wide links
+  const nav = document.querySelector('nav');
+  const navWidth = nav.offsetWidth;
+  let stretchedWidth = navWidth;
+
+  const closeNav = () => {
+    nav.classList.remove('stretched');
+    nav.style.removeProperty('min-width');
+    stretchedWidth = navWidth;
+  }
+
+  const expandNav = (width) => {
+    if (width <= stretchedWidth) return;
+    stretchedWidth = width;
+    nav.classList.add('stretched')
+    nav.style.minWidth = `${stretchedWidth}px`;
+  }
+
+  nav.addEventListener('mouseleave', closeNav)
+  let counter = 0;
+  nav.querySelectorAll('li a').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      const c = ++counter;
+      setTimeout(() => {
+        if (c == counter) expandNav(item.offsetWidth + 40);
+      }, 500)
+    });
+    item.addEventListener('mouseleave', () => {
+      const c = ++counter;
+      setTimeout(() => {
+        if (c == counter) closeNav();
+      }, 2e3);
+    });
+  });
+
+  // open nav menu on hover - maybe too annoying?
+  const navButton = document.getElementById('menu-button');
+  const navControl = document.getElementById('menu-control');
+  navButton.addEventListener('mouseenter', () => {
+    navControl.checked ^= true;
+  })
+```
+
 #let sidebar = context html.nav[
-	#link(<home>, html.frame(text(1.6em)[_fletcher manual_]))
+  #link(<home>, html.frame(text(1.6em)[_fletcher manual_]))
 
-	#let dropdown(title, body) = html.details({
-		html.summary(title)
-		body
-	})
+  #let dropdown(title, body) = html.details({
+    html.summary(title)
+    body
+  })
 
-	- #[*Gallery*]
-	- #[*Manual*]
-		- #link(<manual-intro>)[Overview]
-		- #link(<manual-diagrams>)[Diagrams and Layout]
-		- #link(<manual-nodes>)[Nodes]
-		- #link(<manual-edges>)[Edges]
-		- #link(<manual-marks>)[Marks and Arrows]
-		- #link(<manual-cetz>)[CeTZ Integration]
+  - #[*Gallery*]
+  - #[*Manual*]
+    - #link(<manual-intro>)[Overview]
+    - #link(<manual-diagrams>)[Diagrams and Layout]
+    - #link(<manual-nodes>)[Nodes]
+    - #link(<manual-edges>)[Edges]
+    - #link(<manual-marks>)[Marks and Arrows]
+    - #link(<manual-cetz>)[CeTZ Integration]
 
-	- *Function Reference*
+  - *Function Reference*
 
-		#let tree = menu-tree.final()
-		#tree.remove("main").map(name => [
-			- #link(label("ref-" + name), raw(name + "()"))
-		]).join()
-		#for (module, tree) in tree {
-			dropdown[#raw(module) module][
-				#tree.map(name => [
-					- #link(label("ref-" + name), raw(name + "()"))
-				]).join()
-			]
-		}
+    #let tree = menu-tree.final()
+    #tree.remove("main").map(name => [
+      - #link(label("ref-" + name), raw(name + "()"))
+    ]).join()
+    #for (module, tree) in tree {
+      dropdown[#raw(module) module][
+        #tree.map(name => [
+          - #link(label("ref-" + name), raw(name + "()"))
+        ]).join()
+      ]
+    }
 ]
 
 #let menu-button = html.label(..("for": "menu-control"), id: "menu-button")[
-		#html.frame(stack(..(line(length: 1em, stroke: 0.5pt),)*5, spacing: 0.2em, dir: ttb))
-	]
+    #html.frame(stack(..(line(length: 1em, stroke: 0.5pt),)*5, spacing: 0.2em, dir: ttb))
+  ]
 
 #let sitepage(body) = {
-   html.link(href: "/styles.css", rel: "stylesheet")
-   html.main({ // wrap in main so inputs aren't wrapped in <p>
-     html.input(type: "checkbox", id: "menu-control")
-     sidebar
-     html.label(..("for": "menu-control"), class: "menu-overlay")
-     html.article[
-       #menu-button
-       #body
-     ]
-   })
+  html.link(href: "/styles.css", rel: "stylesheet")
+  html.main({ // wrap in main so inputs aren't wrapped in <p>
+    html.input(type: "checkbox", id: "menu-control")
+    sidebar
+    html.label(..("for": "menu-control"), class: "menu-overlay")
+    html.article[
+      #menu-button
+      #body
+
+    ]
+  })
+  html.script(nav-expander-script.text)
 }
 
 
@@ -96,13 +141,13 @@
 
 
 #let fn-doc(module, name, ..args) =  {
-	let url = "reference/" + module + "/" + name + ".html"
+  let url = "reference/" + module + "/" + name + ".html"
   let doc = document(url, sitepage(components.show-fn(name, level: 1)))
   [#doc #label("ref-" + name)]
 
   menu-tree.update(l => {
-  	if module not in l { l.insert(module, ()) }
-   	l.at(module).push(name)
+    if module not in l { l.insert(module, ()) }
+    l.at(module).push(name)
     l
   })
 }

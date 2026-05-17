@@ -65,19 +65,20 @@ label#menu-button {
 
 
 nav {
-	padding: 1rem;
-	/*background: white;*/
-	padding-right: 10rem;
-	font-size: 0.9rem;
-  width: calc(var(--sidebar-width) + 10rem);
+  position: fixed;
+  width: var(--sidebar-width);
   height: 100vh;
   box-sizing: border-box;
-  position: fixed;
-  overflow-y: scroll;
-  /*overflow-x: hidden;*/
+	padding-top: 2rem;
+	padding-left: 1rem;
+	font-size: 0.9rem;
 	line-height: 1.9;
-  z-index: 10;
+	white-space: nowrap;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  z-index: 1;
 }
+
 nav p {
 	margin: 0; /* glitchy when combined with overflow */
 }
@@ -93,19 +94,6 @@ nav > ul > li {
 }
 
 
-/* Make over-wide sidebar items clip
-   but still visible on hover */
-nav li {
-	white-space: nowrap;
-	overflow-x: hidden;
-}
-nav li:hover {
-	overflow-x: visible;
-}
-nav li:hover a {
-	background: white;
-}
-
 nav summary {
 	list-style: none;
 	cursor: pointer;
@@ -113,7 +101,7 @@ nav summary {
 nav details summary::after {
 	content: "+";
 	float: right;
-	margin-right: 0.5rem;
+	margin-right: 1em;
 }
 nav details[open] summary::after {
 	content: "−";
@@ -121,6 +109,23 @@ nav details[open] summary::after {
 
 nav a {
 	text-decoration: none;
+}
+
+nav {
+	background: white;
+	transition:
+		/* menu open/close */
+		left 200ms,
+		/* menu unstretching to normal width */
+	  box-shadow ease-in-out 500ms,
+	  min-width ease-in-out 500ms;
+	box-shadow: 5px 0 0px -5px #0000;
+	min-width: var(--sidebar-width);
+}
+
+nav.stretched {
+  transition: 300ms; /* how fast menu stretches out */
+	box-shadow: 5px 0 10px -5px #0003;
 }
 
 
@@ -156,14 +161,10 @@ nav a {
 
 	nav {
 		left: calc(-1*var(--sidebar-width));
-		transition: left 0.2s;
-		background: white;
 	}
 
 	article {
-		margin-left: 0;
 		margin-top: 1rem;
-		transition: margin-left 0.2s;
 	}
 
 	#menu-control:checked ~ nav {
