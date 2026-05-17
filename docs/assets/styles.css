@@ -1,7 +1,6 @@
 :root {
 	font-family: system-ui, segoe ui, Roboto, Helvetica, Arial, sans-serif, apple color emoji, segoe ui emoji;
 	--sidebar-width: 12rem;
-	--small-screen-width: 50rem;
 }
 
 * {
@@ -10,15 +9,19 @@
 
 body {
   margin: 0;
+}
+
+main {
   display: flex;
+
 }
 
 article {
- padding: 1em;
-}
-
-.vertical {
-	writing-mode: vertical-rl
+  width: 100%;
+  font-weight: 320;
+  line-height: 1.4;
+  overflow-x: hidden;
+  padding: 1rem;
 }
 
 h1, h2 {
@@ -33,44 +36,74 @@ a:hover {
 	text-decoration: underline;
 }
 
+.codeblock pre {
+	overflow-x: scroll;
+	background: #def;
+	padding: 0.5em;
+	border-radius: 0.25em;
+}
+
+.frame-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+
+/* Navigation bar */
+
+
 input#menu-control {
 	display: none;
 }
 
+label#menu-button {
+	cursor: pointer;
+}
+
+
 nav {
 	padding: 1rem;
-	padding-right: 0;
+	/*background: white;*/
+	padding-right: 10rem;
 	font-size: 0.9rem;
-  width: var(--sidebar-width);
+  width: calc(var(--sidebar-width) + 10rem);
   height: 100vh;
   box-sizing: border-box;
   position: fixed;
   overflow-y: scroll;
+  /*overflow-x: hidden;*/
 	line-height: 1.9;
   z-index: 10;
 }
+nav p {
+	margin: 0; /* glitchy when combined with overflow */
+}
+nav ul {
+	list-style: none;
+	padding: 0;
+}
+nav details ul {
+	padding-left: 1rem;
+}
+nav > ul > li {
+	margin-top: 1rem;
+}
 
 
+/* Make over-wide sidebar items clip
+   but still visible on hover */
 nav li {
 	white-space: nowrap;
 	overflow-x: hidden;
 }
-nav li {
-  overflow: hidden;
-  white-space: nowrap;
-}
 nav li:hover {
-  overflow-x: visible;
+	overflow-x: visible;
 }
-
-
-
-nav ul {
-	list-style: none;
-	padding-left: 1rem;
-}
-nav > ul, nav > ul > li > ul {
-	padding: 0;
+nav li:hover a {
+	background: white;
 }
 
 nav summary {
@@ -86,26 +119,12 @@ nav details[open] summary::after {
 	content: "−";
 }
 
-
 nav a {
 	text-decoration: none;
 }
 
-img {
-	height: unset;
-	width: unset;
-}
-.codeblock {
-	width: 100%;
-}
-.codeblock pre {
-	background: #def;
-	padding: 0.5em;
-	overflow-x: scroll;
-	border-radius: 0.25em;
-}
 
-@media screen and (min-width: 50rem) {
+@media screen and (min-width: 45rem) {
 	/* Wide page */
 
 	main {
@@ -122,16 +141,8 @@ img {
 	}
 }
 
-#menu-button {
-	cursor: pointer;
-}
-
-
-
-
-@media screen and not (min-width: 50rem) {
+@media screen and not (min-width: 45rem) {
 	/* Narrow page */
-
 
 	#menu-button {
 		position: fixed;

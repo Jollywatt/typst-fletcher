@@ -1,21 +1,41 @@
-#let sidebar = html.nav[
-	#link(<home>, html.frame[_fletcher manual_])
+#import "common.typ"
+#import "components.typ"
+
+#show: common.style
+
+
+#let menu-tree = state("menu-tree", (:))
+
+#let sidebar = context html.nav[
+	#link(<home>, html.frame(text(1.6em)[_fletcher manual_]))
+
+	#let dropdown(title, body) = html.details({
+		html.summary(title)
+		body
+	})
 
 	- #[*Gallery*]
 	- #[*Manual*]
-		- #[Overview]
-		- Diagrams and Layout
-		- #[Nodes]
-		- #link(<edges>)[Edges]
+		- #link(<manual-intro>)[Overview]
+		- #link(<manual-diagrams>)[Diagrams and Layout]
+		- #link(<manual-nodes>)[Nodes]
+		- #link(<manual-edges>)[Edges]
+		- #link(<manual-marks>)[Marks and Arrows]
+		- #link(<manual-cetz>)[CeTZ Integration]
+
 	- *Function Reference*
-		- `diagram()`
-		- `node()`
-		- `edge()`
-		#html.details[
-			#html.summary[`paths` module]
-			- `apply-edge-effects()`
-			- `path-effect()`
-		]
+
+		#let tree = menu-tree.final()
+		#tree.remove("main").map(name => [
+			- #link(label("ref-" + name), raw(name + "()"))
+		]).join()
+		#for (module, tree) in tree {
+			dropdown[#raw(module) module][
+				#tree.map(name => [
+					- #link(label("ref-" + name), raw(name + "()"))
+				]).join()
+			]
+		}
 ]
 
 #let menu-button = html.label(..("for": "menu-control"), id: "menu-button")[
@@ -23,34 +43,98 @@
 	]
 
 #let sitepage(body) = {
-	html.link(href: "/styles.css", rel: "stylesheet")
-	html.main({
-		html.input(type: "checkbox", id: "menu-control")
-		sidebar
-		html.label(..("for": "menu-control"), class: "menu-overlay")
-		html.article[
-			#menu-button
-			#body
-
-		]
-	})
+   html.link(href: "/styles.css", rel: "stylesheet")
+   html.main({ // wrap in main so inputs aren't wrapped in <p>
+     html.input(type: "checkbox", id: "menu-control")
+     sidebar
+     html.label(..("for": "menu-control"), class: "menu-overlay")
+     html.article[
+       #menu-button
+       #body
+     ]
+   })
 }
 
-#show raw.where(block: true): html.div.with(class: "codeblock")
 
 #asset("/styles.css", read("assets/styles.css"))
 
 #document("index.html", sitepage[
-	= Heading
-	#lorem(20)
+  #show: html.div.with(style: "text-align: center")
+
+  #html.div(style: "margin: 15vh 0;")[
+    #box(components.logo)
+
+    A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
+    built on top of #link("https://cetz-package.github.io")[CeTZ].
+
+    *Version #common.VERSION*
+  ]
+
+  #link("manual.pdf", html.img(src: "https://img.shields.io/badge/Manual-PDF-orange"))
+  #link("https://typst.app/universe/package/fletcher/", html.img(src: "https://img.shields.io/badge/Typst-Universe-239dad"))
+  #link("https://github.com/Jollywatt/typst-fletcher/", html.img(src: "https://img.shields.io/badge/GitHub-Repo-blue?logo=github"))
+  #link("https://forum.typst.app", html.img(src: "https://img.shields.io/badge/ask-on%20Typst%20forum-239dad"))
+  #link("https://discord.com/channels/1054443721975922748/1260973351900414102", html.img(src: "https://img.shields.io/badge/ask-on%20Discord-2a4d7e"))
+
+  This is a #highlight[largely incomplete] web version of the manual for this package.
+
 ]) <home>
 
 
 
-#document("cool.html", sitepage[
-	= Edges
+// Manual
 
-	#lorem(200)
+#document("intro.html", sitepage(include "sections/intro.typ")) <manual-intro>
+#document("diagrams.html", sitepage(include "sections/diagrams.typ")) <manual-diagrams>
+#document("nodes.html", sitepage(include "sections/nodes.typ")) <manual-nodes>
+#document("edges.html", sitepage(include "sections/edges.typ")) <manual-edges>
+#document("marks.html", sitepage(include "sections/marks.typ")) <manual-marks>
+#document("cetz.html", sitepage(include "sections/cetz.typ")) <manual-cetz>
 
 
-]) <edges>
+// Function reference
+
+
+#let fn-doc(module, name, ..args) =  {
+	let url = "reference/" + module + "/" + name + ".html"
+  let doc = document(url, sitepage(components.show-fn(name, level: 1)))
+  [#doc #label("ref-" + name)]
+
+  menu-tree.update(l => {
+  	if module not in l { l.insert(module, ()) }
+   	l.at(module).push(name)
+    l
+  })
+}
+
+#let exports = common.EXPORT_TREE.fletcher
+
+
+
+#fn-doc("main", exports.remove("diagram"), weight: 1)
+#fn-doc("main", exports.remove("node"), weight: 2)
+#fn-doc("main", exports.remove("edge"), weight: 3)
+#fn-doc("main", exports.remove("flexigrid"), weight: 4)
+
+#fn-doc("marks", exports.marks.remove("test"))
+
+#fn-doc("path", exports.edges.remove("apply-edge-effects"))
+#fn-doc("path", exports.paths.remove("path-effect"))
+#fn-doc("path", exports.paths.remove("trim-path"))
+#fn-doc("path", exports.paths.remove("trim-to-intersection"))
+#for name in exports.paths.keys() {
+  fn-doc("path", exports.paths.remove(name))
+}
+
+
+
+
+
+#for name in exports.shapes.keys() {
+  fn-doc("shapes", exports.shapes.remove(name))
+}
+
+
+#for name in exports.parsing.keys() {
+  fn-doc("parsing", exports.parsing.remove(name))
+}
