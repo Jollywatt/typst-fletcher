@@ -1,5 +1,0 @@
-{{ with resources.Get "toc-generator.js" | resources.Minify }}
-<script>
-  {{ .Content | safeJS }}
-</script>
-{{ end }}

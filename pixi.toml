@@ -4,29 +4,16 @@ authors = ["jollywatt <jo.alex.w@gmail.com>"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
 
-[environments]
-default = ["dev"] # for testing fletcher with a released typst version
-site = ["site"] # for building docs site with typst built from source
-
 [dependencies]
 nushell = ">=0.112.2,<0.113"
 typos = "*"
-
-[feature.dev.dependencies]
 typst = "==0.14.2"
 tytanic = "==0.3.3"
 
-[feature.dev.tasks]
+[tasks]
 readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
 test = "scripts/test-and-sign.nu"
 manual = "typst watch --root . docs/manual.typ"
 install = "scripts/install.nu"
 check = "scripts/check.nu"
-
-[feature.site.dependencies]
-go = "*"
-hugo = "*"
-
-[feature.site.tasks]
-site = "scripts/site.nu"
