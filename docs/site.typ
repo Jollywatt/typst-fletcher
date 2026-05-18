@@ -49,13 +49,13 @@
   })
 ```
 
-#let sidebar = context html.nav[
-  #link(<home>, html.frame(text(1.6em)[_fletcher manual_]))
+#let dropdown(title, body, open: false) = html.details({
+  html.summary(title)
+  body
+}, open: open)
 
-  #let dropdown(title, body) = html.details({
-    html.summary(title)
-    body
-  })
+#let sidebar = context html.nav[
+  #link(<home>, html.frame(pad(bottom: 5pt, text(1.6em)[_fletcher manual_])))
 
   - #[*Gallery*]
   - #[*Manual*]
@@ -69,11 +69,16 @@
   - *Function Reference*
 
     #let tree = menu-tree.final()
+
+    // main functions
     #tree.remove("main").map(name => [
       - #link(label("ref-" + name), raw(name + "()"))
     ]).join()
+
+    // module functions in dropdowns
+    #let this-module = state("current-module").get()
     #for (module, tree) in tree {
-      dropdown[#raw(module) module][
+      dropdown(open: module == this-module)[#raw(module) module][
         #tree.map(name => [
           - #link(label("ref-" + name), raw(name + "()"))
         ]).join()
@@ -142,7 +147,10 @@
 
 #let fn-doc(module, name, ..args) =  {
   let url = "reference/" + module + "/" + name + ".html"
-  let doc = document(url, sitepage(components.show-fn(name, level: 1)))
+  let doc = document(url, {
+    state("current-module").update(_ => module)
+    sitepage(components.show-fn(name, level: 1))
+  })
   [#doc #label("ref-" + name)]
 
   menu-tree.update(l => {
