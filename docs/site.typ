@@ -69,20 +69,23 @@
   - *Function Reference*
 
     #let tree = menu-tree.final()
+    #let (this-mod, this-fn) = state("current-fn-page", (none, none)).get()
+
+    #let fn-link(name) = {
+      let it = link(label("ref-" + name), raw(name + "()"))
+      if this-fn == name { it = strong(it) }
+      list.item(it)
+    }
 
     // main functions
-    #tree.remove("main").map(name => [
-      - #link(label("ref-" + name), raw(name + "()"))
-    ]).join()
-
-    // module functions in dropdowns
-    #let this-module = state("current-module").get()
-    #for (module, tree) in tree {
-      dropdown(open: module == this-module)[#raw(module) module][
-        #tree.map(name => [
-          - #link(label("ref-" + name), raw(name + "()"))
-        ]).join()
-      ]
+    #tree.remove("main").map(fn-link).join()
+    // mod functions in dropdowns
+    #for (mod, tree) in tree {
+      dropdown(
+        open: mod == this-mod,
+        [#raw(mod) module],
+        tree.map(fn-link).join(),
+      )
     }
 ]
 
@@ -90,7 +93,7 @@
     #html.frame(stack(..(line(length: 1em, stroke: 0.5pt),)*5, spacing: 0.2em, dir: ttb))
   ]
 
-#let sitepage(body) = {
+#let template(body) = {
   html.link(href: "/styles.css", rel: "stylesheet")
   html.main({ // wrap in main so inputs aren't wrapped in <p>
     html.input(type: "checkbox", id: "menu-control")
@@ -108,7 +111,7 @@
 
 #asset("/styles.css", read("assets/styles.css"))
 
-#document("index.html", sitepage[
+#document("index.html", template[
   #show: html.div.with(style: "text-align: center")
 
   #html.div(style: "margin: 15vh 0;")[
@@ -134,12 +137,12 @@
 
 // Manual
 
-#document("intro.html", sitepage(include "sections/intro.typ")) <manual-intro>
-#document("diagrams.html", sitepage(include "sections/diagrams.typ")) <manual-diagrams>
-#document("nodes.html", sitepage(include "sections/nodes.typ")) <manual-nodes>
-#document("edges.html", sitepage(include "sections/edges.typ")) <manual-edges>
-#document("marks.html", sitepage(include "sections/marks.typ")) <manual-marks>
-#document("cetz.html", sitepage(include "sections/cetz.typ")) <manual-cetz>
+#document("intro.html", template(include "sections/intro.typ")) <manual-intro>
+#document("diagrams.html", template(include "sections/diagrams.typ")) <manual-diagrams>
+#document("nodes.html", template(include "sections/nodes.typ")) <manual-nodes>
+#document("edges.html", template(include "sections/edges.typ")) <manual-edges>
+#document("marks.html", template(include "sections/marks.typ")) <manual-marks>
+#document("cetz.html", template(include "sections/cetz.typ")) <manual-cetz>
 
 
 // Function reference
@@ -148,8 +151,8 @@
 #let fn-doc(module, name, ..args) =  {
   let url = "reference/" + module + "/" + name + ".html"
   let doc = document(url, {
-    state("current-module").update(_ => module)
-    sitepage(components.show-fn(name, level: 1))
+    state("current-fn-page").update(_ => (module, name))
+    template(components.show-fn(name, level: 1))
   })
   [#doc #label("ref-" + name)]
 
