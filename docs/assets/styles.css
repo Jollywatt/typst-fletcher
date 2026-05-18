@@ -3,17 +3,12 @@
 	--sidebar-width: 12rem;
 }
 
-* {
-	/*outline: 0.5px solid #f001;*/
-}
-
 body {
   margin: 0;
 }
 
 main {
   display: flex;
-
 }
 
 article {
@@ -26,6 +21,10 @@ article {
 
 h1, h2 {
 	font-weight: 300;
+}
+
+h2 {
+  margin-top: 0;
 }
 
 a {
@@ -63,13 +62,16 @@ label#menu-button {
 	cursor: pointer;
 }
 
-
+nav > #sidebar-title {
+  margin-top: 0.55rem;
+  margin-bottom: 0.5rem;
+}
 nav {
   position: fixed;
   width: var(--sidebar-width);
   height: 100vh;
   box-sizing: border-box;
-	padding-top: 2rem;
+	padding-top: 1rem;
 	padding-left: 1rem;
 	font-size: 0.9rem;
 	line-height: 1.9;
@@ -163,8 +165,8 @@ nav.stretched {
 		left: calc(-1*var(--sidebar-width));
 	}
 
-	article {
-		margin-top: 1rem;
+	h2 {
+  	text-align: center;
 	}
 
 	#menu-control:checked ~ nav {

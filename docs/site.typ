@@ -45,7 +45,7 @@
   const navButton = document.getElementById('menu-button');
   const navControl = document.getElementById('menu-control');
   navButton.addEventListener('mouseenter', () => {
-    navControl.checked ^= true;
+    // navControl.checked ^= true;
   })
 ```
 
@@ -55,7 +55,9 @@
 }, open: open)
 
 #let sidebar = context html.nav[
-  #link(<home>, html.frame(pad(bottom: 5pt, text(1.6em)[_fletcher manual_])))
+  #html.div(id: "sidebar-title", link(<home>, html.frame({
+    text(1.75em)[_fletcher manual_]
+  })))
 
   - #[*Gallery*]
   - #[*Manual*]
@@ -100,9 +102,9 @@
     sidebar
     html.label(..("for": "menu-control"), class: "menu-overlay")
     html.article[
+      #body
       #menu-button
       #body
-
     ]
   })
   html.script(nav-expander-script.text)
