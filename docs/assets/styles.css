@@ -16,7 +16,7 @@ article {
   font-weight: 320;
   line-height: 1.4;
   overflow-x: hidden;
-  padding: 1rem;
+  padding: 1rem 2rem;
 }
 
 h1, h2 {
@@ -35,11 +35,29 @@ a:hover {
 	text-decoration: underline;
 }
 
+table {
+  border-collapse: collapse;
+}
+th, td {
+  padding: 0.2em 0.5em;
+}
+td {
+  border: 1px solid #d0d7de;
+}
+
+code {
+  font-family: monospace, monospace;
+  font-size: 0.95em;
+}
+
 .codeblock pre {
 	overflow-x: scroll;
-	background: #def;
+	background: #f9fcff;
+	border: 1px solid #d0d7de;
 	padding: 0.5em;
-	border-radius: 0.25em;
+	border-radius: 0.75em;
+	font-size: 0.85em;
+	box-shadow: 0 1px 4px #0001;
 }
 
 .frame-row {
@@ -49,6 +67,23 @@ a:hover {
   flex-wrap: wrap;
   align-items: center;
 }
+
+
+.code-example {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.code-example .codeblock {
+  flex: 1 1 30vw;
+  overflow-x: scroll;
+  mask-image: linear-gradient(to right, black 90%, transparent);
+}
+.code-example .svg-frame {
+  mask-image: none;
+}
+
 
 
 /* Navigation bar */
@@ -68,16 +103,29 @@ nav > #sidebar-title {
 }
 nav {
   position: fixed;
-  width: var(--sidebar-width);
   height: 100vh;
+  width: var(--sidebar-width);
+	min-width: var(--sidebar-width);
+  overflow-y: scroll;
+  overflow-x: hidden;
+	white-space: nowrap;
+
   box-sizing: border-box;
 	padding-top: 1rem;
 	padding-left: 1rem;
 	font-size: 0.9rem;
 	line-height: 1.9;
-	white-space: nowrap;
-  overflow-y: scroll;
-  overflow-x: hidden;
+
+	--open-duration: 200ms;
+	--stretch-duration: 500ms;
+
+	transition:
+		/* menu open/close */
+		left var(--open-duration),
+		/* menu unstretching to normal width */
+		box-shadow ease-in-out var(--stretch-duration),
+		min-width ease-in-out var(--stretch-duration);
+	box-shadow: 5px 0 0px -5px #0000;
   z-index: 1;
 }
 
@@ -113,26 +161,20 @@ nav a {
 	text-decoration: none;
 }
 
-nav {
-	background: white;
-	transition:
-		/* menu open/close */
-		left 200ms,
-		/* menu unstretching to normal width */
-	  box-shadow ease-in-out 500ms,
-	  min-width ease-in-out 500ms;
-	box-shadow: 5px 0 0px -5px #0000;
-	min-width: var(--sidebar-width);
-}
 
 nav.stretched {
-  transition: 300ms; /* how fast menu stretches out */
+  transition: 500ms; /* how fast menu stretches out */
 	box-shadow: 5px 0 10px -5px #0003;
 }
 
 
 @media screen and (min-width: 45rem) {
 	/* Wide page */
+
+	nav {
+  	background: #fffd;
+  	backdrop-filter: blur(5px);
+	}
 
 	main {
 		margin: auto;
@@ -162,6 +204,7 @@ nav.stretched {
 	}
 
 	nav {
+	  background: white;
 		left: calc(-1*var(--sidebar-width));
 	}
 
@@ -181,15 +224,43 @@ nav.stretched {
 		left: 0;
 		width: 100vw;
 		height: 100vh;
-		background: white;
 		transition: opacity 0.2s;
-		opacity: 0.5;
 	}
 
 	#menu-control:not(:checked) ~ .menu-overlay {
 		opacity: 0;
 		pointer-events: none;
 	}
+}
 
 
+/* Function docs */
+
+.fn-arg {
+  border-top: 1px solid #aaa;
+  border-radius: 0.8rem 0.8rem 0 0;
+  padding: 1rem;
+  margin: 1em 0;
+}
+
+.fn-arg > h3:first-child {
+  margin-top: 0;
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.fn-arg-details {
+  display: inline-block;
+  margin-left: 1em;
+  font-size: 0.8em;
+}
+
+.fn-signature {
+  line-height: 1.6;
+}
+
+.type {
+  border-radius: 0.3rem;
+  padding: 1px 4px;
+  display: inlineblock;
 }

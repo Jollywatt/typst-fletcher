@@ -16,14 +16,15 @@
   [_(noun) a maker of arrows_],
 ))
 
-#let show-type(type) = {
+#let show-type(ty) = {
+  import common.tidy.styles.default: colors
+  let clr = colors.at(ty, default: colors.default)
   if common.is-html() {
-    html.span(class: "type", title: type, raw(type, lang: "typc"))
+    let hex = if type(clr) == color { clr.to-hex() } else { "" }
+    html.span(class: "type", style: "background: " + hex, ty)
   } else {
-    import common.tidy.styles.default: colors
     h(2pt)
-    let clr = colors.at(type, default: colors.default)
-    box(outset: 2pt, fill: clr, radius: 2pt, raw(type, lang: none))
+    box(outset: 2pt, fill: clr, radius: 2pt, raw(ty, lang: none))
     h(2pt)
   }
 }
