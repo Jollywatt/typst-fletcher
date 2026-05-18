@@ -61,7 +61,8 @@
     text(1.75em)[_fletcher manual_]
   })))
 
-  - #[*Gallery*]
+  - #link(<gallery>)[*Gallery*]
+
   - #[*Manual*]
     - #link(<manual-intro>)[Overview]
     - #link(<manual-diagrams>)[Diagrams and Layout]
@@ -137,6 +138,47 @@
 
 ]) <home>
 
+
+// Gallery
+#let gals = (
+  "gallery/01-commutative.typ",
+  "gallery/02-algebra-cube.typ",
+  "gallery/03-ml-architecture.typ",
+  // "gallery/04-io-flowchart.typ",
+  "gallery/05-digraph.typ",
+  // "gallery/06-node-groups.typ",
+  "gallery/07-uml-diagram.typ",
+  "gallery/08-tree.typ",
+  "gallery/09-feynman-diagram.typ",
+  "gallery/10-category-theory.typ",
+)
+#for gal in gals [
+  #asset(gal, read(gal).replace("\t", "  ")) #label(gal)
+]
+
+#document("gallery.html", template[
+  = Example Gallery
+
+  Here you can find example diagrams made with `fletcher`.
+
+  Click on an example to see its source code.
+
+  #show: html.div.with(class: "frame-row")
+
+  #let strip-setup(src) = src.split("\n").filter(line => {
+    line = line.trim()
+    return "@preview" not in line
+  }).join("\n")
+
+  #for gal in gals [
+    #let it = eval(strip-setup(read(gal)), scope: common.scope, mode: "markup")
+
+    #html.div(class: "gallery-example", {
+      link(label(gal), html.frame(pad(1em, it)))
+    })
+  ]
+
+]) <gallery>
 
 
 // Manual

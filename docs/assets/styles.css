@@ -68,7 +68,6 @@ code {
   align-items: center;
 }
 
-
 .code-example {
   display: flex;
   align-items: center;
@@ -84,7 +83,14 @@ code {
   mask-image: none;
 }
 
-
+.gallery-example {
+  border-radius: 0.5rem;
+  border: 1px dashed transparent;
+}
+.gallery-example:hover {
+  border-color: #aaa;
+  box-shadow: -2px 4px 8px #0001;
+}
 
 /* Navigation bar */
 
