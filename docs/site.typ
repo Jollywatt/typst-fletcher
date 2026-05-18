@@ -1,6 +1,8 @@
 #import "common.typ"
 #import "components.typ"
 
+#let URL_ROOT = sys.inputs.at("url-root", default: "")
+
 #show: common.style
 
 #let menu-tree = state("menu-tree", (:))
@@ -96,7 +98,7 @@
   ]
 
 #let template(body) = {
-  html.link(href: "/styles.css", rel: "stylesheet")
+  html.link(href: URL_ROOT + "/styles.css", rel: "stylesheet")
   html.main({ // wrap in main so inputs aren't wrapped in <p>
     html.input(type: "checkbox", id: "menu-control")
     sidebar

@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 env:
-  TYPST_COMMIT: c93830c
+  TYPST_COMMIT: 64720d459129
 
 jobs:
   deploy:
@@ -26,15 +26,14 @@ jobs:
           git: https://github.com/typst/typst.git
           rev: ${{ env.TYPST_COMMIT }}
 
-      - name: Verify typst installation
-        run: typst --version
+      - run: typst --version
 
-      - name: Setup Pixi
-        uses: prefix-dev/setup-pixi@v0.9.5
-        with:
-          environments: site
-
-      - run: pixi run site deploy
+      - run: >
+          typst compile docs/site.typ
+          --features bundle,html
+          --format bundle
+          --root .
+          --input url-root=/typst-fletcher
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -42,7 +41,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/website/public
+          path: docs/site/
 
       - name: Deploy to GitHub Pages
         id: deployment
