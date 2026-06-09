@@ -2,17 +2,18 @@
 #import "utils.typ"
 
 #let DEBUG_LEVELS = (
-  "grid": 3,
+  "grid": 2,
   "grid.coords": 1,
-  "grid.lines": 2,
-  "grid.cells": 3,
-  "grid.xy": 10,
+  "grid.lines": 3,
+  "grid.cells": 2,
+  "grid.xy": 5,
 
-  "node": 4,
-  "node.origin": 4,
-  "node.stroke": 3,
-  "node.inset": 4,
+  "node": 3,
+  "node.bounds": 3,
+  "node.inset": 3,
   "node.outset": 4,
+  "node.origin": 5,
+  "node.cell": 5,
 
   "edge.label": 5,
   "edge.snap": 5,

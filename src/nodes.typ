@@ -43,8 +43,16 @@
     return group + (anchors: calc-anchors)
   },)
 
+
   if debug-level(debug, "node") {
     debug-group({
+      if "cell" in node and debug-level(debug, "node.cell") {
+        let (center, size) = node.cell
+        let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
+        let hi = cetz.vector.add(center, cetz.vector.scale(size, 0.5))
+        cetz.draw.rect(lo, hi, fill: red.transparentize(90%), stroke: none)
+      }
+
       cetz.draw.translate(origin)
       if debug-level(debug, "node.origin") {
         cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
@@ -65,6 +73,7 @@
           ))
         })
       }
+
     })
   }
 
@@ -220,6 +229,24 @@
 }
 
 
+#let resolve-node-body(ctx, node, debug) = {
+    // ensure body is a cetz drawable
+  if not utils.is-cetz(node.body) {
+    if node.body == none {
+      // empty nodes should still affect canvas bounds
+      node.body = cetz.draw.content((0,0), none)
+    } else {
+      node.body = text([#node.body], top-edge: "cap-height", bottom-edge: "baseline")
+      if debug-level(get-debug(ctx, debug), "node.inset") {
+        node.body = rect(node.body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+      }
+      node.body = cetz.draw.content((0,0), [#node.body], padding: node.style.inset, name: "body")
+    }
+  }
+  node
+
+}
+
 #let _node(
   ..options,
   debug: auto,
@@ -240,16 +267,6 @@
       cellspan,
     ) = options.named()
 
-
-    if "fletcher" not in ctx.shared-state {
-      ctx.shared-state.fletcher = (
-        pass: none,
-        nodes: (),
-        edges: (),
-      )
-    }
-    let fletcher-ctx = ctx.shared-state.fletcher
-
     let data = (
       class: "node",
       pos: position,
@@ -266,72 +283,94 @@
       debug: get-debug(ctx, debug),
     )
 
+    /* Resolve styles */
+
     let style = resolve-node-styles(ctx, data)
     data.style = style
     data.draw = style.draw
 
-    // ensure body is a cetz drawable
-    if not utils.is-cetz(data.body) {
-      if data.body == none {
-        // empty nodes should still affect canvas bounds
-        data.body = cetz.draw.content((0,0), none)
-      } else {
-        data.body = text([#data.body], top-edge: "cap-height", bottom-edge: "baseline")
-        if debug-level(get-debug(ctx, debug), "node.inset") {
-          data.body = rect(data.body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
-        }
-        data.body = cetz.draw.content((0,0), [#data.body], padding: data.style.inset, name: "body")
-      }
-    }
-
+    data = resolve-node-body(ctx, data, debug)
     let sizes = measure-node(ctx, style, shape, data.body)
     data.size = sizes.bounds
     data.body-size = sizes.body
+      
 
-    if data.pos == auto and data.enclose != none {
-      // resolve enclose nodes without flexigrid
-      // should still support engulfing other nodes
-      // but not stuff requiring row/col knowledge
-      // let spanning-points = node-data.enclose.map(fle)
-      if data.enclose.len() == 1 {
-        data.pos = data.enclose.first()
-      } else {
-        data.pos = ((..v) => array.zip(..v.pos()).map(((a, b)) => (a + b)/v.pos().len()), ..data.enclose,)
-      }
+
+
+    if "fletcher" not in ctx.shared-state {
+      // node is not inside a flexigrid
+      // but fletcher state is still needed for e.g., automatic edge-node snapping
+      ctx.shared-state.fletcher = (
+        pass: none,
+        nodes: (),
+      )
     }
+    let fletcher-ctx = ctx.shared-state.fletcher
 
-    if fletcher-ctx.pass != none {
-      data.pos = utils.interpret-as-uv(data.pos)
-    }
-
-    if data.pos == auto {
-      utils.error("node has no position")
-    }
-
-    if fletcher-ctx.pass == "final" {
-      // node position was calculated by flexigrid
-      // copy that position to actual node
-      let self = fletcher-ctx.nodes.at(fletcher-ctx.current.node)
-      data.pos = self.pos
-      data.size = self.size
-      data.body-size = self.body-size
-    } else {
-      // resolve position
-      let (ctx, origin) = cetz.coordinate.resolve(ctx, data.pos)
-      data.pos = origin.slice(0, 2)
+    if "current-node" in fletcher-ctx {
+      ctx.shared-state.fletcher.current-node += 1
     }
 
 
-    if "current" in fletcher-ctx {
-      ctx.shared-state.fletcher.current.node += 1
-    }
-    if fletcher-ctx.pass != "final" {
+    if fletcher-ctx.pass == "layout" {
+      // In the layout pass, we only care about resolving
+      // the uv coordinates of nodes and recording this in ctx.shared-state.
+
+      // resolve uv coordinates
+      let pos = utils.interpret-as-uv(data.pos)
+      let uv
+      (ctx, uv) = cetz.coordinate.resolve(ctx, pos)
+
+      data.uv-pos = if not uv.any(float.is-nan) { uv.slice(0, 2) }
       ctx.shared-state.fletcher.nodes.push(data)
+
+      // do not draw anything in layout pass
+      return (ctx: ctx)
+
+    } else if fletcher-ctx.pass == "placement" {
+      // In the node placement pass, node positions and sizes are resolved.
+      // This happens after the flexigrid is determined but before edges are processed.
+
+      let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
+      if self.uv-pos != none {
+        // this is a uv node
+        data = (fletcher-ctx.place-node-in-flexigrid)(self)
+      } else {
+        // this is an xy node
+        // draw node at an exact coordinate
+        let pos = utils.interpret-as-uv(data.pos)
+        let xy
+        (ctx, xy) = cetz.coordinate.resolve(ctx, pos)
+        data.pos = xy
+      }
+
+      ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
+
+      assert(type(data.pos) == array)
+
+    } else if fletcher-ctx.pass == "final" {
+
+      // retrieve info from layout pass
+      let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
+      data.pos = self.pos
+      assert(type(data.pos) == array)
+
+
+    } else {
+      // node does not appear in a flexigrid
+      let xy
+      (ctx, xy) = cetz.coordinate.resolve(ctx, data.pos)
+      data.pos = xy
+      ctx.shared-state.fletcher.nodes.push(data)
+
     }
+
+
 
     cetz.process.many(ctx, {
       draw-node-at(data, data.pos, debug: data.debug)
     })
+    
   },)
 }
 

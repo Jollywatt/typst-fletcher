@@ -480,7 +480,7 @@
   scene
 }
 
-#let remove-no-flip-coords(ctx, c) = {
+#let ignore-no-flip-coords(ctx, c) = {
   if type(c) == dictionary and "no-flip" in c {
     let (no-flip, ..rest) = c
     rest
@@ -489,38 +489,7 @@
   }
 }
 
-#let _edge(
-  vertices: (),
-  style: (:),
-  labels: (),
-  snap-to: (auto, auto),
-  name: none,
-  draw: vertices => none,
-  layer: 0,
-  crossing: false,
-  debug: auto,
-) = cetz.draw.get-ctx(ctx => {
-  if "fletcher" not in ctx.shared-state {
-    ctx.shared-state.fletcher = (
-      pass: none,
-      nodes: (),
-      edges: (),
-    )
-  }
-  let fletcher-ctx = ctx.shared-state.fletcher
-
-  let edge-data = (
-    class: "edge",
-    vertices: vertices,
-    style: style.pairs().filter(((k, v)) => v != auto).to-dict(),
-    labels: labels,
-    snap-to: snap-to,
-    name: name,
-    draw: draw,
-    layer: layer,
-    crossing: crossing,
-    debug: get-debug(ctx, debug),
-  )
+#let resolve-edge-styles(ctx, edge-data) = {
 
   // resolve styles
   let ctx-style = ctx.style.at("edge", default: (:))
@@ -566,21 +535,67 @@
     )
   }
 
+  return edge-data
+}
 
-  // if edge appears in a flexigrid, interpret coordinates in uv system by default
+#let _edge(
+  vertices: (),
+  style: (:),
+  labels: (),
+  snap-to: (auto, auto),
+  name: none,
+  draw: vertices => none,
+  layer: 0,
+  crossing: false,
+  debug: auto,
+) = cetz.draw.get-ctx(ctx => {
+  
+  if "fletcher" not in ctx.shared-state {
+    ctx.shared-state.fletcher = (
+      pass: none,
+      nodes: (),
+    )
+  }
+  let fletcher-ctx = ctx.shared-state.fletcher
+
+  if fletcher-ctx.pass == "layout" {
+    // only nodes are collected during the layout pass 
+    return 
+  }
+  if fletcher-ctx.pass == "placement" {
+    // don't bother drawing edges during node placement pass
+    return
+  }
+
+
+  let edge-data = (
+    class: "edge",
+    vertices: vertices,
+    style: style.pairs().filter(((k, v)) => v != auto).to-dict(),
+    labels: labels,
+    snap-to: snap-to,
+    name: name,
+    draw: draw,
+    layer: layer,
+    crossing: crossing,
+    debug: get-debug(ctx, debug),
+  )
+
+  edge-data = resolve-edge-styles(ctx, edge-data)
+
   if fletcher-ctx.pass == "final" {
+    // if edge appears in a flexigrid, interpret coordinates in uv system by default
     edge-data.vertices = edge-data.vertices.map(utils.interpret-as-uv)
   } else {
-
-    // resolve special no-flip marks
-    edge-data.vertices = edge-data.vertices.map(remove-no-flip-coords.with(ctx))
+    // resolve normally, ignoring special no-flip coordinates specific to flexigrids
+    edge-data.vertices = edge-data.vertices.map(ignore-no-flip-coords.with(ctx))
   }
 
 
   // resolve auto vertices to prev/next node
   let (first, .., last) = edge-data.vertices
   if fletcher-ctx.pass == "final" {
-    let i = fletcher-ctx.current.node
+    let i = fletcher-ctx.current-node
     if first == auto and i > 0 {
       first = fletcher-ctx.nodes.at(i - 1).pos
     }
@@ -588,7 +603,6 @@
       last = fletcher-ctx.nodes.at(i).pos
     }
   }
-
   // give reasonable defaults rather than panic
   if first == auto { first = () }
   if last == auto { last = (rel: (1, 0)) }
@@ -609,20 +623,7 @@
   let (_, ..vertices) = cetz.coordinate.resolve(ctx, ..edge-data.vertices)
   edge-data.vertices = vertices
 
-  if "current" in fletcher-ctx {
-    ctx.shared-state.fletcher.current.edge += 1
-  }
-  if fletcher-ctx.pass != "final" {
-    ctx.shared-state.fletcher.edges.push(edge-data)
-  }
-
-  if fletcher-ctx.pass == "layout" {
-    // for the layout pass, we only need to identify nodes/edges/anchors
-    // so we skip path effects, marks, etc for performance
-    (edge-data.draw)(edge-data.vertices)
-  } else {
-    draw-edge(ctx, edge-data)
-  }
+  draw-edge(ctx, edge-data)
 })
 
 

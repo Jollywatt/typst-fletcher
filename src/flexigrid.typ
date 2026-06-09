@@ -2,338 +2,332 @@
 #import "deps.typ": cetz
 #import "debug.typ": debug-level, debug-group
 
-#import "shapes.typ"
 
-// Calculate the appropriate sizes `w0` and `w1` of adjacent cells
-// when placing a node of width `W` at position `0 <= t <= 1 ` with
-// cell gutter `g`.
-// https://jollywatt.github.io/flexigrid
-#let cell-sizer(W, w0, w1, t, g) = {
-  if t == 0 { return (W, 0) }
-  let x0 = -t*calc.max(
-    (2*g + w1 + w0),
-    (2*g + w1 + W)/(1 + t),
-    (2*g + W + w0)/(2 - t),
-    (2*g + 2*W)/2,
-  )
-  return (x0 + W, W - (t - 1)/t*x0)
+/* Flexilines and flexigrids */
+
+// A _flexiline_ is a coordinate system on a 1d line, consisting of an array of _cells_,
+// where each cell has a physical size/length. The center of each cell is determined by
+// their sizes and a required _spacing_ or gutter between adjacent cells.
+// 
+// The flexiline defines a coordinate mapping from $u$ (the cell index) to $x$ (the cell's
+// physical center coordinate), with a linear interpolation behaviour for fractional $u$.
+// 
+// A _rod_ is a region spanning between two coordinates `lo` and `hi` on a flexiline which
+// has an minimum size/length. A rod represents some content to be placed in a flexiline
+// at a single coordinate $u$ (in which case `lo` and `hi` are the same) or spanning more
+// than one cell (`lo < hi`).
+// 
+// To _resolve_ a flexiline is to choose cell sizes so that the rods
+// "fit" into the cells as appropriate. E.g., a wide rod at $u = 1$ forces the cell at
+// index $1$ to be at least that wide; and a rod with a span of two straddles between
+// two cells, only forcing them to be wider if the rod is wider than the two cells'
+// combined size plus the spacing between them. Rods can also have fractional coordinates,
+// in which case the correct behaviour is less clear - but the resolved flexiline layout
+// (including the center and size of each cell, but not the number of cells) should always
+// be a continuous function of the rods' centers, sizes and spans.
+// 
+// A _flexigrid_ is the 2d analogue of a flexiline, consisting of a pair of independent
+// flexilines whose cartesian product define a 2d grid layout with rectangular cells.
+// A _rect_ is the 2d analogue of a _rod_, represented as a pair or cartesian product
+// of two rods. Rects have a 2d center, width and height, and colspan and rowspan.
+// 
+// To resolve a flexigrid, we consider each axis in turn and resolve the horizontal and
+// vertical flexiline independently. Resolving a flexiline is done with a simple iterative
+// algorithm: put rods on the flexiline, and measure how much larger the cells should be,
+// and update the cell and rod positions, and repeat until converged.
+
+
+/* rods and flexilines */
+
+#let rod-bounds(rods) = {
+  let lo = +calc.inf
+  let hi = -calc.inf
+  for rod in rods {
+    if rod.lo < lo { lo = rod.lo }
+    if rod.hi > hi { hi = rod.hi }
+  }
+  if float.is-infinite(lo) { lo = 0. }
+  if float.is-infinite(hi) { hi = 0. }
+  lo = calc.floor(lo)
+  hi = calc.ceil(hi)
+  return (lo, hi)
 }
 
-// From an array of rectangles, each of the form
-// `(pos: array, size: array, weight: number)`,
-// calculate the sizes of flexigrid cells.
-//
-// Rectangle positions can be fractional.
-#let cell-sizes-from-rects(rects, (col-gutter, row-gutter)) = {
-
-  // first, normalise rects to get rid of cellspan and enclose
-
-  // interpret rects with colspan/rowspan as multiple rects
-  // whose total sizes (plus gutter) is the original size
-  // this is the only step that is sensitive to the order of rects
-  rects = rects.map(rect => {
-    let (colspan, rowspan) = rect.cellspan
-    if colspan == none and rowspan == none { return rect }
-    let (u, v) = rect.pos
-    let (w, h) = rect.size
-    if colspan != none {
-      let size = ((w - col-gutter*(colspan - 1))/colspan, h)
-      range(calc.abs(colspan)).map(i => (
-        ..rect,
-        pos: (u + colspan.signum()*i, v),
-        size: size,
-      ))
-    }
-    if rowspan != none {
-      let size = (w, (h - row-gutter*(rowspan - 1))/rowspan)
-      range(calc.abs(rowspan)).map(j => (
-        ..rect,
-        pos: (u, v + rowspan.signum()*j),
-        size: size,
-      ))
-    }
-  }).flatten()
-
-  // interpret enclose nodes as multiple rects
-  rects = rects.map(rect => {
-    if rect.enclose == none { return rect }
-
-    let (u-min, u-max) = (float.inf, -float.inf)
-    let (v-min, v-max) = (float.inf, -float.inf)
-    for (u, v) in rect.enclose {
-      if u < u-min { u-min = u }
-      if u-max < u { u-max = u }
-      if v < v-min { v-min = v }
-      if v-max < v { v-max = v }
-    }
-
-    rect.pos = (u-min, v-min)
-    rect.cellspan = (u-max - u-min + 1, v-max - v-min + 1)
-    // panic(rect)
-    return rect
-  })
-
-
-  // determine bounds of coordinate system
-
-  let (u-min, u-max) = (float.inf, -float.inf)
-  let (v-min, v-max) = (float.inf, -float.inf)
-
-  for rect in rects {
-    let (u, v) = rect.pos
-    if u < u-min { u-min = u }
-    if u-max < u { u-max = u }
-    if v < v-min { v-min = v }
-    if v-max < v { v-max = v }
-  }
-  if float.is-infinite(u-min) { u-min = 0}
-  if float.is-infinite(u-max) { u-max = 0}
-  if float.is-infinite(v-min) { v-min = 0}
-  if float.is-infinite(v-max) { v-max = 0}
-
-  (u-min, u-max) = (calc.floor(u-min), calc.ceil(u-max))
-  (v-min, v-max) = (calc.floor(v-min), calc.ceil(v-max))
-
-  // add extra zero-size padding rows/cols around content
-  // to make coordinate extrapolation beyond bounds correct
-  u-min -= 1
-  v-min -= 1
-  u-max += 1
-  v-max += 1
-
-  let (n-cols, n-rows) = (u-max - u-min + 1, v-max - v-min + 1)
-  let (col-sizes, row-sizes) = ((0,)*n-cols, (0,)*n-rows)
-
-  // enlarge cells to fit rects
-  // handling fractional rect positions nicely
-  for rect in rects {
-    let (w, h) = rect.size
-    let (u, v) = rect.pos
-
-    let (i, j) = (u - u-min, v - v-min)
-    let (i-floor, j-floor) = (calc.floor(i), calc.floor(j))
-    let (i-fract, j-fract) = (calc.fract(i), calc.fract(j))
-
-    let (w0, w1) = (col-sizes.at(i-floor), col-sizes.at(i-floor + 1))
-    let (w0new, w1new) = cell-sizer(w, w0, w1, i-fract, col-gutter)
-    col-sizes.at(i-floor) =  utils.lerp(w0, calc.max(w0, w0new), rect.weight)
-    col-sizes.at(i-floor + 1) = utils.lerp(w1, calc.max(w1, w1new), rect.weight)
-
-    let (h0, h1) = (row-sizes.at(j-floor), row-sizes.at(j-floor + 1))
-    let (h0new, h1new) = cell-sizer(h, h0, h1, j-fract, row-gutter)
-    row-sizes.at(j-floor) = utils.lerp(h0, calc.max(h0, h0new), rect.weight)
-    row-sizes.at(j-floor + 1) = utils.lerp(h1, calc.max(h1, h1new), rect.weight)
-  }
-
-  return (
-    u-min: u-min,
-    u-max: u-max,
-    v-min: v-min,
-    v-max: v-max,
-    col-sizes: col-sizes,
-    row-sizes: row-sizes,
-    col-gutter: col-gutter,
-    row-gutter: row-gutter,
-  )
-}
-
-#let cell-centers-from-sizes(grid) = {
-  let col-centers = ()
-  let row-centers = ()
-
+#let centers-from-sizes(sizes, spacing, flip) = {
+  let centers = ()
   let x = 0
-  for (i, col) in grid.col-sizes.enumerate() {
-    x += col
-    col-centers.push(x - col/2 + i*grid.col-gutter)
+  for (i, size) in sizes.enumerate() {
+    if i > 0 { x += spacing }
+    x += size/2
+    centers.push(x)
+    x += size/2
   }
-  let y = 0
-  for (i, row) in grid.row-sizes.enumerate() {
-    y += row
-    row-centers.push(y - row/2 + i*grid.row-gutter)
+  let x-max = x
+  if flip {
+    centers = centers.map(x => x-max - x)
   }
+  return centers
+}
 
-  return (
-    col-centers: col-centers,
-    row-centers: row-centers,
-    x-min: col-centers.at(1) - grid.col-sizes.at(1)/2,
-    y-min: row-centers.at(1) - grid.row-sizes.at(1)/2,
-    x-max: col-centers.at(-2) + grid.col-sizes.at(-2)/2,
-    y-max: row-centers.at(-2) + grid.row-sizes.at(-2)/2,
+
+#let get-interpolated-flexiline-cell(fl, lo, hi) = {
+  let (left-i, right-i) = (lo - fl.min, hi - fl.min)
+  if fl.flip {
+    (left-i, right-i) = (right-i, left-i)
+  }
+  let left-center = utils.interp(fl.centers, left-i, spacing: fl.spacing)
+  let left-size = utils.interp(fl.sizes, left-i)
+
+  let right-center = utils.interp(fl.centers, right-i, spacing: fl.spacing)
+  let right-size = utils.interp(fl.sizes, right-i)
+
+  let x-left = left-center - left-size/2
+  let x-right = right-center + right-size/2
+
+  (
+    center: (x-left + x-right)/2,
+    size: x-right - x-left,
   )
 }
 
-#let draw-xy-grid(origin, flexigrid) = {
-  let (x-min, x-max, y-min, y-max) = flexigrid
-  let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
-  let coord-label(x) = text(blue, 0.8em, raw(str(x)))
-  debug-group({
-    cetz.draw.grid((x-floor, y-floor), (x-max, y-max), stroke: blue.transparentize(50%) + 0.5pt)
-    for x in range(x-floor, calc.floor(x-max) + 1) {
-      cetz.draw.content((x, y-floor), coord-label(x), anchor: "north", padding: .5em)
+
+#let resolve-flexiline(rods, spacing, flip, max-iters: 100) = {
+  let (u-min, u-max) = rod-bounds(rods)
+  let n-cells = u-max - u-min + 1
+
+  let sizes = (0.,)*n-cells
+  let centers = centers-from-sizes(sizes, spacing, flip)
+  let fl = (
+    centers: centers,
+    sizes: sizes,
+    min: u-min,
+    flip: flip,
+    spacing: spacing,
+  )
+
+  let iteration = 0
+  while iteration < max-iters {
+    let sizes = (0.,)*n-cells
+
+    for rod in rods {
+      let (lo, hi) = rod
+      if flip { (lo, hi) = (hi, lo) }
+      let i-left = calc.floor(lo) - u-min
+      let i-right = calc.ceil(hi) - u-min
+
+      let cell = get-interpolated-flexiline-cell(fl, rod.lo, rod.hi)
+      let left-rod-edge = cell.center - rod.size/2
+      let right-rod-edge = cell.center + rod.size/2
+      
+      let left-cell-center = fl.centers.at(i-left)
+      let right-cell-center = fl.centers.at(i-right)
+
+      let left-cell-width = 2*(left-cell-center - left-rod-edge)
+      let right-cell-width = 2*(right-rod-edge - right-cell-center)
+
+      sizes.at(i-left) = calc.max(sizes.at(i-left), left-cell-width)
+      sizes.at(i-right) = calc.max(sizes.at(i-right), right-cell-width)
+
+      assert(sizes.all(s => s >= 0))
     }
-    for y in range(y-floor, calc.floor(y-max) + 1) {
-      cetz.draw.content((x-floor, y), coord-label(y), anchor: "east", padding: .5em)
-    }
-  })
+
+    let deviation = calc.max(..cetz.vector.sub(fl.sizes, sizes).map(calc.abs))
+    if deviation < 1e-4 { break }
+
+    // TODO: figure out an effective 'scheduler'
+    let t = (0.5, 0.9, 1).at(calc.rem(iteration, 3))
+
+    fl.sizes = cetz.vector.lerp(fl.sizes, sizes, t)
+    fl.centers = centers-from-sizes(fl.sizes, spacing, flip)
+
+    iteration += 1
+  }
+
+  return (fl, iteration)
 }
 
-#let draw-flexigrid(grid, debug: true, tint: red) = {
+#let flexiline-bounds(fl) = {
+  let c-left = fl.centers.first()
+  let c-right = fl.centers.last()
+  let s-left = fl.sizes.first()
+  let s-right = fl.sizes.last()
+  if fl.flip {
+    (c-left, c-right) = (c-right, c-left)
+    (s-left, s-right) = (s-right, s-left)
+  }
+  (c-left - s-left/2, c-right + s-right/2)
+}
+
+/* nodes and flexigrids */
+
+#let node-to-rod(node, axis, flip) = {
+  let span = node.cellspan.at(axis)
+  if span == none {
+    span = 0
+  } else {
+    span -= span.signum()
+  }
+
+  let pos = node.uv-pos.at(axis)
+  let lo = pos
+  let hi = pos
+  if flip {
+    lo -= span
+  } else {
+    hi += span
+  }
+
+  (lo, hi) = (lo, hi).sorted()
+  let rod = (
+    lo: lo,
+    hi: hi,
+    size: node.size.at(axis),
+  )
+  return rod
+}
+
+#let node-to-rods(node, flips) = {
+  if flips.order { node.uv-pos = node.uv-pos.rev() }
+  let x-rod = node-to-rod(node, 0, flips.u)
+  let y-rod = node-to-rod(node, 1, flips.v)
+  return (x-rod, y-rod)
+}
+
+#let resolve-flexigrid(nodes, spacing, flips, max-iters: 20) = {
+  let xy-rods = nodes.map(node => node-to-rods(node, flips))
+  let (x-rods, y-rods) = (xy-rods.map(array.first), xy-rods.map(array.last))
+  let (x-fl, x-iters) = resolve-flexiline(x-rods, spacing.first(), flips.u, max-iters: max-iters)
+  let (y-fl, y-iters) = resolve-flexiline(y-rods, spacing.last(), flips.v, max-iters: max-iters)
+  let flexigrid = (x: x-fl, y: y-fl, flips: flips)
+  let iters = calc.max(x-iters, y-iters)
+  return (flexigrid, iters)
+}
+
+
+#let get-interpolated-flexigrid-cell(flexigrid, node) = {
+  let ((lo: x-lo, hi: x-hi), (lo: y-lo, hi: y-hi)) = node-to-rods(node, flexigrid.flips)
+  let x-span = get-interpolated-flexiline-cell(flexigrid.x, x-lo, x-hi)
+  let y-span = get-interpolated-flexiline-cell(flexigrid.y, y-lo, y-hi)
+  let (w, h) = node.size
+  return (
+    center: (x-span.center, y-span.center),
+    size: (calc.max(x-span.size, w), calc.max(y-span.size, h)),
+  )
+}
+
+#let align-node-in-cell(node, cell) = {
+  let (w, h) = node.size
+  let (cw, ch) = cell.size
+
+  let (x-shift, y-shift) = (0, 0)
+  if node.align.x == left   { x-shift = -cw/2 + w/2 }
+  if node.align.x == right  { x-shift = +cw/2 - w/2 }
+  if node.align.y == bottom { y-shift = -ch/2 + h/2 }
+  if node.align.y == top    { y-shift = +ch/2 - h/2 }
+
+  let pos = cetz.vector.add(cell.center, (x-shift, y-shift))
+  return pos
+}
+
+
+/* debug drawing */
+
+#let draw-flexigrid(grid, info: none, debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")
   let draw-cells = debug-level(debug, "grid.cells")
+  let draw-sizes = draw-lines
 
-  if not (draw-lines or draw-coords or draw-cells) { return }
+  let DEBUG_COLOR = red.transparentize(30%)
+  let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
+  let size-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 1pt)
+  let tickstyle(it) = text(0.6em, DEBUG_COLOR, raw(str(it)))
 
+  let (x-min, x-max) = flexiline-bounds(grid.x)
+  let (y-min, y-max) = flexiline-bounds(grid.y)
+  
   debug-group({
-    cetz.draw.set-style(
-      stroke: (paint: tint.transparentize(60%)),
-      content: (padding: 4pt),
-    )
-
-    // skip the first/last zero-size padding rows/cols
-
-    for (i, x) in grid.col-centers.enumerate().slice(1,-1) {
-      if draw-lines {
-        cetz.draw.on-layer(-1, cetz.draw.line((x, grid.y-min), (x, grid.y-max), stroke: (thickness: 0.5pt)))
-      }
-      if draw-coords {
-        let coord = i + grid.u-min
-        if grid.axis-flips.u { coord *= -1 }
-        cetz.draw.content((x, grid.y-min), text(10pt, tint, raw(str(coord))), anchor: "north")
-        let w = grid.col-sizes.at(i)
-        cetz.draw.line((x - w/2, grid.y-min), (x + w/2, grid.y-min), stroke: (thickness: 1pt))
-      }
-    }
-    for (j, y) in grid.row-centers.enumerate().slice(1,-1) {
-      if draw-lines {
-        cetz.draw.on-layer(-1, cetz.draw.line((grid.x-min, y), (grid.x-max, y), stroke: (thickness: 0.5pt)))
-      }
-      if draw-coords {
-        let coord = j + grid.v-min
-        if grid.axis-flips.v { coord *= -1 }
-        cetz.draw.content((grid.x-min, y), text(10pt, tint, raw(str(coord))), anchor: "east")
-        let h = grid.row-sizes.at(j)
-        cetz.draw.line((grid.x-min, y - h/2), (grid.x-min, y + h/2), stroke: (thickness: 1pt))
-      }
-    }
-
     if draw-cells {
-      for (i, x) in grid.col-centers.enumerate().slice(1, -1) {
-        for (j, y) in grid.row-centers.enumerate().slice(1, -1) {
-          let (w, h) = (grid.col-sizes.at(i), grid.row-sizes.at(j))
-          cetz.draw.rect((x - w/2, y - h/2), (x + w/2, y + h/2), stroke: tint.transparentize(80%) + 0.5pt)
+      let t = 0.5pt
+      cetz.draw.stroke(DEBUG_COLOR)
+      for i in range(grid.x.centers.len()) {
+        for j in range(grid.y.centers.len()) {
+          let (x, y) = (grid.x.centers.at(i), grid.y.centers.at(j))
+          let (w, h) = (grid.x.sizes.at(i), grid.y.sizes.at(j))
+          cetz.draw.rect(
+            (rel: (+t/2, +t/2), to: (x - w/2, y - h/2)),
+            (rel: (-t/2, -t/2), to: (x + w/2, y + h/2)),
+            stroke: t,
+          )
         }
       }
     }
+
+
+    cetz.draw.group({
+      cetz.draw.fill(DEBUG_COLOR)
+      cetz.draw.stroke(none)
+      cetz.draw.set-style(content: (padding: 0.25em))
+      for (i, x) in grid.x.centers.enumerate() {
+        if draw-coords {
+          cetz.draw.content((x, y-min), tickstyle(i + grid.x.min), anchor: "north")
+        }
+        if draw-sizes {
+          let w = grid.x.sizes.at(i)
+          cetz.draw.rect((x - w/2, 0), (x + w/2, -size-stroke-style.thickness), fill: size-stroke-style.paint)
+        }
+        if draw-lines {
+          cetz.draw.line((x, y-min), (x, y-max), stroke: line-stroke-style)
+        }
+      }
+      for (i, y) in grid.y.centers.enumerate() {
+        if draw-coords {
+          cetz.draw.content((x-min, y), tickstyle(i + grid.y.min), anchor: "east")
+        }
+        if draw-sizes {
+          let h = grid.y.sizes.at(i)
+          cetz.draw.rect((0, y - h/2), (-size-stroke-style.thickness, y + h/2), fill: size-stroke-style.paint)
+        }
+        if draw-lines {
+          cetz.draw.line((x-min, y), (x-max, y), stroke: line-stroke-style)
+        }
+      }
+    })
+
   })
-
 }
 
-// A row/column specifier can be
-// - `auto`, meaning all row/columns are automatically sized
-// - a number or length, specifying the size
-// - an array of the above, specifying each row/column individually
-// - a function taking the index and returning a size, `none` or `auto`
-#let interpret-rowcol-spec(input) = {
-  if input == auto { return i => auto }
-  if type(input) == array { return i => input.at(i) }
-  if type(input) == function { return input }
-  return i => input
-}
-
-#let apply-rowcol-spec(ctx, fn, defaults) = {
-  for (i, col) in defaults.enumerate() {
-    let given = (fn)(i)
-    if given not in (none, auto) {
-      defaults.at(i) = cetz.util.resolve-number(ctx, given)
+#let draw-xy-grid(flexigrid) = {
+  let (x-min, x-max) = flexiline-bounds(flexigrid.x)
+  let (y-min, y-max) = flexiline-bounds(flexigrid.y)
+  let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
+  let tickstyle(x) = text(0.6em, gray, raw(str(x)))
+  debug-group({
+    cetz.draw.set-style(content: (padding: 0.25em))
+    cetz.draw.grid((x-floor, y-floor), (x-max, y-max), help-lines: true)
+    for x in range(x-floor, calc.floor(x-max) + 1) {
+      cetz.draw.content((x, y-floor), tickstyle(x), anchor: "north")
     }
-  }
-  return defaults
+    for y in range(y-floor, calc.floor(y-max) + 1) {
+      cetz.draw.content((x-floor, y), tickstyle(y), anchor: "east")
+    }
+  })
 }
 
-// Get cell details `(x, y, w, h)` from a flexigrid,
-// respecting fractional coordinates and colspan/rowspan.
-// Nodes in flexigrids are placed within these cells.
-// Nodes can be aligned within their cell, can grow to the cell's
-// size or shrink to the size of their label content / body.
-#let get-flexigrid-cell(node, grid) = {
-  if node.cellspan == (none, none) {
-    return utils.interp-grid-cell(grid, node.pos)
-  }
+/* interface */
 
-  let (x, y) = node.pos
-  let (x1, y1) = (x, y)
-  let (colspan, rowspan) = node.cellspan
-  if colspan != none {
-    if colspan > 0 { x1 += colspan - 1 }
-    if colspan < 0 { x += colspan + 1 }
-  }
-  if rowspan != none {
-    if rowspan > 0 { y1 += rowspan - 1 }
-    if rowspan < 0 { y += rowspan + 1 }
-  }
-
-  let lo = utils.interp-grid-cell(grid, (x, y))
-  let hi = utils.interp-grid-cell(grid, (x1, y1))
-
-  let (lox, hix) = (lo.x - lo.w/2, hi.x + hi.w/2)
-  let (loy, hiy) = (lo.y - lo.h/2, hi.y + hi.h/2)
-
-  return (
-    x: (lox + hix)/2,
-    y: (loy + hiy)/2,
-    w: (hix - lox),
-    h: (hiy - loy),
-  )
+#let uv-to-xy(fl, (u, v)) = {
+  if fl.flips.order { (u, v) = (v, u) }
+  let x = utils.interp(fl.x.centers, u - fl.x.min, spacing: fl.x.spacing)
+  let y = utils.interp(fl.y.centers, v - fl.y.min, spacing: fl.y.spacing)
+  return (x, y)
 }
 
-
-#let place-node-in-grid(node, grid) = {
-  if node.enclose != none {
-    // enclose node
-    let points = node.enclose.map(uv => {
-     let (x, y, w, h) = utils.interp-grid-cell(grid, uv)
-     (
-      (x - w/2, y - h/2, 0.),
-      (x - w/2, y + h/2, 0.),
-      (x + w/2, y - h/2, 0.),
-      (x + w/2, y + h/2, 0.),
-     )
-    }).join()
-
-    let (low, high) = cetz.process.aabb.aabb(points)
-
-    node.pos = cetz.vector.scale(cetz.vector.add(low, high), 0.5)
-    node.size = cetz.vector.sub(high, low).slice(0, 2)
-    node.body-size = node.size
-  } else {
-    assert.ne(node.pos, auto)
-
-    let cell = get-flexigrid-cell(node, grid)
-
-    // a cellspan implies the node's width should fill the spanned columns
-    // same for rowspan
-    let (colspan, rowspan) = node.cellspan
-    if colspan != none {
-      node.body-size.at(0) = cell.w
-      node.size.at(0) = cell.w
-    }
-    if rowspan != none {
-      node.body-size.at(1) = cell.h
-      node.size.at(1) = cell.h
-    }
-
-    let (w, h) = node.size
-    let (x-shift, y-shift) = (0, 0)
-
-    if node.align.x == left   { x-shift = -cell.w/2 + w/2 }
-    if node.align.x == right  { x-shift = +cell.w/2 - w/2 }
-    if node.align.y == bottom { y-shift = -cell.h/2 + h/2 }
-    if node.align.y == top    { y-shift = +cell.h/2 - h/2 }
-
-    node.pos = (cell.x + x-shift, cell.y + y-shift)
-  }
-  node
+#let xy-to-uv(fl, (x, y, ..)) = {
+  let u = utils.interp-inv(fl.x.centers, x, spacing: fl.x.spacing) + fl.x.min
+  let v = utils.interp-inv(fl.y.centers, y, spacing: fl.y.spacing) + fl.y.min
+  if fl.flips.order { (u, v) = (v, u) }
+  return (u, v)
 }
 
 #let with-coord-resolver(ctx, resolver) = {
@@ -345,31 +339,44 @@
   return ctx
 }
 
-// evaluate coordinate expressions involving uv-coords
-// e.g., (uv: (u, v)) resolves to utils.uv-to-xy(grid, (u, v))
-#let flexigrid-coord-resolver(grid, ctx, c) = {
-  if type(c) == label { return str(c) }
+#let nans = (float.nan, float.nan)
+
+#let layout-coord-resolver(ctx, c) = {
+  if type(c) == label { return nans }
   if type(c) == dictionary {
-    if "xy" in c { return c.xy }
-    if "uv" in c { return utils.uv-to-xy(grid, c.uv) }
-    if "rel" in c and type(c.rel) == dictionary and "uv" in c.rel {
-      if c.remove("no-flip", default: false) {
-        let (u, v) = c.rel.uv
-        if grid.axis-flips.u { c.rel.uv.first() *= -1 }
-        if grid.axis-flips.v { c.rel.uv.last() *= -1 }
-        if grid.axis-flips.order { c.rel.uv = c.rel.uv.rev() }
-      }
-      // resolve relative expressions (rel: (uv: Δ), to: X)
-      // by adding X + Δ in uv-space, not xy-space
-      let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
-      let prev-uv = utils.xy-to-uv(grid, prev-xy)
-      let new-uv = cetz.vector.add(prev-uv, c.rel.uv)
-      return utils.uv-to-xy(grid, new-uv)
+    if "uv" in c { return c.uv }
+    if "xy" in c { return nans }
+    if "name" in c {
+      panic(c)
     }
   }
   return c
 }
 
+#let flexigrid-coord-resolver(fl, ctx, c) = {
+  if type(c) == label { return str(c) }
+  if type(c) == dictionary {
+    if "uv" in c { return uv-to-xy(fl, c.uv) }
+    if "xy" in c { return c.xy }
+    if "rel" in c and type(c.rel) == dictionary and "uv" in c.rel {
+      if c.remove("no-flip", default: false) {
+        let (u, v) = c.rel.uv
+        if fl.flips.u { u *= -1 }
+        if fl.flips.v { v *= -1 }
+        if fl.flips.order { (u, v) = (v, u) }
+        c.rel.uv = (u, v)
+      }
+      // resolve relative expressions (rel: (uv: Δ), to: X)
+      // by adding X + Δ in uv-space, not xy-space
+      // let (_, prev-xy) = cetz.coordinate.resolve(ctx, c.at("to", default: ()))
+      let prev-xy = ctx.prev.pt
+      let prev-uv = xy-to-uv(fl, prev-xy)
+      let new-uv = cetz.vector.add(prev-uv, c.rel.uv)
+      return uv-to-xy(fl, new-uv)
+    }
+  }
+  return c
+}
 
 // mirrors cetz.process.many except discards
 // everything but ctx, used for layout pass
@@ -380,6 +387,10 @@
   }
   return ctx
 }
+
+
+/* argument parsing */
+
 
 /// Interpret the @flexigrid.axes option.
 ///
@@ -404,15 +415,8 @@
 		error("Axes #0 cannot both be in the same direction. Try `axes: (ltr, ttb)`.", axes)
 	}
   let (u, v) = (rtl in axes, ttb in axes)
-  // if flip { (u, v) = (v, u) }
-
-  (
-    u: u,
-    v: v,
-    order: flip,
-  )
+  return (u: u, v: v, order: flip)
 }
-
 
 /// A "flexible" coordinate system to be placed in CeTZ canvas which adapts to nodes contained therein.
 ///
@@ -439,12 +443,12 @@
 ///
 /// The main @diagram function is essentially equivalent to @flexigrid wrapped in `cetz.canvas()`.
 #let flexigrid(
-  objects,
   ..args,
   /// Gutter between cells.
   ///
   /// Numbers are interpreted in CeTZ units.
-  /// Column and row gutter can be controlled independently as the first and last numbers in a pair, `(col-gutter, row-gutter)`.
+  /// Column and row gutter can be controlled independently as the first and last numbers
+  /// in a pair, `(col-gutter, row-gutter)`.
   ///
   /// #let fig(s) = cetz.canvas({
   ///   fletcher.flexigrid(
@@ -458,119 +462,95 @@
   ///   align(center + horizon)[#fig(s) \ #raw("spacing: " + repr(s))]
   /// }))
   /// -> number | length | pair
-  spacing: 1,
-  origin: (0,0),
-  axes: (ltr, btt),
-  columns: auto,
-  rows: auto,
-  name: none,
-  /// Show debug annotations
-  /// #DEBUG_LEVELS.keys().filter(x => x.starts-with("grid")).join("")
-  /// -> bool | number | string | array
+  spacing: 1.0,
+  axes: (ltr, ttb),
+  max-layout-iterations: 20,
   debug: false,
 ) = {
-  let col-spec = interpret-rowcol-spec(columns)
-  let row-spec = interpret-rowcol-spec(rows)
-
-  objects = utils.as-array(objects) + args.pos().join()
-  spacing = utils.as-pair(spacing)
-
   if args.named().len() > 0 {
     utils.error("unknown named argument: #..0", args.named().keys())
   }
+  let objects = args.pos().join()
+
+  spacing = utils.as-pair(spacing)
+  let axis-flips = interpret-axes(axes)
+
 
   cetz.draw.get-ctx(ctx => {
 
-    let gutter = spacing.map(g => cetz.util.resolve-number(ctx, g))
-    let (_, origin) = cetz.coordinate.resolve(ctx, origin)
-    // cetz.draw.translate(origin) // todo
+    let spacing = spacing.map(g => cetz.util.resolve-number(ctx, g))
 
-    /* Layout Pass */    
-    // During the layout pass, we determine the intrinsic sizes of all nodes
-    // in the flexgrid and use this to determine the grid specification.
 
-    ctx.shared-state.fletcher = (
+    /* Layout pass */
+    // During the layout pass, all fletcher nodes are extracted and measured
+    // to determine the flexigrid cell sizes, but nothing is drawn.
+    // Coordinates are resolved in a context where only $u v$ coordinates are
+    // kept, and anything else returns `float.nan`.
+    
+    let layout-ctx = with-coord-resolver(ctx, layout-coord-resolver)
+    layout-ctx.shared-state.fletcher = (
       pass: "layout",
       nodes: (),
-      edges: (),
-      current: (node: 0, edge: 0), // index of current object
     )
+    let layout-pass = process-only-ctx(layout-ctx, objects)
+    let nodes = layout-pass.shared-state.fletcher.nodes
 
-    let node-styles = cetz.styles.resolve(
-      shapes.DEFAULT_NODE_STYLE + shapes.NODE_SHAPES,
-      merge: ctx.style.at("node", default: (:)),
+    // nodes which are placed in the flexigrid with $u v$ coordinates
+    let uv-nodes = nodes.filter(node => node.uv-pos != none)
+    let (grid, iters) = resolve-flexigrid(uv-nodes, spacing, axis-flips, max-iters: max-layout-iterations)
+
+ 
+    /* Node placement pass */
+    // After the flexigrid is determined, process all nodes, including finding
+    // their final positions within the flexigrid (which might involve resolving
+    // coordinates with anchors, etc) _before_ processing edges.
+    // Edges are processed separately because we want edges to be able to snap to
+    // nodes defined later in a diagram, so edges must see all resolved nodes.
+    let placement-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(grid))
+    placement-ctx.shared-state.fletcher = (
+      pass: "placement",
+      nodes: nodes,
+      current-node: 0,
+      flexigrid: grid,
+      place-node-in-flexigrid: node => {
+        let cell = get-interpolated-flexigrid-cell(grid, node)
+        node.pos = align-node-in-cell(node, cell)
+        node
+      }
     )
-    ctx.style.node = node-styles
-
-    let axis-flips = interpret-axes(axes)
-
-    // for the layout pass, we do not yet know the grid, so use a default
-    let default-grid = (
-      col-centers: (0,),
-      row-centers: (0,),
-      u-min: 0,
-      v-min: 0,
-      col-gutter: 1,
-      row-gutter: 1,
-      axis-flips: axis-flips,
-    )
-
-    let layout-pass-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(default-grid))
-
-    // run layout pass to retrieve fletcher objects
-    let layout-pass = process-only-ctx(layout-pass-ctx, objects)
-    let (nodes, edges) = layout-pass.shared-state.fletcher
-
-    nodes = nodes.map(node => {
-      let (cs, rs) = node.cellspan
-      if cs != none and axis-flips.u { cs *= -1 }
-      if rs != none and axis-flips.v { rs *= -1 }
-      node.cellspan = (cs, rs)
-      node
-    })
-
-    // compute grid cell sizes and positions
-    let grid = cell-sizes-from-rects(nodes, gutter)
-    grid.col-sizes = apply-rowcol-spec(ctx, col-spec, grid.col-sizes)
-    grid.row-sizes = apply-rowcol-spec(ctx, row-spec, grid.row-sizes)
-    grid += cell-centers-from-sizes(grid)
-    grid.axis-flips = axis-flips
+    let placement-pass = process-only-ctx(placement-ctx, objects)
+    let nodes = placement-pass.shared-state.fletcher.nodes
 
 
-    nodes = nodes.map(node => place-node-in-grid(node, grid))
 
     /* Final pass */
-    // The final pass processes the nodes and returns the result to the
-    // enclosing cetz canvas.
+    // In this pass, everything is drawn and $u v$ coordinates are resolved with
+    // respect to the now-determined flexigrid.
 
     // extra context used by objects
     (ctx => {
       ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(grid))
       ctx.shared-state.fletcher = (
         pass: "final",
-        nodes: nodes,
-        edges: edges,
-        current: (node: 0, edge: 0),
+        nodes: nodes, // must contain FINAL node coords
+        current-node: 0,
         flexigrid: grid,
         debug: debug,
-      )
-      ctx.style.node = node-styles
+      ) 
       return (ctx: ctx)
     },)
 
     objects
 
-    // draw help lines and flexigrid cells
-    draw-flexigrid(grid, debug: debug)
+    draw-flexigrid(grid, info: [Iterations: #iters], debug: debug)
     if debug-level(debug, "grid.xy") {
-      draw-xy-grid(origin, grid)
+      draw-xy-grid(grid)
     }
 
-    // destroy flexigrid context (use group?)
+    // remove flexigrid context
     (ctx => {
       ctx.shared-state.remove("fletcher")
       return (ctx: ctx)
     },)
-
   })
 }

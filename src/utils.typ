@@ -103,11 +103,13 @@
 /// - t (int, float): Index-coordinate to sample.
 /// - spacing (length): Gradient for linear extrapolation beyond array bounds.
 #let interp(ys, t, spacing: 0) = {
+	let flip = ys.first() > ys.last()
+	if flip { spacing *= -1 }
 	let max-t = ys.len() - 1
 	if t < 0 {
-		ys.at(0) + spacing*t
+		ys.first() + spacing*t
 	} else if t > max-t {
-		ys.at(-1) + spacing*(t - max-t)
+		ys.last() + spacing*(t - max-t)
 	} else {
 		lerp(
 			ys.at(calc.floor(t)),
@@ -124,12 +126,17 @@
 /// - y: Value to find the interpolated index of.
 /// - spacing (length): Gradient for linear extrapolation beyond array bounds.
 #let interp-inv(xs, y, spacing: 0pt) = {
+	let (first, last) = (xs.first(), xs.last())
+	let flip = first > last
+	if flip {
+		return xs.len() - 1 - interp-inv(xs.rev(), y, spacing: spacing)
+	}
+
 	let i = 0
 	while i < xs.len() {
 		if xs.at(i) >= y { break }
 		i += 1
 	}
-	let (first, last) = (xs.at(0), xs.at(-1))
 
 	// avoids division by zero when numerator and denominator both vanish
 	let div(a, b) = if calc.abs(a) < 1e-3 { 0 } else { a/b }
@@ -187,6 +194,8 @@
 	if type(c) == array {
 		if c.len() == 2 and c.all(x => type(x) in (int, float)) {
 			(uv: c)
+		} else if c.any(x => type(x) in (length,)) {
+			(xy: c)
 		} else {
 			c.map(interpret-as-uv)
 		}
