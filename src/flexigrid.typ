@@ -53,9 +53,9 @@
   return (lo, hi)
 }
 
-#let centers-from-sizes(sizes, spacing, flip) = {
+#let centers-from-sizes(sizes, spacing, flip, init: 0) = {
   let centers = ()
-  let x = 0
+  let x = init
   for (i, size) in sizes.enumerate() {
     if i > 0 { x += spacing }
     x += size/2
@@ -93,10 +93,14 @@
 
 #let resolve-flexiline(rods, spacing, flip, max-iters: 100) = {
   let (u-min, u-max) = rod-bounds(rods)
+  // extending the bounds means first and last cells are always size zero
+  // which makes correct extrapolation of coords beyond bounds correct
+  u-min -= 1
+  u-max += 1
   let n-cells = u-max - u-min + 1
 
   let sizes = (0.,)*n-cells
-  let centers = centers-from-sizes(sizes, spacing, flip)
+  let centers = centers-from-sizes(sizes, spacing, flip, init: -spacing)
   let fl = (
     centers: centers,
     sizes: sizes,
@@ -138,7 +142,7 @@
     let t = (0.5, 0.9, 1).at(calc.rem(iteration, 3))
 
     fl.sizes = cetz.vector.lerp(fl.sizes, sizes, t)
-    fl.centers = centers-from-sizes(fl.sizes, spacing, flip)
+    fl.centers = centers-from-sizes(fl.sizes, spacing, flip, init: -spacing)
 
     iteration += 1
   }
@@ -232,6 +236,13 @@
 
 /* debug drawing */
 
+#let trim-flexiline(fl) = {
+  fl.centers = fl.centers.slice(1, -1)
+  fl.sizes = fl.sizes.slice(1, -1)
+  fl.min += 1
+  return fl
+}
+
 #let draw-flexigrid(grid, info: none, debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")
@@ -242,6 +253,9 @@
   let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
   let size-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 1pt)
   let tickstyle(it) = text(0.6em, DEBUG_COLOR, raw(str(it)))
+
+  grid.x = trim-flexiline(grid.x)
+  grid.y = trim-flexiline(grid.y)
 
   let (x-min, x-max) = flexiline-bounds(grid.x)
   let (y-min, y-max) = flexiline-bounds(grid.y)
@@ -274,7 +288,7 @@
         }
         if draw-sizes {
           let w = grid.x.sizes.at(i)
-          cetz.draw.rect((x - w/2, 0), (x + w/2, -size-stroke-style.thickness), fill: size-stroke-style.paint)
+          cetz.draw.rect((x - w/2, y-min), (to: (x + w/2, y-min), rel: (0, -size-stroke-style.thickness)), fill: size-stroke-style.paint)
         }
         if draw-lines {
           cetz.draw.line((x, y-min), (x, y-max), stroke: line-stroke-style)
@@ -286,7 +300,7 @@
         }
         if draw-sizes {
           let h = grid.y.sizes.at(i)
-          cetz.draw.rect((0, y - h/2), (-size-stroke-style.thickness, y + h/2), fill: size-stroke-style.paint)
+          cetz.draw.rect((x-min, y - h/2), (to: (x-min, y + h/2), rel: (-size-stroke-style.thickness, 0)), fill: size-stroke-style.paint)
         }
         if draw-lines {
           cetz.draw.line((x-min, y), (x-max, y), stroke: line-stroke-style)
@@ -298,8 +312,8 @@
 }
 
 #let draw-xy-grid(flexigrid) = {
-  let (x-min, x-max) = flexiline-bounds(flexigrid.x)
-  let (y-min, y-max) = flexiline-bounds(flexigrid.y)
+  let (x-min, x-max) = flexiline-bounds(trim-flexiline(flexigrid.x))
+  let (y-min, y-max) = flexiline-bounds(trim-flexiline(flexigrid.y))
   let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
   let tickstyle(x) = text(0.6em, gray, raw(str(x)))
   debug-group({
