@@ -1,30 +1,21 @@
 #set page(width: auto, height: auto, margin: 1em)
 #import "/src/exports.typ" as fletcher: diagram, node, edge, cetz
 
-#for axes in (
-  (ltr, btt),
-  (ltr, ttb),
-  (rtl, ttb),
-) [
-  Axes #axes
 
-  #diagram(
-    spacing: 10pt,
-    node-stroke: 1pt,
-    node-fill: white,
-    node-corner-radius: 2pt,
-    debug: "grid.coords",
-    axes: axes,
-    node((0,0), [Sight], name: <sight>),
-    node((1,0), [Sound]),
-    node((2,0), [Smell], name: <smell>),
-    node((0,1), [Senses], colspan: 3),
-    node((0,0), rowspan: 2, colspan: 3,
-      fill: yellow, extrude: 4pt, layer: -1, [], inset: 0),
-  )
-  
-  #pagebreak(weak: true)
-]
+#diagram(
+  spacing: 10pt,
+  node-stroke: 1pt,
+  node-fill: white,
+  node-corner-radius: 2pt,
+  node((0,0), [Sight], name: <sight>),
+  node((1,0), [Sound]),
+  node((2,0), [Smell], name: <smell>),
+  node((0,1), [Senses], colspan: 3),
+  node((0,0), rowspan: 2, colspan: 3,
+    fill: yellow, extrude: 4pt, layer: -1, inset: 0)[],
+)
+
+#pagebreak()
 
 Positive/negative row/colspans
 

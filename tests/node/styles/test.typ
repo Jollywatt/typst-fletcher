@@ -45,7 +45,7 @@
   unless a size is given
   
   #diagram(
-    debug: "grid node",
+    debug: 3,
     axes: (ltr, btt),
     node((0,0)),
     node((1,0.5)),
