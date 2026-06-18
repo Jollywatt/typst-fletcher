@@ -73,16 +73,15 @@
 		}
 	}
 
-
-	(nodes, edges)
+	return (nodes, edges)
 }
 
 
 /// Draw nodes, edges and CeTZ objects in a @flexigrid layout.
-/// 
+///
 /// Default styles for nodes and edges may be specified with named arguments
 /// such as `node-fill` or `edge-stroke-thickness`.
-/// 
+///
 /// ```example
 /// #diagram(
 /// 	node-shape: rect,
@@ -99,19 +98,23 @@
 	..args,
   axes: (ltr, ttb),
 ) = {
-	let pos = args.pos().map(arg => {
+
+	let objects = args.pos().map(arg => {
 		if type(arg) == content and arg.func() == math.equation {
 			extract-nodes-and-edges-from-equation(arg, axes: axes)
 		} else {
 			arg
 		}
-	}).join().flatten()
+	}).filter(a => a != none).join(default: ()).flatten()
+
 	let (named, styles) = interpret-style-arguments(args.named())
+
 	let canvas = cetz.canvas(flexigrid.flexigrid(
 		styles,
-		pos,
+		objects,
 		axes: axes,
 		..named,
 	))
+	
 	box(canvas, fill: none, stroke: none)
 }

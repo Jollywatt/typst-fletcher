@@ -29,9 +29,9 @@
       }
     }
 
-      if node.layer != 0 { objs = cetz.draw.on-layer(node.layer, objs) }
-      let group = cetz.draw.group(objs, name: node.name)
-      group = group.first()(ctx)
+    if node.layer != 0 { objs = cetz.draw.on-layer(node.layer, objs) }
+    let group = cetz.draw.group(objs, name: node.name)
+    group = group.first()(ctx)
 
     // override anchor behaviour for nodes
     let calc-anchors = if "node" in (group.anchors)(()) {
