@@ -30,7 +30,7 @@
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
         (node.draw)(node + (
           body: if i == 0 { node.body },
-          size: node.body-size,
+          size: node.bounding-size,
           unit-length: ctx.length,
           extrude: extrude,
         ))
@@ -53,7 +53,7 @@
 
 
   if debug-level(debug, "node") {
-    debug-group({
+    debug-group(layer: 10, {
       if "cell" in node and debug-level(debug, "node.cell") {
         let (center, size) = node.cell
         let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
@@ -61,12 +61,13 @@
         cetz.draw.rect(lo, hi, fill: cell-fill, stroke: 0.25pt + red.transparentize(60%))
       }
 
+
       cetz.draw.translate(origin)
       if debug-level(debug, "node.origin") {
         cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
       }
-      let (w, h) = node.size
-      if debug-level(debug, "node.stroke") {
+      let (w, h) = node.bounding-size
+      if debug-level(debug, "node.bounds") {
         cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
       }
       if debug-level(debug, "node.outset") {
@@ -75,7 +76,7 @@
           let outset = utils.to-length(node.style.outset, to-float: ctx.length)
           (node.draw)(node + (
             body: none,
-            size: node.body-size,
+            size: node.bounding-size,
             unit-length: ctx.length,
             extrude: outset,
           ))
@@ -215,7 +216,7 @@
   }
 
   // measure node shape
-  let node-size = {
+  let bounding-size = {
     if shape == none {
       shape = (node, extrude) => body
       body-size
@@ -233,7 +234,7 @@
     }
   }
 
-  return (body: body-size, bounds: node-size)
+  return (body: body-size, bounding: bounding-size)
 }
 
 
@@ -299,8 +300,7 @@
 
     data = resolve-node-body(ctx, data, debug)
     let sizes = measure-node(ctx, style, shape, data.body)
-    data.size = sizes.bounds
-    data.body-size = sizes.body
+    data.bounding-size = sizes.bounding
       
 
 
@@ -351,17 +351,17 @@
         (ctx, xy) = cetz.coordinate.resolve(ctx, pos)
         data.pos = xy
       }
-
       ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
 
       // since we need to resolve coordinates which might depend on anchors
       // continue and draw elements in the placement pass
 
     } else if fletcher-ctx.pass == "final" {
-
       // retrieve info from layout pass
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
       data.pos = self.pos
+      data.bounding-size = self.bounding-size
+      data.cell = self.cell
       assert(type(data.pos) == array)
       ctx.prev.pt = data.pos
 

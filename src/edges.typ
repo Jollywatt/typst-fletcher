@@ -346,7 +346,7 @@
     } else if snap-to == auto {
       // find fletcher nodes nearby
       let dist(node) = cetz.vector.dist(node.pos, pos)
-      let node = nodes.filter(n => dist(n) <= cetz.vector.len(n.size) / 2).sorted(key: dist).at(0, default: none)
+      let node = nodes.filter(n => dist(n) <= cetz.vector.len(n.bounding-size) / 2).sorted(key: dist).at(0, default: none)
       if node != none {
         target-drawables = node-drawables(node, outset)
       }

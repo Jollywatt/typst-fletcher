@@ -172,6 +172,11 @@
     span -= span.signum()
   }
 
+  if axis == 1 {
+    // rowspans should always stretch down the page
+    span *= -1
+  }
+
   let pos = node.uv-pos.at(axis)
   let lo = pos
   let hi = pos
@@ -185,7 +190,7 @@
   let rod = (
     lo: lo,
     hi: hi,
-    size: node.size.at(axis),
+    size: node.bounding-size.at(axis),
   )
   return rod
 }
@@ -212,7 +217,7 @@
   let ((lo: x-lo, hi: x-hi), (lo: y-lo, hi: y-hi)) = node-to-rods(node, flexigrid.flips)
   let x-span = get-interpolated-flexiline-cell(flexigrid.x, x-lo, x-hi)
   let y-span = get-interpolated-flexiline-cell(flexigrid.y, y-lo, y-hi)
-  let (w, h) = node.size
+  let (w, h) = node.bounding-size
   return (
     center: (x-span.center, y-span.center),
     size: (calc.max(x-span.size, w), calc.max(y-span.size, h)),
@@ -220,7 +225,7 @@
 }
 
 #let align-node-in-cell(node, cell) = {
-  let (w, h) = node.size
+  let (w, h) = node.bounding-size
   let (cw, ch) = cell.size
 
   let (x-shift, y-shift) = (0, 0)
@@ -529,6 +534,14 @@
       place-node-in-flexigrid: node => {
         let cell = get-interpolated-flexigrid-cell(grid, node)
         node.pos = align-node-in-cell(node, cell)
+        let (colspan, rowspan) = node.cellspan
+        if colspan != none {
+          node.bounding-size.first() = cell.size.first()
+        }
+        if rowspan != none {
+          node.bounding-size.last() = cell.size.last()
+        }
+        node.cell = cell
         node
       }
     )
