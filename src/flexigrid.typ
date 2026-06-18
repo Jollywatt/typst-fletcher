@@ -212,7 +212,12 @@
   return (flexigrid, iters)
 }
 
+/* placing nodes in flexigrids */
 
+// nodes are placed inside a cell in a flexigrid.
+// nodes with cellspans get their own cells which span the flexigrid.
+// nodes at fractional coordinates are placed in cells which are linear interpolations
+// of neighbouring flexigrid cells.
 #let get-interpolated-flexigrid-cell(flexigrid, node) = {
   let ((lo: x-lo, hi: x-hi), (lo: y-lo, hi: y-hi)) = node-to-rods(node, flexigrid.flips)
   let x-span = get-interpolated-flexiline-cell(flexigrid.x, x-lo, x-hi)
@@ -222,6 +227,19 @@
     center: (x-span.center, y-span.center),
     size: (calc.max(x-span.size, w), calc.max(y-span.size, h)),
   )
+}
+
+// by default, setting the rowspan or colspan of a node
+// causes it to fill its cell along that axis
+#let grow-node-in-cell(node, cell) = {
+  let (colspan, rowspan) = node.cellspan
+  if colspan != none {
+    node.bounding-size.first() = cell.size.first()
+  }
+  if rowspan != none {
+    node.bounding-size.last() = cell.size.last()
+  }
+  return node
 }
 
 #let align-node-in-cell(node, cell) = {
@@ -234,10 +252,17 @@
   if node.align.y == bottom { y-shift = -ch/2 + h/2 }
   if node.align.y == top    { y-shift = +ch/2 - h/2 }
 
-  let pos = cetz.vector.add(cell.center, (x-shift, y-shift))
-  return pos
+  node.pos = cetz.vector.add(cell.center, (x-shift, y-shift))
+  return node
 }
 
+#let place-node-in-flexigrid(fg, node) = {
+  let cell = get-interpolated-flexigrid-cell(fg, node)
+  node.cell = cell // currently only used for debug drawing
+  node = grow-node-in-cell(node, cell)
+  node = align-node-in-cell(node, cell)
+  return node
+}
 
 /* debug drawing */
 
@@ -516,34 +541,21 @@
 
     // nodes which are placed in the flexigrid with $u v$ coordinates
     let uv-nodes = nodes.filter(node => node.uv-pos != none)
-    let (grid, iters) = resolve-flexigrid(uv-nodes, spacing, axis-flips, max-iters: max-layout-iterations)
+    let (fg, iters) = resolve-flexigrid(uv-nodes, spacing, axis-flips, max-iters: max-layout-iterations)
 
  
     /* Node placement pass */
-    // After the flexigrid is determined, process all nodes, including finding
-    // their final positions within the flexigrid (which might involve resolving
-    // coordinates with anchors, etc) _before_ processing edges.
+    // After the flexigrid is determined, process all nodes and place them in
+    // flexigrid cells. This might involve resolving coordinates with anchors,
+    // so it requires a proper pass. This happens _before_ processing edges.
     // Edges are processed separately because we want edges to be able to snap to
-    // nodes defined later in a diagram, so edges must see all resolved nodes.
-    let placement-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(grid))
+    // nodes defined later in a diagram, so edges must be considered after nodes.
+    let placement-ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(fg))
     placement-ctx.shared-state.fletcher = (
       pass: "placement",
       nodes: nodes,
       current-node: 0,
-      flexigrid: grid,
-      place-node-in-flexigrid: node => {
-        let cell = get-interpolated-flexigrid-cell(grid, node)
-        node.pos = align-node-in-cell(node, cell)
-        let (colspan, rowspan) = node.cellspan
-        if colspan != none {
-          node.bounding-size.first() = cell.size.first()
-        }
-        if rowspan != none {
-          node.bounding-size.last() = cell.size.last()
-        }
-        node.cell = cell
-        node
-      }
+      place-node-in-flexigrid: place-node-in-flexigrid.with(fg),
     )
     let placement-pass = process-only-ctx(placement-ctx, objects)
     let nodes = placement-pass.shared-state.fletcher.nodes
@@ -556,12 +568,11 @@
 
     // extra context used by objects
     (ctx => {
-      ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(grid))
+      ctx = with-coord-resolver(ctx, flexigrid-coord-resolver.with(fg))
       ctx.shared-state.fletcher = (
         pass: "final",
         nodes: nodes, // must contain FINAL node coords
         current-node: 0,
-        flexigrid: grid,
         debug: debug,
       ) 
       return (ctx: ctx)
@@ -569,9 +580,9 @@
 
     objects
 
-    draw-flexigrid(grid, info: [Iterations: #iters], debug: debug)
+    draw-flexigrid(fg, info: [Iterations: #iters], debug: debug)
     if debug-level(debug, "grid.xy") {
-      draw-xy-grid(grid)
+      draw-xy-grid(fg)
     }
 
     // remove flexigrid context
