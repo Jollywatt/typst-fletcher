@@ -4,7 +4,15 @@
 #import "shapes.typ": DEFAULT_NODE_STYLE, NODE_SHAPES
 #import "parsing.typ"
 
-
+#let cell-fill = {
+  let t = 1mm
+  tiling(size: (t, t), {
+    set line(stroke: 0.25pt + red.transparentize(60%))
+    place(line(angle: 45deg), dx: t/2, dy: -t/2)
+    place(line(angle: 45deg), dx: -t/2, dy: t/2)
+    line(angle: 45deg)
+  })
+}
 
 #let draw-node-at(node, origin, debug: false) = {
   (ctx => {
@@ -50,7 +58,7 @@
         let (center, size) = node.cell
         let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
         let hi = cetz.vector.add(center, cetz.vector.scale(size, 0.5))
-        cetz.draw.rect(lo, hi, fill: red.transparentize(90%), stroke: none)
+        cetz.draw.rect(lo, hi, fill: cell-fill, stroke: 0.25pt + red.transparentize(60%))
       }
 
       cetz.draw.translate(origin)
@@ -346,7 +354,8 @@
 
       ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
 
-      assert(type(data.pos) == array)
+      // since we need to resolve coordinates which might depend on anchors
+      // continue and draw elements in the placement pass
 
     } else if fletcher-ctx.pass == "final" {
 
@@ -354,6 +363,7 @@
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
       data.pos = self.pos
       assert(type(data.pos) == array)
+      ctx.prev.pt = data.pos
 
 
     } else {
