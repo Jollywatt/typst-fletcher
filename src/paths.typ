@@ -112,7 +112,10 @@
 
 #let point-on-path-by-segment(path, index) = {
   assert(is-path(path))
-  let index = calc.max(0, index)
+  if index < 0 {
+    let total-segments = path.map(subpath => subpath.last().len()).sum(default: 0)
+    index += total-segments
+  }
   let subpath-index = 0
   let segment-index = 0
   let i = 0

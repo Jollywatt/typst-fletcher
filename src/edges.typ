@@ -155,15 +155,6 @@
 }
 
 
-#let process-edge-drawable(ctx, edge) = {
-  let objs = (edge.draw)(edge.vertices)
-  if objs.len() != 1 { utils.error("edge.draw should return a single CeTZ object") }
-
-  let drawables = cetz.process.element(ctx, objs.first()).drawables
-  if drawables.len() != 1 { utils.error("edge.draw should return a single drawable") }
-
-  return drawables.first()
-}
 
 
 #let apply-decorations(
@@ -357,7 +348,15 @@
 }
 
 
+
 #let apply-edge-snapping(ctx, edge, drawable, snap-to) = {
+
+  let get-edge-drawable(edge) = {
+    let objs = (edge.draw)(edge.vertices)
+    let drawables = cetz.process.element(ctx, objs.first()).drawables
+    return drawables.first()
+  }
+
   let old-drawable = drawable
 
   let (snap-start, snap-end) = snap-to
@@ -368,7 +367,7 @@
     if pts.len() > 0 {
       let (pt, index) = pts.first()
       edge.vertices.first() = cetz.util.revert-transform(ctx.transform, pt)
-      drawable = process-edge-drawable(ctx, edge)
+      drawable = get-edge-drawable(edge)
     }
   }
 
@@ -377,7 +376,7 @@
     if pts.len() > 0 {
       let (pt, index) = pts.last()
       edge.vertices.last() = cetz.util.revert-transform(ctx.transform, pt)
-      drawable = process-edge-drawable(ctx, edge)
+      drawable = get-edge-drawable(edge)
     }
   }
 
@@ -393,8 +392,60 @@
 }
 
 
+#let edge-anchor-handler(ctx, drawable, default-anchors, it) = {
+  assert(paths.is-drawable(drawable))
+  
+  if type(it) == array {
+    it = it.join(".")
+  }
+  if type(it) == str {
+    if it.ends-with("pc") {
+      it = float(it.slice(0, -2))*1%
+    } else if it.ends-with("%") {
+      it = float(it.slice(0, -1))*1%
+    }
+  }
+  if it == "default" { it = 50% }
+  if type(it) == str and it.match(regex(`[\d\.]`.text)) != none {
+    it = float(it)
+  }
+  let named-anchors = default-anchors(())
+  if type(it) == str {
+    if it not in named-anchors {
+      utils.error("no named anchor #0; try #..1", repr(it), named-anchors)
+    }
+    return default-anchors(it)
+  }
+  if type(it) in (length, ratio, relative) {
+    let (pt, vel, accel) = paths.point-on-path-by-length(ctx, drawable.segments, it)
+    return pt
+  } else if type(it) in (int, float) {
+    let (pt, vel, accel) = paths.point-on-path-by-segment(drawable.segments, it)
+    return pt
+  }
+
+  utils.error("invalid edge anchor #0. Try a number, percentage, length, or #..1", repr(it), named-anchors)
+}
+
 #let draw-edge(ctx, edge) = {
-  let drawable = process-edge-drawable(ctx, edge)
+  
+  let objs = (edge.draw)(edge.vertices)
+  if objs.len() != 1 { utils.error("edge.draw should return a single CeTZ object") }
+
+  let (drawables, element) = cetz.process.element(ctx, objs.first())
+
+  if drawables.len() != 1 { utils.error("edge.draw should return a single drawable") }
+  let drawable = drawables.first()
+
+  // draw invisible edge anchor handler object
+  if edge.name != none {
+    (ctx => (
+      ctx: ctx,
+      name: edge.name,
+      anchors: edge-anchor-handler.with(ctx, drawable, element.anchors),
+      drawables: (),
+    ),)
+  }
 
   if debug-level(edge.debug, "edge.snap") {
     // show where edge would be drawn without any snapping
@@ -419,7 +470,6 @@
 
   let crossing-stroke
   if edge.crossing == true {
-    // panic()
     crossing-stroke = stroke((
       paint: edge.style.crossing-fill,
       thickness: utils.to-length(
@@ -477,6 +527,7 @@
   if edge.layer != 0 {
     scene = cetz.draw.on-layer(edge.layer, scene)
   }
+
   scene
 }
 
@@ -558,12 +609,17 @@
   }
   let fletcher-ctx = ctx.shared-state.fletcher
 
+
+  let dummy-anchor-handler = (ctx => (ctx: ctx, name: name, anchors: _ => utils.nans),)
+
   if fletcher-ctx.pass == "layout" {
     // only nodes are collected during the layout pass 
-    return 
+    dummy-anchor-handler
+    return
   }
   if fletcher-ctx.pass == "placement" {
     // don't bother drawing edges during node placement pass
+    dummy-anchor-handler
     return
   }
 

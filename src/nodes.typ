@@ -333,13 +333,15 @@
       ctx.shared-state.fletcher.nodes.push(data)
 
       // do not draw anything in layout pass
-      return (ctx: ctx)
+      // but do register dummy anchors so coordinates depending on this node don't panic
+      return (ctx: ctx, name: data.name, anchors: _ => utils.nans)
 
     } else if fletcher-ctx.pass == "placement" {
       // In the node placement pass, node positions and sizes are resolved.
       // This happens after the flexigrid is determined but before edges are processed.
 
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
+      let original-pos = data.pos
       if self.uv-pos != none {
         // this is a uv node
         data = (fletcher-ctx.place-node-in-flexigrid)(self)
@@ -352,6 +354,10 @@
         data.pos = xy
       }
       ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
+
+      if data.pos.any(float.is-nan) {
+        utils.error("node coordinate #0 did not resolve (nodes cannot depend on edges)", original-pos)
+      }
 
       // since we need to resolve coordinates which might depend on anchors
       // continue and draw elements in the placement pass
