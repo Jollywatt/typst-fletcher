@@ -17,10 +17,10 @@
 // 
 // Warning: CeTZ source code often conflates "subpaths" with "segments".
 
-#let is-drawable(it) = type(it) == dictionary and it.at("type", default: none) == "path"
-#let is-path(it) = type(it) == array and it.all(is-subpath)
-#let is-subpath(it) = type(it) == array and it.len() == 3 and type(it.at(1)) == bool
 #let is-segment(it) = type(it) == array and it.len() > 1 and it.first() in "lc"
+#let is-subpath(it) = type(it) == array and it.len() == 3 and type(it.at(1)) == bool
+#let is-path(it) = type(it) == array and it.all(is-subpath)
+#let is-drawable(it) = type(it) == dictionary and it.at("type", default: none) == "path"
 
 
 
@@ -68,9 +68,9 @@
 
 /// Sample a specific segment of a subpath and return the position, velocity,
 /// and acceleration vectors.
-/// -> (coord, coord, coord)
+/// -> (array, array, array)
 #let point-on-subpath-segment(
-  /// A subpath of the form `(start: coord, close: bool, segments: array)`.
+  /// A subpath of the form `(start: array, close: bool, segments: array)`.
   /// -> array
   subpath,
   /// The index of the subpath's segment.
@@ -111,15 +111,18 @@
 
 
 #let point-on-path-by-segment(path, index) = {
+  assert(is-path(path))
   let index = calc.max(0, index)
   let subpath-index = 0
   let segment-index = 0
   let i = 0
   while i < calc.floor(index) {
-    if segment-index > path.at(subpath-index).len() {
+    let subpath-segments = path.at(subpath-index).last()
+    if segment-index > subpath-segments.len() {
       subpath-index += 1
       if subpath-index >= path.len() {
-        segment-index = path.last().last().len() - 1
+        let last-subpath-segments = path.last().last()
+        segment-index = last-subpath-segments.len() - 1
         return point-on-subpath-segment(path.last(), segment-index, 1) 
       }
       segment-index = 0
@@ -132,11 +135,15 @@
 }
 
 #let point-on-path-by-length(ctx, path, l) = {
-  let origin = (0., 0., 0.)
-
-  assert(type(path) == array)
+  assert(is-path(path))
   let lengths = cetz.path-util.segment-lengths(path)
-  let total-length = lengths.sum().sum()
+  let total-length = lengths.sum(default: 0).sum(default: 0)
+
+  if total-length == 0 {
+    let origin = (0., 0., 0.)
+    return (cetz.path-util.first-subpath-start(path), origin, origin)
+  }
+
 
   let target-length = (
     if type(l) in (int, float) { l }
@@ -146,7 +153,7 @@
       total-length*float(l.ratio) + l.length.to-absolute()/ctx.length
     } else { utils.error("invalid path position: #0", l) }
   )
-  target-length = calc.clamp(target-length, 0, total-length - 1e-15)
+  target-length = calc.clamp(target-length, 0, calc.max(0, total-length - 1e-15))
 
   let acc-length = 0.
   for (subpath-index, subpath) in path.enumerate() {
