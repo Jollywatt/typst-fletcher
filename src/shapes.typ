@@ -168,7 +168,10 @@
   angle = calc.abs(angle)
 
   let (x, y) = (w / 2, h / 2 + node.extrude)
-  let μ = h * calc.tan(angle) + node.extrude / calc.tan(45deg - angle / 2)
+  let μ = h * calc.tan(angle)
+  x -= μ*(1 - fit)
+  μ += node.extrude / calc.tan(45deg - angle / 2)
+
   let δ = node.extrude / calc.tan(45deg + angle / 2)
 
   let verts = (
@@ -221,8 +224,11 @@
   angle = calc.abs(angle)
 
   let (x, y) = (w / 2, h / 2 + node.extrude)
-  let μ = h * calc.tan(angle) + node.extrude / calc.tan(45deg - angle / 2)
-  let δ = node.extrude / calc.tan(45deg + angle / 2)
+  let μ = h * calc.tan(angle) // extent of larger side
+  x -= μ*(1 - fit) // widen to fit
+  μ += node.extrude / calc.tan(45deg - angle / 2)
+
+  let δ = node.extrude / calc.tan(45deg + angle / 2) // extent of shorter side
 
   let verts = (
     (-x - μ, -s * y),
@@ -346,22 +352,27 @@
 ///   `90deg` is a point stretching past Pluto.
 ///   #frame-row(..(0deg, 10deg, 20deg).map(o => shape-demo("house", angle: o)))
 #let house(node) = {
-  let (dir, angle) = node.style
+  let (dir, angle, fit) = node.style
   let flip = dir in (right, left) // flip along diagonal line x = y
   let rotate = dir in (bottom, left) // rotate 180deg
-
+  
   let (w, h) = resolve-size(node)
   if flip { (w, h) = (h, w) }
-
+  
   let (x, y) = (w / 2 + node.extrude, h / 2 + node.extrude)
-  let a = h / 2 + node.extrude * calc.tan(45deg - angle / 2)
-  let b = h / 2 + w / 2 * calc.tan(angle) + node.extrude / calc.cos(angle)
 
+  let a = h / 2 // height of edges of roof
+  let b = h / 2 + w / 2 * calc.tan(angle) // height of top of roof
+
+  let dy = (1 - fit) * (a - b) // shift roof up/down to fit
+  a += node.extrude * calc.tan(45deg - angle / 2)
+  b += node.extrude / calc.cos(angle)
+  
   let verts = (
     (-x, -y),
-    (-x, a),
-    (0pt, b),
-    (+x, a),
+    (-x, a + dy),
+    (0,  b + dy),
+    (+x, a + dy),
     (+x, -y),
   )
 
@@ -369,13 +380,17 @@
   if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
   draw.line(..verts, close: true)
-  node.body
+  draw.group({
+    draw.translate(node.body-center)
+    node.body
+  })
 }
 #NODE_SHAPES.insert("house", (
   width: auto,
   height: auto,
   dir: top,
   angle: 10deg,
+  fit: 1,
   draw: house,
 ))
 
