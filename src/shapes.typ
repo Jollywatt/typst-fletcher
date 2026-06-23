@@ -19,6 +19,10 @@
   outset: 0pt,
   extrude: (0,),
   corner-radius: none,
+  fit: 1, // how the shape encloses the node body
+  fit-cell: 1, // how a flexigrid cell encloses the shape
+  // one = the shape fits inside the region
+  // zero = the shape inscribes the region
 )
 
 
@@ -313,7 +317,10 @@
   if rotate { verts = verts.map(((i, j)) => (-i, -j)) }
 
   draw.line(..verts, close: true)
-  node.body
+  draw.group({
+    draw.translate(node.body-center)
+    node.body
+  })
 }
 #NODE_SHAPES.insert("triangle", (
   width: auto,

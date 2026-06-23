@@ -26,13 +26,17 @@
         if type(e) in (int, float) { return e*thickness }
       })
 
+      style.fit = style.fit*(1 - style.fit-cell)
+
       for (i, extrude) in extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
-        (node.draw)(node + (
+        (node.draw)((
           body: if i == 0 { node.body },
           size: node.bounding-size,
+          style: style,
           unit-length: ctx.length,
           extrude: extrude,
+          body-center: node.body-center
         ))
       }
     }
@@ -204,10 +208,6 @@
 
 #let measure-node(ctx, style, shape, body) = {
 
-  if body == none {
-    return (0,0)
-  }
-
   // measure node label/body
   let body-size = {
     let (low, high) = cetz.process.many(ctx, body).bounds
@@ -215,45 +215,51 @@
     (w, h)
   }
 
-  // measure node shape
-  let bounding-size = {
-    if shape == none {
-      shape = (node, extrude) => body
-      body-size
-    } else {
-      let drawn = (style.draw)((
-        size: body-size,
-        body: body,
-        extrude: 0,
-        unit-length: ctx.length,
-        style: style,
-      ))
-      let (low, high) = cetz.process.many(ctx, drawn).bounds
-      let (w, h, ..) = cetz.vector.sub(high, low)
-      (w, h)
-    }
+  // account for how the shape fits within an enclosing flexigrid cell
+  // if fit-cell is 1 then the whole node shape is enclosed in the cell
+  // if fit-cell is 0 then the cell wraps around the node body (while the
+  // node shape can bleed outside the cell bounds)
+  style.fit *= style.fit-cell
+
+  // measure size of node including its shape
+  // and, for asymmetric shapes, determine the center of the node body
+  // relative to the bounding center of the shape
+  let bounding-size = body-size
+  let body-center = (0., 0., 0.)
+
+  if shape != none {
+    let drawn = (style.draw)((
+      size: body-size,
+      body: body,
+      extrude: 0,
+      unit-length: ctx.length,
+      style: style,
+      body-center: body-center
+    ))
+    let (low, high) = cetz.process.many(ctx, drawn).bounds
+    let (w, h, ..) = cetz.vector.sub(high, low)
+    body-center = cetz.vector.scale(cetz.vector.add(high, low), -0.5)
+    bounding-size = (w, h)
   }
 
-  return (body: body-size, bounding: bounding-size)
+  return (body: body-size, bounding: bounding-size, body-center: body-center)
 }
 
 
+// ensure body is a cetz drawable and apply inset
 #let resolve-node-body(ctx, node, debug) = {
-    // ensure body is a cetz drawable
   if not utils.is-cetz(node.body) {
     if node.body == none {
       // empty nodes should still affect canvas bounds
-      node.body = cetz.draw.content((0,0), none)
+      return cetz.draw.content((0,0), none)
     } else {
-      node.body = text([#node.body], top-edge: "cap-height", bottom-edge: "baseline")
+      let body = text([#node.body], top-edge: "cap-height", bottom-edge: "baseline")
       if debug-level(get-debug(ctx, debug), "node.inset") {
-        node.body = rect(node.body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+        body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
       }
-      node.body = cetz.draw.content((0,0), [#node.body], padding: node.style.inset, name: "body")
+      return cetz.draw.content((0,0), [#body], padding: node.style.inset, name: "body")
     }
   }
-  node
-
 }
 
 #let _node(
@@ -299,11 +305,10 @@
     data.style = style
     data.draw = style.draw
 
-    data = resolve-node-body(ctx, data, debug)
-    let sizes = measure-node(ctx, style, shape, data.body)
-    data.bounding-size = sizes.bounding
-      
-
+    data.body = resolve-node-body(ctx, data, debug)
+    let m = measure-node(ctx, style, shape, data.body)
+    data.bounding-size = m.bounding
+    data.body-center = m.body-center
 
 
     if "fletcher" not in ctx.shared-state {
