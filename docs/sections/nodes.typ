@@ -5,7 +5,10 @@
 = Nodes
 
 Nodes are content centered at a coordinate.
-Nodes automatically fit to their content (with an @node.inset[inset]), but can also be given a specific size and shape, and can have a @node.stroke[stroke] and @node.fill[fill].
+By default, nodes fit to their content (with an @node.inset[inset]), but can also be given a specific size and @node-shapes[shape].
+Nodes can be given various styles including @node.stroke[stroke] and @node.fill[fill].
+
+Edges automatically snap to nodes (with an @node.outset) and the positions and sizes of nodes @flexigrid-layouts[affects diagram layout] (unlike edges or plain CeTZ objects).
 
 #example(```typ
 #diagram(

@@ -509,6 +509,9 @@
   /// -> number | length | pair
   spacing: 1.0,
   axes: (ltr, ttb),
+  /// Maximum number of layout iterations used to find row and column sizes before giving up.
+  /// 
+  /// -> int
   max-layout-iterations: 20,
   debug: false,
 ) = {
