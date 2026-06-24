@@ -140,7 +140,7 @@
     if deviation < 1e-4 { break }
 
     // TODO: figure out an effective 'scheduler'
-    let t = (0.5, 0.9, 1).at(calc.rem(iteration, 3))
+    let t = (1, 0.8, 0.5).at(calc.rem(iteration, 3))
 
     fl.sizes = cetz.vector.lerp(fl.sizes, sizes, t)
     fl.centers = centers-from-sizes(fl.sizes, spacing, flip, init: -spacing)
@@ -274,11 +274,12 @@
   return fl
 }
 
-#let draw-flexigrid(grid, info: none, debug: true) = {
+#let draw-flexigrid(grid, info: (:), debug: true) = {
   let draw-lines = debug-level(debug, "grid.lines")
   let draw-coords = debug-level(debug, "grid.coords")
   let draw-cells = debug-level(debug, "grid.cells")
   let draw-sizes = draw-lines
+  let draw-layout-iters = debug-level(debug, "grid.iters")
 
   let DEBUG_COLOR = red.transparentize(30%)
   let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
@@ -308,6 +309,13 @@
       }
     }
 
+    if draw-layout-iters {
+      let body = text(0.6em, DEBUG_COLOR)[
+        #info.iters layout
+        #if info.iters == 1 [iteration] else [iterations]
+      ]
+      cetz.draw.content((x-min, y-max), body, anchor: "south-west", padding: (bottom: 0.2em))
+    }
 
     cetz.draw.group({
       cetz.draw.fill(DEBUG_COLOR)
@@ -509,7 +517,13 @@
   /// -> number | length | pair
   spacing: 1.0,
   axes: (ltr, ttb),
-  /// Maximum number of layout iterations used to find row and column sizes before giving up.
+  /// Maximum number of layout iterations used to find row and
+  /// column sizes before converging.
+  /// 
+  /// Diagrams with nodes at fractional $u v$ coordinates may
+  /// require more iterations of the layout algorithm until the
+  /// flexigrid stabilizes.
+  /// You can see how many iterations were used with the `debug: "grid.iters"` option.
   /// 
   /// -> int
   max-layout-iterations: 20,
@@ -584,7 +598,7 @@
 
     objects
 
-    draw-flexigrid(fg, info: [Iterations: #iters], debug: debug)
+    draw-flexigrid(fg, info: (iters: iters), debug: debug)
     if debug-level(debug, "grid.xy") {
       draw-xy-grid(fg)
     }

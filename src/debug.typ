@@ -7,6 +7,7 @@
   "grid.lines": 3,
   "grid.cells": 2,
   "grid.xy": 5,
+  "grid.iters": 6,
 
   "node": 3,
   "node.bounds": 3,
