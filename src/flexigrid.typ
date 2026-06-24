@@ -115,9 +115,10 @@
 
     for rod in rods {
       let (lo, hi) = rod
-      if flip { (lo, hi) = (hi, lo) }
+
       let i-left = calc.floor(lo) - u-min
       let i-right = calc.ceil(hi) - u-min
+      if flip { (i-left, i-right) = (i-right, i-left) }
 
       let cell = get-interpolated-flexiline-cell(fl, rod.lo, rod.hi)
       let left-rod-edge = cell.center - rod.size/2
