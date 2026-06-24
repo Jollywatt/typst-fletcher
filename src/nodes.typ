@@ -54,7 +54,7 @@
 
   if debug-level(debug, "node") {
     debug-group(layer: 10, {
-      if "cell" in node and debug-level(debug, "node.cell") {
+      if node.cell != none and debug-level(debug, "node.cell") {
         let (center, size) = node.cell
         let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
         let hi = cetz.vector.add(center, cetz.vector.scale(size, 0.5))
@@ -289,6 +289,7 @@
       snap: snap,
       layer: layer,
       cellspan: cellspan,
+      cell: none,
       debug: get-debug(ctx, debug),
     )
 
