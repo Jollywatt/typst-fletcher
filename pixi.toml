@@ -7,13 +7,14 @@ platforms = ["osx-arm64", "linux-64"]
 [dependencies]
 nushell = ">=0.112.2,<0.113"
 typos = "*"
-typst = "==0.14.2"
+typst = "==0.15.0"
 tytanic = "==0.3.3"
 
 [tasks]
 readme = "scripts/readme.nu"
 compile = "scripts/compile.nu"
 test = "scripts/test-and-sign.nu"
-manual = "typst watch --root . docs/manual.typ"
 install = "scripts/install.nu"
 check = "scripts/check.nu"
+manual = "typst watch --root . docs/manual.typ"
+site = "typst watch --root . docs/site.typ --features html,bundle --format bundle --open"
