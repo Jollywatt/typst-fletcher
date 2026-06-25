@@ -249,6 +249,8 @@
 		else { e }
 	})
 
+	let path-len = cetz.path-util.length(path)
+
 	let inv-transform = cetz.matrix.inverse(ctx.transform)
 	let inv-origin = cetz.util.apply-transform(inv-transform, (0.,0.,0.))
 	let sample-pt(t, reverse) = {
@@ -329,7 +331,18 @@
 			shorten-end = shorten
 			drawn
 		} else {
-			let (pt, dir) = sample-pt(mark.pos*100%, false)
+
+			let tail-len = (mark.tail-end - mark.tail-origin)*thickness
+			let tip-len = (mark.tip-end - mark.tip-origin)*thickness
+			let (a, b) = if mark.rev {
+				(tip-len, tail-len)
+			} else {
+				(tail-len, tip-len)
+			}
+			let dist = utils.lerp(a, path-len - b, mark.pos)
+
+
+			let (pt, dir) = sample-pt(dist, false)
 			dir += 180deg // not sure why this is needed
 			draw-mark(mark, origin: pt, angle: dir, stroke: stroke, debug: debug)
 		}
