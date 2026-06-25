@@ -9,9 +9,8 @@ Import fletcher with:
 
 Diagrams contain #[@node]s and #[@edge]s.
 Nodes contain content and can have various @node-shapes[shapes] and @node-styles[styles], while edges snap to nodes and can be given @edge.marks[marks] and @edge.label[labels].
-Nodes and edges can be placed in a @diagram, or @draw-in-cetz[directly into a CeTZ canvas].
-
-When placed in @diagram, nodes and edges are arranged on a @flexigrids[flexible coordinate grid].
+Nodes and edges can be placed in a @diagram or @draw-in-cetz[directly into a CeTZ canvas].
+Objects in a @diagram are arranged on a @flexigrids[flexible coordinate grid].
 
 #example(```typ
 #diagram({
@@ -57,8 +56,8 @@ Below, we use fletcher's marks to draw an edge in a CeTZ-based figure.
 
 == Flexible coordinate grids <flexigrids>
 
-Fletcher defines a "flexible" coordinate system for creating tabular layouts, visible when the `debug` option of @diagram is on.
-The rows and columns in this coordinate system grow to accommodate the sizes of nodes, like a table:
+Diagrams are laid out on a _flexible coorginate grid_, visible when the `debug` option of @diagram is on.
+The rows and columns in this coordinate system grow to accommodate the sizes of nodes, useful for tabular layouts:
 
 #example(```typ
 #diagram(
@@ -72,8 +71,8 @@ The rows and columns in this coordinate system grow to accommodate the sizes of 
 )
 ```)
 
-Coordinates can be fractional; the center of a node placed at `0.25` is $25%$ between the adjacent columns or rows.
-Notice how the column sizes adjust to the with of the green node:
+Unlike a table, coordinates can be fractional; the center of a node placed at `0.25` is $25%$ between the adjacent columns or rows.
+Notice how the column sizes respond to the green node:
 
 #frame-row(..(0, .25, .5, .75, 1).map(t => {
   let c = (orange, red, green, blue).map(x => x.lighten(50%))

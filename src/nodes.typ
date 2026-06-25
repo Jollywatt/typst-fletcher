@@ -453,6 +453,21 @@
   layer: 0,
 
   name: none,
+  /// Alignment of the node within its associated cell within a flexigrid.
+  /// 
+  /// This only has effect when used inside a @diagram or @flexigrid.
+  /// 
+  /// #frame-row(..(top + left, right).map(it => diagram(
+  ///   debug: "grid",
+  ///   spacing: 2pt,
+  ///   node-fill: teal.lighten(50%),
+  ///   node((0,0), align: it, raw(repr(it))),
+  ///   node((0,1), width: 3cm, height: 5mm),
+  ///   node((1,0), width: 5mm, height: 1cm),
+  /// )))
+  /// 
+  /// To make a node fit to the size of a flexigrid cell,
+  /// you can set the @node.colspan or @node.rowspan to `1`.
   align: center + horizon,
   /// How much the node influences the size of flexigrid rows/columns.
   /// 

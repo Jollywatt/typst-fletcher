@@ -42,7 +42,8 @@ Default node styles can be set by passing options to the enclosing @diagram with
   {
     import cetz.draw: *
     set-style(node: (extrude: (2,0)))
-    node((1,0), stroke: yellow, [B], outset: 4pt) // stroke becomes 2pt + yellow
+		// stroke becomes 2pt + blue
+    node((0,1), stroke: blue, [B], outset: 4pt)
   }
 )
 ```)
@@ -56,6 +57,11 @@ Available node styles:
 - @node.extrude
 - @node.inset
 - @node.outset
+- @node.shape
+- Any other styles specific to the @node-shapes[node shape]:
+	- `width`, `height`, `corner-radius` for @rect nodes
+	- `radius` for @circle nodes
+	- and so on
 
 
 
@@ -66,5 +72,21 @@ The @node.shape[shape] option can be set to any of the following built-in shapes
 
 #shapes-gallery
 
-Some shapes have style options like `width` or `radius`, and sometimes the shape can be inferred from the options given.
-For example, `node(.., radius: 3cm)` is implicitly `node(.., shape: "circle", radius: 3cm)`.
+Most shapes have additional styles which you can set, such as `corner-radius` for @rect or `radius` for @circle.
+For example:
+
+#example(```typ
+#diagram(
+	node-fill: yellow,
+	node-stroke: 0.7pt,
+	node((0,0), corner-radius: 5pt)[Rounded],
+	edge("->-"),
+	node((0,1), radius: 2mm)
+)
+```)
+
+
+Sometimes, like with the example above, the node shape can be automatically inferred from the options given.
+Specifically, you can write `node(.., radius: 3cm)` instead of `node(.., shape: "circle", radius: 3cm)`.
+
+
