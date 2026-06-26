@@ -120,19 +120,20 @@
   let segment-index = 0
   let i = 0
   while i < calc.floor(index) {
+    i += 1
     let subpath-segments = path.at(subpath-index).last()
-    if segment-index > subpath-segments.len() {
+    if segment-index >= subpath-segments.len() - 1 {
+      segment-index = 0
       subpath-index += 1
       if subpath-index >= path.len() {
+        // clamp to end
         let last-subpath-segments = path.last().last()
         segment-index = last-subpath-segments.len() - 1
         return point-on-subpath-segment(path.last(), segment-index, 1) 
       }
-      segment-index = 0
       continue
     }
     segment-index += 1
-    i += 1
   }
   return point-on-subpath-segment(path.at(subpath-index), segment-index, calc.fract(index))
 }
