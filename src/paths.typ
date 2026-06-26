@@ -66,14 +66,16 @@
 }
 
 
-/// Sample a specific segment of a subpath and return the position, velocity,
-/// and acceleration vectors.
+
+/// Return the position, velocity and acceleration vectors of a point
+/// at parameter value $t in [0, 1]$ along
+/// the $i$th segment of a subpath.
 /// -> (array, array, array)
 #let point-on-subpath-segment(
   /// A subpath of the form `(start: array, close: bool, segments: array)`.
   /// -> array
   subpath,
-  /// The index of the subpath's segment.
+  /// The index of the subpath segment.
   /// -> int
   segment-index,
   /// The time parameter of the specified segment, in the interval $[0, 1]$.
@@ -93,15 +95,16 @@
     else { start }
   )
 
-  let segment = segments.at(segment-index)
+  let (kind, ..pts) = segments.at(segment-index)
 
-  if segment.first() == "l" {
-    let x = cetz.vector.lerp(prev-point, segment.last(), segment-t)
-    let x-vel = vector.sub(segment.last(), prev-point)
+  if kind == "l" {
+    let x = cetz.vector.lerp(prev-point, pts.last(), segment-t)
+    let x-vel = vector.sub(pts.last(), prev-point)
     let x-accel = (0.0, 0.0, 0.0)
     return (x, x-vel, x-accel)
-  } else if segment.first() == "c" {
-    let (_, c1, c2, end-pt) = segment
+    
+  } else if kind == "c" {
+    let (c1, c2, end-pt) = pts
     let x = bezier.cubic-point(prev-point, end-pt, c1, c2, segment-t)
     let x-vel = bezier.cubic-derivative(prev-point, end-pt, c1, c2, segment-t)
     let x-accel = cubic-second-derivative(prev-point, end-pt, c1, c2, segment-t)
@@ -109,7 +112,32 @@
   }
 }
 
+/// Given a path and an array of stops (segment indices) along the path,
+/// return the segment index of a point at a fractional stop.
+/// 
+/// The path length of stops are linearly interpolated.
+#let interp-path-point(path, stops, index) = {
+  assert(is-path(path))
+  if index >= stops.len() - 1 {
+    return stops.last()
+  }
+  let segment-lengths = cetz.path-util.segment-lengths(path).flatten()
+  let cumulative-lengths = (0., ..utils.cumsum(segment-lengths))
+  let i-lo = calc.floor(index)
+  let i-hi = calc.ceil(index)
+  let pathlen-lo = utils.interp(cumulative-lengths, stops.at(i-lo))
+  let pathlen-hi = utils.interp(cumulative-lengths, stops.at(i-hi))
+  let pathlen-target = utils.lerp(pathlen-lo, pathlen-hi, calc.fract(index))
+  let segment-index = utils.interp-inv(cumulative-lengths, pathlen-target)
+  return segment-index
+}
 
+/// Return the position, velocity and acceleration vectors of a point
+/// on a path by its segment index.
+/// 
+/// The integer part of the segment index refers to which segment the
+/// point lies and the fractional part refers to how far along the segment
+/// it is (in terms the segment's $t$ parameter, not its path length).
 #let point-on-path-by-segment(path, index) = {
   assert(is-path(path))
   if index < 0 {
