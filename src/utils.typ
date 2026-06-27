@@ -18,6 +18,7 @@
 #let is-node(o) = type(o) == dictionary and "class" in o and o.class == "node"
 #let is-edge(o) = type(o) == dictionary and "class" in o and o.class == "edge"
 #let is-cetz(o) = type(o) == array and o.all(el => type(el) == function)
+#let is-cetz-element(o) = type(o) == dictionary and "name" in o and "drawables" in o
 
 #let nans = (float.nan,)*3
 

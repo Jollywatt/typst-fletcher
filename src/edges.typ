@@ -234,7 +234,7 @@
 /// the path at its intersections with target drawables).
 #let apply-edge-effects(
   ctx,
-  drawable,
+  element,
   stroke: 1pt,
   labels: (),
   marks: (),
@@ -245,26 +245,27 @@
   decorate: none,
   crossing-stroke: none,
 ) = {
-  assert(paths.is-drawable(drawable))
+  assert(utils.is-cetz-element(element))
+  let drawable = element.drawables.first()
 
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
   if shorten.any(s => s != 0) {
-    let path = drawable.segments
-    drawable.segments = cetz.path-util.shorten-to(path, shorten)
+    let path = element.drawables.first().segments
+    element.drawables.first().segments = cetz.path-util.shorten-to(path, shorten)
   }
 
   let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
     ctx,
-    drawable.segments,
+    element.drawables.first().segments,
     marks,
     stroke: stroke,
     extrude: extrude,
     debug: debug,
   )
 
-  let path = paths._path-effect(
+  let new-element = paths.element-path-effect(
     ctx,
-    (drawable,),
+    element,
     shorten-start: shorten-start,
     shorten-end: shorten-end,
     stroke: stroke,
@@ -274,16 +275,16 @@
   )
 
   if decorate != none {
-    path = apply-decorations(
-      ctx,
-      path,
-      stroke: stroke,
-      kind: decorate.kind,
-      amplitude: decorate.amplitude,
-      wavelength: decorate.wavelength,
-      smooth: decorate.smooth,
-      shorten: decorate.shorten,
-    )
+    // new-element.drawables.first() = apply-decorations(
+    //   ctx,
+    //   new-element.drawables,
+    //   stroke: stroke,
+    //   kind: decorate.kind,
+    //   amplitude: decorate.amplitude,
+    //   wavelength: decorate.wavelength,
+    //   smooth: decorate.smooth,
+    //   shorten: decorate.shorten,
+    // )
   }
 
 
@@ -298,7 +299,8 @@
     },)
   }
 
-  path
+
+  (ctx => (ctx: ctx, name: element.name, ..new-element),)
 
   marks
 
@@ -433,19 +435,11 @@
   if objs.len() != 1 { utils.error("edge.draw should return a single CeTZ object") }
 
   let (drawables, element) = cetz.process.element(ctx, objs.first())
+  element.name = edge.name
 
   if drawables.len() != 1 { utils.error("edge.draw should return a single drawable") }
   let drawable = drawables.first()
 
-  // draw invisible edge anchor handler object
-  if edge.name != none {
-    (ctx => (
-      ctx: ctx,
-      name: edge.name,
-      anchors: edge-anchor-handler.with(ctx, drawable, element.anchors),
-      drawables: (),
-    ),)
-  }
 
   if debug-level(edge.debug, "edge.snap") {
     // show where edge would be drawn without any snapping
@@ -465,7 +459,8 @@
 
   let snap-objects = find-snapping-drawables(ctx, ctx.shared-state.fletcher.nodes, edge)
 
-  let drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
+  drawable = apply-edge-snapping(ctx, edge, drawable, snap-objects)
+  element.drawables.first() = drawable
 
 
   let crossing-stroke
@@ -482,7 +477,7 @@
 
   let scene = apply-edge-effects(
     ctx,
-    drawable,
+    element,
     stroke: edge.style.stroke,
     extrude: edge.style.extrude,
     shorten: edge.style.shorten,

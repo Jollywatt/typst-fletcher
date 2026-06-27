@@ -3,6 +3,7 @@
 #import cetz.util: bezier
 #import "utils.typ"
 #import "intersection.typ"
+#import "parsing.typ": is-segment-anchor, interpret-segment-anchor
 
 
 // TERMINOLOGY
@@ -581,9 +582,6 @@
   miter-limit: 4.0,
   dynamic-radius: true,
 ) = {
-  if join not in ("miter", "round") {
-    utils.error("`join` must be one of #..0; got #1", ("miter", "round"), repr(join))
-  }
   
   let (start, close, segments) = simplify-subpath(subpath)
 
@@ -612,9 +610,13 @@
   }
 
   let new-segments = ()
+  let stops = (0,)
+
   let prev-pt = start
   let first-segment-length = 0
   for i in range(n) {
+
+    let stops-pre = new-segments.len()
 
     //   ┌────────── segment ──────────┐
     // ━━@━[prev-o-angle]━━━━[i-angle]━@━[o-angle]━━━▶︎
@@ -765,23 +767,32 @@
 
     }
 
+    stops.push((new-segments.len() + stops-pre + 1)/2)
+
     prev-pt = segment.last()
   }
+
+  stops.push(new-segments.len())
 
   if close {
     start = new-segments.at(first-segment-length - 1).last()
     new-segments = new-segments.slice(first-segment-length, -1)
   }
-
-  return (start, close, new-segments)
+  // panic(new-segments)
+  return ((start, close, new-segments), stops)
 }
 
 
 
-// Apply path effects to a CeTZ drawable.
-#let _path-effect(
+// Apply path effects to a CeTZ element.
+// 
+// A CeTZ element is a dictionary of the form `(name, anchors, drawables)`.
+// The `drawables` field is updated with path effects (corner rounding, extrusion,
+// shortening) applied and the `anchors` function is updated to accept path segment
+// anchors.
+#let element-path-effect(
   ctx,
-  drawables,
+  element,
   stroke: auto,
   fill: auto,
   shorten-start: 0,
@@ -792,6 +803,9 @@
   miter-limit: 4.0,
   dynamic-radius: true,
 ) = {
+  if element.drawables.len() != 1 {
+    utils.error("path effect requires each element to have one drawable; found #0", element.drawables.len())
+  }
   let extrude = utils.one-or-array(extrude, types: (int, float, length))
 
   if type(shorten-start) != array {
@@ -816,7 +830,12 @@
     }
   )
 
-  let new-drawables = for drawable in drawables {
+
+  let anchor-path = none
+  let anchor-stops = ()
+
+  let new-drawables = ()
+  for drawable in element.drawables {
     assert.eq(drawable.type, "path")
 
     let stroke = {
@@ -832,8 +851,7 @@
       if type(x) in (int, float) { x*thickness/ctx.length }
       else if type(x) == length { x.to-absolute()/ctx.length }
     }
-
-    let offsets = extrude.map(resolve-thickness-multiples)
+    let offsets = extrude.map(resolve-thickness-multiples).sorted()
 
     for (i, offset) in offsets.enumerate() {
       let new-path = drawable.segments
@@ -847,32 +865,56 @@
       if l != 0 { 
         new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
       }
-      
-      new-path = new-path.map(subpath => subpath-effect(
-        subpath,
-        offset: offset,
-        min-offset: calc.min(..offsets),
-        max-offset: calc.max(..offsets),
-        join: join,
-        corner-radius: corner-radius,
-        miter-limit: miter-limit,
-        dynamic-radius: dynamic-radius,
-      ))
-      
-      ({
+
+      let new-stops = ()
+      for i in range(new-path.len()) {
+        let (subpath, stops) = subpath-effect(
+          new-path.at(i),
+          offset: offset,
+          min-offset: calc.min(..offsets),
+          max-offset: calc.max(..offsets),
+          join: join,
+          corner-radius: corner-radius,
+          miter-limit: miter-limit,
+          dynamic-radius: dynamic-radius,
+        )
+        new-path.at(i) = subpath
+        new-stops += stops
+      }
+      anchor-stops = new-stops
+
+      new-drawables.push({
         drawable
         (segments: new-path, stroke: stroke)
         if fill != auto { (fill: fill) }
-      },)
+      })
     }
-  } + () // coerce none to array
+  }
 
-  (ctx => {
-    return (
-      ctx: ctx,
-      drawables: new-drawables,
-    )
-  },)
+  return (
+    ctx: ctx,
+    drawables: new-drawables,
+    name: element.name,
+    anchors: it => {
+      if it == "default" { it = 50% }
+      if is-segment-anchor(it) {
+        let (segment, t, rev) = interpret-segment-anchor(it)
+        let path-anchor(path) = {
+          let index = interp-path-point(path, anchor-stops, segment + t)
+          let (pt, ..) = point-on-path-by-segment(path, index)
+          return pt
+        }
+        if new-drawables.len() == 1 {
+          return path-anchor(new-drawables.first().segments)
+        } else {
+          let a = path-anchor(new-drawables.first().segments)
+          let b = path-anchor(new-drawables.last().segments)
+          return cetz.vector.lerp(a, b, 0.5)
+        }
+      }
+      return (element.anchors)(it)
+    },
+  )
 }
 
 
@@ -995,6 +1037,10 @@
   if type(shorten-end) != array { 
     shorten-end = (shorten-end,)*extrude.len()
   }
+  
+  if join not in ("miter", "round") {
+    utils.error("`join` must be one of #..0; got #1", ("miter", "round"), repr(join))
+  }
 
   cetz.draw.get-ctx(ctx => {
     let corner-radius = (
@@ -1005,19 +1051,24 @@
       }
     )
 
-    let (drawables, bounds, elements) = cetz.process.many(ctx, objs)
-    _path-effect(
-      ctx, drawables,
-      stroke: stroke,
-      fill: fill,
-      shorten-start: shorten-start,
-      shorten-end: shorten-end,
-      extrude: extrude,
-      join: join,
-      corner-radius: corner-radius,
-      miter-limit: miter-limit,
-      dynamic-radius: dynamic-radius,
-    )
+    let elements = cetz.process.many(ctx, objs).elements
+
+    for element in elements {
+      let new-element = element-path-effect(
+        ctx,
+        element,
+        stroke: stroke,
+        fill: fill,
+        shorten-start: shorten-start,
+        shorten-end: shorten-end,
+        extrude: extrude,
+        join: join,
+        corner-radius: corner-radius,
+        miter-limit: miter-limit,
+        dynamic-radius: dynamic-radius,
+      )
+      (ctx => (ctx: ctx, ..new-element),)
+    }
   })
 }
 
