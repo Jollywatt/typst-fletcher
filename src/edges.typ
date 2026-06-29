@@ -32,19 +32,19 @@
   path,
   labels,
   debug: false,
+  anchors: none,
 ) = {
-  let sample-pt(t, reverse) = {
-    let (x, x-vel, x-accel) = {
-      if type(t) in (int, float) {
-        paths.point-on-path(ctx, path, segment: t)
-      } else {
-        paths.point-on-path(ctx, path, length: t)
-      }
+
+  let sample-pt(t, rev) = {
+    if type(t) in (ratio, length) {
+      return paths.point-on-path-by-length(ctx, path, t)
     }
-    let x = cetz.util.revert-transform(ctx.transform, x)
-    let x-vel = cetz.util.revert-transform(ctx.transform, x-vel)
-    let x-accel = cetz.util.revert-transform(ctx.transform, x-accel)
-    (x, x-vel, x-accel)
+    if anchors != none {
+      let anchor = parsing.interpret-segment-anchor(t)
+      anchor.return-derivatives = true
+      return anchors(anchor)
+    }
+    paths.point-on-path-by-segment(path, t)
   }
 
 
@@ -159,16 +159,18 @@
 
 #let apply-decorations(
   ctx,
-  element,
+  obj,
   stroke: 1pt,
   kind: "wave",
   smooth: 1,
   shorten: .5,
   amplitude: 8,
   wavelength: 10,
+  total-length: 0,
 ) = {
+  assert(utils.is-cetz(obj))
   if kind == none {
-    return element
+    return obj
   }
   let kinds = (
     wave: cetz.decorations.wave,
@@ -192,13 +194,7 @@
 
   let unit-length = ctx.length.to-absolute()
   let thickness = utils.get-thickness(stroke).to-absolute()
-
-  let (drawables,) = cetz.process.element(ctx, element.first())
-
-  let total-length = cetz.path-util.length(drawables.first().segments)
-
   let amplitude = utils.to-length(amplitude, units-of: thickness)
-
   let wavelength = utils.to-length(wavelength, units-of: thickness, ratios-of: total-length, to-float: unit-length)
 
   let (t0-short, t1-short) = utils
@@ -220,10 +216,11 @@
   }
 
   decorate-fn(
-    element,
+    obj,
     amplitude: amplitude-fn,
     stroke: stroke,
     segment-length: wavelength,
+    name: "f"
   )
 }
 
@@ -246,13 +243,15 @@
   crossing-stroke: none,
 ) = {
   assert(utils.is-cetz-element(element))
-  let drawable = element.drawables.first()
 
+  let path-pre-decorations = element.drawables.first().segments
+  
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
   if shorten.any(s => s != 0) {
     let path = element.drawables.first().segments
     element.drawables.first().segments = cetz.path-util.shorten-to(path, shorten)
   }
+  
 
   let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
     ctx,
@@ -263,7 +262,7 @@
     debug: debug,
   )
 
-  let new-element = paths.element-path-effect(
+  element = paths.element-path-effect(
     ctx,
     element,
     shorten-start: shorten-start,
@@ -274,37 +273,45 @@
     ..extra-path-effect-args,
   )
 
+
+  let total-length = element.drawables.map(d => cetz.path-util.length(d.segments)).sum(default: 0.)
+
+
   if decorate != none {
-    // new-element.drawables.first() = apply-decorations(
-    //   ctx,
-    //   new-element.drawables,
-    //   stroke: stroke,
-    //   kind: decorate.kind,
-    //   amplitude: decorate.amplitude,
-    //   wavelength: decorate.wavelength,
-    //   smooth: decorate.smooth,
-    //   shorten: decorate.shorten,
-    // )
+    let obj = (ctx => element,)
+    let (new-obj,) = apply-decorations(
+      ctx,
+      obj,
+      total-length: total-length,
+      stroke: stroke,
+      kind: decorate.kind,
+      amplitude: decorate.amplitude,
+      wavelength: decorate.wavelength,
+      smooth: decorate.smooth,
+      shorten: decorate.shorten,
+    )
+    element.drawables = new-obj(ctx).drawables
   }
 
 
-  if crossing-stroke != none {
-    (ctx => {
-      let drawables = cetz.process.many(ctx, path).drawables
-        .map(drawable => {
-          drawable.stroke = crossing-stroke
-          drawable
-        })
-      (ctx: ctx, drawables: drawables)
-    },)
-  }
+  // if crossing-stroke != none {
+  //   (ctx => {
+  //     let drawables = cetz.process.many(ctx, path).drawables
+  //       .map(drawable => {
+  //         drawable.stroke = crossing-stroke
+  //         drawable
+  //       })
+  //     (ctx: ctx, drawables: drawables)
+  //   },)
+  // }
 
+  // obj
+  (ctx => (ctx: ctx, name: element.name, anchors: element.anchors, drawables: element.drawables),)
 
-  (ctx => (ctx: ctx, name: element.name, ..new-element),)
 
   marks
 
-  draw-labels-on-path(ctx, drawable.segments, labels, debug: debug)
+  draw-labels-on-path(ctx, path-pre-decorations, labels, debug: debug, anchors: element.anchors)
 }
 
 

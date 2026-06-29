@@ -446,6 +446,7 @@
   return false
 }
 #let interpret-segment-anchor(it) = {
+
 	if type(it) == array { it = it.join(".") }
   if type(it) == dictionary {
     if type(it.segment) != int {
@@ -468,6 +469,14 @@
       rev: it.starts-with("-"), // remember 0 (start) and -0 (end) are distinct
     )
   }
+
+	if type(it) in (int, float) {
+		return (
+      segment: calc.floor(calc.abs(it)),
+      t: float(calc.fract(calc.abs(it))),
+      rev: it < 0, // remember 0 (start) and -0 (end) are distinct
+    )
+	}
 
   utils.error("invalid segment anchor #0.", repr(it))
 }

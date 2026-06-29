@@ -49,7 +49,6 @@ Edge loops
   node((1,0), [4], name: "4"),
   node((2,0), [5], name: "5"),
 
-  edge(<0>, "->", <1>, $b$),
   edge(<0>, <1>, $b$, "->"),
   edge(<0>, <2>, $a$, "->"),
   edge(<1>, <1>, $a$, "->", loop-angle: top),

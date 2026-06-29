@@ -32,6 +32,7 @@ Style inheritance
   import cetz.draw: *
   for a in (5, 10, 20) {
     set-style(edge: (decorate: (amplitude: a)))
+    translate(x: 1)
     edge("wave")
   }
 })
@@ -44,6 +45,7 @@ Style inheritance
       smooth: 0,
       shorten: 0,
     )))
+    translate(x: 1)
     edge()
   }
 })

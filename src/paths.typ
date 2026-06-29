@@ -891,29 +891,40 @@
     }
   }
 
+
+  let anchors = it => {
+    if it == "default" { it = 50% }
+    if is-segment-anchor(it) {
+      let anchor = interpret-segment-anchor(it)
+      let path-anchor(path) = {
+        let index = interp-path-point(path, anchor-stops, anchor.segment + anchor.t)
+        let (pt, vel, accel) = point-on-path-by-segment(path, index)
+        if anchor.at("return-derivatives", default: false) {
+          return (pt, vel, accel)
+        } else {
+          return pt
+        }
+      }
+      if new-drawables.len() == 1 {
+        return path-anchor(new-drawables.first().segments)
+      } else {
+        let a = path-anchor(new-drawables.first().segments)
+        let b = path-anchor(new-drawables.last().segments)
+        if anchor.at("return-derivatives", default: false) {
+          return array.zip(a, b).map(((a, b)) => cetz.vector.lerp(a, b, 0.5))
+        } else {
+          return cetz.vector.lerp(a, b, 0.5)
+        }
+      }
+    }
+    return (element.anchors)(it)
+  }
+
   return (
     ctx: ctx,
     drawables: new-drawables,
     name: element.name,
-    anchors: it => {
-      if it == "default" { it = 50% }
-      if is-segment-anchor(it) {
-        let (segment, t, rev) = interpret-segment-anchor(it)
-        let path-anchor(path) = {
-          let index = interp-path-point(path, anchor-stops, segment + t)
-          let (pt, ..) = point-on-path-by-segment(path, index)
-          return pt
-        }
-        if new-drawables.len() == 1 {
-          return path-anchor(new-drawables.first().segments)
-        } else {
-          let a = path-anchor(new-drawables.first().segments)
-          let b = path-anchor(new-drawables.last().segments)
-          return cetz.vector.lerp(a, b, 0.5)
-        }
-      }
-      return (element.anchors)(it)
-    },
+    anchors: anchors,
   )
 }
 
