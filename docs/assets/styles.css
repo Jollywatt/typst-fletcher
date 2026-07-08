@@ -1,6 +1,14 @@
 :root {
-	font-family: system-ui, segoe ui, Roboto, Helvetica, Arial, sans-serif, apple color emoji, segoe ui emoji;
-	--sidebar-width: 12rem;
+  font-family:
+    system-ui,
+    segoe ui,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif,
+    apple color emoji,
+    segoe ui emoji;
+  --sidebar-width: 12rem;
 }
 
 body {
@@ -9,6 +17,7 @@ body {
 
 main {
   display: flex;
+  --top-padding: 1.5rem;
 }
 
 article {
@@ -16,37 +25,188 @@ article {
   font-weight: 320;
   line-height: 1.4;
   overflow-x: hidden;
-  padding: 1rem 2rem;
+  padding: 0 2rem;
+  padding-top: var(--top-padding);
+}
+
+/* Navigation bar */
+
+input#menu-control {
+  display: none;
+}
+
+label#menu-button {
+  cursor: pointer;
+}
+
+nav {
+  #sidebar-title {
+    margin-top: 0.53rem;
+    margin-bottom: 1.4rem;
+  }
+
+  position: fixed;
+  height: 100vh;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  white-space: nowrap;
+
+  box-sizing: border-box;
+  padding-left: 1rem;
+  padding-top: var(--top-padding);
+  font-size: 0.9rem;
+  line-height: 1.9;
+
+  --open-duration: 200ms;
+  --stretch-duration: 500ms;
+
+  transition:
+		/* menu open/close */
+    left var(--open-duration),
+    /* menu unstretching to normal width */ box-shadow ease-in-out
+      var(--stretch-duration),
+    min-width ease-in-out var(--stretch-duration);
+  box-shadow: 5px 0 0px -5px #0000;
+  z-index: 1;
+
+  p {
+    margin: 0; /* glitchy when combined with overflow */
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  details ul {
+    padding-left: 1rem;
+  }
+  & > ul > li {
+    margin-top: 1rem;
+  }
+
+  details {
+    summary {
+      list-style: none;
+      cursor: pointer;
+    }
+    summary::after {
+      content: "+";
+      float: right;
+      margin-right: 1em;
+    }
+    &[open] summary::after {
+      content: "−";
+    }
+  }
+}
+
+nav.stretched {
+  transition: 500ms; /* how fast menu stretches out */
+  box-shadow: 5px 0 10px -5px #0003;
+}
+
+@media screen and (min-width: 45rem) {
+  /* Wide page */
+
+  nav {
+    background: #fffd;
+    backdrop-filter: blur(5px);
+  }
+
+  main {
+    margin: auto;
+    width: calc(min(40rem + 30vw, 100vw));
+  }
+
+  article {
+    margin-left: var(--sidebar-width);
+  }
+
+  #menu-button {
+    display: none;
+  }
+}
+
+@media screen and not (min-width: 45rem) {
+  /* Narrow page */
+
+  #menu-button {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    padding: 1rem;
+    border-bottom-right-radius: 1rem;
+    box-shadow: 0 0 1rem #0002;
+  }
+
+  nav {
+    background: white;
+    left: calc(-1 * var(--sidebar-width));
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  #menu-control:checked ~ nav {
+    left: 0px;
+    box-shadow: 0 0 15px #0003;
+  }
+
+  #menu-control:not(:checked) ~ .menu-overlay {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .menu-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    transition: opacity 0.2s;
+  }
 }
 
 #page-nav {
-	display: flex;
-	gap: 1em;
+  display: flex;
+  gap: 1em;
+  margin: 2em 0;
 
-	div {
-		flex: 1;
-		text-align: center;
-		position: relative;
-		
-		a {
-			padding: 1em;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border: 1px solid #eee;
-			border-radius: 5px;
+  div {
+    flex: 1;
+    text-align: center;
+    position: relative;
 
-			&:hover {
-				border-color: #888;
-			}
+    a {
+      padding: 1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #eee;
+      border-radius: 5px;
 
-		}
-		
-	}
+      &:hover {
+        border-color: #888;
+      }
+    }
+  }
 }
 
-h1, h2 {
-	font-weight: 300;
+/* Text styles */
+
+h1,
+h2 {
+  font-weight: 300;
 }
 
 h2 {
@@ -54,37 +214,39 @@ h2 {
 }
 
 a {
-	color: unset;
-	cursor: pointer;
+  color: unset;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
 }
-a:hover {
-	text-decoration: underline;
-}
-
-table {
-  border-collapse: collapse;
-}
-th, td {
-  padding: 0.2em 0.5em;
-}
-td {
-  border: 1px solid #d0d7de;
-}
-
 code {
   font-family: monospace, monospace;
   font-size: 0.95em;
 }
 
 .codeblock pre {
-	overflow-x: scroll;
-	background: #f9fcff;
-	border: 1px solid #d0d7de;
-	padding: 0.5em;
-	border-radius: 0.75em;
-	font-size: 0.85em;
-	box-shadow: 0 1px 4px #0001;
+  overflow-x: scroll;
+  background: #f9fcff;
+  border: 1px solid #d0d7de;
+  padding: 0.5em;
+  border-radius: 0.75em;
+  font-size: 0.85em;
+  box-shadow: 0 1px 4px #0001;
 }
+
+table {
+  border-collapse: collapse;
+  th,
+  td {
+    padding: 0.2em 0.5em;
+  }
+  td {
+    border: 1px solid #d0d7de;
+  }
+}
+
+/* Elements */
 
 .frame-row {
   display: flex;
@@ -99,172 +261,26 @@ code {
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-}
-.code-example .codeblock {
-  flex: 1 1 30vw;
-  overflow-x: scroll;
-  mask-image: linear-gradient(to right, black 90%, transparent);
-}
-.code-example .svg-frame {
-  mask-image: none;
+
+  .codeblock {
+    flex: 1 1 30vw;
+    overflow-x: scroll;
+    mask-image: linear-gradient(to right, black 90%, transparent);
+  }
+  .svg-frame {
+    mask-image: none;
+  }
 }
 
 .gallery-example {
   border-radius: 0.5rem;
   border: 1px dashed transparent;
+
+  &:hover {
+    border-color: #aaa;
+    box-shadow: -2px 4px 8px #0001;
+  }
 }
-.gallery-example:hover {
-  border-color: #aaa;
-  box-shadow: -2px 4px 8px #0001;
-}
-
-/* Navigation bar */
-
-
-input#menu-control {
-	display: none;
-}
-
-label#menu-button {
-	cursor: pointer;
-}
-
-nav > #sidebar-title {
-  margin-top: 0.55rem;
-  margin-bottom: 0.5rem;
-}
-nav {
-  position: fixed;
-  height: 100vh;
-  width: var(--sidebar-width);
-	min-width: var(--sidebar-width);
-  overflow-y: scroll;
-  overflow-x: hidden;
-	white-space: nowrap;
-
-  box-sizing: border-box;
-	padding-top: 1rem;
-	padding-left: 1rem;
-	font-size: 0.9rem;
-	line-height: 1.9;
-
-	--open-duration: 200ms;
-	--stretch-duration: 500ms;
-
-	transition:
-		/* menu open/close */
-		left var(--open-duration),
-		/* menu unstretching to normal width */
-		box-shadow ease-in-out var(--stretch-duration),
-		min-width ease-in-out var(--stretch-duration);
-	box-shadow: 5px 0 0px -5px #0000;
-  z-index: 1;
-}
-
-nav p {
-	margin: 0; /* glitchy when combined with overflow */
-}
-nav ul {
-	list-style: none;
-	padding: 0;
-}
-nav details ul {
-	padding-left: 1rem;
-}
-nav > ul > li {
-	margin-top: 1rem;
-}
-
-
-nav summary {
-	list-style: none;
-	cursor: pointer;
-}
-nav details summary::after {
-	content: "+";
-	float: right;
-	margin-right: 1em;
-}
-nav details[open] summary::after {
-	content: "−";
-}
-
-nav a {
-	text-decoration: none;
-}
-
-
-nav.stretched {
-  transition: 500ms; /* how fast menu stretches out */
-	box-shadow: 5px 0 10px -5px #0003;
-}
-
-
-@media screen and (min-width: 45rem) {
-	/* Wide page */
-
-	nav {
-  	background: #fffd;
-  	backdrop-filter: blur(5px);
-	}
-
-	main {
-		margin: auto;
-		width: calc(min(40rem + 30vw, 100vw));
-	}
-
-	article {
-		margin-left: var(--sidebar-width);
-	}
-
-	#menu-button {
-		display: none;
-	}
-}
-
-@media screen and not (min-width: 45rem) {
-	/* Narrow page */
-
-	#menu-button {
-		position: fixed;
-		top: 0;
-		left: 0;
-		background-color: white;
-		padding: 1rem;
-		border-bottom-right-radius: 1rem;
-		box-shadow: 0 0 1rem #0002;
-	}
-
-	nav {
-	  background: white;
-		left: calc(-1*var(--sidebar-width));
-	}
-
-	h2 {
-  	text-align: center;
-	}
-
-	#menu-control:checked ~ nav {
-		left: 0px;
-		box-shadow: 0 0 15px #0003;
-	}
-
-	.menu-overlay {
-		display: block;
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-		transition: opacity 0.2s;
-	}
-
-	#menu-control:not(:checked) ~ .menu-overlay {
-		opacity: 0;
-		pointer-events: none;
-	}
-}
-
 
 /* Function docs */
 
@@ -273,12 +289,12 @@ nav.stretched {
   border-radius: 0.8rem 0.8rem 0 0;
   padding: 1rem;
   margin: 1em 0;
-}
 
-.fn-arg > h3:first-child {
-  margin-top: 0;
-  display: inline-block;
-  font-size: 1rem;
+  h3:first-child {
+    margin-top: 0;
+    display: inline-block;
+    font-size: 1rem;
+  }
 }
 
 .fn-arg-details {
