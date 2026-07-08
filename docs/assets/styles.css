@@ -19,6 +19,32 @@ article {
   padding: 1rem 2rem;
 }
 
+#page-nav {
+	display: flex;
+	gap: 1em;
+
+	div {
+		flex: 1;
+		text-align: center;
+		position: relative;
+		
+		a {
+			padding: 1em;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: 1px solid #eee;
+			border-radius: 5px;
+
+			&:hover {
+				border-color: #888;
+			}
+
+		}
+		
+	}
+}
+
 h1, h2 {
 	font-weight: 300;
 }

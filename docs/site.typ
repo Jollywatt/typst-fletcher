@@ -98,6 +98,22 @@
     #html.frame(stack(..(line(length: 1em, stroke: 0.5pt),)*5, spacing: 0.2em, dir: ttb))
   ]
 
+#let page-nav = context {
+  let s = state("page-nav", (prev: none, next: none)).get()
+  let icon(a) = html.frame(common.diagram(common.edge((0pt,0), (a, 1pt), " >", stroke: 1pt)))
+  let nav-link(label, dir) = {
+    let title = query(selector(heading).within(label)).first().body
+    let body = if dir == left {icon(180deg) + html.div(title) } else { html.div(title) + icon(0deg) }
+    link(label, body)
+  }
+  html.footer(id: "page-nav", {
+    html.div(if s.prev != none { nav-link(s.prev, left) })
+    html.div(if s.next != none { nav-link(s.next, right) })
+  })
+
+
+}
+
 #let template(body) = {
   html.link(href: URL_ROOT + "/styles.css", rel: "stylesheet")
   html.main({ // wrap in main so inputs aren't wrapped in <p>
@@ -107,14 +123,19 @@
     html.article[
       #body
       #menu-button
-      #body
+      #page-nav
     ]
+
   })
   html.script(nav-expander-script.text)
 }
 
 
 #asset("/styles.css", read("assets/styles.css"))
+
+
+
+// Home page
 
 #document("index.html", template[
   #show: html.div.with(style: "text-align: center")
@@ -139,7 +160,9 @@
 ]) <home>
 
 
+
 // Gallery
+
 #let gals = (
   "gallery/01-commutative.typ",
   "gallery/02-algebra-cube.typ",
@@ -181,18 +204,37 @@
 ]) <gallery>
 
 
+
 // Manual
 
-#document("intro.html", template(include "sections/intro.typ")) <manual-intro>
-#document("diagrams.html", template(include "sections/diagrams.typ")) <manual-diagrams>
-#document("nodes.html", template(include "sections/nodes.typ")) <manual-nodes>
-#document("edges.html", template(include "sections/edges.typ")) <manual-edges>
-#document("marks.html", template(include "sections/marks.typ")) <manual-marks>
-#document("cetz.html", template(include "sections/cetz.typ")) <manual-cetz>
+#let manual-pages = (
+  ("intro.html", "sections/intro.typ", <manual-intro>),
+  ("diagrams.html", "sections/diagrams.typ", <manual-diagrams>),
+  ("nodes.html", "sections/nodes.typ", <manual-nodes>),
+  ("edges.html", "sections/edges.typ", <manual-edges>),
+  ("marks.html", "sections/marks.typ", <manual-marks>),
+  ("cetz.html", "sections/cetz.typ", <manual-cetz>),
+)
+
+#for (i, (dest, src, label)) in manual-pages.enumerate() {
+
+  let doc = document(dest, {
+    state("page-nav").update((
+      prev: if i > 0 { manual-pages.at(i - 1).last() },
+      next: if i < manual-pages.len() - 1 { manual-pages.at(i + 1).last() } ,
+    ))
+    template(include src)
+  })
+
+  [#doc #label]
+
+}
+
+#state("page-nav").update((prev: none, next: none))
+
 
 
 // Function reference
-
 
 #let fn-doc(module, name, ..args) =  {
   let url = "reference/" + module + "/" + name + ".html"
@@ -211,8 +253,6 @@
 
 #let exports = common.EXPORT_TREE.fletcher
 
-
-
 #fn-doc("main", exports.remove("diagram"), weight: 1)
 #fn-doc("main", exports.remove("node"), weight: 2)
 #fn-doc("main", exports.remove("edge"), weight: 3)
@@ -228,14 +268,9 @@
   fn-doc("path", exports.paths.remove(name))
 }
 
-
-
-
-
 #for name in exports.shapes.keys() {
   fn-doc("shapes", exports.shapes.remove(name))
 }
-
 
 #for name in exports.parsing.keys() {
   fn-doc("parsing", exports.parsing.remove(name))
