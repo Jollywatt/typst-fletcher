@@ -127,9 +127,11 @@
 )
 
 
-#let example(code) = context {
-  let preview = eval(code.text, mode: "markup", scope: scope)
+#let example(code, setup: none) = context {
+  let setup = if setup != none { setup.text + "\n" }
+  let preview = eval(setup + code.text, mode: "markup", scope: scope)
   let code = raw(code.text, lang: "typ", block: true)
+
 
   if is-html() {
     html.div(class: "code-example", {

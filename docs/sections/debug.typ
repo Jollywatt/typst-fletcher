@@ -97,3 +97,21 @@ Debug arguments accept the following options:
 	],
 	frame(scale(300%, reflow: true, diagram(edge(">>->", stroke: 1pt, bend: 90deg), debug: "mark.dots")))
 )
+
+== Debugging arrow marks
+
+To make properly implementing custom marks easier, the @test is provided which shows more detailed debug annotations on marks.
+
+#example(```typ
+#show: scale.with(150%, reflow: true)
+#fletcher.marks.test((
+	size: 2,
+	tip-origin: mark => mark.size + 0.5,
+	tail-origin: -0.5,
+	draw: mark => cetz.draw.arc((0,0),
+		start: -90deg, stop: +90deg,
+		radius: mark.size,
+		fill: none,
+	)
+))
+```)

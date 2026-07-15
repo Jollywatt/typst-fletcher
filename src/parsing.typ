@@ -14,17 +14,17 @@
 	"-": (:),
 	"=": EDGE_FLAGS.double,
 	"==": EDGE_FLAGS.triple,
-	"--": (dash: "dashed"),
 	"- -": (dash: "loosely-dashed"),
+	"--": (dash: "dashed"),
 	"---": (dash: "densely-dashed"),
-	"..": (dash: "dotted"),
 	". .": (dash: "loosely-dotted"),
+	"..": (dash: "dotted"),
 	"...": (dash: "densely-dotted"),
 	"~": (decorate: "wave"),
 	"wave": (decorate: "wave"),
 	"zigzag": (decorate: "zigzag"),
 	"coil": (decorate: "coil"),
-	"square": (decorate: "square"),
+	// "square": (decorate: "square"), // conflicts with the mark named "square"
 	" ": (extrude: ()),
 )
 
