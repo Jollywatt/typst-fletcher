@@ -81,7 +81,7 @@
       }
       let (w, h) = node.bounding-size
       if debug-level(debug, "node.bounds") {
-        cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
+        cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: 0.25pt + purple.transparentize(50%))
       }
 
     })

@@ -15,7 +15,6 @@
 @media (prefers-color-scheme: dark) {
   :root {
     filter: invert(100%) hue-rotate(180deg) contrast(85%);
-
   }
 }
 
@@ -273,6 +272,7 @@ table {
   }
   td {
     border: 1px solid #d0d7de;
+    overflow: hidden;
   }
 }
 

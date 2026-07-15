@@ -284,7 +284,7 @@
   let DEBUG_COLOR = red.transparentize(30%)
   let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
   let size-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 1pt)
-  let tickstyle(it) = text(0.8em, DEBUG_COLOR, raw(str(it)))
+  let tickstyle(it) = text(0.8em, DEBUG_COLOR, raw(str(it), lang: none))
 
   grid.x = trim-flexiline(grid.x)
   grid.y = trim-flexiline(grid.y)
@@ -354,7 +354,7 @@
   let (x-min, x-max) = flexiline-bounds(trim-flexiline(flexigrid.x))
   let (y-min, y-max) = flexiline-bounds(trim-flexiline(flexigrid.y))
   let (x-floor, y-floor) = (calc.floor(x-min), calc.floor(y-min))
-  let tickstyle(x) = text(0.8em, gray, raw(str(x)))
+  let tickstyle(x) = text(0.8em, gray, raw(str(x), lang: none))
   debug-group({
     cetz.draw.set-style(content: (padding: 0.25em))
     cetz.draw.grid((x-floor, y-floor), (x-max, y-max), help-lines: true)

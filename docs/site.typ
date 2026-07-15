@@ -7,6 +7,16 @@
 
 #let menu-tree = state("menu-tree", (:))
 
+#let manual-pages = (
+  ("intro.html", "sections/intro.typ", <manual-intro>),
+  ("diagrams.html", "sections/diagrams.typ", <manual-diagrams>),
+  ("nodes.html", "sections/nodes.typ", <manual-nodes>),
+  ("edges.html", "sections/edges.typ", <manual-edges>),
+  ("marks.html", "sections/marks.typ", <manual-marks>),
+  ("cetz.html", "sections/cetz.typ", <manual-cetz>),
+  ("debug.html", "sections/debug.typ", <manual-debug>),
+)
+
 #let nav-expander-script = ```js
   // A script to automatically enlarge the navbar when hovering over wide links
   const nav = document.querySelector('nav');
@@ -64,12 +74,10 @@
   - #link(<gallery>)[*Gallery*]
 
   - #[*Manual*]
-    - #link(<manual-intro>)[Overview]
-    - #link(<manual-diagrams>)[Diagrams and Layout]
-    - #link(<manual-nodes>)[Nodes]
-    - #link(<manual-edges>)[Edges]
-    - #link(<manual-marks>)[Marks and Arrows]
-    - #link(<manual-cetz>)[CeTZ Integration]
+    #for (dest, src, id) in manual-pages {
+      let title = query(selector(heading).within(id)).first().body
+      [- #link(id, title)]
+    }
 
   - *Function Reference*
 
@@ -208,14 +216,7 @@
 
 // Manual
 
-#let manual-pages = (
-  ("intro.html", "sections/intro.typ", <manual-intro>),
-  ("diagrams.html", "sections/diagrams.typ", <manual-diagrams>),
-  ("nodes.html", "sections/nodes.typ", <manual-nodes>),
-  ("edges.html", "sections/edges.typ", <manual-edges>),
-  ("marks.html", "sections/marks.typ", <manual-marks>),
-  ("cetz.html", "sections/cetz.typ", <manual-cetz>),
-)
+
 
 #for (i, (dest, src, label)) in manual-pages.enumerate() {
 

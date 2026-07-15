@@ -72,6 +72,7 @@
   include "sections/edges.typ"
   include "sections/marks.typ"
   include "sections/cetz.typ"
+  include "sections/debug.typ"
 }
 
 

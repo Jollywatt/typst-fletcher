@@ -2,7 +2,7 @@
 #show: style
 
 
-= Integrating with CeTZ <cetz-interop>
+= CeTZ Integration <cetz-interop>
 
 Fletcher aims to be compatible with CeTZ, in the sense that you can use as little or as much of fletcher's features with CeTZ and vice versa.
 Under the hood, fletcher builds upon CeTZ by defining:
