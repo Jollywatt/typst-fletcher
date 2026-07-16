@@ -9,10 +9,19 @@
     apple color emoji,
     segoe ui emoji;
   --sidebar-width: 12rem;
+  --bg: white
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    filter: invert(100%) hue-rotate(180deg) contrast(85%);
+
+  }
 }
 
 body {
   margin: 0;
+  background-color: var(--bg);
 }
 
 main {
@@ -116,7 +125,7 @@ nav.stretched {
   /* Wide page */
 
   nav {
-    background: #fffd;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
     backdrop-filter: blur(5px);
   }
 
@@ -141,14 +150,14 @@ nav.stretched {
     position: fixed;
     top: 0;
     left: 0;
-    background-color: white;
+    background-color: var(--bg);
     padding: 1rem;
     border-bottom-right-radius: 1rem;
     box-shadow: 0 0 1rem #0002;
   }
 
   nav {
-    background: white;
+    background: var(--bg);
     left: calc(-1 * var(--sidebar-width));
   }
 
