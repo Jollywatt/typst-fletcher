@@ -65,6 +65,15 @@
         cetz.draw.rect(lo, hi, fill: cell-fill, stroke: 0.25pt + red.transparentize(60%))
       }
 
+      if debug-level(debug, "node.outset") {
+        let n = node
+        n.style.extrude = (node.style.outset,)
+        n.style.fill = none
+        n.name = none
+        n.body = none
+        n.style.stroke = (paint: green, thickness: 0.5pt, dash: "densely-dotted")
+        cetz.draw.group(draw-node-at(n, n.pos, debug: false))
+      }
 
       cetz.draw.translate(origin)
       if debug-level(debug, "node.origin") {
@@ -73,18 +82,6 @@
       let (w, h) = node.bounding-size
       if debug-level(debug, "node.bounds") {
         cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: red + 0.25pt)
-      }
-      if debug-level(debug, "node.outset") {
-        cetz.draw.get-ctx(ctx => {
-          cetz.draw.set-style(stroke: (paint: green, thickness: 0.5pt, dash: "densely-dotted"))
-          let outset = utils.to-length(node.style.outset, to-float: ctx.length)
-          (node.draw)(node + (
-            body: none,
-            size: node.bounding-size,
-            unit-length: ctx.length,
-            extrude: outset,
-          ))
-        })
       }
 
     })
