@@ -615,9 +615,6 @@
   let prev-pt = start
   let first-segment-length = 0
   for i in range(n) {
-
-    let stops-pre = new-segments.len()
-
     //   ┌────────── segment ──────────┐
     // ━━@━[prev-o-angle]━━━━[i-angle]━@━[o-angle]━━━▶︎
     //                                 ^ vertex
@@ -663,29 +660,29 @@
     )
     r = calc.max(0, r)
 
-
-
-
     if segment.first() == "l" {
       if i == 0 { first-segment-length = 1 }
 
       // apply extrusion effect by offsetting line in normal direction
       if offset != 0 {
-
         if i == 0 {
           // update start point
           let normal = utils.polar(offset, i-angle - 90deg)
           start = vector.add(start, normal)
         }
-
         vertex = offset-vertex(vertex, i-angle, o-angle, offset)
       }
       
       if r == 0 {
+        stops.push(new-segments.len() + 1)
         new-segments.push(("l", vertex))
       } else {
-        new-segments += corner-segments(vertex, i-angle, o-angle, r)
+        let corner = corner-segments(vertex, i-angle, o-angle, r)
+        stops.push(new-segments.len() + (corner.len() + 1)/2)
+        new-segments += corner
       }
+
+
 
     } else if segment.first() == "c" {
 
@@ -757,28 +754,24 @@
       if i == 0 { first-segment-length = new-segments.len() }
 
       // add corner effect at end of bezier segment
-      new-segments += corner-segments(vertex, i-angle, o-angle, r).slice(1)
+      let corner = corner-segments(vertex, i-angle, o-angle, r).slice(1)
+      stops.push(new-segments.len() + corner.len()/2)
+      new-segments += corner
       
       if shift-end > 0 {
         // add overhang line segment if necessary
         new-segments.push(("l", new-end-pt))
       }
 
-
     }
-
-    stops.push((new-segments.len() + stops-pre + 1)/2)
 
     prev-pt = segment.last()
   }
-
-  stops.push(new-segments.len())
 
   if close {
     start = new-segments.at(first-segment-length - 1).last()
     new-segments = new-segments.slice(first-segment-length, -1)
   }
-  // panic(new-segments)
   return ((start, close, new-segments), stops)
 }
 
