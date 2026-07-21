@@ -87,3 +87,11 @@ Default to outer side of curve
 	(body: `end`, pos: 1, side: end),
 )))
 
+#pagebreak()
+
+Anchor label to nearest stroke\
+for multi-stroke edges
+
+#diagram(edge((0,0), (1,1), "==>", stroke: 1pt, $f$, debug: "edge.label", label-side: left))
+#diagram(edge((0,0), (1,1), "==>", stroke: 1pt, $f$, debug: "edge.label", label-side: center))
+#diagram(edge((0,0), (1,1), "==>", stroke: 1pt, $f$, debug: "edge.label", label-side: right))

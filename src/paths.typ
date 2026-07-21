@@ -10,12 +10,12 @@
 //
 // CeTZ paths are arrays of subpaths, which are structures consisting of
 // an array of segments.
-// 
+//
 // <drawable> := (type: "path", segments: <path>, fill: .., stroke: ..)
 // <path> := (<sub-path>*,)
 // <sub-path> := (<origin>, <closed>, (<segment>*,))
 // <segment> := ("l" | "c", <vector>*)
-// 
+//
 // Warning: CeTZ source code often conflates "subpaths" with "segments".
 
 #let is-segment(it) = type(it) == array and it.len() > 1 and it.first() in "lc"
@@ -69,11 +69,11 @@
 
 
 /// Approximate a circular arc with a cubic Bézier segment.
-/// 
+///
 /// This similar to `cetz.drawable.arc()` except that it never
 /// uses more than one cubic Bézier segment, and it returns just
 /// the control and end points `(c1, c2, e)`, not a path.
-/// 
+///
 /// Single segment approximations are useful because they are more
 /// visually robust to nudging endpoints, which is sometimes necessary
 /// when creating a rounded corner where two curves meet.
@@ -111,7 +111,7 @@
   return (c1, c2, e)
 }
 
-/// Return the cubic Bézier obtained by clamping the 
+/// Return the cubic Bézier obtained by clamping the
 /// parameter value $t$ to an interval $[t_0, t_1]$.
 #let clamp-cubic-bezier(s, c1, c2, e, t0, t1) = {
   import cetz.vector: lerp
@@ -166,7 +166,7 @@
     let x-vel = vector.sub(pts.last(), prev-point)
     let x-accel = (0.0, 0.0, 0.0)
     return (x, x-vel, x-accel)
-    
+
   } else if kind == "c" {
     let (c1, c2, end-pt) = pts
     let x = bezier.cubic-point(prev-point, end-pt, c1, c2, segment-t)
@@ -178,7 +178,7 @@
 
 /// Given a path and an array of stops (segment indices) along the path,
 /// return the segment index of a point at a fractional stop.
-/// 
+///
 /// The path length of stops are linearly interpolated.
 #let interp-path-point(path, stops, index) = {
   assert(is-path(path))
@@ -198,7 +198,7 @@
 
 /// Return the position, velocity and acceleration vectors of a point
 /// on a path by its segment index.
-/// 
+///
 /// The integer part of the segment index refers to which segment the
 /// point lies and the fractional part refers to how far along the segment
 /// it is (in terms the segment's $t$ parameter, not its path length).
@@ -221,7 +221,7 @@
         // clamp to end
         let last-subpath-segments = path.last().last()
         segment-index = last-subpath-segments.len() - 1
-        return point-on-subpath-segment(path.last(), segment-index, 1) 
+        return point-on-subpath-segment(path.last(), segment-index, 1)
       }
       continue
     }
@@ -274,19 +274,19 @@
   path,
   /// Specify the point by its length along the path (in CeTZ units),
   /// or by its position along the path as a ratio of its total length.
-  /// 
+  ///
   /// For example, `50%` is the midpoint of the path's total length.
-  /// 
+  ///
   /// -> number | ratio
   length: none,
   /// Specify the point by "segment coordinate".
-  /// 
+  ///
   /// The integer part specifies the segment index, and the fractional part
   /// specifies the position along that segment (for Bezier curves, this is the
   /// time parameter, not the arc length).
-  /// 
+  ///
   /// For example, `2.5` is the midpoint of the third segment.
-  /// 
+  ///
   /// -> number
   segment: none,
 ) = {
@@ -414,7 +414,7 @@
 
 /// Shorten a path drawable so it starts or ends at an intersection point
 /// with another drawable.
-/// 
+///
 /// If there are multiple intersection points, the path is terminated
 /// at the one given by `index`, where intersections are ordered along the
 /// path starting from the start or end depending on the trimming mode.
@@ -451,15 +451,15 @@
 
 /// Offset a vertex to make a miter joint, given the
 /// angles of the incoming and outgoing legs.
-/// 
+///
 /// ```plain
 ///      offset vertex ↓
 /// ───────────────────* ┐
-///      vertex ↓     /  │ offset 
+///      vertex ↓     /  │ offset
 /// ─[i-angle]──@    /   ┘
-///            /    /       
-///     [o-angle]  /      
-///          /    /     
+///            /    /
+///     [o-angle]  /
+///          /    /
 /// ```
 #let offset-vertex(
   vertex,
@@ -473,34 +473,34 @@
 
   // give up if corner is too pointy
   if calc.abs(sin) < 0.01 { return vertex }
-  
+
   // distance and angle between vertex and offset vertex
   let hypot = -offset/sin
-  let angle = (i-angle + o-angle)/2 + 90deg 
+  let angle = (i-angle + o-angle)/2 + 90deg
 
 
   let offset = utils.polar(hypot, angle)
   return cetz.vector.add(vertex, offset)
 }
 
-  
+
 /// Incoming leg and circular segments of a rounded corner.
-/// 
+///
 /// Returns the line segment to point `P` and a single cubic
 /// Bézier segment to `Q`.
-/// 
+///
 /// ```plain
-///             ┌─── d ───┐          
+///             ┌─── d ───┐
 /// ************P***──────@-[i-angle]
-///        ..   │   **   /           
-///       .     r     * /            
-///       .     ╵     */             
-///       .           Q              
-///        ..      ../               
-///          ...... /                
-///                /                 
+///        ..   │   **   /
+///       .     r     * /
+///       .     ╵     */
+///       .           Q
+///        ..      ../
+///          ...... /
+///                /
 ///           [o-angle]
-/// 
+///
 /// @ = vertex
 /// * = segments returned by this function
 /// ```
@@ -532,28 +532,28 @@
 }
 
 /// Segments of a miter or bevelled corner.
-/// 
+///
 /// The bevel is specified by a radius, which defines
 /// the circle that is tangent to the bevelled face at
 /// the face's midpoint.
-/// 
+///
 /// Depending on the miter limit, this returns a single segment
 /// for a miter join and two line segments for a bevel join,
 /// one to point `P` and the other to `Q`.
-/// 
+///
 /// ```plain
 ///                 ┌─ s ─┐
-///             ┌ d ┼─────┤          
+///             ┌ d ┼─────┤
 /// ****************P─────@-[i-angle]
-///        ..   │   .**  /           
-///       .     r     .*Q            
-///       .     ╵     ./             
-///       .           /              
-///        ..      ../               
-///          ...... /                            
-///                /                 
+///        ..   │   .**  /
+///       .     r     .*Q
+///       .     ╵     ./
+///       .           /
+///        ..      ../
+///          ...... /
+///                /
 ///           [o-angle]
-/// 
+///
 /// @ = vertex
 /// * = segments returned by this function
 /// ```
@@ -600,7 +600,7 @@
   miter-limit: 4.0,
   dynamic-radius: true,
 ) = {
-  
+
   let (start, close, segments) = simplify-subpath(subpath)
 
   if close {
@@ -640,7 +640,7 @@
 
     let (prev-o-angle, i-angle) = io-angles.at(i)
     let o-angle = if i + 1 < segments.len() {
-      io-angles.at(i + 1).first() 
+      io-angles.at(i + 1).first()
     } else {
       io-angles.at(i).last()
     }
@@ -657,7 +657,7 @@
     }
 
     let corner-segments(vertex, ..args) = {
-      if join == "miter" { 
+      if join == "miter" {
         miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
       if join == "round" { rounded-vertex(vertex, ..args) }
     }
@@ -688,7 +688,7 @@
         }
         vertex = offset-vertex(vertex, i-angle, o-angle, offset)
       }
-      
+
       if r == 0 {
         stops.push(new-segments.len() + 1)
         new-segments.push(("l", vertex))
@@ -723,7 +723,7 @@
           let normal = utils.polar(offset, prev-o-angle - 90deg)
           start = vector.add(start, normal)
         }
-        
+
         vertex = offset-vertex(vertex, o-angle, i-angle, offset)
       }
 
@@ -740,12 +740,14 @@
       }
 
       // subdivide and offset bezier curve
+      // to offset the bezier segment, we simply divide it into N pieces and
+      // offset the resulting control points as if they were connected by line segments
+      // this approximation seems to work very well
       let N = 3
       let control-points = range(N).map(n => {
         let (s, c1, c2, e) = clamp-cubic-bezier(s, c1, c2, end-pt, n/N, (n + 1)/N)
         (c1, c2, e)
       }).join()
-
       let control-segments = control-points.map(pt => ("l", pt))
       let control-subpath = (s, false, control-segments)
       let (offset-subpath, _) = subpath-effect(control-subpath, offset: offset)
@@ -761,14 +763,13 @@
         new-segments.push(("c", c1, c2, e))
       }
 
-
       if i == 0 { first-segment-length = new-segments.len() }
 
       // add corner effect at end of bezier segment
       let corner = corner-segments(vertex, i-angle, o-angle, r).slice(1)
       stops.push(new-segments.len() + corner.len()/2)
       new-segments += corner
-      
+
       if shift-end > 0 {
         // add overhang line segment if necessary
         new-segments.push(("l", new-end-pt))
@@ -780,17 +781,13 @@
   }
 
   if close {
+    start = new-segments.at(first-segment-length - 1).last()
     if new-segments.last().first() == "l" {
-      start = new-segments.at(first-segment-length - 1).last()
       new-segments = new-segments.slice(first-segment-length, -1)
-      // panic(new-segments.last())
     } else {
-      start = new-segments.at(first-segment-length - 1).last()
       new-segments = new-segments.slice(first-segment-length)
-
-
     }
-    
+
   }
   return ((start, close, new-segments), stops)
 }
@@ -798,7 +795,7 @@
 
 
 // Apply path effects to a CeTZ element.
-// 
+//
 // A CeTZ element is a dictionary of the form `(name, anchors, drawables)`.
 // The `drawables` field is updated with path effects (corner rounding, extrusion,
 // shortening) applied and the `anchors` function is updated to accept path segment
@@ -824,7 +821,7 @@
   if type(shorten-start) != array {
     shorten-start = (shorten-start,)*extrude.len()
   }
-  if type(shorten-end) != array { 
+  if type(shorten-end) != array {
     shorten-end = (shorten-end,)*extrude.len()
   }
 
@@ -871,11 +868,11 @@
 
       // path shortening
       let l = resolve-thickness-multiples(shorten-start.at(i))
-      if l != 0 { 
+      if l != 0 {
         new-path = cetz.path-util.shorten-to(new-path, l)
       }
       let l = resolve-thickness-multiples(shorten-end.at(i))
-      if l != 0 { 
+      if l != 0 {
         new-path = cetz.path-util.shorten-to(new-path, l, reverse: true)
       }
 
@@ -905,32 +902,56 @@
   }
 
 
-  let anchors = it => {
+  let anchors(it, return-info: false) = {
     if it == "default" { it = 50% }
-    if is-segment-anchor(it) {
-      let anchor = interpret-segment-anchor(it)
-      let path-anchor(path) = {
-        let index = interp-path-point(path, anchor-stops, anchor.segment + anchor.t)
-        let (pt, vel, accel) = point-on-path-by-segment(path, index)
-        if anchor.at("return-derivatives", default: false) {
-          return (pt, vel, accel)
-        } else {
-          return pt
-        }
-      }
-      if new-drawables.len() == 1 {
-        return path-anchor(new-drawables.first().segments)
+
+    let sample-subpath(subpath) = {
+      if is-segment-anchor(it) {
+        let anchor = interpret-segment-anchor(it)
+        let index = interp-path-point(subpath, anchor-stops, anchor.segment + anchor.t)
+        return point-on-path-by-segment(subpath, index)
       } else {
-        let a = path-anchor(new-drawables.first().segments)
-        let b = path-anchor(new-drawables.last().segments)
-        if anchor.at("return-derivatives", default: false) {
-          return array.zip(a, b).map(((a, b)) => cetz.vector.lerp(a, b, 0.5))
-        } else {
-          return cetz.vector.lerp(a, b, 0.5)
-        }
+        return point-on-path-by-length(ctx, subpath, it)
       }
     }
-    return (element.anchors)(it)
+
+    let derivatives
+    let multi-stroke-points
+
+    if new-drawables.len() == 1 {
+      // path has just one stroke
+      derivatives = sample-subpath(new-drawables.first().segments)
+
+    } else if new-drawables.len() == 0 {
+      // this happens for "invisible" line styles, or `extrude: ()`
+      // just use path before effects were applied in this case
+      derivatives = sample-subpath(element.drawables.first().segments)
+
+    } else {
+      // path has multi-stroke effect
+      // so return the average from sampling each stroke
+
+      let samples = new-drawables.map(d => sample-subpath(d.segments))
+      let average = array.zip(..samples).map(vects => {
+        // average of vectors
+        array.zip(..vects).map(c => c.sum()/vects.len())
+      })
+      derivatives = average
+      // also return the points sampled on each stroke
+      // in case we want to choose between them (like for edge label placement)
+      multi-stroke-points = samples.map(info => info.first())
+    }
+
+    if return-info {
+      return (
+        point: derivatives.at(0),
+        vel: derivatives.at(1),
+        accel: derivatives.at(2),
+        multi-stroke-points: multi-stroke-points,
+      )
+    }
+
+    return derivatives.at(0)
   }
 
   return (
@@ -947,7 +968,7 @@
 /// a CeTZ object.
 #let path-effect(
   /// CeTZ objects to apply the path effect to.
-  /// 
+  ///
   /// A CeTZ object is an array of functions; the result of `cetz.draw.line(..)`
   /// or `cetz.draw.merge-path(..)`, for example.
   /// -> cetz objects
@@ -958,25 +979,25 @@
   /// fill style. If `auto`, the fill is unchanged.
   fill: auto,
   /// Trim the beginning of the path by a given length.
-  /// 
+  ///
   /// For multi-stroke effect when @path-effect.extrude is an array,
   /// this may also be an array of the same length, specifying the length
   /// to shorten each offset path individually.
   /// This is useful for placing marks on multi-stroke lines correctly.
-  /// 
+  ///
   /// Numbers are interpreted as multiples of the stroke's thickness.
   /// -> number | length | array
   shorten-start: 0,
   /// Trim the end of the path by a specific length.
-  /// 
+  ///
   /// Works just like @path-effect.shorten-start.
   /// -> number | length | array
   shorten-end: 0,
   /// Lengths to offset path by. An array of different offsets results in
   /// multiple parallel strokes.
-  /// 
+  ///
   /// Numbers are interpreted as multiples of the stroke's thickness.
-  /// 
+  ///
   /// ```example
   /// #import fletcher.paths: path-effect
   /// #cetz.canvas({
@@ -988,16 +1009,16 @@
   ///                    stroke: blue)
   /// })
   /// ```
-  /// 
+  ///
   /// -> number | length | array
   extrude: 0,
   /// How to form corners of an offset path.
-  /// 
+  ///
   /// If `"round"`, corners become rounded joints with a (minimum) corner radius
   /// specified by @path-effect.corner-radius.
   /// If `"miter"`, corners become miter joints or, if they are sharp enough, bevelled
   /// joints, as controlled by @path-effect.miter-limit.
-  /// 
+  ///
   /// ```example
   /// #import fletcher.paths: path-effect
   /// #cetz.canvas({
@@ -1014,38 +1035,38 @@
   ///     miter-limit: 2)
   /// })
   /// ```
-  /// 
+  ///
   /// -> "miter" | "round"
   join: "miter",
   /// The radius of round or bevelled corners.
-  /// 
+  ///
   /// For round corners, this is the radius of curvature. For bevelled corners, this is the
   /// radius of the tangent circle between the bevel face and the sides of the corner.
-  /// 
+  ///
   /// For extruded paths, the radii at each offset is adjusted so that the circles of curvature
   /// are concentric. At a corner, the inner paths have the specified radius of curvature,
   /// while outer paths have larger radii.
   /// The radius can be negative.
-  /// 
+  ///
   /// The value `none` is short for zero radius with `join: "miter"`.
-  /// 
+  ///
   /// Numbers are interpreted in CeTZ canvas units.
   /// -> number | length | none
   corner-radius: 0,
   /// Miter limit, beyond which miter joints become bevelled.
-  /// 
+  ///
   /// The higher the limit, the pointier corners can be before being bevelled.
   /// -> number
   miter-limit: 4.0,
   /// Whether to dynamically adjust corner radii depending on corner sharpness
   /// for nicer visual results.
   /// When enabled, the corner radius is decreased for bends of less than $90degree$.
-  /// 
+  ///
   /// ```example
   /// #import fletcher.paths: path-effect
   /// #cetz.canvas({
   ///   let obj = cetz.draw.line((0,0), (1,1), (2,0), (2,1), (3,0), (4,0))
-  ///   let args = arguments(obj, corner-radius: 5pt, join: "round") 
+  ///   let args = arguments(obj, corner-radius: 5pt, join: "round")
   ///   path-effect(..args, stroke: green)
   ///   cetz.draw.translate(y: -1)
   ///   path-effect(..args, dynamic-radius: false)
@@ -1058,10 +1079,10 @@
   if type(shorten-start) != array {
     shorten-start = (shorten-start,)*extrude.len()
   }
-  if type(shorten-end) != array { 
+  if type(shorten-end) != array {
     shorten-end = (shorten-end,)*extrude.len()
   }
-  
+
   if join not in ("miter", "round") {
     utils.error("`join` must be one of #..0; got #1", ("miter", "round"), repr(join))
   }
@@ -1095,5 +1116,3 @@
     }
   })
 }
-
-

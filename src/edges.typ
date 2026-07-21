@@ -27,134 +27,132 @@
 )
 
 
-#let draw-labels-on-path(
+#let draw-label-at-anchor(
   ctx,
-  path,
-  labels,
+  anchors,
+  label,
   debug: false,
-  anchors: none,
 ) = {
 
-  let sample-pt(t, rev) = {
-    if type(t) in (ratio, length) {
-      return paths.point-on-path-by-length(ctx, path, t)
+  let info = anchors(label.pos, return-info: true)
+
+  let tangent-angle = calc.atan2(info.vel.at(0), info.vel.at(1))
+
+  if label.anchor != auto {
+    if label.side != auto {
+      utils.error(
+        "label options `anchor: #0` and `side: #1` cannot be used together; one must be `auto`",
+        repr(label.anchor),
+        repr(label.side),
+      )
     }
-    if anchors != none {
-      let anchor = parsing.interpret-segment-anchor(t)
-      anchor.return-derivatives = true
-      return anchors(anchor)
-    }
-    paths.point-on-path-by-segment(path, t)
+    // anchor is set explicitly; don't deduce anchor from side
+    label.side = none
   }
 
-
-  for label in labels {
-    let (point, vel, accel) = sample-pt(label.pos, false)
-    let tangent-angle = calc.atan2(vel.at(0), vel.at(1))
-
-    if label.anchor != auto {
-      if label.side != auto {
-        utils.error(
-          "label options `anchor: #0` and `side: #1` cannot be used together; one must be `auto`",
-          repr(label.anchor),
-          repr(label.side),
-        )
-      }
-      // anchor is set explicitly; don't deduce anchor from side
-      label.side = none
-    }
-
-    // 1. resolve label.angle to angle
-    if type(label.angle) == alignment {
-      label.angle = (
-        tangent-angle
-          - (
-            right: 0deg,
-            top: 90deg,
-            left: 180deg,
-            bottom: 270deg,
-          ).at(repr(label.angle))
-      )
-    } else if label.angle == auto {
-      if calc.abs(tangent-angle) > 90deg {
-        label.angle = tangent-angle + 180deg
-      } else {
-        label.angle = tangent-angle
-      }
-      if label.anchor == auto {
-        label.anchor = utils.angle-to-anchor(label.angle)
-      }
-    }
-    assert(type(label.angle) == angle)
-
-    // 2. resolve label.side to boolean or none/center and resolve anchor
-    if label.side == auto {
-      // automatically choose label side so that...
-      let is-curving = cetz.vector.len(accel) > 1e-5
-      if is-curving {
-        // ...if the edge is curved, label is on the outer side
-        label.side = accel.at(0) * vel.at(1) - accel.at(1) * vel.at(0) > 0
-        // formula comes from sign of z-coord of cross product
-      } else {
-        // ...if edge is straight, label is generally north of it
-        label.side = top
-      }
-    }
-
-    if type(label.side) == alignment {
-      let v = (0, 0)
-      if label.side.x == right { v.first() = +1 }
-      if label.side.x == left { v.first() = -1 }
-      if label.side.y == top { v.last() = +1 }
-      if label.side.y == bottom { v.last() = -1 }
-      if v == (0, 0) {
-        if label.side == alignment.start {
-          label.anchor = utils.angle-to-anchor(tangent-angle)
-        } else if label.side == alignment.end {
-          label.anchor = utils.angle-to-anchor(tangent-angle + 180deg)
-        } else {
-          label.anchor = "center"
-        }
-        label.side = none
-      } else {
-        label.side = utils.wrap-angle-180(calc.atan2(..v) - tangent-angle) > -1deg
-      }
-    }
-
-    if type(label.side) == bool {
-      let delta = if label.side { -90deg } else { +90deg }
-      label.anchor = utils.angle-to-anchor(tangent-angle + delta - label.angle)
-    }
-
-    if label.fill == auto {
-      label.fill = if label.anchor == "center" { white }
-    }
-
-    cetz.draw.content(
-      point,
-      box(
-        label.body,
-        outset: 2pt,
-        inset: 0pt,
-        fill: label.fill,
-        stroke: if debug-level(debug, "edge.label") { purple.transparentize(50%) + 0.25pt },
-      ),
-      anchor: label.anchor,
-      angle: label.angle,
-      padding: label.sep,
-      name: "label",
+  // 1. resolve label.angle to angle
+  if type(label.angle) == alignment {
+    label.angle = (
+      tangent-angle
+        - (
+          right: 0deg,
+          top: 90deg,
+          left: 180deg,
+          bottom: 270deg,
+        ).at(repr(label.angle))
     )
-
-    if debug-level(debug, "edge.label") {
-      debug-group({
-        cetz.draw.circle(point, radius: 1pt, fill: purple.transparentize(50%), stroke: none)
-        // cetz.draw.rect("label.north-east", "label.south-west", stroke: purple.transparentize(50%) + 0.25pt)
-      })
+  } else if label.angle == auto {
+    if calc.abs(tangent-angle) > 90deg {
+      label.angle = tangent-angle + 180deg
+    } else {
+      label.angle = tangent-angle
     }
+    if label.anchor == auto {
+      label.anchor = utils.angle-to-anchor(label.angle)
+    }
+  }
+  assert(type(label.angle) == angle)
+
+  // 2. resolve label.side to boolean or none/center and resolve anchor
+  if label.side == auto {
+    // automatically choose label side so that...
+    let  is-curving = cetz.vector.len(info.accel) > 1e-5
+    if is-curving {
+      // ...if the edge is curved, label is on the outer side
+      label.side = 0 < (
+        info.accel.at(0) * info.vel.at(1) -
+        info.accel.at(1) * info.vel.at(0)
+       )
+      // formula comes from sign of z-coord of cross product
+    } else {
+      // ...if edge is straight, label is generally north of it
+      label.side = top
+    }
+  }
+
+  if type(label.side) == alignment {
+    let v = (0, 0)
+    if label.side.x == right { v.first() = +1 }
+    if label.side.x == left { v.first() = -1 }
+    if label.side.y == top { v.last() = +1 }
+    if label.side.y == bottom { v.last() = -1 }
+    if v == (0, 0) {
+      if label.side == alignment.start {
+        label.anchor = utils.angle-to-anchor(tangent-angle)
+      } else if label.side == alignment.end {
+        label.anchor = utils.angle-to-anchor(tangent-angle + 180deg)
+      } else {
+        label.anchor = "center"
+      }
+      label.side = none
+    } else {
+      label.side = utils.wrap-angle-180(calc.atan2(..v) - tangent-angle) > -1deg
+    }
+  }
+
+  if type(label.side) == bool {
+    let delta = if label.side { -90deg } else { +90deg }
+    label.anchor = utils.angle-to-anchor(tangent-angle + delta - label.angle)
+  }
+
+  if label.fill == auto {
+    label.fill = if label.anchor == "center" { white }
+  }
+
+  let pt = info.point
+  if info.multi-stroke-points != none and label.anchor != "center" {
+    // edge has multiple strokes, so choose the "outermost" stroke
+    // to anchor the label to, or the stroke which is most in the
+    // direction of the label at that point
+    let a = utils.thing-to-angle(label.anchor)
+    let dir = (calc.cos(a), calc.sin(a), 0)
+    pt = info.multi-stroke-points
+      .sorted(key: pt => cetz.vector.dot(pt, dir))
+      .first()
+  }
+  pt = cetz.util.revert-transform(ctx.transform, pt)
+
+  cetz.draw.content(
+    pt,
+    box(
+      label.body,
+      outset: 2pt,
+      inset: 0pt,
+      fill: label.fill,
+      stroke: if debug-level(debug, "edge.label") { purple.transparentize(50%) + 0.25pt },
+    ),
+    anchor: label.anchor,
+    angle: label.angle,
+    padding: label.sep,
+    name: "label",
+  )
+
+  if debug-level(debug, "edge.label") {
+    debug-group({
+      cetz.draw.circle(pt, radius: 1pt, fill: purple.transparentize(50%), stroke: none)
+    })
   }
 }
-
-
 
 
 #let apply-decorations(
@@ -244,7 +242,6 @@
 ) = {
   assert(utils.is-cetz-element(element))
 
-  let path-pre-decorations = element.drawables.first().segments
   
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
   if shorten.any(s => s != 0) {
@@ -262,7 +259,7 @@
     debug: debug,
   )
 
-  element = paths.element-path-effect(
+  let element = paths.element-path-effect(
     ctx,
     element,
     shorten-start: shorten-start,
@@ -272,6 +269,7 @@
     extrude: extrude,
     ..extra-path-effect-args,
   )
+
 
 
   let total-length = element.drawables.map(d => cetz.path-util.length(d.segments)).sum(default: 0.)
@@ -311,7 +309,9 @@
 
   marks
 
-  draw-labels-on-path(ctx, path-pre-decorations, labels, debug: debug, anchors: element.anchors)
+  for label in labels {
+    draw-label-at-anchor(ctx, element.anchors, label, debug: debug)
+  }
 }
 
 

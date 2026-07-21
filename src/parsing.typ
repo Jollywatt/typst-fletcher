@@ -436,6 +436,7 @@
 
 
 #let is-segment-anchor(it) = {
+	if type(it) in (int, float) { return true }
 	if type(it) == array { it = it.join(".") }
   if type(it) == str {
     return it.match(regex("^[-+]?[0-9.]+$")) != none
