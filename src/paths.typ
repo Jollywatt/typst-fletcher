@@ -68,6 +68,69 @@
 
 
 
+/// Approximate a circular arc with a cubic Bézier segment.
+/// 
+/// This similar to `cetz.drawable.arc()` except that it never
+/// uses more than one cubic Bézier segment, and it returns just
+/// the control and end points `(c1, c2, e)`, not a path.
+/// 
+/// Single segment approximations are useful because they are more
+/// visually robust to nudging endpoints, which is sometimes necessary
+/// when creating a rounded corner where two curves meet.
+#let cubic-arc(x, y, z, start, stop, rx, ry, fill: none, stroke: none) = {
+  let delta = calc.max(-360deg, calc.min(stop - start, 360deg))
+
+  // Move x/y to the center
+  x -= rx * calc.cos(start)
+  y -= ry * calc.sin(start)
+
+  // Calculation of control points is based on the method described here:
+  // https://pomax.github.io/bezierinfo/#circles_cubic
+  let segments = ()
+  let origin = (x, y, z)
+
+  let k = 4 / 3 * calc.tan(delta / 4)
+
+  let sx = x + rx * calc.cos(start)
+  let sy = y + ry * calc.sin(start)
+  let ex = x + rx * calc.cos(stop)
+  let ey = y + ry * calc.sin(stop)
+
+  let s = (sx, sy, z)
+  let c1 = (
+    x + rx * (calc.cos(start) - k * calc.sin(start)),
+    y + ry * (calc.sin(start) + k * calc.cos(start)),
+    z,
+  )
+  let c2 = (
+    x + rx * (calc.cos(stop) + k * calc.sin(stop)),
+    y + ry * (calc.sin(stop) - k * calc.cos(stop)),
+    z,
+  )
+  let e = (ex, ey, z)
+  return (c1, c2, e)
+}
+
+/// Return the cubic Bézier obtained by clamping the 
+/// parameter value $t$ to an interval $[t_0, t_1]$.
+#let clamp-cubic-bezier(s, c1, c2, e, t0, t1) = {
+  import cetz.vector: lerp
+  let cubic(s, c1, c2, e, t1, t2, t3) = lerp(
+    lerp(lerp(s, c1, t1), lerp(c1, c2, t1), t2),
+    lerp(lerp(c1, c2, t1), lerp(c2, e, t1), t2),
+    t3,
+  )
+  let (s, c1, c2, e) = (
+    cubic(s, c1, c2, e, t0, t0, t0),
+    cubic(s, c1, c2, e, t1, t0, t0),
+    cubic(s, c1, c2, e, t1, t1, t0),
+    cubic(s, c1, c2, e, t1, t1, t1),
+  )
+  return (s, c1, c2, e)
+}
+
+
+
 /// Return the position, velocity and acceleration vectors of a point
 /// at parameter value $t in [0, 1]$ along
 /// the $i$th segment of a subpath.
@@ -386,51 +449,6 @@
 }
 
 
-/// Approximate a circular arc with a cubic Bézier segment.
-/// 
-/// This similar to `cetz.drawable.arc()` except that it never
-/// uses more than one cubic Bézier segment, and it returns just
-/// the control and end points `(c1, c2, e)`, not a path.
-/// 
-/// Single segment approximations are useful because they are more
-/// visually robust to nudging endpoints, which is sometimes necessary
-/// when creating a rounded corner where two curves meet.
-#let cubic-arc(x, y, z, start, stop, rx, ry, fill: none, stroke: none) = {
-  let delta = calc.max(-360deg, calc.min(stop - start, 360deg))
-
-  // Move x/y to the center
-  x -= rx * calc.cos(start)
-  y -= ry * calc.sin(start)
-
-  // Calculation of control points is based on the method described here:
-  // https://pomax.github.io/bezierinfo/#circles_cubic
-  let segments = ()
-  let origin = (x, y, z)
-
-  let k = 4 / 3 * calc.tan(delta / 4)
-
-  let sx = x + rx * calc.cos(start)
-  let sy = y + ry * calc.sin(start)
-  let ex = x + rx * calc.cos(stop)
-  let ey = y + ry * calc.sin(stop)
-
-  let s = (sx, sy, z)
-  let c1 = (
-    x + rx * (calc.cos(start) - k * calc.sin(start)),
-    y + ry * (calc.sin(start) + k * calc.cos(start)),
-    z,
-  )
-  let c2 = (
-    x + rx * (calc.cos(stop) + k * calc.sin(stop)),
-    y + ry * (calc.sin(stop) - k * calc.cos(stop)),
-    z,
-  )
-  let e = (ex, ey, z)
-  return (c1, c2, e)
-}
-
-
-
 /// Offset a vertex to make a miter joint, given the
 /// angles of the incoming and outgoing legs.
 /// 
@@ -588,8 +606,6 @@
   if close {
     segments.push(segments.first())
   }
-  
-  let n = segments.len()
 
   // get the incoming and outgoing angles of each segment
   let io-angles = () // array of (in, out) angle pairs
@@ -614,7 +630,7 @@
 
   let prev-pt = start
   let first-segment-length = 0
-  for i in range(n) {
+  for i in range(segments.len()) {
     //   ┌────────── segment ──────────┐
     // ━━@━[prev-o-angle]━━━━[i-angle]━@━[o-angle]━━━▶︎
     //                                 ^ vertex
@@ -623,7 +639,7 @@
     let vertex = segment.last()
 
     let (prev-o-angle, i-angle) = io-angles.at(i)
-    let o-angle = if i + 1 < n {
+    let o-angle = if i + 1 < segments.len() {
       io-angles.at(i + 1).first() 
     } else {
       io-angles.at(i).last()
@@ -641,9 +657,9 @@
     }
 
     let corner-segments(vertex, ..args) = {
-      if join == "miter" { return miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
-      if join == "round" { return rounded-vertex(vertex, ..args) }
-      panic(join)
+      if join == "miter" { 
+        miter-bevel-vertex(vertex, ..args, miter-limit: miter-limit) }
+      if join == "round" { rounded-vertex(vertex, ..args) }
     }
 
     // when a multi-stroke extruded path bends around a corner,
@@ -713,7 +729,8 @@
 
       // shorten curve end to make way for a corner effect
       let new-end-pt = if r != none {
-        corner-segments(vertex, i-angle, o-angle, r).first().last()
+        corner-segments(vertex, i-angle, o-angle, r)
+          .first().last()
       } else { vertex }
       let shift = vector.sub(new-end-pt, end-pt)
       let tangent = utils.polar(1, i-angle)
@@ -722,34 +739,28 @@
         (s, end-pt, c1, c2) = bezier.cubic-shorten(s, end-pt, c1, c2, shift-end)
       }
 
-      // offset bezier curve by sampling
-      let N = 20
-      let curve-points = range(N + 1).map(n => {
-        let t = n/N
-        let pt = bezier.cubic-point(s, end-pt, c1, c2, t)
-        let (dx, dy, ..) = bezier.cubic-derivative(s, end-pt, c1, c2, t)
-        // let unit-normal = vector.norm((dy, -dx))
-        let len = vector.len((dy, -dx))
-        let unit-normal = if len > 0 { vector.norm((dy, -dx)) } else { (0,0) }
-        vector.add(pt, vector.scale(unit-normal, offset))
-      })
+      // subdivide and offset bezier curve
+      let N = 3
+      let control-points = range(N).map(n => {
+        let (s, c1, c2, e) = clamp-cubic-bezier(s, c1, c2, end-pt, n/N, (n + 1)/N)
+        (c1, c2, e)
+      }).join()
+
+      let control-segments = control-points.map(pt => ("l", pt))
+      let control-subpath = (s, false, control-segments)
+      let (offset-subpath, _) = subpath-effect(control-subpath, offset: offset)
+      let (new-start, _, new-control-segments) = offset-subpath
+      let new-control-points = new-control-segments.map(((_, pt)) => pt)
 
       if new-segments.len() > 0 and new-segments.last().first() == "c" {
         // make any previous bezier segment joint continuously to this segment
-        new-segments.last().last() = curve-points.first()
+        new-segments.last().last() = new-start
       }
 
-      if true {
-        // approximate curves with a Catmull-Rom curve through samples points
-        for (s, e, c1, c2) in bezier.catmull-to-cubic(curve-points, .5) {
-          new-segments.push(("c", c1, c2, e))
-        }
-      } else {
-        // approximate curves with line segments
-        for pt in curve-points {
-          new-segments.push(("l", pt))
-        }
+      for (c1, c2, e) in new-control-points.chunks(3) {
+        new-segments.push(("c", c1, c2, e))
       }
+
 
       if i == 0 { first-segment-length = new-segments.len() }
 
@@ -769,8 +780,17 @@
   }
 
   if close {
-    start = new-segments.at(first-segment-length - 1).last()
-    new-segments = new-segments.slice(first-segment-length, -1)
+    if new-segments.last().first() == "l" {
+      start = new-segments.at(first-segment-length - 1).last()
+      new-segments = new-segments.slice(first-segment-length, -1)
+      // panic(new-segments.last())
+    } else {
+      start = new-segments.at(first-segment-length - 1).last()
+      new-segments = new-segments.slice(first-segment-length)
+
+
+    }
+    
   }
   return ((start, close, new-segments), stops)
 }
