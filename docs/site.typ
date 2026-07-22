@@ -9,10 +9,10 @@
 
 #let manual-pages = (
   ("intro.html", "sections/intro.typ", <manual-intro>),
-  ("diagrams.html", "sections/diagrams.typ", <manual-diagrams>),
   ("nodes.html", "sections/nodes.typ", <manual-nodes>),
   ("edges.html", "sections/edges.typ", <manual-edges>),
   ("marks.html", "sections/marks.typ", <manual-marks>),
+  ("diagrams.html", "sections/diagrams.typ", <manual-diagrams>),
   ("cetz.html", "sections/cetz.typ", <manual-cetz>),
   ("debug.html", "sections/debug.typ", <manual-debug>),
 )
@@ -42,7 +42,8 @@
     item.addEventListener('mouseenter', () => {
       const c = ++counter;
       setTimeout(() => {
-        if (c == counter) expandNav(item.offsetWidth + 40);
+        const w = item.getBoundingClientRect().right - nav.getBoundingClientRect().left;
+        if (c == counter) expandNav(w + 25);
       }, 500)
     });
     item.addEventListener('mouseleave', () => {
@@ -52,13 +53,6 @@
       }, 2e3);
     });
   });
-
-  // open nav menu on hover - maybe too annoying?
-  const navButton = document.getElementById('menu-button');
-  const navControl = document.getElementById('menu-control');
-  navButton.addEventListener('mouseenter', () => {
-    // navControl.checked ^= true;
-  })
 ```
 
 #let dropdown(title, body, open: false) = html.details({
@@ -76,7 +70,16 @@
   - #[*Manual*]
     #for (dest, src, id) in manual-pages {
       let title = query(selector(heading).within(id)).first().body
-      [- #link(id, title)]
+      if id == state("current-document").get() [
+        - #strong(link(id, title))
+          #let headings = (query(selector(heading).within(id))
+            .filter(it => it.level > 1))
+          #for heading in headings {
+            [- #html.elem("span", link(heading.location(), heading.body), attrs: (data-depth: str(heading.level)))]
+          }
+      ] else [
+        - #link(id, title)
+      ]
     }
 
   - *Function Reference*
@@ -107,7 +110,17 @@
   ]
 
 #let page-nav = context {
-  let s = state("page-nav", (prev: none, next: none)).get()
+  let doc-label = state("current-document", none).get()
+  if doc-label == none { return }
+
+
+  let i = manual-pages.position(((_, _, label)) => label == doc-label)
+  if i == none { return }
+
+  let prev = if i > 0 { manual-pages.at(i - 1).last() }
+  let next = if i < manual-pages.len() - 1 { manual-pages.at(i + 1).last() }
+
+
   let icon(a) = html.frame(common.diagram(common.edge((0pt,0), (a, 1pt), " >", stroke: 1pt)))
   let nav-link(label, dir) = {
     let title = query(selector(heading).within(label)).first().body
@@ -115,8 +128,8 @@
     link(label, body)
   }
   html.footer(id: "page-nav", {
-    html.div(if s.prev != none { nav-link(s.prev, left) })
-    html.div(if s.next != none { nav-link(s.next, right) })
+    html.div(if prev != none { nav-link(prev, left) })
+    html.div(if next != none { nav-link(next, right) })
   })
 
 
@@ -218,21 +231,16 @@
 
 
 
-#for (i, (dest, src, label)) in manual-pages.enumerate() {
+#for (i, (dest, src, doc-label)) in manual-pages.enumerate() {
 
   let doc = document(dest, {
-    state("page-nav").update((
-      prev: if i > 0 { manual-pages.at(i - 1).last() },
-      next: if i < manual-pages.len() - 1 { manual-pages.at(i + 1).last() } ,
-    ))
+    state("current-document").update(doc-label)
     template(include src)
   })
 
-  [#doc #label]
+  [#doc #doc-label]
 
 }
-
-#state("page-nav").update((prev: none, next: none))
 
 
 
@@ -240,11 +248,13 @@
 
 #let fn-doc(module, name, ..args) =  {
   let url = "reference/" + module + "/" + name + ".html"
+  let doc-label = label("ref-" + name)
   let doc = document(url, {
+    state("current-document").update(doc-label)
     state("current-fn-page").update(_ => (module, name))
     template(components.show-fn(name, level: 1))
   })
-  [#doc #label("ref-" + name)]
+  [#doc #doc-label]
 
   menu-tree.update(l => {
     if module not in l { l.insert(module, ()) }

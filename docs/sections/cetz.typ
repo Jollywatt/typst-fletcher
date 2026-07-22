@@ -4,7 +4,7 @@
 
 = CeTZ Integration <cetz-interop>
 
-Fletcher aims to be compatible with CeTZ, in the sense that you can use as little or as much of fletcher's features with CeTZ and vice versa.
+Fletcher aims to be compatible with CeTZ, in the sense that you can use as little or as much of fletcher's features with CeTZ as you want, and vice versa.
 Under the hood, fletcher builds upon CeTZ by defining:
 
 - @flexigrid, which defines a $u v$ coordinate system for table-like layouts within a CeTZ canvas;

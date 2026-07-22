@@ -59,6 +59,7 @@ nav {
   min-width: var(--sidebar-width);
   overflow-y: scroll;
   overflow-x: hidden;
+  scrollbar-width: none;
   white-space: nowrap;
 
   box-sizing: border-box;
@@ -71,32 +72,55 @@ nav {
   --stretch-duration: 500ms;
 
   transition:
-		/* menu open/close */
+    /* menu open/close */
     left var(--open-duration),
-    /* menu unstretching to normal width */ box-shadow ease-in-out
-      var(--stretch-duration),
+    /* menu unstretching to normal width */
+    box-shadow ease-in-out var(--stretch-duration),
     min-width ease-in-out var(--stretch-duration);
   box-shadow: 5px 0 0px -5px #0000;
   z-index: 1;
 
+  &:not(.stretched) > ul {
+    mask-image: linear-gradient(to right, black 95%, transparent);
+  }
+
+  &.stretched {
+    /* how fast menu stretches out */
+    transition: 500ms;
+    box-shadow: 5px 0 10px -5px #0003;
+  }
+
   p {
-    margin: 0; /* glitchy when combined with overflow */
+    margin: 0;
+    /* glitchy when combined with overflow */
   }
 
   a {
     text-decoration: none;
   }
 
+  &>ul>li {
+    margin-top: 1rem;
+  }
+
   ul {
     list-style: none;
     padding: 0;
+
+    ul ul {
+      padding-left: 1em;
+      font-weight: 300;
+      font-size: 0.9em;
+    }
+  }
+
+
+  span[data-depth='3'] {
+    padding-left: 1em;
   }
 
   details ul {
     padding-left: 1rem;
-  }
-  & > ul > li {
-    margin-top: 1rem;
   }
 
   details {
@@ -104,21 +128,20 @@ nav {
       list-style: none;
       cursor: pointer;
     }
+
     summary::after {
       content: "+";
       float: right;
       margin-right: 1em;
     }
+
     &[open] summary::after {
       content: "−";
     }
   }
 }
 
-nav.stretched {
-  transition: 500ms; /* how fast menu stretches out */
-  box-shadow: 5px 0 10px -5px #0003;
-}
+
 
 @media screen and (min-width: 45rem) {
   /* Wide page */
@@ -164,12 +187,12 @@ nav.stretched {
     text-align: center;
   }
 
-  #menu-control:checked ~ nav {
+  #menu-control:checked~nav {
     left: 0px;
     box-shadow: 0 0 15px #0003;
   }
 
-  #menu-control:not(:checked) ~ .menu-overlay {
+  #menu-control:not(:checked)~.menu-overlay {
     opacity: 0;
     pointer-events: none;
   }
@@ -216,13 +239,12 @@ nav.stretched {
   right: 0;
   font-size: 10pt;
   padding: 0.5em;
-  background: repeating-linear-gradient(
-    -45deg,
-    yellow 0 10px,
-    black 10px 20px
-  );
+  background: repeating-linear-gradient(-45deg,
+      yellow 0 10px,
+      black 10px 20px);
   box-shadow: 0 2px 5px #0002;
   z-index: 10;
+
   &::after {
     content: "Site Work In Progress";
     background: yellow;
@@ -245,31 +267,30 @@ h2 {
 a {
   color: unset;
   cursor: pointer;
+
   &:hover {
     text-decoration: underline;
   }
 }
+
+strong {
+  font-weight: 500;
+}
+
 code {
   font-family: monospace, monospace;
   font-size: 0.95em;
 }
 
-.codeblock pre {
-  overflow-x: scroll;
-  background: #f9fcff;
-  border: 1px solid #d0d7de;
-  padding: 0.5em;
-  border-radius: 0.75em;
-  font-size: 0.85em;
-  box-shadow: 0 1px 4px #0001;
-}
 
 table {
   border-collapse: collapse;
+
   th,
   td {
     padding: 0.2em 0.5em;
   }
+
   td {
     border: 1px solid #d0d7de;
     overflow: hidden;
@@ -286,6 +307,18 @@ table {
   align-items: center;
 }
 
+.codeblock pre {
+  overflow-x: scroll;
+  background: #f9fcff;
+  border: 1px solid #d0d7de;
+  padding: 0.5em;
+  border-radius: 0.75em;
+  font-size: 0.85em;
+  box-shadow: 0 1px 4px #0001;
+  scrollbar-width: thin;
+}
+
+
 .code-example {
   display: flex;
   align-items: center;
@@ -293,13 +326,11 @@ table {
   justify-content: flex-end;
 
   .codeblock {
-    flex: 1 1 30vw;
-    overflow-x: scroll;
-    mask-image: linear-gradient(to right, black 90%, transparent);
+    flex-grow: 1;
+    min-width: 0;
+    mask-image: linear-gradient(to right, black 70%, transparent);
   }
-  .svg-frame {
-    mask-image: none;
-  }
+
 }
 
 .gallery-example {
@@ -317,6 +348,7 @@ table {
 .fn-arg {
   border-top: 1px solid #aaa;
   border-radius: 0.8rem 0.8rem 0 0;
+  box-shadow: 0 -4px 8px -8px #0003;
   padding: 1rem;
   margin: 1em 0;
 
