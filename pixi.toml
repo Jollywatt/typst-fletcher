@@ -16,5 +16,12 @@ compile = "scripts/compile.nu"
 test = "scripts/test-and-sign.nu"
 install = "scripts/install.nu"
 check = "scripts/check.nu"
-manual = "typst watch --root . docs/manual.typ"
-site = "typst watch --root . docs/site.typ --features html,bundle --format bundle --open"
+
+[tasks.manual]
+args = [{arg = "mode", choices = ["watch", "compile"]}]
+cmd = "typst {{ mode }} --root . docs/manual.typ"
+
+
+[tasks.site]
+args = [{arg = "mode", choices = ["watch", "compile"]}]
+cmd = "typst {{ mode }} --root . docs/site.typ --features html,bundle --format bundle"
