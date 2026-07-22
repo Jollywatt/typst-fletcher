@@ -125,7 +125,8 @@
       #menu-button
       #page-nav
     ]
-
+    html.div(id: "wip-banner")
+    
   })
   html.script(nav-expander-script.text)
 }

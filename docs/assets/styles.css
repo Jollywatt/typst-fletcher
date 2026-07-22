@@ -211,6 +211,27 @@ nav.stretched {
   }
 }
 
+#wip-banner {
+  position: fixed;
+  top: 0;
+  right: 0;
+  font-size: 10pt;
+  padding: 0.5em;
+  background: repeating-linear-gradient(
+    -45deg,
+    yellow 0 10px,
+    black 10px 20px
+  );
+  box-shadow: 0 2px 5px #0002;
+  z-index: 10;
+  &::after {
+    content: "Site Work In Progress";
+    background: yellow;
+    padding: 0.25em;
+    display: block;
+  }
+}
+
 /* Text styles */
 
 h1,
