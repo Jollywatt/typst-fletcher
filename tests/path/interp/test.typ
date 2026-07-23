@@ -63,14 +63,14 @@ Points on path with manual stops
     let n = 8
     for i in range(stops.len()*n) {
       i /= n
-      let z = paths.interp-path-point(path, stops, i)
+      let z = paths.interpolate-path-point(path, stops, i)
       let (pt, vel, accel) = paths.point-on-path-by-segment(path, z)
       speck(pt)
     }
 
     for i in range(stops.len()) {
       // i += .5
-      let z = paths.interp-path-point(path, stops, i)
+      let z = paths.interpolate-path-point(path, stops, i)
       let (pt, vel, accel) = paths.point-on-path-by-segment(path, z)
       tick(pt, vel, i)
     }

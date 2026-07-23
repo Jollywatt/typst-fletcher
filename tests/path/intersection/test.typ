@@ -39,7 +39,7 @@ Test that the points and path indices returned by\
     let points = fletcher.paths.intersection.path-path(d2, d1)
 
     for (pt, (subpath-i, segment-i, t)) in points {
-      let (pt2, x-vel, x-accel) = paths.point-on-path(ctx, d1.segments, segment: segment-i + t)
+      let (pt2, x-vel, x-accel) = paths.point-on-path-by-segment(d1.segments, segment-i + t)
 
       let (pt, pt2) = cetz.util.revert-transform(ctx.transform, pt, pt2)
       let c = color.oklch(80%, 100%, t*360deg)
@@ -58,7 +58,7 @@ Test that the points and path indices returned by\
       circle(pt2, radius: 4pt, stroke: c)
     }
   })
-  
+
 
   let o1 = merge-path({
     line((0,0), (3,-1))

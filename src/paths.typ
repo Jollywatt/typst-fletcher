@@ -3,7 +3,7 @@
 #import cetz.util: bezier
 #import "utils.typ"
 #import "intersection.typ"
-#import "parsing.typ": is-segment-anchor, interpret-segment-anchor
+#import "parsing.typ": interpret-path-anchor
 
 
 // TERMINOLOGY
@@ -111,6 +111,7 @@
   return (c1, c2, e)
 }
 
+
 /// Return the cubic Bézier obtained by clamping the
 /// parameter value $t$ to an interval $[t_0, t_1]$.
 #let clamp-cubic-bezier(s, c1, c2, e, t0, t1) = {
@@ -180,11 +181,13 @@
 /// return the segment index of a point at a fractional stop.
 ///
 /// The path length of stops are linearly interpolated.
-#let interp-path-point(path, stops, index) = {
+#let interpolate-path-point(path, stops, index, rev: false) = {
   assert(is-path(path))
-  if index >= stops.len() - 1 {
-    return stops.last()
-  }
+
+  if rev { index = stops.len() - index }
+  if index < 0 { return 0. }
+  if index >= stops.len() - 1 { return stops.last() }
+
   let segment-lengths = cetz.path-util.segment-lengths(path).flatten()
   let cumulative-lengths = (0., ..utils.cumsum(segment-lengths))
   let i-lo = calc.floor(index)
@@ -197,14 +200,20 @@
 }
 
 /// Return the position, velocity and acceleration vectors of a point
-/// on a path by its segment index.
-///
-/// The integer part of the segment index refers to which segment the
-/// point lies and the fractional part refers to how far along the segment
-/// it is (in terms the segment's $t$ parameter, not its path length).
-#let point-on-path-by-segment(path, index) = {
+/// on a path at a particular segment index.
+#let point-on-path-by-segment(
+  path,
+  /// The _segment index_ is a number whose integer part refers to a
+  /// segment of the path and whose fractional part specifies how far
+  /// along this segment to go (in terms the linear or Bézier segment's
+  /// $t$ parameter, not its path length).
+  index,
+  /// Count segments from the end of the path instead of the start.
+  rev: false,
+) = {
   assert(is-path(path))
-  if index < 0 {
+  if rev or index < 0 {
+    if index > 0 { index *= -1 }
     let total-segments = path.map(subpath => subpath.last().len()).sum(default: 0)
     index += total-segments
   }
@@ -230,7 +239,18 @@
   return point-on-subpath-segment(path.at(subpath-index), segment-index, calc.fract(index))
 }
 
-#let point-on-path-by-length(ctx, path, l) = {
+/// Return the position, velocity and acceleration vectors of a point
+/// a specified length from the start or end of a path.
+#let point-on-path-by-length(
+  /// Dictionary containing a `length` key, used only to convert physical
+  /// units to dimensionless CeTZ units.
+  ctx,
+  path,
+  /// A number, length, or ratio of the path's total length.
+  length,
+  /// Measure from the end of the path instead of the start.
+  rev: false,
+) = {
   assert(is-path(path))
   let lengths = cetz.path-util.segment-lengths(path)
   let total-length = lengths.sum(default: 0).sum(default: 0)
@@ -240,16 +260,17 @@
     return (cetz.path-util.first-subpath-start(path), origin, origin)
   }
 
-
   let target-length = (
-    if type(l) in (int, float) { l }
-    else if type(l) == ratio { total-length*float(l) }
-    else if type(l) == length { l.to-absolute()/ctx.length }
-    else if type(l) == relative {
-      total-length*float(l.ratio) + l.length.to-absolute()/ctx.length
-    } else { utils.error("invalid path position: #0", l) }
+    if type(length) in (int, float) { length }
+    else if type(length) == ratio { total-length*float(length) }
+    else if type(length) == std.length { length.to-absolute()/ctx.length }
+    else if type(length) == relative {
+      total-length*float(length.ratio) + length.length.to-absolute()/ctx.length
+    } else { utils.error("invalid path position: #0", length) }
   )
   target-length = calc.clamp(target-length, 0, calc.max(0, total-length - 1e-15))
+
+  if rev { target-length = total-length - target-length }
 
   let acc-length = 0.
   for (subpath-index, subpath) in path.enumerate() {
@@ -264,41 +285,6 @@
 
   utils.error("point on path is out of range")
 }
-
-/// Get the position, velocity, and acceleration of a point on a path,
-/// parametrised either by length or segment number.
-#let point-on-path(
-  /// Dictionary including the unit length `ctx.length`
-  /// for converting lengths into CeTZ units.
-  ctx,
-  path,
-  /// Specify the point by its length along the path (in CeTZ units),
-  /// or by its position along the path as a ratio of its total length.
-  ///
-  /// For example, `50%` is the midpoint of the path's total length.
-  ///
-  /// -> number | ratio
-  length: none,
-  /// Specify the point by "segment coordinate".
-  ///
-  /// The integer part specifies the segment index, and the fractional part
-  /// specifies the position along that segment (for Bezier curves, this is the
-  /// time parameter, not the arc length).
-  ///
-  /// For example, `2.5` is the midpoint of the third segment.
-  ///
-  /// -> number
-  segment: none,
-) = {
-  if length != none and segment == none {
-    point-on-path-by-length(ctx, path, length)
-  } else if length == none and segment != none {
-    point-on-path-by-segment(path, segment)
-  } else {
-    utils.error("only one of `length` or `segment` may be specified")
-  }
-}
-
 
 
 
@@ -903,15 +889,17 @@
 
 
   let anchors(it, return-info: false) = {
-    if it == "default" { it = 50% }
+
+    let anchor = interpret-path-anchor(it)
 
     let sample-subpath(subpath) = {
-      if is-segment-anchor(it) {
-        let anchor = interpret-segment-anchor(it)
-        let index = interp-path-point(subpath, anchor-stops, anchor.segment + anchor.t)
+      if "segment" in anchor {
+        let index = interpolate-path-point(subpath, anchor-stops, anchor.segment + anchor.t, rev: anchor.rev)
         return point-on-path-by-segment(subpath, index)
+      } else if "length" in anchor {
+        return point-on-path-by-length(ctx, subpath, anchor.length, rev: anchor.rev)
       } else {
-        return point-on-path-by-length(ctx, subpath, it)
+        panic(anchor)
       }
     }
 

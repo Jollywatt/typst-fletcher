@@ -397,7 +397,7 @@
 			continue
 		}
 		let i = arg.position("-")
-		if i == none { 
+		if i == none {
 			path.push(arg)
 			break
 		}
@@ -435,49 +435,62 @@
 }
 
 
-#let is-segment-anchor(it) = {
-	if type(it) in (int, float) { return true }
-	if type(it) == array { it = it.join(".") }
-  if type(it) == str {
-    return it.match(regex("^[-+]?[0-9.]+$")) != none
-  }
-  if type(it) == dictionary {
-    return "segment" in it
-  }
-  return false
-}
-#let interpret-segment-anchor(it) = {
+#let interpret-path-anchor(it) = {
+  if type(it) == array { it = it.join(".") }
 
-	if type(it) == array { it = it.join(".") }
-  if type(it) == dictionary {
-    if type(it.segment) != int {
-      utils.error("invalid segment anchor: `segment` must be an integer; got #0.", it.segment)
-    }
-    if type(it.t) != float {
-      utils.error("invalid segment anchor: `t` must be a float; got #0.", it.t)
-    }
-    if type(it.rev) != bool {
-      utils.error("invalid segment anchor: `rev` must be a boolean; got #0.", it.rev)
-    }
-    return it
-  }
+  if it == "start" { it = 0% }
+  if it in ("default", "mid") { it = 50% }
+  if it == "end" { it = 100% }
 
   if type(it) == str {
-    let index = calc.abs(float(it))
+    // by segment
+    if it.match(regex("^[-+]?[0-9.]+$")) != none {
+      let index = calc.abs(float(it))
+      return (
+        segment: calc.floor(index),
+        t: calc.fract(index),
+        rev: it.starts-with("-"), // remember 0 (start) and -0 (end) are distinct
+      )
+    }
+
+
+    // by length
+    for (suffix, unit) in (
+      "pc": 1%,
+      "%": 1%,
+      "pt": 1pt,
+      "em": 1em,
+      "mm": 1mm,
+      "cm": 1cm,
+      "in": 1in,
+    ) {
+      if it.ends-with(suffix) {
+        return (
+          length: calc.abs(float(it.slice(0, -suffix.len()))*unit),
+          rev: it.starts-with("-"),
+        )
+      }
+    }
+
+  }
+
+  if type(it) in (int, float) {
+    // by segment
     return (
-      segment: calc.floor(index),
-      t: calc.fract(index),
-      rev: it.starts-with("-"), // remember 0 (start) and -0 (end) are distinct
-    )
-  }
-
-	if type(it) in (int, float) {
-		return (
-      segment: calc.floor(calc.abs(it)),
-      t: float(calc.fract(calc.abs(it))),
-      rev: it < 0, // remember 0 (start) and -0 (end) are distinct
-    )
+       segment: calc.floor(calc.abs(it)),
+       t: float(calc.fract(calc.abs(it))),
+       rev: it < 0, // remember 0 (start) and -0 (end) are distinct
+     )
 	}
 
-  utils.error("invalid segment anchor #0.", repr(it))
+	if type(it) in (length, ratio) {
+	  // by length
+  	return (
+    	length: calc.abs(it),
+      rev: it < 0*it,
+  	)
+	}
+
+	utils.error("invalid path anchor #0.", repr(it))
+
 }
