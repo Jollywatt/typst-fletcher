@@ -349,6 +349,17 @@
 		},
 	),
 
+	loop: (
+		size: 3,
+		bar: 1.75,
+		tip-origin: mark => mark.size + 0.5,
+		tail-end: mark => -mark.size,
+		draw: mark => {
+			draw.arc((0,0), radius: mark.size, start: 90deg, delta: -270deg, fill: none)
+			draw.line((), (-mark.size, mark.size*mark.bar))
+		},
+	),
+
 	">": (inherit: "head", rev: false),
 	"<": (inherit: "head", rev: true),
 
