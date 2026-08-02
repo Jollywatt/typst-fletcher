@@ -802,7 +802,7 @@
   if element.drawables.len() != 1 {
     utils.error("path effect requires each element to have one drawable; found #0", element.drawables.len())
   }
-  let extrude = utils.one-or-array(extrude, types: (int, float, length))
+  let extrude = utils.one-or-array(extrude, types: (int, float))
 
   if type(shorten-start) != array {
     shorten-start = (shorten-start,)*extrude.len()
@@ -847,8 +847,8 @@
       if type(x) in (int, float) { x*thickness/ctx.length }
       else if type(x) == length { x.to-absolute()/ctx.length }
     }
-    let offsets = extrude.map(resolve-thickness-multiples).sorted()
 
+    let offsets = extrude.map(resolve-thickness-multiples)
     for (i, offset) in offsets.enumerate() {
       let new-path = drawable.segments
 
@@ -1062,7 +1062,7 @@
   /// ```
   dynamic-radius: true,
 ) = {
-  let extrude = utils.one-or-array(extrude, types: (int, float, length))
+  extrude = utils.one-or-array(extrude, types: (int, float, length))
 
   if type(shorten-start) != array {
     shorten-start = (shorten-start,)*extrude.len()
@@ -1083,6 +1083,12 @@
         cetz.util.resolve-number(ctx, corner-radius)
       }
     )
+
+    let extrude = extrude.map(e => {
+      if type(e) == length {
+        e.to-absolute()/stroke.thickness.to-absolute()
+      } else { e }
+    })
 
     let elements = cetz.process.many(ctx, objs).elements
 

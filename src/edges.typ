@@ -556,9 +556,21 @@
     merge: edge-data.style,
   )
 
+  // resolve extrude to multiples of edge thickness
+  edge-data.style.extrude = utils.one-or-array(
+      edge-data.style.extrude,
+      types: (length, float, int),
+    ).map(e => {
+      if type(e) == length {
+        e.to-absolute() / edge-data.style.stroke.thickness.to-absolute()
+      } else { e }
+    })
+    .sorted()
+
   // resolve marks
   edge-data.style.marks = edge-data.style.marks.map(mark => {
-    mark.size *= float(edge-data.style.mark-scale)
+    mark.scale = mark.at("scale", default: 1)*float(edge-data.style.mark-scale)
+    mark.edge-extrude = edge-data.style.extrude
     Marks.resolve-mark(mark)
   })
 
@@ -685,9 +697,10 @@
 })
 
 
-
 #let interpret-marks-arg(marks) = {
-  if marks == none { (marks: ()) } else if type(marks) == array {
+  if marks == none {
+    (marks: ())
+  } else if type(marks) == array {
     (marks: Marks.interpret-marks(marks))
   } else if type(marks) in (str, symbol) {
     let (marks, options) = parsing.parse-mark-shorthand(marks)

@@ -10,6 +10,7 @@
 	flip: false,
 	scale: 1,
 	extrude: (0,),
+	edge-extrude: (0,),
 	tip-end: 0,
 	tail-end: 0,
 	tip-hang: none,
@@ -22,7 +23,7 @@
 #let apply-mark-inheritances(mark) = {
 	// let marks = MARKS.get()
 	let marks = DEFAULT_MARKS
-	let ancestor = none
+
 	while "inherit" in mark {
 		if mark.inherit.ends-with("'") {
 			mark.flip = not mark.at("flip", default: false)
@@ -33,12 +34,15 @@
 			utils.error("Mark inherits from #0 which is not defined.", repr(mark.inherit))
 		}
 
+		let parent = marks.at(mark.inherit)
 
-		if ancestor == none { ancestor = mark.inherit }
-		let parent = marks.at(mark.remove("inherit"))
-		mark = parent + mark
+		// properties occurring before `inherit` should be inserted before parent's properties
+		// and properties occurring after should update parent's properties
+		let (pre-inherit, post-inherit) = mark.keys().split("inherit")
+			.map(keys => keys.map(k => (k, mark.at(k))).to-dict())
+
+		mark = pre-inherit + parent + post-inherit
 	}
-	if ancestor != none { mark = (kind: ancestor) + mark }
 
 	return mark
 }
@@ -95,14 +99,15 @@
 #let resolve-mark(mark) = {
 	mark = add-mark-defaults(mark)
 
-	if "size" in mark {
-		mark.size *= mark.remove("scale") // remove to prevent mistakenly applying twice
-	}
 
 	for (key, value) in mark {
     if key == "cap-offset" { continue }
 		if type(value) == function {
 			mark.at(key) = value(mark)
+		}
+		if key == "size" {
+			// apply scale 
+			mark.size *= mark.remove("scale") // remove to prevent mistakenly applying twice
 		}
 	}
 
@@ -243,11 +248,6 @@
 	debug: false,
 ) = {
 	let thickness = utils.get-thickness(stroke).to-absolute()/ctx.length
-
-	let extrude = extrude.map(e => {
-		if type(e) == length { e.to-absolute()/ctx.length/thickness }
-		else { e }
-	})
 
 	let path-len = cetz.path-util.length(path)
 

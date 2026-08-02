@@ -1,10 +1,12 @@
 #import "deps.typ"
 #import deps.cetz.draw
+#import "utils.typ": interp, interp-inv
 
 #let DEFAULT_MARKS = (
 	// all numbers are interpreted as multiples of stroke thickness
 
 	head: (
+
 		size: 7, // radius of curvature
 		sharpness: 24.7deg, // angle at vertex between central line and arrow's edge
 		delta: 53.5deg, // angle spanned by arc of curved arrow edge
@@ -16,7 +18,6 @@
 			mark.tail-end - mark.size*a - 0.5
 		},
 		tip-hang: mark => mark.tail-origin*0.6,
-		// tail-hang: mark => calc.max(..mark.extrude),
 		tail-hang: 0,
 
 		stroke: (cap: "round"),
@@ -42,30 +43,52 @@
 
 	),
 
-	doublehead: (
+	// like 'head' but grows in response to edge extrusion.
+	// adjusted to match default math font
+	flexihead: (
+		flex: mark => calc.max(0, ..mark.edge-extrude.map(calc.abs))/2,
 		inherit: "head",
-		size: 10.56,
-		sharpness: 19.4deg,
-		delta: 43.5deg,
-	),
-
-	triplehead: (
-		inherit: "head",
-		size: 13.5,
-		sharpness: 25.5deg,
-		delta: 42.6deg,
+		size: mark => interp((7., 10.56, 13.5), mark.flex, spacing: 2),
+		sharpness: mark => interp((24.7deg, 19.4deg, 25.5deg), mark.flex, spacing: 3deg),
+		delta: mark => interp((53.5deg, 43.5deg, 42.6deg), mark.flex, spacing: 0deg),
 	),
 
 	harpoon: (
 		inherit: "head",
+		cap-offset: (mark, y) => 0,
 		draw: mark => {
+			let y = if mark.flip {
+				mark.edge-extrude.last()
+			} else {
+				-mark.edge-extrude.first()
+			}
 			draw.arc(
-				(0, 0),
+				(0, y),
 				radius: mark.size,
 				start: -(90deg + mark.sharpness),
 				delta: -mark.delta,
 				fill: none,
 			)
+		},
+	),
+
+	harpoons: (
+		inherit: "harpoon",
+		draw: mark => {
+			for flip in (-1, +1) {
+				let y = if flip > 0 {
+					mark.edge-extrude.first()
+				} else {
+					mark.edge-extrude.last()
+				}
+				draw.arc(
+					(0, -y),
+					radius: mark.size,
+					start: -flip*(90deg + mark.sharpness),
+					delta: -flip*mark.delta,
+					fill: none,
+				)
+			}
 		},
 	),
 
@@ -323,8 +346,13 @@
 		stroke: (cap: "round"),
 
 		draw: mark => {
+			let y = if mark.flip {
+				mark.edge-extrude.last()
+			} else {
+				-mark.edge-extrude.first()
+			}
 			draw.arc(
-				(0,0),
+				(0, y),
 				start: -90deg,
 				stop: +90deg,
 				radius: mark.size,
@@ -338,8 +366,13 @@
 		inherit: "hook",
 		draw: mark => {
 			for flip in (-1, +1) {
+				let y = if flip > 0 {
+					mark.edge-extrude.first()
+				} else {
+					mark.edge-extrude.last()
+				}
 				draw.arc(
-					(0,0),
+					(0, -y),
 					start: -flip*90deg,
 					stop: +flip*90deg,
 					radius: mark.size,
@@ -360,14 +393,14 @@
 		},
 	),
 
-	">": (inherit: "head", rev: false),
-	"<": (inherit: "head", rev: true),
+	">": (inherit: "flexihead", rev: false),
+	"<": (inherit: "flexihead", rev: true),
 
-	">>": (inherit: "head", extrude: (-2.88, 0), rev: false),
-	"<<": (inherit: "head", extrude: (-2.88, 0), rev: true),
+	">>": (inherit: "flexihead", extrude: (-2.88, 0), rev: false),
+	"<<": (inherit: "flexihead", extrude: (-2.88, 0), rev: true),
 
-	">>>": (inherit: "head", extrude: (-6, -3, 0), rev: false),
-	"<<<": (inherit: "head", extrude: (-6, -3, 0), rev: true),
+	">>>": (inherit: "flexihead", extrude: (-6, -3, 0), rev: false),
+	"<<<": (inherit: "flexihead", extrude: (-6, -3, 0), rev: true),
 
 	"|>": (inherit: "solid", rev: false),
 	"<|": (inherit: "solid", rev: true),

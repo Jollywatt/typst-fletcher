@@ -144,23 +144,6 @@
 	let line = lines.at(0)
 
 
-	// make classic math arrows slightly larger on double/triple stroked lines
-	if line == "=" {
-		marks = marks.map(mark => {
-			if mark == none { return }
-			(
-				">": (inherit: "doublehead", rev: false),
-				"<": (inherit: "doublehead", rev: true),
-			).at(mark, default: mark)
-		})
-	} else if line == "==" {
-		marks = marks.map(mark => {
-			if mark == ">" { (inherit: "triplehead", rev: false) }
-			else if mark == "<" { (inherit: "triplehead", rev: true) }
-			else {mark}
-		})
-	}
-
 	return (
 		marks: marks,
 		options: LINE_ALIASES.at(lines.at(0))
