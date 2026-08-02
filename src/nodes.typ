@@ -19,16 +19,10 @@
     let objs = {
       cetz.draw.translate(origin)
       let style = node.style
-      // resolve extrusion lengths or multiples of stroke thickness to cetz numbers
-      let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
-      let extrude = utils.one-or-array(style.extrude).map(e => {
-        if type(e) == length { return cetz.util.resolve-number(ctx, e) }
-        if type(e) in (int, float) { return e*thickness }
-      })
 
       style.fit = style.fit*(1 - style.fit-cell)
 
-      for (i, extrude) in extrude.enumerate() {
+      for (i, extrude) in node.style.extrude.enumerate() {
         cetz.draw.set-style(..style, fill: if i == 0 { style.fill })
         (node.draw)((
           body: if i == 0 { node.body },
@@ -90,16 +84,11 @@
 }
 
 
-#let resolve-node-styles(ctx, data) = {
-  let (style, shape, body) = data
-
-  let node-styles = cetz.styles.resolve(
-    DEFAULT_NODE_STYLE + NODE_SHAPES,
-    merge: ctx.style.at("node", default: (:)),
-  )
+#let resolve-node-shape(ctx, node-styles, node) = {
+  let shape = node.shape
 
   // a node shape is a dictionary with a `draw` entry
-  let all-shapes = NODE_SHAPES // default shapes
+  let all-shapes = NODE_SHAPES
   // other shapes can be specified via
   // set-style(node: ((shape-name): (..)))
   for (k, v) in node-styles {
@@ -113,7 +102,7 @@
     // given as named arguments to node(..)
     // e.g., `radius` implies circle
     for (name, (..options, draw)) in all-shapes {
-      if style.keys().any(o => o in options) {
+      if node.style.keys().any(o => o in options) {
         shape = name
         break
       }
@@ -130,15 +119,15 @@
 
   if shape == auto {
     // just guess shape from node body
-    if body == none { shape = "none"}
-    else if data.enclose != none { shape = "rect" }
-    else if data.cellspan != (none, none) { shape = "rect" }
+    if node.body == none { shape = "none"}
+    else if node.enclose != none { shape = "rect" }
+    else if node.cellspan != (none, none) { shape = "rect" }
     else {
       // choose based on body size and aspect ratio
       // this works best when nodes have no stroke, like in
       // commutative diagrams: single letters become circles
       // making edges connect more evenly
-      let (w, h) = cetz.util.measure(ctx, [#body])
+      let (w, h) = cetz.util.measure(ctx, [#node.body])
       if calc.max(w, h) > 2em.to-absolute()/ctx.length {
         shape = "rect"
       } else {
@@ -158,7 +147,6 @@
   if shape in (std.rect, cetz.draw.rect) { shape = "rect" }
   if shape == none { shape = "none" }
 
-
   if shape not in all-shapes {
     utils.error("Unknown node shape #0. Try: #..1",
       repr(shape), all-shapes.keys())
@@ -170,7 +158,7 @@
     all-shapes.at(shape).keys()
     DEFAULT_NODE_STYLE.keys()
   }
-  let invalid-args = style.keys().filter(arg => arg not in valid-args)
+  let invalid-args = node.style.keys().filter(arg => arg not in valid-args)
   if invalid-args.len() > 0 {
     utils.error(
       "Unknown node option #..invalid. Options for #shape nodes: #..valid",
@@ -180,6 +168,19 @@
     )
   }
 
+  return shape
+}
+
+#let resolve-node-styles(ctx, node) = {
+
+  // get style defaults (not yet with the node's specific styles)
+  let node-styles = cetz.styles.resolve(
+    DEFAULT_NODE_STYLE + NODE_SHAPES,
+    merge: ctx.style.at("node", default: (:)),
+  )
+
+  node.shape = resolve-node-shape(ctx, node-styles, node)
+
   // resolve styles so that:
   // - node(prop: val) takes highest precedence
   // - set-style(node: (shape: (prop: val))) affects nodes of a given shape
@@ -188,22 +189,36 @@
   let style = cetz.styles.resolve(
     node-styles,
     base: (
-      (shape): DEFAULT_NODE_STYLE.keys()
+      (node.shape): DEFAULT_NODE_STYLE.keys()
         .map(k => (k, auto)).to-dict(),
     ),
-    merge: ((shape): style),
-  ).at(shape)
+    merge: ((node.shape): node.style),
+  ).at(node.shape)
 
   if "draw" not in style {
     utils.error("node shape does not have a `draw` field; got `#0: #1`",
-      shape, repr(style))
+      node.shape, repr(style))
   }
 
-  return style
+
+  // resolve lengths to dimensionless numbers
+
+  let thickness = cetz.util.resolve-number(ctx, utils.get-thickness(style.stroke))
+  style.extrude = utils.one-or-array(style.extrude).map(e => {
+    if type(e) == length { cetz.util.resolve-number(ctx, e) }
+    else if type(e) in (int, float) { e*thickness }
+  })
+
+  style.outset = cetz.util.resolve-number(ctx, style.outset)
+
+
+  node.style = style
+  node.draw = style.draw
+  return node
 }
 
 
-#let measure-node(ctx, style, shape, body) = {
+#let measure-node(ctx, style, body) = {
 
   // measure node label/body
   let body-size = {
@@ -224,40 +239,42 @@
   let bounding-size = body-size
   let body-center = (0., 0., 0.)
 
-  if shape != none {
-    let drawn = (style.draw)((
-      size: body-size,
-      body: body,
-      extrude: 0,
-      unit-length: ctx.length,
-      style: style,
-      body-center: body-center
-    ))
-    let (low, high) = cetz.process.many(ctx, drawn).bounds
-    let (w, h, ..) = cetz.vector.sub(high, low)
-    body-center = cetz.vector.scale(cetz.vector.add(high, low), -0.5)
-    bounding-size = (w, h)
-  }
+  let drawn = (style.draw)((
+    size: body-size,
+    body: body,
+    extrude: 0,
+    unit-length: ctx.length,
+    style: style,
+    body-center: body-center
+  ))
+  let (low, high) = cetz.process.many(ctx, drawn).bounds
+  let (w, h, ..) = cetz.vector.sub(high, low)
+  body-center = cetz.vector.scale(cetz.vector.add(high, low), -0.5)
+  bounding-size = (w, h)
 
   return (body: body-size, bounding: bounding-size, body-center: body-center)
 }
 
 
 // ensure body is a cetz drawable and apply inset
-#let resolve-node-body(ctx, node, debug) = {
-  if not utils.is-cetz(node.body) {
-    if node.body == none {
-      // empty nodes should still affect canvas bounds
-      return cetz.draw.content((0,0), none)
-    } else {
-      let body = text([#node.body], top-edge: "cap-height", bottom-edge: "baseline")
-      if debug-level(get-debug(ctx, debug), "node.inset") {
-        body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
-      }
-      return cetz.draw.content((0,0), [#body], padding: node.style.inset, name: "body")
-    }
+#let resolve-node-body(ctx, body, inset, debug) = {
+  if utils.is-cetz(body) { return body }
+
+  if body == none {
+    // empty nodes should still affect canvas bounds
+    return cetz.draw.content((0,0), none)
   }
+
+  let body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
+  if debug-level(get-debug(ctx, debug), "node.inset") {
+    body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+  }
+
+  // inset = 0
+  return cetz.draw.content((0,0), [#body], padding: inset, name: "body")
 }
+
+
 
 #let _node(
   ..options,
@@ -298,12 +315,10 @@
 
     /* Resolve styles */
 
-    let style = resolve-node-styles(ctx, data)
-    data.style = style
-    data.draw = style.draw
-
-    data.body = resolve-node-body(ctx, data, debug)
-    let m = measure-node(ctx, style, shape, data.body)
+    data = resolve-node-styles(ctx, data)
+    data.body = resolve-node-body(ctx, data.body, data.style.inset, debug)
+    let m = measure-node(ctx, data.style, data.body)
+    data.body-size = m.body
     data.bounding-size = m.bounding
     data.body-center = m.body-center
 
@@ -348,6 +363,7 @@
       if self.uv-pos != none {
         // this is a uv node
         data = (fletcher-ctx.place-node-in-flexigrid)(self)
+
       } else {
         // this is an xy node
         // draw node at an exact coordinate
@@ -355,28 +371,30 @@
         let xy
         (ctx, xy) = cetz.coordinate.resolve(ctx, pos)
         data.pos = xy
-      }
-      ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
 
-      if data.pos.any(float.is-nan) {
-        utils.error("node coordinate #0 did not resolve (nodes cannot depend on edges)", original-pos)
+        if data.pos.any(float.is-nan) {
+          utils.error("node coordinate #0 did not resolve (nodes cannot depend on edges)", original-pos)
+        }
       }
+
+      // pass data to state to be read in final pass
+      ctx.shared-state.fletcher.nodes.at(fletcher-ctx.current-node) = data
 
       // since we need to resolve coordinates which might depend on anchors
       // continue and draw elements in the placement pass
 
     } else if fletcher-ctx.pass == "final" {
-      // retrieve info from layout pass
+      // The node's position and size must be resolved by now (see placement pass).
+      // Edges and nodes both read from `fletcher-ctx.nodes` as the source of truth
+      // about nodes' final attributes.
       let self = fletcher-ctx.nodes.at(fletcher-ctx.current-node)
       data.pos = self.pos
       data.bounding-size = self.bounding-size
       data.cell = self.cell
-      assert(type(data.pos) == array)
       ctx.prev.pt = data.pos
 
-
     } else {
-      // node does not appear in a flexigrid
+      // Node does not appear in a flexigrid.
       let xy
       (ctx, xy) = cetz.coordinate.resolve(ctx, data.pos)
       data.pos = xy
@@ -385,17 +403,16 @@
     }
 
 
-
     cetz.process.many(ctx, {
       draw-node-at(data, data.pos, debug: data.debug)
     })
-    
+
   },)
 }
 
 
 /// Place a _node_ in a diagram or CeTZ canvas.
-/// 
+///
 /// Nodes are content which #[@edge]s can snap to.
 /// Nodes can have various shapes (rect, circle), styles (fill, stroke).
 #let node(
@@ -411,7 +428,7 @@
   shape: auto,
 
   /// Fill style of the node.
-  ///  
+  ///
   /// The fill is drawn within the outline defined by the first @node.extrude value.
   fill: auto,
   /// Stroke style for the node outline.
@@ -441,22 +458,22 @@
   /// Draw strokes around the node at the given offsets to
   /// obtain a multi-stroke effect.
   /// Offsets can be numbers specifying multiples of the @node.stroke's thickness or lengths.
-  /// 
+  ///
   /// The node's fill is drawn within the boundary defined by the first offset in
   /// the array.
   /// -> array
   extrude: auto,
   /// Canvas layer to draw node on.
-  /// 
+  ///
   /// Nodes with equal layer are drawn in the order they are inserted.
   /// -> number
   layer: 0,
 
   name: none,
   /// Alignment of the node within its associated cell within a flexigrid.
-  /// 
+  ///
   /// This only has effect when used inside a @diagram or @flexigrid.
-  /// 
+  ///
   /// #frame-row(..(top + left, right).map(it => diagram(
   ///   debug: "grid",
   ///   spacing: 2pt,
@@ -465,12 +482,12 @@
   ///   node((0,1), width: 3cm, height: 5mm),
   ///   node((1,0), width: 5mm, height: 1cm),
   /// )))
-  /// 
+  ///
   /// To make a node fit to the size of a flexigrid cell,
   /// you can set the @node.colspan or @node.rowspan to `1`.
   align: center + horizon,
   /// How much the node influences the size of flexigrid rows/columns.
-  /// 
+  ///
   /// If `0`, the node does not affect the flexigrid or other node positions.
   /// If `1`, rows and columns grow to fully accommodate the node.
   /// -> number
@@ -484,7 +501,7 @@
 
   /// Whether to return a `metadata` object which can be placed inside equations,
   /// instead of returning an array of functions which can be inserted into a CeTZ canvas.
-  /// 
+  ///
   /// If you often use fletcher in math mode, consider defining a shortcut:
   /// ```typ
   /// #let hom = edge.with(in-math: true)
@@ -494,7 +511,7 @@
   /// ```typ
   /// #diagram($x hom(|->) & obj(pi(x), stroke: #yellow)$)
   /// ```
-  /// 
+  ///
   /// See also @edge.in-math.
   /// -> bool
   in-math: false,
@@ -506,7 +523,7 @@
     inset: inset,
     outset: outset,
     extrude: extrude,
-  ).pairs().filter(((k, v)) => v != auto).to-dict() 
+  ).pairs().filter(((k, v)) => v != auto).to-dict()
   style += args.named()
 
   let options = (

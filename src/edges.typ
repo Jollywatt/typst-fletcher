@@ -242,13 +242,13 @@
 ) = {
   assert(utils.is-cetz-element(element))
 
-  
+
   shorten = shorten.map(s => cetz.util.resolve-number(ctx, s))
   if shorten.any(s => s != 0) {
     let path = element.drawables.first().segments
     element.drawables.first().segments = cetz.path-util.shorten-to(path, shorten)
   }
-  
+
 
   let (shorten-start, shorten-end, marks) = Marks.draw-marks-on-path(
     ctx,
@@ -318,6 +318,7 @@
 #let find-snapping-drawables(ctx, nodes, edge) = {
   let node-drawables(node, outset) = {
     if outset == auto { outset = node.style.outset }
+    outset = cetz.util.resolve-number(ctx, outset)
     node.style.extrude = (outset,)
     node.name = none
     node.body = none
@@ -403,7 +404,7 @@
 
 #let edge-anchor-handler(ctx, drawable, default-anchors, it) = {
   assert(paths.is-drawable(drawable))
-  
+
   if type(it) == array {
     it = it.join(".")
   }
@@ -437,7 +438,7 @@
 }
 
 #let draw-edge(ctx, edge) = {
-  
+
   let objs = (edge.draw)(edge.vertices)
   if objs.len() != 1 { utils.error("edge.draw should return a single CeTZ object") }
 
@@ -614,7 +615,7 @@
   crossing: false,
   debug: auto,
 ) = cetz.draw.get-ctx(ctx => {
-  
+
   if "fletcher" not in ctx.shared-state {
     ctx.shared-state.fletcher = (
       pass: none,
@@ -627,7 +628,7 @@
   let dummy-anchor-handler = (ctx => (ctx: ctx, name: name, anchors: _ => utils.nans),)
 
   if fletcher-ctx.pass == "layout" {
-    // only nodes are collected during the layout pass 
+    // only nodes are collected during the layout pass
     dummy-anchor-handler
     return
   }
@@ -1112,10 +1113,10 @@
   ///
   /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
-  /// 
+  ///
   /// *@edge.debug options:* You can use the `debug: "edge.snap"` option to see the edge's path before snapping is applied.
   /// Additionally, the debug options `"edge.snap.from"` and `"edge.snap.to"` highlight the nodes that are ultimately snapped to.
-  /// 
+  ///
   /// -> none | auto | pair
   snap-to: (auto, auto),
   /// When an edge snaps to an object's outline, the edge can be shifted in two ways:
@@ -1145,7 +1146,7 @@
   /// the target node.
   /// Can be a single length or a pair of lengths `(from, to)` to control the
   /// outset at either end.
-  /// 
+  ///
   /// ```example
   /// #diagram(
   ///   node-fill: teal,
@@ -1194,11 +1195,11 @@
   /// -> number | length | array
   extrude: auto,
   /// The radius of round or bevelled corners.
-  /// 
+  ///
   /// For extruded edges, this defines the radius of curvature of
   /// the _innermost_ stroke as you go around the bend.
   /// Note that `none`, which enables miter joins, is different from `0`.
-  /// 
+  ///
   /// #frame-row(..(none, 0pt, 5pt).map(it => {
   ///   	diagram(
   ///   		edge-stroke: 1pt,
@@ -1244,16 +1245,16 @@
   /// Canvas layer to draw edge on.
   ///
   /// Edges with equal layer are drawn in the order they are inserted.
-  /// 
+  ///
   /// #frame-row(..(0, 2).map(it => {
   ///   diagram({
   ///     node((0,0), $ times $, fill: yellow)
   ///     edge((-1,0), (+1,0), "->", raw("layer: " + repr(it)), layer: it, label-side: start, label-pos: 0%)
   ///   })
   /// }))
-  /// 
+  ///
   /// See also @node.layer, which is `1` by default.
-  /// 
+  ///
   /// -> number
   layer: 0,
 
@@ -1278,7 +1279,7 @@
   crossing: false,
   /// Color of the "crossing" backdrop  (drawn when @edge.crossing is enabled).
   /// This should match the background of the figure to give the illusion of breaking lines below it.
-  /// 
+  ///
   /// #frame-row(..(white, gray, yellow).map(it => {
   ///   diagram(
   ///     edge-crossing-fill: it,
@@ -1290,7 +1291,7 @@
   /// -> color
   crossing-fill: auto,
   /// Width of the "crossing" backdrop (drawn when @edge.crossing is enabled) as a length or a multiple of the stroke's thickness.
-  /// 
+  ///
   /// #frame-row(..(3, 5, 5pt).map(it => {
   ///   diagram(
   ///     edge-crossing-thickness: it,
