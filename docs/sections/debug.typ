@@ -16,7 +16,7 @@ Debug arguments accept the following options:
 - `("grid", "node.outset")`: multiple annotations
 - `"grid node.outset"`: space-separated string of multiple annotations
 
-== Debug options
+== Debug options <debug-options>
 
 #let dummy-diagram(debug) = {
 	show: frame

@@ -360,7 +360,7 @@
 	}
 
 	if args.len() > 0 {
-		utils.error("Unexpected `node()` positional argument: #..0. Try using named arguments", args)
+		utils.error("Unexpected `node()` positional argument: #..0. Try using named arguments. Other arguments were: #1 ", args, options)
 	}
 
 	return options

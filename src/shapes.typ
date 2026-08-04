@@ -46,7 +46,7 @@
 /// #shape-demo("rect", show-code: true)
 ///
 /// - `corner-radius`: Accepts the same inputs as ```typc cetz.draw.rect(radius: ..)```.
-///   #frame-row(..(0, 5pt, (south: 1em)).map(o => shape-demo("rect", green, corner-radius: o, label: raw("corner-radius: " + repr(o)))))
+///   #frame-row(..(0, 5pt, (south: 1em)).map(o => shape-demo("rect", corner-radius: o, label: raw("corner-radius: " + repr(o)))))
 #let rect(node) = {
   let (w, h) = resolve-size(node)
   let x = w / 2 + node.extrude
@@ -355,10 +355,10 @@
   let (dir, angle, fit) = node.style
   let flip = dir in (right, left) // flip along diagonal line x = y
   let rotate = dir in (bottom, left) // rotate 180deg
-  
+
   let (w, h) = resolve-size(node)
   if flip { (w, h) = (h, w) }
-  
+
   let (x, y) = (w / 2 + node.extrude, h / 2 + node.extrude)
 
   let a = h / 2 // height of edges of roof
@@ -367,7 +367,7 @@
   let dy = (1 - fit) * (a - b) // shift roof up/down to fit
   a += node.extrude * calc.tan(45deg - angle / 2)
   b += node.extrude / calc.cos(angle)
-  
+
   let verts = (
     (-x, -y),
     (-x, a + dy),

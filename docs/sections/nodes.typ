@@ -72,8 +72,18 @@ The @node.shape[shape] option can be set to any of the following built-in shapes
 
 #shapes-gallery
 
-Most shapes have additional styles which you can set, such as `corner-radius` for @rect or `radius` for @circle.
-For example:
+Most shapes have additional styles specific to the shape, such as:
+- `width`, `height` and @node-fit[`fit`] for all shapes
+- `corner-radius` for @rect
+- `radius` for @circle
+- `angle` for @parallelogram, @keystone, @triangle, @house, @chevron and @hexagon
+- `dir` for @triangle, @house, @chevron
+- and others
+
+Additional styles are described in each shape's documentation.
+
+A node's shape can often be automatically inferred from the other styles given.
+For example, you can write `node(.., radius: 3cm)` instead of `node(.., shape: "circle", radius: 3cm)`.
 
 #example(```typ
 #diagram(
@@ -86,7 +96,43 @@ For example:
 ```)
 
 
-Sometimes, like with the example above, the node shape can be automatically inferred from the options given.
-Specifically, you can write `node(.., radius: 3cm)` instead of `node(.., shape: "circle", radius: 3cm)`.
 
+=== Making shapes fit better <node-fit>
 
+All shapes have a `fit` parameter, which adjusts how tightly the shape fits in the @node.body[body].
+- `fit: 0` makes the shape small enough to fit inside the body
+- `fit: 1` makes the shape large enough so the node body fits inside
+
+The default is usually in between, striking a balance.
+If a node looks too cramped inside a shape, you can usually adjust the `fit` instead of tweaking the @node.inset.
+
+You can see the bounding box of the node body with the `"node.body"` @debug-options[debug option].
+
+#example(```typ
+#diagram(
+  debug: "node.body",
+  spacing: 5pt,
+  node-stroke: blue,
+  node-fill: blue.lighten(80%),
+  node-shape: "diamond",
+  node((0,0), fit: 0)[Zero fit],
+  node((0,1), fit: 0.5)[Partial],
+  node((0,2), fit: 1)[Whole fit],
+)
+```)
+
+In addition to controlling how the node's body fits in the shape, the `fit-cell` parameter controls how the shape fits in the surrounding flexigrid cell.
+
+This only matters for the layout of a surrounding @flexigrid or @diagram; the `fit-cell` style doesn't affect node itself.
+
+#example(```typ
+#diagram(
+  debug: "grid.cells node.body",
+  spacing: 5pt,
+  node-stroke: blue,
+  node-fill: blue.lighten(80%),
+  node-shape: "triangle",
+  node((0,0), fit-cell: 0)[Zero cell fit],
+  node((1,1), fit-cell: 1)[Total cell fit],
+)
+```)
