@@ -53,14 +53,17 @@ Debug arguments accept the following options:
   "node.origin": [
 		Show the center coordinate of a node as a small red dot
 	],
-	"node.bounds": [
-		Show the rectangular bounding boxes of nodes
-	],
   "node.inset": [
 		Show bounding boxes around node bodies, before @node.inset is applied
 	],
+	"node.body": [
+	  Show bounding box around a node's body, after applying @node.inset.
+	],
   "node.outset": [
-		Show a node's snapping target for connecting edges, which is the node's outline extruded by the distance @node.outset 
+		Show a node's snapping target for connecting edges, which is the node's outline extruded by the distance @node.outset
+	],
+	"node.bounds": [
+		Show the rectangular bounding boxes of nodes
 	],
   "node.cell": [
 		Show a node's occupied flexigrid cell, respecting @node.colspan and @node.rowspan, and determining the region in which the node can be aligned with @node.align

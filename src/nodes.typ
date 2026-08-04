@@ -1,18 +1,9 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-group, debug-level, get-debug
+#import "debug.typ": debug-group, debug-level, get-debug, DEBUG_STYLES
 #import "shapes.typ": DEFAULT_NODE_STYLE, NODE_SHAPES
 #import "parsing.typ"
 
-#let cell-fill = {
-  let t = 1mm
-  tiling(size: (t, t), {
-    set line(stroke: 0.25pt + red.transparentize(60%))
-    place(line(angle: 45deg), dx: t/2, dy: -t/2)
-    place(line(angle: 45deg), dx: -t/2, dy: t/2)
-    line(angle: 45deg)
-  })
-}
 
 #let draw-node-at(node, origin, debug: false) = {
   (ctx => {
@@ -50,36 +41,42 @@
   },)
 
 
-  if debug-level(debug, "node") {
-    debug-group(layer: 10, {
-      if node.cell != none and debug-level(debug, "node.cell") {
-        let (center, size) = node.cell
-        let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
-        let hi = cetz.vector.add(center, cetz.vector.scale(size, 0.5))
-        cetz.draw.rect(lo, hi, fill: cell-fill, stroke: 0.25pt + red.transparentize(60%))
-      }
+  debug-group(layer: 10, {
+    if node.cell != none and debug-level(debug, "node.cell") {
+      let (center, size) = node.cell
+      let lo = cetz.vector.sub(center, cetz.vector.scale(size, 0.5))
+      let hi = cetz.vector.add(center, cetz.vector.scale(size, 0.5))
+      cetz.draw.rect(lo, hi, ..DEBUG_STYLES.node.cell)
+    }
 
-      if debug-level(debug, "node.outset") {
-        let n = node
-        n.style.extrude = (node.style.outset,)
-        n.style.fill = none
-        n.name = none
-        n.body = none
-        n.style.stroke = (paint: green, thickness: 0.5pt, dash: "densely-dotted")
-        cetz.draw.group(draw-node-at(n, n.pos, debug: false))
-      }
+    if debug-level(debug, "node.body") {
+      let c = cetz.vector.add(node.pos, node.body-center)
+      let s = cetz.vector.scale(node.body-size, 0.5)
+      let lo = cetz.vector.sub(c, s)
+      let hi = cetz.vector.add(c, s)
+      cetz.draw.rect(lo, hi, ..DEBUG_STYLES.node.body)
+    }
 
-      cetz.draw.translate(origin)
-      if debug-level(debug, "node.origin") {
-        cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
-      }
-      let (w, h) = node.bounding-size
-      if debug-level(debug, "node.bounds") {
-        cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), stroke: 0.25pt + purple.transparentize(50%))
-      }
+    if debug-level(debug, "node.outset") {
+      let n = node
+      n.style.extrude = (node.style.outset,)
+      n.style.fill = none
+      n.name = none
+      n.body = none
+      n.style.stroke = DEBUG_STYLES.node.outset.stroke
+      cetz.draw.group(draw-node-at(n, n.pos, debug: false))
+    }
 
-    })
-  }
+    cetz.draw.translate(origin)
+    if debug-level(debug, "node.origin") {
+      cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
+    }
+    let (w, h) = node.bounding-size
+    if debug-level(debug, "node.bounds") {
+      cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), ..DEBUG_STYLES.node.bounds)
+    }
+
+  })
 
 }
 
@@ -267,7 +264,7 @@
 
   let body = text([#body], top-edge: "cap-height", bottom-edge: "baseline")
   if debug-level(get-debug(ctx, debug), "node.inset") {
-    body = rect(body, inset: 0pt, outset: 0pt, stroke: 0.5pt + purple.transparentize(50%))
+    body = rect(body, inset: 0pt, outset: 0pt, ..DEBUG_STYLES.node.inset)
   }
 
   // inset = 0

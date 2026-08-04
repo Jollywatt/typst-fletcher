@@ -1,6 +1,6 @@
 #import "utils.typ"
 #import "deps.typ": cetz
-#import "debug.typ": debug-level, debug-group
+#import "debug.typ": debug-level, debug-group, DEBUG_STYLES
 
 
 /* Flexilines and flexigrids */
@@ -8,15 +8,15 @@
 // A _flexiline_ is a coordinate system on a 1d line, consisting of an array of _cells_,
 // where each cell has a physical size/length. The center of each cell is determined by
 // their sizes and a required _spacing_ or gutter between adjacent cells.
-// 
+//
 // The flexiline defines a coordinate mapping from $u$ (the cell index) to $x$ (the cell's
 // physical center coordinate), with a linear interpolation behaviour for fractional $u$.
-// 
+//
 // A _rod_ is a region spanning between two coordinates `lo` and `hi` on a flexiline which
 // has an minimum size/length. A rod represents some content to be placed in a flexiline
 // at a single coordinate $u$ (in which case `lo` and `hi` are the same) or spanning more
 // than one cell (`lo < hi`).
-// 
+//
 // To _resolve_ a flexiline is to choose cell sizes so that the rods
 // "fit" into the cells as appropriate. E.g., a wide rod at $u = 1$ forces the cell at
 // index $1$ to be at least that wide; and a rod with a span of two straddles between
@@ -25,12 +25,12 @@
 // in which case the correct behaviour is less clear - but the resolved flexiline layout
 // (including the center and size of each cell, but not the number of cells) should always
 // be a continuous function of the rods' centers, sizes and spans.
-// 
+//
 // A _flexigrid_ is the 2d analogue of a flexiline, consisting of a pair of independent
 // flexilines whose cartesian product define a 2d grid layout with rectangular cells.
 // A _rect_ is the 2d analogue of a _rod_, represented as a pair or cartesian product
 // of two rods. Rects have a 2d center, width and height, and colspan and rowspan.
-// 
+//
 // To resolve a flexigrid, we consider each axis in turn and resolve the horizontal and
 // vertical flexiline independently. Resolving a flexiline is done with a simple iterative
 // algorithm: put rods on the flexiline, and measure how much larger the cells should be,
@@ -123,7 +123,7 @@
       let cell = get-interpolated-flexiline-cell(fl, rod.lo, rod.hi)
       let left-rod-edge = cell.center - rod.size/2
       let right-rod-edge = cell.center + rod.size/2
-      
+
       let left-cell-center = fl.centers.at(i-left)
       let right-cell-center = fl.centers.at(i-right)
 
@@ -281,21 +281,20 @@
   let draw-sizes = draw-lines
   let draw-layout-iters = debug-level(debug, "grid.iters")
 
-  let DEBUG_COLOR = red.transparentize(30%)
-  let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
-  let size-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 1pt)
-  let tickstyle(it) = text(0.8em, DEBUG_COLOR, raw(str(it), lang: none))
+  // let DEBUG_COLOR = red.transparentize(30%)
+  // let line-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 0.5pt, dash: "dotted")
+  // let size-stroke-style = stroke(paint: DEBUG_COLOR, thickness: 1pt)
+  let tickstyle(it) = text(0.8em, red, raw(str(it), lang: none))
 
   grid.x = trim-flexiline(grid.x)
   grid.y = trim-flexiline(grid.y)
 
   let (x-min, x-max) = flexiline-bounds(grid.x)
   let (y-min, y-max) = flexiline-bounds(grid.y)
-  
+
   debug-group({
     if draw-cells {
-      let t = 0.5pt
-      cetz.draw.stroke(DEBUG_COLOR)
+      let t = DEBUG_STYLES.grid.cells.stroke.thickness
       for i in range(grid.x.centers.len()) {
         for j in range(grid.y.centers.len()) {
           let (x, y) = (grid.x.centers.at(i), grid.y.centers.at(j))
@@ -303,14 +302,14 @@
           cetz.draw.rect(
             (rel: (+t/2, +t/2), to: (x - w/2, y - h/2)),
             (rel: (-t/2, -t/2), to: (x + w/2, y + h/2)),
-            stroke: t,
+            ..DEBUG_STYLES.grid.cells
           )
         }
       }
     }
 
     if draw-layout-iters {
-      let body = text(0.6em, DEBUG_COLOR)[
+      let body = text(..DEBUG_STYLES.grid.iters)[
         #info.iters layout
         #if info.iters == 1 [iteration] else [iterations]
       ]
@@ -318,19 +317,23 @@
     }
 
     cetz.draw.group({
-      cetz.draw.fill(DEBUG_COLOR)
+      // cetz.draw.fill(DEBUG_COLOR)
       cetz.draw.stroke(none)
-      cetz.draw.set-style(content: (padding: 0.25em))
+      cetz.draw.set-style(
+        content: (padding: 0.25em),
+        rect: (fill: DEBUG_STYLES.grid.size.stroke.paint),
+        line: DEBUG_STYLES.grid.lines,
+      )
       for (i, x) in grid.x.centers.enumerate() {
         if draw-coords {
           cetz.draw.content((x, y-min), tickstyle(i + grid.x.min), anchor: "north")
         }
         if draw-sizes {
           let w = grid.x.sizes.at(i)
-          cetz.draw.rect((x - w/2, y-min), (to: (x + w/2, y-min), rel: (0, -size-stroke-style.thickness)), fill: size-stroke-style.paint)
+          cetz.draw.rect((x - w/2, y-min), (to: (x + w/2, y-min), rel: (0, -DEBUG_STYLES.grid.size.stroke.thickness)))
         }
         if draw-lines {
-          cetz.draw.line((x, y-min), (x, y-max), stroke: line-stroke-style)
+          cetz.draw.line((x, y-min), (x, y-max))
         }
       }
       for (i, y) in grid.y.centers.enumerate() {
@@ -339,10 +342,10 @@
         }
         if draw-sizes {
           let h = grid.y.sizes.at(i)
-          cetz.draw.rect((x-min, y - h/2), (to: (x-min, y + h/2), rel: (-size-stroke-style.thickness, 0)), fill: size-stroke-style.paint)
+          cetz.draw.rect((x-min, y - h/2), (to: (x-min, y + h/2), rel: (-DEBUG_STYLES.grid.size.stroke.thickness, 0)))
         }
         if draw-lines {
-          cetz.draw.line((x-min, y), (x-max, y), stroke: line-stroke-style)
+          cetz.draw.line((x-min, y), (x-max, y))
         }
       }
     })
@@ -519,12 +522,12 @@
   axes: (ltr, ttb),
   /// Maximum number of layout iterations used to find row and
   /// column sizes before converging.
-  /// 
+  ///
   /// Diagrams with nodes at fractional $u v$ coordinates may
   /// require more iterations of the layout algorithm until the
   /// flexigrid stabilizes.
   /// You can see how many iterations were used with the `debug: "grid.iters"` option.
-  /// 
+  ///
   /// -> int
   max-layout-iterations: 20,
   debug: false,
@@ -548,7 +551,7 @@
     // to determine the flexigrid cell sizes, but nothing is drawn.
     // Coordinates are resolved in a context where only $u v$ coordinates are
     // kept, and anything else returns `float.nan`.
-    
+
     let layout-ctx = with-coord-resolver(ctx, layout-coord-resolver)
     layout-ctx.shared-state.fletcher = (
       pass: "layout",
@@ -561,7 +564,7 @@
     let uv-nodes = nodes.filter(node => node.uv-pos != none)
     let (fg, iters) = resolve-flexigrid(uv-nodes, spacing, axis-flips, max-iters: max-layout-iterations)
 
- 
+
     /* Node placement pass */
     // After the flexigrid is determined, process all nodes and place them in
     // flexigrid cells. This might involve resolving coordinates with anchors,
@@ -592,7 +595,7 @@
         nodes: nodes, // must contain FINAL node coords
         current-node: 0,
         debug: debug,
-      ) 
+      )
       return (ctx: ctx)
     },)
 
