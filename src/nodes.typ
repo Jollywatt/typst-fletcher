@@ -71,8 +71,8 @@
     if debug-level(debug, "node.origin") {
       cetz.draw.circle((0, 0), radius: 0.8pt, fill: red, stroke: none)
     }
-    let (w, h) = node.bounding-size
     if debug-level(debug, "node.bounds") {
+      let (w, h) = node.bounding-size
       cetz.draw.rect((-w/2,-h/2), (+w/2,+h/2), ..DEBUG_STYLES.node.bounds)
     }
 

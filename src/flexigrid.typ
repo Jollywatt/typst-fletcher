@@ -235,10 +235,14 @@
 #let grow-node-in-cell(node, cell) = {
   let (colspan, rowspan) = node.cellspan
   if colspan != none {
-    node.bounding-size.first() = cell.size.first()
+    if node.style.at("width", default: none) == auto {
+      node.bounding-size.first() = cell.size.first()
+    }
   }
   if rowspan != none {
-    node.bounding-size.last() = cell.size.last()
+    if node.style.at("height", default: none) == auto {
+      node.bounding-size.last() = cell.size.last()
+    }
   }
   return node
 }
