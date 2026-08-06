@@ -359,6 +359,10 @@
 		utils.error("invalid positional arguments in node: #..0", args)
 	}
 
+	if args.len() > 0 {
+		utils.error("Unexpected `node()` positional argument: #..0. Try using named arguments", args)
+	}
+
 	return options
 }
 
