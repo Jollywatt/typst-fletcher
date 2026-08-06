@@ -94,6 +94,29 @@
     }
   }
 
+  // be forgiving
+  let aliases(it) = {
+    if it in (std.circle, cetz.draw.circle) { return "circle" }
+    if it == std.ellipse { return "ellipse" }
+    if it in (std.rect, cetz.draw.rect) { return "rect" }
+    if it == none { return "none" }
+    return it
+  }
+  shape = aliases(shape)
+
+  // use default shape unless node has styles for that shape
+  let default-shape = node-styles.at("shape", default: auto)
+  if default-shape != auto {
+    default-shape = aliases(default-shape)
+    let valid-args = {
+      all-shapes.at(default-shape).keys()
+      DEFAULT_NODE_STYLE.keys()
+    }
+    if node.style.keys().all(k => k in valid-args) {
+      shape = default-shape
+    }
+  }
+
   if shape == auto {
     // deduce node shape from style options
     // given as named arguments to node(..)
@@ -137,12 +160,6 @@
       }
     }
   }
-
-  // be forgiving
-  if shape in (std.circle, cetz.draw.circle) { shape = "circle" }
-  if shape == std.ellipse { shape = "ellipse" }
-  if shape in (std.rect, cetz.draw.rect) { shape = "rect" }
-  if shape == none { shape = "none" }
 
   if shape not in all-shapes {
     utils.error("Unknown node shape #0. Try: #..1",

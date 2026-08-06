@@ -68,3 +68,16 @@
     node((2,-1), [B], radius: 1em, fill: none, stroke: 2pt)
   })
 ]
+
+#page[
+  Default node shape
+
+  #diagram(
+    node-shape: "diamond",
+    node-stroke: red,
+    spacing: 5pt,
+    node((0,0))[A],
+    node((1,0), width: 2)[B],
+    node((2,0), radius: 5mm, stroke: green)[C],
+  )
+]
