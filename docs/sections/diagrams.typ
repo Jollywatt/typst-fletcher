@@ -46,7 +46,7 @@ This behaviour guarantees that a small nudge in a node's position only results i
 == Node alignment within cells
 
 A node's cell is defined by the flexigrid's rows and columns, and grows with the size of the node.
-However, the cell can be larger than the node's bounding box (visible with the `"node.bounds"` debug option).
+However, the cell can be larger than the node's bounding box (visible with the @debug.node.bounds debug option).
 By default, nodes are placed in the center of their cell, but they can also be *aligned within cells* with @node.align.
 
 #example(```typ

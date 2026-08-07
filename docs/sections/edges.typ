@@ -67,9 +67,11 @@ Commas can be used to separate multiple coordinates, so `"r,d"` is understood as
 
 #example(```typ
 #diagram(
+  spacing: 5mm,
   node((0,0), $A$),
-  edge("r,u,dr,r", "=>"),
-  node((3,0), $B$),
+  edge("u,rr,d", "-->"),
+  node((1,0), stroke: 1pt)[Box],
+  node((2,0), $B$),
 )
 ```)
 In example above, the edge @auto-vertices[implicitly] begins from the previous node (relative coordinates cannot be used as the first coordinate).
@@ -93,7 +95,7 @@ The following edge options set properties of the edge's label(s):
 - @edge.label-side[`label-side`]: which side of the edge to place the body
 - @edge.label-angle[`label-angle`]: rotation/orientation of the body
 - @edge.label-sep[`label-sep`]: separation between edge and body
-- @edge.label-anchor[`label-anchor`]: the CeTZ anchor to use for label body 
+- @edge.label-anchor[`label-anchor`]: the CeTZ anchor to use for label body
 
 To specify multiple labels, pass an array of dictionaries to @edge.label, where each contains properties without the `label-` prefix:
 ```typc
@@ -114,7 +116,7 @@ In the example below, the vertical edges have two labels each:
   edge((0,0), (0,1), "->", label: (
     (body: $ tilde $, angle: auto),
     (body: $kappa_X$, side: right),
-  ), label-sep: 3pt),
+  ), label-sep: 3pt), // label-sep applies to both labels
 
   edge((1,0), (1,1), "->", label: (
     (body: $ tilde $, angle: auto),
@@ -128,16 +130,16 @@ In the example below, the vertical edges have two labels each:
 To make it easy to achieve common edge shapes, like arcs, loops or right-angled corners, edges can have different _kinds_, depending on the combination of named arguments present.
 
 #table(
-  columns: 3,
+  columns: 2,
   stroke: none,
-  table.header([Kind], [Required arguments], [Optional]),
+  table.header([Edge Kind], [Arguments]),
   table.hline(),
   ..fletcher
     .edges
     .EDGE_KINDS
     .pairs()
     .map(((k, v)) => {
-      (raw(k), v.required.map(raw).join(", "), v.optional.keys().map(raw).join(", "))
+      (raw(k), (v.required + v.optional.keys()).map(raw).join(", "))
     })
     .flatten(),
 )
@@ -247,11 +249,11 @@ For example, below we draw a composite CeTZ path using lines and a cubic Bézier
 
 Edges support _path anchors_, like most CeTZ elements.
 This allows you to refer to points along an edge.
-// In addition to CeTZ path anchors like `50%` or `1cm`, fletcher defines _segment indices_, which refer to the vertices of an edge 
+// In addition to CeTZ path anchors like `50%` or `1cm`, fletcher defines _segment indices_, which refer to the vertices of an edge
 In particular, the @edge.label-pos[label position] is a path anchor, and if the edge has a @edge.name, you can place other elements using the coordinates `<name.anchor>`, `"name.anchor"` or `(name: "name", anchor: "anchor")`.
 
 #table(
-  columns: 2, 
+  columns: 2,
   [Path anchor], [Description],
   `25%`, [Fraction of total length along path],
   `"start", "mid", "end"`, [Aliases for `0%`, `50%` and `100%`],
@@ -294,5 +296,4 @@ Negative indices refer to vertices in reverse order.
 
 
 Importantly, *node positions cannot depend on edge anchors*. This is because nodes are processed before edges.
-To place annotations on edges, you can draw directly with CeTZ, like in the example above.
-
+To place annotations on edges, you can use labels or draw directly with CeTZ, like in the example above.

@@ -1,8 +1,9 @@
 #import "../common.typ": *
 #show: style
 
-
 = Nodes
+
+@node[`node(position, body, ..)`]
 
 Nodes are content centered at a coordinate.
 By default, nodes fit to their content (with an @node.inset[inset]), but can also be given a specific size and @node-shapes[shape].

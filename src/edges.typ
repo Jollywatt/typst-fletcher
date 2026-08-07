@@ -347,7 +347,12 @@
     } else if snap-to == auto {
       // find fletcher nodes nearby
       let dist(node) = cetz.vector.dist(node.pos, pos)
-      let node = nodes.filter(n => dist(n) <= cetz.vector.len(n.bounding-size) / 2).sorted(key: dist).at(0, default: none)
+      let node = nodes
+        .filter(n => {
+          n.snap and dist(n) <= cetz.vector.len(n.bounding-size) / 2
+        })
+        .sorted(key: dist)
+        .at(0, default: none)
       if node != none {
         target-drawables = node-drawables(node, outset)
       }
@@ -969,7 +974,7 @@
   /// edge(.., "->", label: $f$)
   /// edge(.., label: $f$, marks: "->")
   /// ```
-  /// ->
+  /// -> coord | str | content
   ..args,
   /// Array of coordinates for the edge.
   ///
@@ -977,6 +982,59 @@
   /// (so `edge((0,1), (1,1), $f$, ..)` is the same as `edge($f$, vertices: ((0,1), (1,1)), ..)`).
   /// -> array
   vertices: (),
+  /// Stroke style for the edge.
+  ///
+  /// The default thickness matches the thickness of the $->$ symbol in the default
+  /// math font with the current text size.
+  ///
+  /// The default stroke style can be set with the `edge-stroke` option of @diagram
+  /// or with `cetz.draw.set-style(edge: (stroke: ..))`.
+  /// -> stroke
+  stroke: auto,
+  /// Set the dash property of the current stroke style.
+  ///
+  /// You can also set the dash style using @edge.stroke; this is simply an alias.
+  dash: auto,
+  /// Draw a separate stroke for each extrusion offset to
+  /// obtain a multi-stroke effect. Offsets may be numbers
+  /// (specifying multiples of the stroke's thickness) or lengths.
+  ///
+  /// #frame-row(..(
+  ///     (0,),
+  ///     (-1.5,+1.5),
+  ///     (-2,0,+2),
+  ///     (-.5em,),
+  ///     (0, 5pt),
+  ///   ).map(e => {
+  ///   diagram(edge(
+  ///     (0, 0), (1, 0), [#e], "|->",
+  ///     extrude: e, stroke: 1pt, label-sep: 1em
+  ///   ))
+  /// }))
+  ///
+  /// Some line styles can also be used as a shortcut:
+  /// - `edge("=")` produces #fletcher.parsing.LINE_ALIASES.at("=")
+  /// - `edge("==")` produces #fletcher.parsing.LINE_ALIASES.at("==")
+  /// -> number | length | array
+  extrude: auto,
+  /// Radius of curvature for rounded corners.
+  ///
+  /// For extruded edges, this defines the radius of curvature of
+  /// the _innermost_ stroke as you go around the bend.
+  /// Note that `none`, which enables miter joins, is different from `0`.
+  ///
+  /// #frame-row(..(none, 0pt, 5pt).map(it => {
+  ///   	diagram(
+  ///   		edge-stroke: 1pt,
+  ///   		edge("r,t,rd,r", "=>", raw(repr(it)), label-pos: 60%, corner-radius: it)
+  ///   	)
+  ///   }))
+  ///
+  /// This length specifies the corner radius for right-angled bends.
+  /// The actual radius is smaller for acute angles and larger for obtuse angles to balance things visually.
+  /// See @path-effect.corner-radius for details.
+  /// -> length | number | none
+  corner-radius: auto,
   /// Marks or arrows to draw along the edge.
   ///
   /// TODO
@@ -1114,8 +1172,8 @@
   /// This can be `none` to disable snapping or `auto` to detect nearby nodes.
   /// A pair such as `(none, auto)` can be used to control snapping at each end independently.
   ///
-  /// *@edge.debug options:* You can use the `debug: "edge.snap"` option to see the edge's path before snapping is applied.
-  /// Additionally, the debug options `"edge.snap.from"` and `"edge.snap.to"` highlight the nodes that are ultimately snapped to.
+  /// You can use the @debug.edge.snap debug option to see the edge's path before snapping is applied.
+  /// Additionally, @debug.edge.snap.from and @debug.edge.snap.to highlight which nodes actually get snapped to.
   ///
   /// -> none | auto | pair
   snap-to: (auto, auto),
@@ -1169,49 +1227,11 @@
   /// See also @edge.outset.
   /// -> length | number | array
   shorten: 0,
+  /// Name of the edge for use with coordinate anchors.
+  ///
+  /// Giving a name to an edge allows the use of @path-anchor[path anchors] to connect other edges or CeTZ objects.
+  /// -> label | str
   name: none,
-  stroke: auto,
-  dash: auto,
-  /// Draw a separate stroke for each extrusion offset to
-  /// obtain a multi-stroke effect. Offsets may be numbers
-  /// (specifying multiples of the stroke's thickness) or lengths.
-  ///
-  /// #frame-row(..(
-  ///     (0,),
-  ///     (-1.5,+1.5),
-  ///     (-2,0,+2),
-  ///     (-.5em,),
-  ///     (0, 5pt),
-  ///   ).map(e => {
-  ///   diagram(edge(
-  ///     (0, 0), (1, 0), [#e], "|->",
-  ///     extrude: e, stroke: 1pt, label-sep: 1em
-  ///   ))
-  /// }))
-  ///
-  /// Notice how the strokes terminate on the marks properly.
-  /// This is defined by the `cap-offset` option of the marks.
-  /// TODO
-  /// -> number | length | array
-  extrude: auto,
-  /// The radius of round or bevelled corners.
-  ///
-  /// For extruded edges, this defines the radius of curvature of
-  /// the _innermost_ stroke as you go around the bend.
-  /// Note that `none`, which enables miter joins, is different from `0`.
-  ///
-  /// #frame-row(..(none, 0pt, 5pt).map(it => {
-  ///   	diagram(
-  ///   		edge-stroke: 1pt,
-  ///   		edge("r,t,rd,r", "=>", raw(repr(it)), label-pos: 60%, corner-radius: it)
-  ///   	)
-  ///   }))
-  ///
-  /// This length specifies the corner radius for right-angled bends.
-  /// The actual radius is smaller for acute angles and larger for obtuse angles to balance things visually.
-  /// See @path-effect.corner-radius for details.
-  /// -> length | number | none
-  corner-radius: auto,
   /// Apply CeTZ _path decorations_ do the edge, such as wave or zigzag effects.
   ///
   /// This can be a dictionary containing any of:
@@ -1320,7 +1340,18 @@
   /// See also @node.in-math.
   /// -> bool
   in-math: false,
+  /// Function accepting an array of vertices and returning the CeTZ path.
+  ///
+  /// This internal argument isn't meant for normal use.
+  /// It is set automatically depending on the inferred @edge-kinds[edge kind].
+  /// For example, if `bend: 30deg` is given, `draw` defaults
+  /// to `cetz.draw.arc(..)` with appropriate end points.
+  /// -> function
   draw: auto,
+  /// Enable debug annotations for only this edge.
+  /// See @debug.edge.
+  ///
+  /// If `auto`, the debug setting is inherited from the enclosing @diagram or @flexigrid.
   debug: auto,
 ) = {
   let options = (

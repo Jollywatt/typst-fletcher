@@ -431,11 +431,17 @@
 /// Nodes can have various shapes (rect, circle), styles (fill, stroke).
 #let node(
   ..args,
-  /// Content to draw in the node. -> content
+  /// Content to draw in the node.
+  ///
+  /// This content is measured to automatically determine the size of the node.
+  /// The @debug.node.body debug option shows the body's bounding box after @node.inset is applied.
+  /// -> content
   body: none,
   /// The shape of the node's body enclosing its label.
   ///
   /// Built-in shapes are #fletcher.shapes.NODE_SHAPES.keys().map(it => raw(repr(it))).join(last: [ and ])[, ].
+  ///
+  /// Some node shapes accept other styling options which can be passed as arguments to @node.
   ///
   /// See also the @node-shapes section of the manual.
   /// -> auto | none | string
@@ -443,17 +449,36 @@
 
   /// Fill style of the node.
   ///
-  /// The fill is drawn within the outline defined by the first @node.extrude value.
+  /// The fill is drawn within the outline defined by the first @node.extrude value. For example:
+  ///
+  /// #example(```typ
+  /// #diagram(
+  ///   node-fill: yellow,
+  ///   node-stroke: 1pt,
+  ///   node((0,0), [A], extrude: (0, 3)),
+  ///   node((1,0), [B], extrude: (3, 0)),
+  /// )
+  /// ```)
   fill: auto,
   /// Stroke style for the node outline.
   stroke: auto,
-  /// Padding between the node's content and its outline.
+  /// Padding applied to the content in a node's body.
+  ///
+  /// The @debug.node.inset debug option draws a box around the
+  /// body content before inset is applied.
+  ///
+  /// The inset can be a length like `5pt`, or a CeTZ-style array
+  /// or dictionary: for example, `(0, 5pt)` for only horizontal
+  /// padding; `(left: 5pt, rest: 10pt)` for per-edge padding.
+  /// -> length | array | dictionary
   inset: auto,
-  /// Separation between the node's outline to the snapping region for edges.
+  /// Separation between the node's visible outline and the
+  /// snapping target for edges.
   ///
   /// This does not affect the node's appearance or layout, only how closely edges connect to it.
   ///
-  /// When the `node.outline` debug mode is on, the node outset is visualised as a think green dotted outline.
+  /// When @debug.node.outset debug option is on, the node outset
+  /// drawn as a green dotted line.
   ///
   /// #example(```typ
   /// #diagram(
@@ -482,14 +507,18 @@
   /// Nodes with equal layer are drawn in the order they are inserted.
   /// -> number
   layer: 0,
-
+  /// Name of the node for use with coordinate anchors.
+  ///
+  /// This can also be passed as a positional argument (but then
+  /// the name must be a label, not a string).
+  /// -> label | str
   name: none,
-  /// Alignment of the node within its associated cell within a flexigrid.
+  /// Align a node within its associated flexigrid cell.
   ///
   /// This only has effect when used inside a @diagram or @flexigrid.
   ///
   /// #frame-row(..(top + left, right).map(it => diagram(
-  ///   debug: "grid",
+  ///   debug: "node.cell",
   ///   spacing: 2pt,
   ///   node-fill: teal.lighten(50%),
   ///   node((0,0), align: it, raw(repr(it))),
@@ -497,8 +526,10 @@
   ///   node((1,0), width: 5mm, height: 1cm),
   /// )))
   ///
-  /// To make a node fit to the size of a flexigrid cell,
-  /// you can set the @node.colspan or @node.rowspan to `1`.
+  /// The node's associated cell is visible when the
+  /// @debug.node.cell debug option is enabled.
+  ///
+  /// -> alignment
   align: center + horizon,
   /// How much the node influences the size of flexigrid rows/columns.
   ///
@@ -507,10 +538,39 @@
   /// -> number
   weight: 1,
   enclose: none,
+  /// Whether this node can have edges automatically snap to it.
+  /// -> bool
   snap: true,
-  debug: auto,
 
+  /// The number of columns spanned by the node's @node-cells[flexigrid cell].
+  ///
+  /// The column span can be positive (meaning the cell grows rightwards)
+  /// or negative (leftwards), or even fractional.
+  /// The cell must span at least one column, so the range of this
+  /// parameter is $(-oo, -1] union [1, oo)$.
+  ///
+  /// If the column span is not `none`, then node's width defaults
+  /// to the full size of its enclosing cell.
+  ///
+  /// #example(```typ
+  /// #diagram(
+  ///   spacing: 5pt,
+  ///   debug: "node.cell",
+  ///   node((0,0), colspan: 3, $x y z$),
+  ///   node((0,1), rowspan: 2, $x$),
+  ///   node((1,1), $y$),
+  ///   node((2,1), $z$),
+  ///   node((2,2), colspan: -2, $y z$)
+  /// )
+  /// ```)
+  ///
+  /// See also @node.rowspan and @node.enclose.
+  /// -> number | none
   colspan: none,
+  /// Row span of the node's @node-cells[flexigrid cell].
+  ///
+  /// Analogous to @node.colspan.
+  /// -> number
   rowspan: none,
 
   /// Whether to return a `metadata` object which can be placed inside equations,
@@ -529,6 +589,12 @@
   /// See also @edge.in-math.
   /// -> bool
   in-math: false,
+
+  /// Enable debug annotations for only this node.
+  /// See @debug.node.
+  ///
+  /// If `auto`, the debug setting is inherited from the enclosing @diagram or @flexigrid.
+  debug: auto,
 ) = {
 
   let style = (
