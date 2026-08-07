@@ -12,7 +12,7 @@
 	node((0,+1), $G(s)$, fill: white),
 	edge((0,+1), (1,0), "-|>", corner: left),
 	edge((0,-1), (1,0), "..|>", corner: right, layer: -2),
-	node((1,0), text(white, $ plus.circle $), inset: 2pt, fill: black),
+	node((1,0), text(white, $ plus.o $), inset: 2pt, fill: black),
 	edge("-|>"),
 	node(
 		enclose: ((0,+1), (0,-1)),

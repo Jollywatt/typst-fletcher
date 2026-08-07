@@ -368,7 +368,7 @@ Avoid importing everything with `*` as many internal functions are also exported
 		     snap: false), // prevent edges snapping to this node
 		edge((0,+1), (1,0), "..|>", corner: left),
 		edge((0,-1), (1,0), "-|>", corner: right),
-		node((1,0), text(white, $ plus.circle $), inset: 2pt, fill: black),
+		node((1,0), text(white, $ plus.o $), inset: 2pt, fill: black),
 		edge("-|>"),
 	)
 	```),
@@ -625,7 +625,7 @@ For example, `<A.north>` and `(name: "A", anchor: "north")` are equivalent coord
 #diagram(
 	node-shape: rect,
 	node(circle(stroke: white, text(white, $Delta$)), name: <A>, fill: navy),
-	node(<A.north-east>, circle(fill: white, radius: 6pt, $ plus.circle $)),
+	node(<A.north-east>, circle(fill: white, radius: 6pt, $ plus.o $)),
 	edge((<A.north-west>, 25%, <A.south-west>), "l,u", "-O"),
 	edge((<A.north-west>, 50%, <A.south-west>), "l,l", "-@"),
 	edge((<A.north-west>, 75%, <A.south-west>), "l,d", "-O"),
@@ -880,8 +880,8 @@ You add or tweak mark styles by modifying `fletcher.MARKS`, as described in @mar
 Marks can be flipped by appending `'` to the name.
 
 #code-example-row(```typ
-#diagram(edge("harpoon'-hook", stroke: 1pt)) 
-#diagram(edge("hook'-harpoon", stroke: 1pt)) 
+#diagram(edge("harpoon'-hook", stroke: 1pt))
+#diagram(edge("hook'-harpoon", stroke: 1pt))
 ```)
 
 If there is a common mark style that you believe should be included with `fletcher` by default, please #link("https://github.com/Jollywatt/typst-fletcher")[open an issue]!

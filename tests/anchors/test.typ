@@ -71,7 +71,7 @@ Node positions depending on other nodes' anchors
 	node((1,1), [Beta], name: <B>, fill: yellow),
 	node(<A.north-east>, $ times.circle $),
 	edge(<A>, "->", auto),
-	node((rel: (0pt, -20pt), to: <A.south>), $ plus.circle $, inset: 0pt, name: <C>),
+	node((rel: (0pt, -20pt), to: <A.south>), $ plus.o $, inset: 0pt, name: <C>),
 	node((rel: (10pt, 0pt), to: <C>), $ f $),
 	edge(
 		<A>,
@@ -92,8 +92,8 @@ Diagram requiring two coordinate resolution passes
 	node(enclose: (<A>, <B>), stroke: yellow, name: <box>, text(yellow)[enclose node\ with anchor])
 
 	// node that depends on the anchors of an enclosing node
-	node(<box.north-east>, $ plus.circle $, name: <D>, stroke: teal)
+	node(<box.north-east>, $ plus.o $, name: <D>, stroke: teal)
 
-	// edge depending on 
+	// edge depending on
 	edge(<D.east>, "->", (rel: (2cm,0cm)), stroke: 1pt + teal)
 })
