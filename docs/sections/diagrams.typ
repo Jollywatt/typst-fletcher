@@ -7,17 +7,15 @@
 Fletcher encourages the use of an "elastic, tabular layout" called a _flexigrid_.
 
 Diagrams use a flexigrid layout by default, but you can also draw in a CeTZ canvas instead (see @draw-in-cetz).
-To render a diagram, fletcher first collects the row/column positions (henceforth, $u v$ coordinates) of all nodes in the diagram and calculates the row and column sizes for the flexigrid layout.
+To render a diagram, fletcher first collects the row/column positions (or $u v$ coordinates) of all nodes in the diagram and calculates the row and column sizes for the flexigrid layout.
 After the final flexigrid is determined, all nodes, edges and other objects are drawn in a context where both $u v$ coordinates and normal $x y$ coordinates can be used.
 
 If nodes have fractional $u v$ coordinates, an iterative algorithm is used to calculate the minimum row and column sizes which accommodate the nodes.
 This usually requires only a few steps (see the @flexigrid.max-layout-iterations option for details).
 
-== Flexigrids <flexigrid-layouts>
+== Nodes are placed within _cells_ <node-cells>
 
-== Nodes are placed within _cells_
-
-A node inside a flexigrid lives within a _cell_, which is visible when the `"node.cell"` debug option is turned on for the node or diagram.
+A node inside a flexigrid lives within a _cell_, which is visible when the @debug.node.cell debug option is turned on for the node or diagram.
 
 #example(```typ
 #diagram(

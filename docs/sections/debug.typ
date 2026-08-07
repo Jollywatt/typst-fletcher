@@ -1,22 +1,18 @@
 #import "../common.typ": *
 #show: style
 
-= Debugging
+= Debugging <debug-options>
 
 Fletcher has a range of _debug options_ which cause extra visual feedback to be drawn in diagrams.
-For example, `diagram(debug: "grid")` shows a coordinate grid.
-
-You can set the debug level for an entire diagram, or for individual nodes or edges using the `debug` named argument.
+For example, `diagram(debug: "grid")` shows a coordinate grid, and `node(debug: 4)` shows various parts of a node's anatomy.
 
 Debug arguments accept the following options:
 - `true`, `false`: enable or disable all debug annotations
-- `1`, `2`, ..., #raw(str(calc.max(..DEBUG_LEVELS.values()))): enable common annotations up to this level of detail
-- `"grid"`: enable specific annotations
-- `"grid.cells"`: a more specific annotation
+- `1`, `2`, ..., #raw(str(calc.max(..DEBUG_LEVELS.values()))): enable the most common annotations up to this level of detail
+- `"grid"`: enable default annotations for a category
+- `"grid.cells"`: enable a specific annotation
 - `("grid", "node.outset")`: multiple annotations
-- `"grid node.outset"`: space-separated string of multiple annotations
-
-== Debug options <debug-options>
+- `"grid node.outset"`: space-separated shorthand for multiple annotations
 
 #let dummy-diagram(debug) = {
 	show: frame
@@ -34,39 +30,73 @@ Debug arguments accept the following options:
 }
 
 #let debug-docs = (
+  grid: [
+    Grid annotations apply to @diagram and @flexigrid.
+  ],
+
 	"grid.coords": [
-		Show $u v$ or column/row diagram coordinates
-	],
-  "grid.lines": [
-		Show coordinate lines through row/column centers with dotted lines and indicate row/column sizes with solid lines
-	],
-  "grid.cells": [
-		Show boundaries of flexigrid cells as red boxes
-	],
-  "grid.iters": [
-		Report the number of iterations the flexigrid layout took to converge
+		Show column and row or $(u, v)$ diagram coordinates.
 	],
 	"grid.xy": [
-		Show $x y$ coordinate axes and grid in gray
+		Show CeTZ or $(x, y)$ canvas coordinates.
+	],
+  "grid.lines": [
+    Draw coordinate lines and indicate the sizes of rows and columns with tabs around the border.
+	],
+  "grid.cells": [
+		Show all cells in a flexigrid as red boxes.
+	],
+  "grid.iters": [
+		Report the number of iterations the flexigrid layout took to converge.
+	],
+
+	node: [
+	  These can be set on individual nodes
+		```typc
+		node(.., debug: "node.body")
+		```
+		or set at the diagram level:
+		```typc
+		diagram(debug: "node.body", ..)
+		```
 	],
 
   "node.origin": [
-		Show the center coordinate of a node as a small red dot
+		Show the center coordinate of a node as a small red dot.
+
+		This point is used as the default anchor for the node.
 	],
   "node.inset": [
-		Show bounding boxes around node bodies, before @node.inset is applied
+		Show bounding box around the node's body content _before_ @node.inset is applied.
 	],
 	"node.body": [
-	  Show bounding box around a node's body, after applying @node.inset.
+	  Show bounding box around a node's body, including any @node.inset.
 	],
   "node.outset": [
-		Show a node's snapping target for connecting edges, which is the node's outline extruded by the distance @node.outset
+		Show the snapping target for edges connecting to this node.
+
+    The snapping target is the node's outline extruded by the distance @node.outset.
 	],
 	"node.bounds": [
-		Show the rectangular bounding boxes of nodes
+		Show bounding boxes of node shapes.
 	],
   "node.cell": [
-		Show a node's occupied flexigrid cell, respecting @node.colspan and @node.rowspan, and determining the region in which the node can be aligned with @node.align
+    Show the flexigrid cell inhabited by the node.
+
+    Unlike @debug.grid.cells, this makes the node's @node.colspan[column] and @node.rowspan[row spans] visible.
+    This node's cell is the region in which @node.align has effect.
+	],
+
+	edge: [
+    These can be set on individual edges
+    ```typc
+    edge(.., debug: "edge.label")
+    ```
+    or set at the diagram level:
+    ```typc
+    diagram(debug: "edge.label", ..)
+    ```
+
 	],
 
 	"edge.label": [
@@ -84,22 +114,40 @@ Debug arguments accept the following options:
 	],
 )
 
-#table(
-	columns: 3,
-	..debug-docs.pairs().map(((k, v)) => {
-		(
-			[#raw(k)\ (level #DEBUG_LEVELS.at(k))],
-			v,
-			dummy-diagram(k),
-		)
-	}).flatten(),
+#html.style(```css
+.debug-row {
+  display: flex;
+  gap: 1em;
 
-	raw("mark.dots"),
-	[
-		Show the four key points of each marks on an edge
-	],
-	frame(scale(300%, reflow: true, diagram(edge(">>->", stroke: 1pt, bend: 90deg), debug: "mark.dots")))
-)
+  :first-child {
+    flex-grow: 1;
+  }
+}
+```.text)
+#for (key, desc) in debug-docs {
+  let id = label("debug." + key)
+
+  if "." not in key {
+    // make this a heading
+    let titlecase = upper(key.first()) + key.slice(1)
+    [#heading(level: 2)[#titlecase debug options] #id]
+    desc
+    continue
+  }
+
+  html.div(class: "fn-arg")[
+    #heading(raw(repr(key)), level: 3) #id
+    #html.div(class: "debug-row", {
+      html.div[
+        #desc
+
+        (Level $>= #DEBUG_LEVELS.at(key)$)
+      ]
+      dummy-diagram(key)
+    })
+  ]
+
+}
 
 == Debugging arrow marks
 

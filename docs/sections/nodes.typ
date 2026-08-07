@@ -106,7 +106,7 @@ All shapes have a `fit` parameter, which adjusts how tightly the shape fits in t
 The default is usually in between, striking a balance.
 If a node looks too cramped inside a shape, you can usually adjust the `fit` instead of tweaking the @node.inset.
 
-You can see the bounding box of the node body with the `"node.body"` @debug-options[debug option].
+You can see the bounding box of the node body with the @debug.node.body debug option.
 
 #example(```typ
 #diagram(

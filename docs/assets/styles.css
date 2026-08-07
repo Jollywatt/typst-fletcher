@@ -9,7 +9,7 @@
     apple color emoji,
     segoe ui emoji;
   --sidebar-width: 12rem;
-  --bg: white
+  --bg: white;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -74,8 +74,8 @@ nav {
   transition:
     /* menu open/close */
     left var(--open-duration),
-    /* menu unstretching to normal width */
-    box-shadow ease-in-out var(--stretch-duration),
+    /* menu unstretching to normal width */ box-shadow ease-in-out
+      var(--stretch-duration),
     min-width ease-in-out var(--stretch-duration);
   box-shadow: 5px 0 0px -5px #0000;
   z-index: 1;
@@ -99,7 +99,7 @@ nav {
     text-decoration: none;
   }
 
-  &>ul>li {
+  & > ul > li {
     margin-top: 1rem;
   }
 
@@ -114,8 +114,7 @@ nav {
     }
   }
 
-
-  span[data-depth='3'] {
+  span[data-depth="3"] {
     padding-left: 1em;
   }
 
@@ -140,8 +139,6 @@ nav {
     }
   }
 }
-
-
 
 @media screen and (min-width: 45rem) {
   /* Wide page */
@@ -187,12 +184,12 @@ nav {
     text-align: center;
   }
 
-  #menu-control:checked~nav {
+  #menu-control:checked ~ nav {
     left: 0px;
     box-shadow: 0 0 15px #0003;
   }
 
-  #menu-control:not(:checked)~.menu-overlay {
+  #menu-control:not(:checked) ~ .menu-overlay {
     opacity: 0;
     pointer-events: none;
   }
@@ -239,9 +236,7 @@ nav {
   right: 0;
   font-size: 10pt;
   padding: 0.5em;
-  background: repeating-linear-gradient(-45deg,
-      yellow 0 10px,
-      black 10px 20px);
+  background: repeating-linear-gradient(-45deg, yellow 0 10px, black 10px 20px);
   box-shadow: 0 2px 5px #0002;
   z-index: 10;
 
@@ -264,6 +259,10 @@ h2 {
   margin-top: 0;
 }
 
+h4 {
+  margin-bottom: 1em;
+}
+
 a {
   color: unset;
   cursor: pointer;
@@ -281,7 +280,6 @@ code {
   font-family: monospace, monospace;
   font-size: 0.95em;
 }
-
 
 table {
   border-collapse: collapse;
@@ -318,7 +316,6 @@ table {
   scrollbar-width: thin;
 }
 
-
 .code-example {
   display: flex;
   align-items: center;
@@ -328,9 +325,12 @@ table {
   .codeblock {
     flex-grow: 1;
     min-width: 0;
-    mask-image: linear-gradient(to right, black 70%, transparent);
+    mask-image: linear-gradient(to right, black 80%, transparent);
   }
 
+  & > svg {
+    margin-left: -3em;
+  }
 }
 
 .gallery-example {
@@ -350,12 +350,11 @@ table {
   border-radius: 0.8rem 0.8rem 0 0;
   box-shadow: 0 -4px 8px -8px #0003;
   padding: 1rem;
-  margin: 1em 0;
+  margin: 2em 0;
 
-  h3:first-child {
+  :is(h1, h2, h3, h4, h5, h6):first-child {
     margin-top: 0;
     display: inline-block;
-    font-size: 1rem;
   }
 }
 
