@@ -348,6 +348,9 @@
 
 	if args.len() == 0 {
 		// no more positional arguments
+	} else if peek(args, is-label, is-any) {
+		options.name = args.remove(0)
+		options.body = args.remove(0)
 	} else if peek(args, is-label) {
 		options.name = args.remove(0)
 	} else if peek(args, is-any, is-label) {
