@@ -175,13 +175,18 @@ nav {
     box-shadow: 0 0 1rem #0002;
   }
 
+  h2 {
+    font-size: 1.3em;
+  }
+
   nav {
     background: var(--bg);
     left: calc(-1 * var(--sidebar-width));
   }
 
-  h2 {
-    text-align: center;
+  article {
+    margin-top: 4em;
+    padding: 0 5vw;
   }
 
   #menu-control:checked ~ nav {
@@ -305,15 +310,20 @@ table {
   align-items: center;
 }
 
-.codeblock pre {
+pre {
   overflow-x: scroll;
+  scrollbar-width: thin;
+  padding-right: 1em;
+  margin-right: -1em;
+}
+
+.codeblock pre {
   background: #f9fcff;
   border: 1px solid #d0d7de;
   padding: 0.5em;
   border-radius: 0.75em;
   font-size: 0.85em;
   box-shadow: 0 1px 4px #0001;
-  scrollbar-width: thin;
 }
 
 .code-example {
