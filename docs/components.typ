@@ -16,6 +16,18 @@
   [_(noun) a maker of arrows_],
 ))
 
+#let package-summary = [
+  A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
+  built on top of #link("https://cetz-package.github.io")[CeTZ].
+
+  #emph[
+    Commutative diagrams,
+    flow charts,
+    state machines,
+    block diagrams...
+  ]
+]
+
 #let show-type(ty) = {
   import common.tidy.styles.default: colors
   let clr = colors.at(ty, default: colors.default)
@@ -83,6 +95,24 @@
 
 }
 
+#let bordered-section(body) = context {
+  if common.is-html() {
+    html.div(class: "bordered-section", body)
+  } else {
+    v(2em)
+    block(
+      outset: (x: 10pt),
+      width: 100%,
+      radius: (top: 10pt),
+      stroke: (top: .6pt + gray, rest: 0pt + gray),
+      height: 1cm,
+      sticky: true,
+    )
+    v(-16mm)
+    body
+  }
+}
+
 #let show-function-argument(fn, arg, info, level: 3) = {
   common.rich-ref(
     fn.name + "." + arg,
@@ -92,7 +122,7 @@
   )
 
   if common.is-html() {
-    html.div(class: "fn-arg", {
+    bordered-section({
       heading(raw(arg), level: level)
 
       html.div(class: "fn-arg-details", {
@@ -123,20 +153,26 @@
     }
 
     let is-long = info.description.len() > 500
-    block(
-      inset: 10pt,
-      breakable: is-long,
-      {
-        block(
-          outset: 10pt,
-          width: 100%,
-          radius: 10pt,
-          stroke: (top: .6pt + gray),
-          first-line,
-        )
-        eval(info.description, mode: "markup", scope: common.scope)
-      },
-    )
+
+    bordered-section[
+      #first-line
+
+      #eval(info.description, mode: "markup", scope: common.scope)
+    ]
+    // block(
+    //   inset: 10pt,
+    //   breakable: is-long,
+    //   {
+    //     block(
+    //       outset: 10pt,
+    //       width: 100%,
+    //       radius: 10pt,
+    //       stroke: (top: .6pt + gray),
+    //       first-line,
+    //     )
+    //     eval(info.description, mode: "markup", scope: common.scope)
+    //   },
+    // )
 
     v(1em)
   }

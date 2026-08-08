@@ -36,6 +36,23 @@
   }
 }
 
+#let side-figure(body, figure) = context {
+  if is-html() {
+    html.div(class: "side-figure", {
+      html.div(body)
+      figure
+    })
+  } else {
+    grid(
+      columns: (1fr, auto),
+      gutter: 1em,
+      body,
+      figure,
+    )
+  }
+}
+
+
 
 #let shape-colors = (
   rect: green,

@@ -19,7 +19,7 @@ check = "scripts/check.nu"
 
 [tasks.manual]
 args = [{arg = "mode", choices = ["watch", "compile"]}]
-cmd = "typst {{ mode }} --root . docs/manual.typ"
+cmd = "typst {{ mode }} --root . docs/manual.typ --features html"
 
 
 [tasks.site]

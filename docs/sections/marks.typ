@@ -210,7 +210,7 @@ A mark object may contain arbitrary properties, but the following have special f
 #{
 	show table.cell.where(y: 0): emph
 	set par(justify: false)
-	let little-mark(..args) = box(html.frame(diagram(spacing: 5mm, edge(..args, stroke: 0.75pt))))
+	let little-mark(..args) = frame(diagram(spacing: 5mm, edge(..args, stroke: 0.75pt)))
 
 	table(
 		columns: 3,
@@ -255,9 +255,9 @@ A mark object may contain arbitrary properties, but the following have special f
 		`flip`,
 		[
 			Whether to reflect the mark across the edge; the difference between
-			#box(html.frame(diagram(spacing: 8mm, edge("hook-", stroke: 1pt))))
+			#frame(diagram(spacing: 8mm, edge("hook-", stroke: 1pt)))
 			and
-			#box(html.frame(diagram(spacing: 8mm, edge("hook'-", stroke: 1pt)))), for example.
+			#frame(diagram(spacing: 8mm, edge("hook'-", stroke: 1pt))), for example.
 			A suffix `'` in the name, such as `"hook'"`, results in a flip.
 		],
 		`false`,
@@ -272,12 +272,12 @@ A mark object may contain arbitrary properties, but the following have special f
 		[
 			Whether to duplicate the mark and draw it offset at each extrude position.
 			For example, `(inherit: "head", extrude: (-5, 0, 5))` looks like
-			#box(html.frame(diagram(spacing: 8mm, edge(marks: (none, (inherit: "head", extrude: (-5, 0, 5))), stroke: .7pt)))).
+			#frame(diagram(spacing: 8mm, edge(marks: (none, (inherit: "head", extrude: (-5, 0, 5))), stroke: .7pt)))).
 
 		],
 		`(0,)`,
 
-		html.div(style: "white-space: nowrap;")[`tip-origin`\ `tail-origin`],
+		[`tip-origin`\ `tail-origin`],
 		[
 			These two properties control the $x$ coordinate of the point of the mark, relative to $(0, 0)$. If the mark is acting as a tip (#little-mark("->") or #little-mark("<-")) then `tip-origin` applies, and `tail-origin` applies when the mark is a tail (#little-mark("-<") or #little-mark(">-")).
 			See `mark-debug()`.

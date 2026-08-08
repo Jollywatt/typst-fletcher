@@ -343,13 +343,34 @@ pre {
   }
 }
 
+.side-figure {
+  display: flex;
+  gap: 1em;
+
+  :first-child {
+    flex-grow: 1;
+  }
+}
+
+.bordered-section {
+  border-top: 1px solid #aaa;
+  border-radius: 0.8rem 0.8rem 0 0;
+  box-shadow: 0 -4px 8px -8px #0003;
+  padding: 1rem;
+  margin: 2em 0;
+
+  & > :first-child {
+    margin-top: 0;
+  }
+}
+
 .gallery-example {
   border-radius: 0.5rem;
   border: 1px dashed transparent;
 
   &:hover {
     border-color: #aaa;
-    box-shadow: -2px 4px 8px #0001;
+    box-shadow: -2px 4px 8px #0002;
   }
 }
 

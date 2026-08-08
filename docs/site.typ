@@ -147,7 +147,6 @@
       #page-nav
     ]
     html.div(id: "wip-banner")
-    
   })
   html.script(nav-expander-script.text)
 }
@@ -155,7 +154,7 @@
 
 #asset("/styles.css", read("assets/styles.css"))
 
-
+#asset("/manual.pdf", read("manual.pdf", encoding: none)) <manual-pdf>
 
 // Home page
 
@@ -165,13 +164,12 @@
   #html.div(style: "margin: 15vh 0;")[
     #box(components.logo)
 
-    A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
-    built on top of #link("https://cetz-package.github.io")[CeTZ].
+    #components.package-summary
 
     *Version #common.VERSION*
   ]
 
-  #link("manual.pdf", html.img(src: "https://img.shields.io/badge/Manual-PDF-orange"))
+  #link(<manual-pdf>, html.img(src: "https://img.shields.io/badge/Manual-PDF-orange"))
   #link("https://typst.app/universe/package/fletcher/", html.img(src: "https://img.shields.io/badge/Typst-Universe-239dad"))
   #link("https://github.com/Jollywatt/typst-fletcher/", html.img(src: "https://img.shields.io/badge/GitHub-Repo-blue?logo=github"))
   #link("https://forum.typst.app", html.img(src: "https://img.shields.io/badge/ask-on%20Typst%20forum-239dad"))
@@ -233,7 +231,7 @@
 
 #for (i, (dest, src, doc-label)) in manual-pages.enumerate() {
 
-  let doc = document(dest, {
+  let doc = document("/manual/" + dest, {
     state("current-document").update(doc-label)
     template(include src)
   })

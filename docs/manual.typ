@@ -4,7 +4,7 @@
 
 // cover page
 
-#v(10%)
+#v(1fr)
 
 #align(center)[
 
@@ -12,15 +12,7 @@
 
   #v(30pt)
 
-  A #link("https://typst.app/")[Typst] package for diagrams with lots of arrows,
-  built on top of #link("https://cetz-package.github.io")[CeTZ].
-
-  #emph[
-    Commutative diagrams,
-    flow charts,
-    state machines,
-    block diagrams...
-  ]
+  #package-summary
 
   #link("https://github.com/Jollywatt/typst-fletcher")[`github.com/Jollywatt/typst-fletcher`]
 
@@ -35,6 +27,7 @@
   #outline(
     title: [Manual],
     target: selector(heading).after(<manual>, inclusive: false).before(<func-ref>, inclusive: false),
+    depth: 3,
   )
   #colbreak()
   #outline(
@@ -50,8 +43,8 @@
 
 
 #show heading: it => {
-  let size = (40pt, 25pt, 20pt, 15pt).at(it.level, default: 10pt)
-  text(size, it)
+  let size = (40pt, 25pt, 20pt, 15pt).at(it.level, default: 12pt)
+  text(size, v(1em) + it)
 }
 #show heading.where(level: 1): it => {
   pagebreak(weak: true)

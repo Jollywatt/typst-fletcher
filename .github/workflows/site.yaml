@@ -19,6 +19,9 @@ jobs:
       - name: Setup Pixi
         uses: prefix-dev/setup-pixi@v0.9.5
 
+      - name: Build manual PDF
+        run: pixi run manual compile
+
       - name: Build site
         run: pixi run site compile -- --input url-root=/typst-fletcher
 

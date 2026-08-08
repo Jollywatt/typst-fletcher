@@ -1,4 +1,5 @@
 #import "../common.typ": *
+#import "../components.typ"
 #show: style
 
 = Debugging <debug-options>
@@ -114,38 +115,28 @@ Debug arguments accept the following options:
 	],
 )
 
-#html.style(```css
-.debug-row {
-  display: flex;
-  gap: 1em;
-
-  :first-child {
-    flex-grow: 1;
-  }
-}
-```.text)
 #for (key, desc) in debug-docs {
   let id = label("debug." + key)
 
   if "." not in key {
     // make this a heading
     let titlecase = upper(key.first()) + key.slice(1)
-    [#heading(level: 2)[#titlecase debug options] #id]
+    [#heading(depth: 2)[#titlecase debug options] #id]
     desc
     continue
   }
 
-  html.div(class: "fn-arg")[
-    #heading(raw(repr(key)), level: 3) #id
-    #html.div(class: "debug-row", {
-      html.div[
-        #desc
+  show: components.bordered-section
+  [#heading(raw(repr(key)), depth: 3) #id]
+  side-figure(
+    [
+      #desc
 
-        (Level $>= #DEBUG_LEVELS.at(key)$)
-      ]
-      dummy-diagram(key)
-    })
-  ]
+      (Level $>= #DEBUG_LEVELS.at(key)$)
+    ],
+    dummy-diagram(key),
+
+  )
 
 }
 
