@@ -515,7 +515,10 @@
 			.to-dict()
 
 
-		let ctx = default-ctx + (target-system: "uv") + (nodes: dummy-edge-anchors)
+		let ctx = default-ctx + (
+			target-system: "uv",
+			em-size: (width: options.em-size, height: options.em-size),
+		) + (nodes: dummy-edge-anchors)
 
 		// try resolving node uv coordinates. this resolves to NaN coords if the
 		// resolution fails (e.g., if the coords depend on physical lengths)
@@ -545,7 +548,11 @@
 			.to-dict()
 
 
-		let ctx = default-ctx + (target-system: "xyz", grid: grid) + (nodes: dummy-edge-anchors)
+		let ctx = default-ctx + (
+			target-system: "xyz",
+			grid: grid,
+			em-size: (width: options.em-size, height: options.em-size),
+		) + (nodes: dummy-edge-anchors)
 
 		// PHASE 3: With the grid defined, fully resolve xy coordinates for all nodes and edges
 

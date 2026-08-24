@@ -144,3 +144,14 @@ https://github.com/Jollywatt/typst-fletcher/issues/113
   node((0, 1), [B], name: <B>),
   node((<Group.south>, 50%, <B.north>), $ + $)
 )
+
+
+https://github.com/Jollywatt/typst-fletcher/issues/135
+
+#let d = 100pt
+
+#set text(size: d)
+#diagram(
+	node((rel: (1 * d, 0em), to: (0, 0)), stroke: 1pt + black, width: 1em),
+	node((rel: (1em, 1em), to: (0, 0)), stroke: 1pt + black, width: 1 * d),
+)
