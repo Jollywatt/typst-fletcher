@@ -195,6 +195,75 @@
 	grid
 }
 
+
+// -----------------------------------------------------------------------------
+// Equalize node dimensions
+// -----------------------------------------------------------------------------
+//
+// When requested, nodes in the same column and/or row are given the same
+// width/height. The grid has already computed the maximum size required by
+// every column and row, so those values can be reused directly.
+//
+// This is deliberately performed after compute-grid() and before the final
+// physical coordinates are resolved.
+// -----------------------------------------------------------------------------
+#let equalize-node-sizes(
+	nodes,
+	grid,
+	equal-columns: false,
+	equal-rows: false,
+) = {
+	if not equal-columns and not equal-rows {
+		return nodes
+	}
+
+	nodes.map(node => {
+		// Nodes whose UV coordinates cannot be resolved do not belong
+		// to an ordinary row/column of the elastic grid.
+		if is-nan-vector(node.pos.uv) {
+			return node
+		}
+
+		let indices = vector.sub(node.pos.uv, grid.origin)
+
+		// Same convention as compute-cell-sizes().
+		if grid.flip.x {
+			indices.at(0) = -1 - indices.at(0)
+		}
+		if grid.flip.y {
+			indices.at(1) = -1 - indices.at(1)
+		}
+
+		// If the axes are transposed, the two dimensions have been
+		// transposed in cell-sizes as well.
+		if grid.flip.xy {
+			indices = indices.rev()
+		}
+
+		let col = calc.round(indices.at(0))
+		let row = calc.round(indices.at(1))
+
+		if equal-columns {
+			node.size.at(0) = grid.cell-sizes.at(0).at(col)
+		}
+
+		if equal-rows {
+			node.size.at(1) = grid.cell-sizes.at(1).at(row)
+		}
+
+		// measure-node-size() normally computes this value. Since we have
+		// changed the dimensions, keep it consistent.
+		node.aspect = if node.size.at(1) == 0pt {
+			1
+		} else {
+			node.size.at(0) / node.size.at(1)
+		}
+
+		node
+	})
+}
+
+
 #let extract-nodes-and-edges-from-equation(eq) = {
 	assert(eq.func() == math.equation)
 	let terms = flatten-sequence-to-array(eq.body)
@@ -331,8 +400,8 @@
 ///   that nodes at adjacent grid points are at least this far apart (measured as
 ///   the space between their bounding boxes).
 ///
-///   Separate horizontal/vertical gutters can be specified with `(x, y)`. A
-///   single length `d` is short for `(d, d)`.
+///   Separate horizontal/vertical gutters can be specified with `(x, y)`.
+///   A single length `d` is short for `(d, d)`.
 ///
 /// - cell-size (length, pair of lengths): Minimum size of all rows and columns.
 ///   A single length `d` is short for `(d, d)`.
@@ -440,6 +509,12 @@
 	axes: (ltr, ttb),
 	spacing: 3em,
 	cell-size: 0pt,
+
+	// New in this modified version:
+	// Make all nodes in the same column and/or row have equal dimensions.
+	equal-columns: false,
+	equal-rows: false,
+
 	edge-stroke: 0.048em,
 	node-stroke: none,
 	edge-corner-radius: 2.5pt,
@@ -473,6 +548,10 @@
 		axes: axes,
 		spacing: spacing,
 		cell-size: cell-size,
+
+		equal-columns: equal-columns,
+		equal-rows: equal-rows,
+
 		node-inset: node-inset,
 		node-outset: node-outset,
 		node-shape: node-shape,
@@ -507,62 +586,52 @@
 		let edges = edges.map(edge => resolve-edge-options(edge, options))
 
 		// PHASE 1: Resolve uv coordinates where possible
-
-
-		let dummy-edge-anchors = edges
-			.filter(edge => edge.name != none)
-			.map(edge => (str(edge.name), (anchors: k => NAN_COORD)))
-			.to-dict()
-
-
-		let ctx = default-ctx + (target-system: "uv") + (nodes: dummy-edge-anchors)
-
 		// try resolving node uv coordinates. this resolves to NaN coords if the
 		// resolution fails (e.g., if the coords depend on physical lengths)
-		let (ctx, nodes) = resolve-node-coordinates(
-			nodes, ctx: ctx)
-
-
+		let (ctx-with-uv-anchors, nodes) = resolve-node-coordinates(
+			nodes, ctx: (target-system: "uv"))
 		// nodes and edges whose uv coordinates can be resolved without knowing the grid
 		let rects-affecting-grid = nodes
 			.filter(node => not is-nan-vector(node.pos.uv))
 			.map(node => (center: node.pos.uv, size: node.size))
-
 		let vertices-affecting-grid = (edges
-			.map(edge => resolve-edge-vertices(ctx, edge, nodes))
-			.join() + ()) // coerce none to ()
+			.map(edge => resolve-edge-vertices(edge, nodes, ctx: ctx-with-uv-anchors + (target-system: "uv")))
+			.join() + ())
 			.filter(vert => not is-nan-vector(vert))
 
-
 		// PHASE 2: Determine elastic grid (row/column sizes) and resolve xy coordinates
-
-		// determine diagram's elastic grid layout
 		let grid = compute-grid(rects-affecting-grid, vertices-affecting-grid, options)
 
-		let dummy-edge-anchors = edges
-			.filter(edge => edge.name != none)
-			.map(edge => (str(edge.name), (anchors: k => (0pt, 0pt))))
-			.to-dict()
+		// Equalize node dimensions AFTER the grid has been computed.
+		nodes = equalize-node-sizes(
+			nodes,
+			grid,
+			equal-columns: options.equal-columns,
+			equal-rows: options.equal-rows,
+		)
 
-
-		let ctx = default-ctx + (target-system: "xyz", grid: grid) + (nodes: dummy-edge-anchors)
-
-		// PHASE 3: With the grid defined, fully resolve xy coordinates for all nodes and edges
-
+		let ctx-with-xyz-anchors
 		// we run multiple passes so that anchors on enclose nodes
 		// have a chance to resolve
 		// (a better way would be to resolve coordinates and enclose nodes together)
 		for i in range(5) {
-			ctx.prev.pt = (0, 0)
-
 			// now with grid determined, compute final (physical) coordinates for nodes and edges
-			(ctx, nodes) = resolve-node-coordinates(nodes, ctx: ctx)
+			(ctx-with-xyz-anchors, nodes) = resolve-node-coordinates(
+				nodes, ctx: (target-system: "xyz", grid: grid))
 
 			// resolve enclosing nodes
-			nodes = resolve-node-enclosures(nodes, ctx)
-
-			(ctx, edges) = resolve-edges(grid, edges, nodes, ctx)
+			nodes = resolve-node-enclosures(nodes, ctx-with-xyz-anchors)
 		}
+		// resolve edges
+		edges = edges.map(edge => {
+			edge.final-vertices = resolve-edge-vertices(
+				edge, ctx: ctx-with-xyz-anchors + (target-system: "xyz", grid: grid), nodes
+			)
+
+			edge = convert-edge-corner-to-poly(edge)
+			edge = apply-edge-shift(grid, edge)
+			edge
+		})
 
 		render(grid, nodes, edges, options)
 	})
